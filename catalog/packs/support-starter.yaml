@@ -1,0 +1,26 @@
+id: support-starter
+name: Support Starter Pack
+version: 0.1.0
+description: Essential agents for customer support teams
+category: support
+
+agents:
+  - inbox-triage
+  - ticket-auto-assign
+  - response-suggester
+  - sentiment-analyzer
+  - sla-monitor
+
+workflows:
+  - wf-01-auto-label-gmail
+
+connectors:
+  - gmail
+  - slack
+  - zendesk
+  - intercom
+
+recommended_settings:
+  triage_frequency: '*/15 * * * *'
+  auto_assign_enabled: true
+  sentiment_threshold: 0.7

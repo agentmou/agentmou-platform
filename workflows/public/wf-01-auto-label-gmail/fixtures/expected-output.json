@@ -1,0 +1,9 @@
+{
+  "emailId": "sample-001",
+  "priority": "high",
+  "category": "support",
+  "action": "reply",
+  "suggestedLabels": ["support", "urgent", "account-access"],
+  "confidence": 0.92,
+  "reasoning": "Customer reporting account access issue - high priority for customer experience"
+}

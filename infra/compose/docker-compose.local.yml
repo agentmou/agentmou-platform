@@ -1,0 +1,107 @@
+services:
+  # Databases
+  postgres:
+    image: postgres:16-alpine
+    container_name: agentmou-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-agentmou}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      POSTGRES_DB: ${DB_NAME:-agentmou}
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-agentmou}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: agentmou-redis
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # n8n for workflows
+  n8n:
+    image: n8n/n8n:1.76.1
+    container_name: agentmou-n8n
+    restart: unless-stopped
+    environment:
+      - N8N_HOST=${N8N_HOST:-localhost:5678}
+      - N8N_PORT=5678
+      - GENERIC_TIMEZONE=${TZ:-UTC}
+    ports:
+      - '5678:5678'
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+  # API Service
+  api:
+    build:
+      context: ../..
+      dockerfile: services/api/Dockerfile
+    container_name: agentmou-api
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-agentmou}:${DB_PASSWORD:-changeme}@postgres:5432/${DB_NAME:-agentmou}
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=local
+    ports:
+      - '${API_PORT:-3001}:3001'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Worker Service
+  worker:
+    build:
+      context: ../..
+      dockerfile: services/worker/Dockerfile
+    container_name: agentmou-worker
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-agentmou}:${DB_PASSWORD:-changeme}@postgres:5432/${DB_NAME:-agentmou}
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=local
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Web Application
+  web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    container_name: agentmou-web
+    restart: unless-stopped
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:${API_PORT:-3001}
+      - NODE_ENV=local
+    ports:
+      - '${WEB_PORT:-3000}:3000'
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  redis_data:
+  n8n_data:
+
+networks:
+  default:
+    name: agentmou-network

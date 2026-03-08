@@ -1,0 +1,45 @@
+id: wf-01-auto-label-gmail
+name: Auto Label Gmail Messages
+version: 0.1.0
+description: Automatically categorize and label incoming Gmail messages
+type: n8n
+status: public
+category: productivity
+
+trigger:
+  type: gmail
+  event: new_message
+  config:
+    userId: '{{ credentials.gmailUserId }}'
+
+steps:
+  - id: 1
+    name: Fetch Message
+    type: trigger
+    node: gmailTrigger
+
+  - id: 2
+    name: Analyze Content
+    type: action
+    node: httpRequest
+    agent: inbox-triage
+
+  - id: 3
+    name: Apply Labels
+    type: action
+    node: gmail
+    action: addLabels
+
+  - id: 4
+    name: Update CRM
+    type: action
+    node: salesforce
+    action: logActivity
+    condition: '{{ $json.category == "sales" }}'
+
+metadata:
+  author: AgentMou Team
+  createdAt: '2026-03-07'
+  updatedAt: '2026-03-07'
+  executionCount: 0
+  avgExecutionTime: 0s

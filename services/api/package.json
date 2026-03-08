@@ -1,0 +1,33 @@
+{
+  "name": "@agentmou/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "fastify": "^5.2.0",
+    "@fastify/cors": "^10.0.0",
+    "@agentmou/db": "workspace:*",
+    "@agentmou/queue": "workspace:*",
+    "drizzle-orm": "^0.39.0",
+    "@agentmou/auth": "workspace:*",
+    "@agentmou/contracts": "workspace:*",
+    "@agentmou/agent-engine": "workspace:*",
+    "@agentmou/catalog-sdk": "workspace:*",
+    "@agentmou/observability": "workspace:*",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

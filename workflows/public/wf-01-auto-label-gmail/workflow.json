@@ -1,0 +1,72 @@
+{
+  "id": "wf-01-auto-label-gmail",
+  "name": "Auto Label Gmail Messages",
+  "active": false,
+  "nodes": [
+    {
+      "id": "gmailTrigger",
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes.gmailTrigger",
+      "position": [250, 300],
+      "parameters": {
+        "event": "newMessage",
+        "userId": "={{ $credentials.gmailUserId }}"
+      }
+    },
+    {
+      "id": "analyzeContent",
+      "name": "Analyze Message",
+      "type": "n8n-nodes.httpRequest",
+      "position": [450, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AGENT_API_URL }}/analyze",
+        "body": {
+          "emailId": "={{ $json.id }}",
+          "subject": "={{ $json.subject }}",
+          "content": "={{ $json.content }}"
+        }
+      }
+    },
+    {
+      "id": "applyLabels",
+      "name": "Apply Labels",
+      "type": "n8n-nodes.gmail",
+      "position": [650, 300],
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.id }}",
+        "labelIds": "={{ $json.suggestedLabels }}"
+      }
+    }
+  ],
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Analyze Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Message": {
+      "main": [
+        [
+          {
+            "node": "Apply Labels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}

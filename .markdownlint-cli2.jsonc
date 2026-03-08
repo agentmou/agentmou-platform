@@ -1,0 +1,10 @@
+{
+  "config": {
+    "defaultConfig": {
+      "MD060": { "style": "compact" },
+      "MD013": false,
+      "MD040": false,
+      "MD036": false
+    }
+  }
+}

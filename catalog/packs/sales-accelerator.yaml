@@ -1,0 +1,28 @@
+id: sales-accelerator
+name: Sales Accelerator Pack
+version: 0.1.0
+description: Agents and workflows to accelerate sales processes
+category: sales
+
+agents:
+  - lead-qualifier
+  - meeting-scheduler
+  - follow-up-bot
+  - crm-updater
+  - proposal-generator
+
+workflows:
+  - wf-lead-enrichment
+  - wf-meeting-prep
+  - wf-followup-sequence
+
+connectors:
+  - gmail
+  - calendly
+  - salesforce
+  - linkedin
+
+recommended_settings:
+  followup_delay_hours: 48
+  lead_score_threshold: 70
+  auto_schedule_enabled: true

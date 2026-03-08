@@ -1,0 +1,49 @@
+# Runtime
+node_modules
+.pnp
+.pnp.js
+
+# Build
+dist
+build
+.next
+out
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.cursor
+.codex
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage
+.nyc_output
+
+# Dependencies
+turbo-cache
+
+# Database
+*.db
+*.sqlite
+
+# Uploads
+uploads
+temp

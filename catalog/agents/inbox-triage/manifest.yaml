@@ -1,0 +1,23 @@
+id: inbox-triage
+name: Inbox Triage
+version: 0.1.0
+description: Automatically categorize and prioritize incoming emails
+category: productivity
+author: AgentMou Team
+tags:
+  - email
+  - gmail
+  - automation
+  - triage
+capabilities:
+  - read: gmail
+  - write: gmail
+  - labels: true
+triggers:
+  - type: schedule
+    cron: '*/15 * * * *'
+  - type: webhook
+    event: gmail.new_message
+metadata:
+  createdAt: '2026-03-07'
+  updatedAt: '2026-03-07'

@@ -1,0 +1,11 @@
+{
+  "id": "sample-001",
+  "from": "customer@example.com",
+  "to": "support@agentmou.com",
+  "subject": "Issue with my account",
+  "body": "Hello, I'm having trouble accessing my dashboard. Can you help?",
+  "receivedAt": "2026-03-07T10:30:00Z",
+  "labels": [],
+  "priority": "medium",
+  "category": "support"
+}

@@ -1,0 +1,40 @@
+categories:
+  - id: productivity
+    name: Productivity
+    description: Agents that enhance personal and team productivity
+    icon: productivity
+
+  - id: support
+    name: Customer Support
+    description: Agents for customer service and support workflows
+    icon: support
+
+  - id: sales
+    name: Sales
+    description: Agents for sales automation and lead management
+    icon: sales
+
+  - id: marketing
+    name: Marketing
+    description: Agents for marketing automation and content creation
+    icon: marketing
+
+  - id: development
+    name: Development
+    description: Agents for software development and DevOps
+    icon: development
+
+  - id: finance
+    name: Finance
+    description: Agents for financial operations and accounting
+    icon: finance
+
+  - id: hr
+    name: Human Resources
+    description: Agents for HR and people operations
+    icon: hr
+
+  - id: operations
+    name: Operations
+    description: Agents for general business operations
+    icon: operations
