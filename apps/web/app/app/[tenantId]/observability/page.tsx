@@ -47,12 +47,8 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
-import {
-  getTenantDashboardMetrics,
-  listCatalogAgentTemplates,
-  listCatalogWorkflowTemplates,
-  listTenantRuns,
-} from '@/lib/fleetops/read-model'
+import { useProviderQuery } from '@/lib/data/use-provider-query'
+import type { AgentTemplate, WorkflowTemplate, ExecutionRun, DashboardMetrics } from '@agentmou/contracts'
 
 const statusColors = {
   success: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
@@ -84,17 +80,40 @@ const tenantId = params.tenantId as string
 const [period, setPeriod] = React.useState('week')
 const [statusFilter, setStatusFilter] = React.useState('all')
 
-const metrics = React.useMemo(
-  () =>
-    getTenantDashboardMetrics(
-      tenantId,
-      period === 'day' || period === 'month' ? period : 'week',
-    ),
+const metricPeriod = period === 'day' || period === 'month' ? period : 'week'
+const { data: metrics } = useProviderQuery<DashboardMetrics>(
+  (p) => p.getTenantDashboardMetrics(tenantId, metricPeriod),
+  {
+    tenantId,
+    period: 'week',
+    runsTotal: 0,
+    runsSuccess: 0,
+    runsFailed: 0,
+    avgLatencyMs: 0,
+    totalCost: 0,
+    topAgents: [],
+    topWorkflows: [],
+    runsByDay: [],
+    costByDay: [],
+    errorsByType: [],
+  },
   [tenantId, period],
 )
-const runs = React.useMemo(() => listTenantRuns(tenantId), [tenantId])
-const catalogAgents = React.useMemo(() => listCatalogAgentTemplates(), [])
-const catalogWorkflows = React.useMemo(() => listCatalogWorkflowTemplates(), [])
+const { data: runs } = useProviderQuery<ExecutionRun[]>(
+  (p) => p.listTenantRuns(tenantId),
+  [],
+  [tenantId],
+)
+const { data: catalogAgents } = useProviderQuery<AgentTemplate[]>(
+  (p) => p.listCatalogAgentTemplates(),
+  [],
+  [],
+)
+const { data: catalogWorkflows } = useProviderQuery<WorkflowTemplate[]>(
+  (p) => p.listCatalogWorkflowTemplates(),
+  [],
+  [],
+)
 const tenantAgentIds = React.useMemo(
   () => new Set(runs.map((run) => run.agentId).filter(Boolean)),
   [runs],

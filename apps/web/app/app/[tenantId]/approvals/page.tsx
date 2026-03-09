@@ -41,15 +41,12 @@ import {
   FileText,
   ExternalLink,
 } from 'lucide-react'
-import type { ApprovalRequest } from '@/lib/fleetops/types'
+import type { AgentTemplate, ApprovalRequest } from '@agentmou/contracts'
 import { RiskBadge, StatusPill } from '@/components/badges'
 import { JsonViewer } from '@/components/json-viewer'
 import { StatCard } from '@/components/stat-card'
 import { cn, formatDate } from '@/lib/utils'
-import {
-  listCatalogAgentTemplates,
-  listTenantApprovals,
-} from '@/lib/fleetops/read-model'
+import { useProviderQuery } from '@/lib/data/use-provider-query'
 
 const actionTypeIcons: Record<string, React.ElementType> = {
   send_email: Mail,
@@ -71,10 +68,26 @@ export default function ApprovalsPage() {
   const params = useParams()
   const searchParams = useSearchParams()
   const tenantId = params.tenantId as string
-  const agentTemplates = React.useMemo(() => listCatalogAgentTemplates(), [])
-  
-  const [approvals, setApprovals] = React.useState(() =>
-    listTenantApprovals(tenantId),
+  const { data: agentTemplates } = useProviderQuery<AgentTemplate[]>(
+    (p) => p.listCatalogAgentTemplates(),
+    [],
+    [],
+  )
+  const { data: approvalsData } = useProviderQuery<ApprovalRequest[]>(
+    (p) => p.listTenantApprovals(tenantId),
+    [],
+    [tenantId],
+  )
+  const [localOverrides, setLocalOverrides] = React.useState<
+    Map<string, Partial<ApprovalRequest>>
+  >(new Map())
+  const approvals = React.useMemo(
+    () =>
+      (approvalsData ?? []).map((a) => ({
+        ...a,
+        ...localOverrides.get(a.id),
+      })) as ApprovalRequest[],
+    [approvalsData, localOverrides],
   )
   const [selectedApprovalId, setSelectedApprovalId] = React.useState<string | null>(searchParams.get('approvalId'))
   const [rejectReason, setRejectReason] = React.useState('')
@@ -82,10 +95,6 @@ export default function ApprovalsPage() {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [statusFilter, setStatusFilter] = React.useState('all')
   const [riskFilter, setRiskFilter] = React.useState('all')
-
-  React.useEffect(() => {
-    setApprovals(listTenantApprovals(tenantId))
-  }, [tenantId])
   
   const selectedApproval = approvals.find(a => a.id === selectedApprovalId) || null
   
@@ -118,15 +127,16 @@ export default function ApprovalsPage() {
     : 0
   
   const handleApprove = (approval: ApprovalRequest) => {
-    setApprovals(approvals.map(a => 
-      a.id === approval.id 
-        ? { ...a, status: 'approved' as const, decidedAt: new Date().toISOString(), decidedBy: 'admin@acme.com' }
-        : a
-    ))
+    setLocalOverrides((prev) =>
+      new Map(prev).set(approval.id, {
+        status: 'approved' as const,
+        decidedAt: new Date().toISOString(),
+        decidedBy: 'admin@acme.com',
+      })
+    )
     toast.success('Request approved', {
       description: 'The action will be executed.',
     })
-    // Move to next pending if available
     const nextPending = approvals.find(a => a.status === 'pending' && a.id !== approval.id)
     if (nextPending) {
       setSelectedApprovalId(nextPending.id)
@@ -136,17 +146,19 @@ export default function ApprovalsPage() {
   }
   
   const handleReject = (approval: ApprovalRequest) => {
-    setApprovals(approvals.map(a => 
-      a.id === approval.id 
-        ? { ...a, status: 'rejected' as const, decidedAt: new Date().toISOString(), decidedBy: 'admin@acme.com', decisionReason: rejectReason }
-        : a
-    ))
+    setLocalOverrides((prev) =>
+      new Map(prev).set(approval.id, {
+        status: 'rejected' as const,
+        decidedAt: new Date().toISOString(),
+        decidedBy: 'admin@acme.com',
+        decisionReason: rejectReason,
+      })
+    )
     toast.success('Request rejected', {
       description: 'The action has been blocked.',
     })
     setIsRejectDialogOpen(false)
     setRejectReason('')
-    // Move to next pending
     const nextPending = approvals.find(a => a.status === 'pending' && a.id !== approval.id)
     if (nextPending) {
       setSelectedApprovalId(nextPending.id)

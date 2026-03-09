@@ -33,12 +33,8 @@ import {
 import { normalizeCategory } from '@/lib/fleetops/category-config'
 import { BrandStrip } from '@/components/brand/brand-frame'
 import { HalftoneIllustration } from '@/components/brand/halftone-illustration'
-import {
-  listCatalogAgentTemplates,
-  listCatalogWorkflowTemplates,
-  listIntegrations,
-  listPackTemplates,
-} from '@/lib/fleetops/read-model'
+import { useProviderQuery } from '@/lib/data/use-provider-query'
+import type { AgentTemplate, WorkflowTemplate, PackTemplate, Integration } from '@agentmou/contracts'
 
 const steps = [
   { id: 1, name: 'Choose Outcome', icon: Target },
@@ -67,14 +63,28 @@ export default function InstallerWizardPage() {
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const tenantId = params.tenantId as string
-  const agentTemplates = React.useMemo(() => listCatalogAgentTemplates(), [])
-  const workflowTemplates = React.useMemo(
-    () => listCatalogWorkflowTemplates(),
+
+  const { data: agentTemplates } = useProviderQuery<AgentTemplate[]>(
+    (p) => p.listCatalogAgentTemplates(),
+    [],
     [],
   )
-  const packTemplates = React.useMemo(() => listPackTemplates(), [])
-  const integrations = React.useMemo(() => listIntegrations(), [])
-  
+  const { data: workflowTemplates } = useProviderQuery<WorkflowTemplate[]>(
+    (p) => p.listCatalogWorkflowTemplates(),
+    [],
+    [],
+  )
+  const { data: packTemplates } = useProviderQuery<PackTemplate[]>(
+    (p) => p.listPackTemplates(),
+    [],
+    [],
+  )
+  const { data: integrations } = useProviderQuery<Integration[]>(
+    (p) => p.listIntegrations(),
+    [],
+    [],
+  )
+
   const [currentStep, setCurrentStep] = React.useState(1)
   const [isLoading, setIsLoading] = React.useState(false)
   const [isInstalling, setIsInstalling] = React.useState(false)

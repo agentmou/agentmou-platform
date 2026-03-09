@@ -56,11 +56,8 @@ import { formatNumber, formatDate } from '@/lib/utils'
 import { StatusPill, IntegrationChip } from '@/components/badges'
 import { toast } from 'sonner'
 import { getSavedViews, saveView, deleteView, type SavedView } from '@/lib/saved-views'
-import {
-  listCatalogAgentTemplates,
-  listCatalogWorkflowTemplates,
-  listTenantRuns,
-} from '@/lib/fleetops/read-model'
+import { useProviderQuery } from '@/lib/data/use-provider-query'
+import type { AgentTemplate, WorkflowTemplate, ExecutionRun } from '@agentmou/contracts'
 
 type SortField = 'startedAt' | 'durationMs' | 'costEstimate' | 'tokensUsed'
 type SortOrder = 'asc' | 'desc'
@@ -69,9 +66,14 @@ export default function RunsListPage() {
   const params = useParams()
   const searchParams = useSearchParams()
   const tenantId = params.tenantId as string
-  const agentTemplates = React.useMemo(() => listCatalogAgentTemplates(), [])
-  const workflowTemplates = React.useMemo(
-    () => listCatalogWorkflowTemplates(),
+  const { data: agentTemplates } = useProviderQuery<AgentTemplate[]>(
+    (p) => p.listCatalogAgentTemplates(),
+    [],
+    [],
+  )
+  const { data: workflowTemplates } = useProviderQuery<WorkflowTemplate[]>(
+    (p) => p.listCatalogWorkflowTemplates(),
+    [],
     [],
   )
   
@@ -100,7 +102,11 @@ export default function RunsListPage() {
     setSavedViews(getSavedViews())
   }, [])
   
-  const runs = React.useMemo(() => listTenantRuns(tenantId), [tenantId])
+  const { data: runs } = useProviderQuery<ExecutionRun[]>(
+    (p) => p.listTenantRuns(tenantId),
+    [],
+    [tenantId],
+  )
   
   // Get unique agents and workflows for filter dropdowns
   const uniqueAgentIds = [

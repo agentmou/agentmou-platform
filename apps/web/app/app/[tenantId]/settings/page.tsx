@@ -24,15 +24,27 @@ import {
   Download,
 } from 'lucide-react'
 import { formatNumber } from '@/lib/utils'
-import { getTenant, getTenantBillingInfo } from '@/lib/fleetops/read-model'
+import { useProviderQuery } from '@/lib/data/use-provider-query'
+import type { FleetBillingInfo } from '@/lib/fleetops/read-model'
+import type { Tenant } from '@agentmou/contracts'
 
 export default function SettingsPage() {
   const params = useParams()
   const tenantId = params.tenantId as string
-  
-  const tenant = getTenant(tenantId)
-  const billing = getTenantBillingInfo(tenantId)
-  
+
+  const tenantFallback = { id: tenantId, name: '', type: 'business' as const, plan: 'starter' as const, createdAt: '', ownerId: '', settings: { timezone: 'America/New_York', defaultHITL: false, logRetentionDays: 30, memoryRetentionDays: 7 } } as Tenant
+  const { data: tenantData } = useProviderQuery<Tenant | null>(
+    (p) => p.getTenant(tenantId),
+    tenantFallback,
+    [tenantId],
+  )
+  const tenant = tenantData ?? tenantFallback
+  const { data: billing } = useProviderQuery<FleetBillingInfo>(
+    (p) => p.getTenantBillingInfo(tenantId),
+    { plan: 'starter', monthlySpend: 0, agentsInstalled: 0, runsThisMonth: 0 },
+    [tenantId],
+  )
+
   const [workspaceName, setWorkspaceName] = useState(tenant.name)
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [slackNotifications, setSlackNotifications] = useState(true)

@@ -21,11 +21,8 @@ import {
   Terminal,
 } from 'lucide-react'
 import { formatNumber } from '@/lib/utils'
-import {
-  getTenantRun,
-  listCatalogAgentTemplates,
-  listCatalogWorkflowTemplates,
-} from '@/lib/fleetops/read-model'
+import { useProviderQuery } from '@/lib/data/use-provider-query'
+import type { AgentTemplate, WorkflowTemplate, ExecutionRun } from '@agentmou/contracts'
 
 const statusColors = {
   success: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
@@ -53,13 +50,31 @@ export default function RunDetailPage() {
   const router = useRouter()
   const tenantId = params.tenantId as string
   const runId = params.runId as string
-  const agentTemplates = React.useMemo(() => listCatalogAgentTemplates(), [])
-  const workflowTemplates = React.useMemo(
-    () => listCatalogWorkflowTemplates(),
+  const { data: agentTemplates } = useProviderQuery<AgentTemplate[]>(
+    (p) => p.listCatalogAgentTemplates(),
+    [],
     [],
   )
+  const { data: workflowTemplates } = useProviderQuery<WorkflowTemplate[]>(
+    (p) => p.listCatalogWorkflowTemplates(),
+    [],
+    [],
+  )
+  const { data: run, isLoading } = useProviderQuery<ExecutionRun | null>(
+    (p) => p.getTenantRun(tenantId, runId),
+    null,
+    [tenantId, runId],
+  )
   
-  const run = getTenantRun(tenantId, runId)
+  if (isLoading) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    )
+  }
   
   if (!run) {
     return (
