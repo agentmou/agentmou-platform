@@ -34,38 +34,26 @@ direction in `whole-initial-context.md`.
 - Infrastructure: n8n pinned, env vars added, ADR-003/004/005 written.
 - Validation: typecheck 13/13, build 3/3, lint 12/12, test 6/6.
 
-## Next (Phase 2: First Runtime Vertical Slice)
+### Phase 2: First Runtime Vertical Slice
 
-### 1) Migrate Web Pages to API Client
+- VPS production stack activated: API + worker running behind Traefik.
+- Auth: register creates user + tenant + membership in transaction;
+  JWT middleware + tenant access guard on all tenant routes.
+- Web: real login/register pages, DataProvider abstraction (mock for
+  demo, API for authenticated routes), all 13 tenant pages migrated
+  from mock to API.
+- Agents: `POST /analyze-email` endpoint classifying emails via
+  GPT-4o-mini with structured output.
+- n8n: `@agentmou/n8n-client` wired to real n8n instance; workflow
+  installations create actual n8n workflows
+  ([ADR-007](../adr/007-n8n-workflow-provisioning.md)).
+- Worker: `run-agent` and `run-workflow` jobs implemented end-to-end
+  (Python agents API call, n8n execution, DB recording).
+- API: `POST /tenants/:id/runs` triggers manual execution.
 
-- Progressively replace mock read-model calls with `useApiData` hook +
-  API client in page components.
-- Start with catalog pages (marketplace) since catalog is now served from
-  real manifests.
-- Then tenant-scoped pages (fleet, runs, approvals).
+## Next (Phase 3: Production Hardening)
 
-### 2) Agent Runtime With LLM Integration
-
-- Implement `AgentEngine.executeWithTools()` with real LLM provider calls
-  (OpenAI, Anthropic, or equivalent).
-- Connect agent execution to the policy engine for HITL checks.
-- Persist run steps and timeline to `execution_runs`/`execution_steps`.
-
-### 3) n8n Workflow Invocation
-
-- Use `@agentmou/n8n-client` to register and trigger workflows in n8n.
-- Implement `run-workflow` job in worker.
-- Connect workflow execution results back to execution runs.
-
-### 4) End-to-End Support Starter Slice
-
-- Install Support Starter pack (inbox-triage + wf-01-auto-label-gmail).
-- Connect Gmail (mock-real connector).
-- Trigger a real agent run.
-- Invoke n8n workflow.
-- Persist and display run timeline in observability UI.
-
-### 5) Real Connector OAuth Flows
+### 1) Real Connector OAuth Flows
 
 - Implement OAuth2 flow for Gmail connector.
 - Store tokens in secret envelopes with basic encryption.
