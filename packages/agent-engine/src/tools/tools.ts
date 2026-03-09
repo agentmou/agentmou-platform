@@ -1,18 +1,22 @@
+import type { GmailConnector } from '@agentmou/connectors';
+
 export interface Tool {
   id: string;
   name: string;
   description: string;
-  inputSchema: any;
-  outputSchema?: any;
-  execute: (input: any, context?: ToolContext) => Promise<any>;
+  inputSchema: Record<string, unknown>;
+  outputSchema?: Record<string, unknown>;
+  execute: (input: unknown, context?: ToolContext) => Promise<unknown>;
 }
 
 export interface ToolContext {
   tenantId: string;
-  userId: string;
+  userId?: string;
   runId: string;
-  connectors?: Record<string, any>;
+  connectors?: Map<string, GmailConnector>;
   secrets?: Record<string, string>;
+  agentsApiUrl?: string;
+  agentsApiKey?: string;
 }
 
 export interface ToolDefinition {
@@ -20,7 +24,7 @@ export interface ToolDefinition {
   function: {
     name: string;
     description: string;
-    parameters: any;
+    parameters: Record<string, unknown>;
   };
 }
 
@@ -39,25 +43,20 @@ export class Toolkit {
     return Array.from(this.tools.values());
   }
 
-  async executeTool(toolId: string, input: any, context?: ToolContext): Promise<any> {
+  async executeTool(
+    toolId: string,
+    input: unknown,
+    context?: ToolContext
+  ): Promise<unknown> {
     const tool = this.getTool(toolId);
     if (!tool) {
       throw new Error(`Tool ${toolId} not found`);
     }
-
-    // Validate input against schema
-    this.validateInput(tool, input);
-
-    // Execute tool
     return tool.execute(input, context);
   }
 
-  private validateInput(tool: Tool, input: any) {
-    // Validate input against tool's inputSchema
-  }
-
   getToolDefinitions(): ToolDefinition[] {
-    return this.listTools().map(tool => ({
+    return this.listTools().map((tool) => ({
       type: 'function',
       function: {
         name: tool.name,
@@ -68,60 +67,156 @@ export class Toolkit {
   }
 }
 
-// Built-in tools
-export const builtinTools = {
-  http_request: {
-    id: 'http_request',
-    name: 'HTTP Request',
-    description: 'Make HTTP requests to external APIs',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        method: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE'] },
-        url: { type: 'string' },
-        headers: { type: 'object' },
-        body: { type: 'object' },
-      },
-      required: ['method', 'url'],
-    },
-    execute: async (input: any) => {
-      // Execute HTTP request
-      return { status: 200, data: {} };
+// ---------------------------------------------------------------------------
+// Built-in tools for inbox triage vertical slice
+// ---------------------------------------------------------------------------
+
+/**
+ * Reads recent emails from Gmail via the tenant's connected GmailConnector.
+ */
+export const gmailReadTool: Tool = {
+  id: 'gmail-read',
+  name: 'gmail-read',
+  description: 'List and fetch recent emails from the connected Gmail account',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      query: { type: 'string', description: 'Gmail search query (e.g. "is:unread label:inbox")' },
+      maxResults: { type: 'number', description: 'Max emails to fetch (default 20)' },
     },
   },
-  database_query: {
-    id: 'database_query',
-    name: 'Database Query',
-    description: 'Execute database queries',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        query: { type: 'string' },
-        parameters: { type: 'array' },
-      },
-      required: ['query'],
-    },
-    execute: async (input: any) => {
-      // Execute database query
-      return { rows: [] };
-    },
+  execute: async (input: unknown, context?: ToolContext) => {
+    const { query, maxResults } = input as { query?: string; maxResults?: number };
+    const gmail = context?.connectors?.get('gmail');
+    if (!gmail) throw new Error('Gmail connector not available');
+
+    const stubs = await gmail.listMessages({ query, maxResults: maxResults ?? 20 });
+
+    const messages = await Promise.all(
+      stubs.map((stub) => gmail.getMessage(stub.id))
+    );
+
+    return { emails: messages };
   },
-  send_email: {
-    id: 'send_email',
-    name: 'Send Email',
-    description: 'Send emails via configured connectors',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        to: { type: 'string' },
-        subject: { type: 'string' },
-        body: { type: 'string' },
+};
+
+/**
+ * Applies labels to Gmail messages via the tenant's connected GmailConnector.
+ */
+export const gmailLabelTool: Tool = {
+  id: 'gmail-label',
+  name: 'gmail-label',
+  description: 'Apply labels to Gmail messages based on classification results',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      actions: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            messageId: { type: 'string' },
+            addLabels: { type: 'array', items: { type: 'string' } },
+            removeLabels: { type: 'array', items: { type: 'string' } },
+          },
+          required: ['messageId'],
+        },
       },
-      required: ['to', 'subject', 'body'],
     },
-    execute: async (input: any, context?: ToolContext) => {
-      // Send email
-      return { sent: true };
-    },
+    required: ['actions'],
   },
+  execute: async (input: unknown, context?: ToolContext) => {
+    const { actions } = input as {
+      actions: Array<{
+        messageId: string;
+        addLabels?: string[];
+        removeLabels?: string[];
+      }>;
+    };
+    const gmail = context?.connectors?.get('gmail');
+    if (!gmail) throw new Error('Gmail connector not available');
+
+    const results = [];
+    for (const action of actions) {
+      if (action.addLabels?.length) {
+        await gmail.addLabels(action.messageId, action.addLabels);
+      }
+      if (action.removeLabels?.length) {
+        await gmail.removeLabels(action.messageId, action.removeLabels);
+      }
+      results.push({ messageId: action.messageId, success: true });
+    }
+
+    return { results };
+  },
+};
+
+/**
+ * Calls the Python agents API to analyze email content with GPT.
+ */
+export const analyzeEmailTool: Tool = {
+  id: 'analyze-email',
+  name: 'analyze-email',
+  description: 'Analyze email content to determine priority, category, and required action',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      emails: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            from: { type: 'string' },
+            subject: { type: 'string' },
+            body: { type: 'string' },
+          },
+        },
+      },
+    },
+    required: ['emails'],
+  },
+  execute: async (input: unknown, context?: ToolContext) => {
+    const { emails } = input as {
+      emails: Array<{ id: string; from: string; subject: string; body: string }>;
+    };
+
+    const apiUrl = context?.agentsApiUrl ?? process.env.AGENTS_API_URL;
+    const apiKey = context?.agentsApiKey ?? process.env.AGENTS_API_KEY;
+
+    if (!apiUrl) throw new Error('AGENTS_API_URL not configured');
+
+    const results = [];
+    for (const email of emails) {
+      const response = await fetch(`${apiUrl}/analyze-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+        },
+        body: JSON.stringify({
+          from: email.from,
+          subject: email.subject,
+          body: email.body,
+        }),
+      });
+
+      if (!response.ok) {
+        results.push({ emailId: email.id, error: `API error: ${response.status}` });
+        continue;
+      }
+
+      const analysis = await response.json();
+      results.push({ emailId: email.id, ...analysis });
+    }
+
+    return { analyses: results };
+  },
+};
+
+/** All built-in tools keyed by ID. */
+export const builtinTools: Record<string, Tool> = {
+  'gmail-read': gmailReadTool,
+  'gmail-label': gmailLabelTool,
+  'analyze-email': analyzeEmailTool,
 };

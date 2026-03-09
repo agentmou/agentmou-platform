@@ -11,8 +11,12 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@agentmou/connectors": "workspace:*",
     "@agentmou/contracts": "workspace:*",
-    "@agentmou/observability": "workspace:*"
+    "@agentmou/db": "workspace:*",
+    "@agentmou/observability": "workspace:*",
+    "drizzle-orm": "^0.39.0",
+    "openai": "^4.80.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.0",
