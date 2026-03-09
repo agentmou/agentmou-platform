@@ -25,7 +25,7 @@ import {
 } from 'lucide-react'
 import { formatNumber } from '@/lib/utils'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
-import type { FleetBillingInfo } from '@/lib/fleetops/read-model'
+import type { FleetBillingInfo } from '@/lib/data/provider'
 import type { Tenant } from '@agentmou/contracts'
 
 export default function SettingsPage() {

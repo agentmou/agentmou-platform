@@ -39,8 +39,8 @@ import {
   Command,
 } from 'lucide-react'
 import { CommandPalette } from '@/components/fleetops/command-palette'
-import { listTenants, listTenantApprovals } from '@/lib/fleetops/read-model'
 import { useAuthStore } from '@/lib/auth/store'
+import { useDataProvider } from '@/lib/data'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -70,20 +70,18 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
 
   React.useEffect(() => { hydrate() }, [hydrate])
 
+  const provider = useDataProvider()
   const isDemoWorkspace = tenantId === 'demo-workspace'
-  const mockTenants = React.useMemo(() => listTenants(), [])
 
-  const tenants = isDemoWorkspace
-    ? mockTenants
-    : authTenants.map((t) => ({
-        id: t.id,
-        name: t.name,
-        type: 'business' as const,
-        plan: t.plan as 'free' | 'starter' | 'pro' | 'scale' | 'enterprise',
-        createdAt: '',
-        ownerId: authUser?.id ?? '',
-        settings: { timezone: 'UTC', defaultHITL: false, logRetentionDays: 30, memoryRetentionDays: 30 },
-      }))
+  const tenants = authTenants.map((t) => ({
+    id: t.id,
+    name: t.name,
+    type: 'business' as const,
+    plan: t.plan as 'free' | 'starter' | 'pro' | 'scale' | 'enterprise',
+    createdAt: '',
+    ownerId: authUser?.id ?? '',
+    settings: { timezone: 'UTC', defaultHITL: false, logRetentionDays: 30, memoryRetentionDays: 30 },
+  }))
   
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const [collapsed, setCollapsed] = React.useState(false)
@@ -103,10 +101,12 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
   }, [])
   
   const currentTenant = tenants.find((tenant) => tenant.id === tenantId) || tenants[0]
-  const pendingApprovals = React.useMemo(
-    () => listTenantApprovals(tenantId).filter((approval) => approval.status === 'pending').length,
-    [tenantId],
-  )
+  const [pendingApprovals, setPendingApprovals] = React.useState(0)
+  React.useEffect(() => {
+    provider.listTenantApprovals(tenantId).then((approvals) => {
+      setPendingApprovals(approvals.filter((a) => a.status === 'pending').length)
+    }).catch(() => setPendingApprovals(0))
+  }, [tenantId, provider])
   
   const isActive = (href: string) => {
     const fullPath = `/app/${tenantId}${href}`

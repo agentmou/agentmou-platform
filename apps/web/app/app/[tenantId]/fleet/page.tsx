@@ -59,6 +59,7 @@ Eye,
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
+import { EmptyState } from '@/components/fleetops/empty-state'
 import type {
   AgentTemplate,
   WorkflowTemplate,
@@ -228,6 +229,24 @@ export default function FleetPage() {
   }
 
   const isDestructive = actionState?.type === 'delete'
+
+  if (rawInstalledAgents.length === 0 && rawInstalledWorkflows.length === 0) {
+    return (
+      <div className="p-6 lg:p-8 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">My Fleet</h1>
+          <p className="text-muted-foreground">Manage your installed agents and workflows</p>
+        </div>
+        <EmptyState
+          icon={Bot}
+          title="No agents installed yet"
+          description="Your fleet is empty. Browse the marketplace to find and install agent packs that automate your workflows."
+          actionLabel="Browse Marketplace"
+          actionHref={`/app/${tenantId}/marketplace`}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 lg:p-8 space-y-6">

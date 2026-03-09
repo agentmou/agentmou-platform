@@ -47,6 +47,7 @@ import { JsonViewer } from '@/components/json-viewer'
 import { StatCard } from '@/components/stat-card'
 import { cn, formatDate } from '@/lib/utils'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
+import { EmptyState } from '@/components/fleetops/empty-state'
 
 const actionTypeIcons: Record<string, React.ElementType> = {
   send_email: Mail,
@@ -389,6 +390,24 @@ export default function ApprovalsPage() {
     )
   }
   
+  if (approvalsData.length === 0) {
+    return (
+      <div className="p-6 lg:p-8 space-y-6">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">Approvals</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Review and manage human-in-the-loop approval requests.</p>
+        </div>
+        <EmptyState
+          icon={CheckCircle}
+          title="No pending approvals"
+          description="When your agents encounter high-risk actions that require human oversight, approval requests will appear here. Configure HITL policies in your agent settings."
+          actionLabel="Go to Fleet"
+          actionHref={`/app/${tenantId}/fleet`}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
       {/* Left Panel - List */}

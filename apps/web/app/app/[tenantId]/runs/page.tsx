@@ -57,6 +57,7 @@ import { StatusPill, IntegrationChip } from '@/components/badges'
 import { toast } from 'sonner'
 import { getSavedViews, saveView, deleteView, type SavedView } from '@/lib/saved-views'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
+import { EmptyState } from '@/components/fleetops/empty-state'
 import type { AgentTemplate, WorkflowTemplate, ExecutionRun } from '@agentmou/contracts'
 
 type SortField = 'startedAt' | 'durationMs' | 'costEstimate' | 'tokensUsed'
@@ -265,6 +266,24 @@ export default function RunsListPage() {
     return sortOrder === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
   }
   
+  if (runs.length === 0) {
+    return (
+      <div className="p-6 lg:p-8 space-y-6">
+        <div>
+          <h1 className="page-title text-3xl lg:text-4xl font-bold tracking-tight">Runs</h1>
+          <p className="text-sm text-muted-foreground mt-1">View all agent and workflow executions.</p>
+        </div>
+        <EmptyState
+          icon={Eye}
+          title="No runs yet"
+          description="Execution runs will appear here once your agents start processing tasks. Install an agent pack and trigger a run to get started."
+          actionLabel="Go to Fleet"
+          actionHref={`/app/${tenantId}/fleet`}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       {/* Header */}

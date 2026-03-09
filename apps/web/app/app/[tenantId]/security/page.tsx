@@ -28,7 +28,7 @@ import {
 import { formatDate } from '@/lib/utils'
 import { StatusPill, IntegrationChip } from '@/components/badges'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
-import type { FleetSecret, FleetAuditEvent } from '@/lib/fleetops/read-model'
+import type { FleetSecret, FleetAuditEvent } from '@/lib/data/provider'
 import type { TenantMember } from '@agentmou/contracts'
 
 export default function SecurityPage() {
