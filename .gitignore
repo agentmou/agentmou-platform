@@ -47,3 +47,13 @@ turbo-cache
 # Uploads
 uploads
 temp
+
+# VPS bind-mounted data (created at repo root by docker compose)
+postgres/
+redis/
+n8n/
+uptime-kuma/
+traefik/letsencrypt/
+
+# Backup output
+backups/out/

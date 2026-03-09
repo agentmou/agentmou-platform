@@ -1,80 +1,120 @@
 # Deployment Runbook
 
-This runbook reflects the current monorepo bootstrap state.
-
 ## Pre-Deployment Checklist
 
 - `pnpm install`
 - `pnpm typecheck`
 - `pnpm lint`
 - `pnpm build`
+- `pnpm test`
 - Infrastructure env file configured (`infra/compose/.env`)
 - Required external secrets set for your target environment
 
-## Known Current Tooling Gaps
-
-- `pnpm test` currently has no task graph configured.
-
-Treat this as a roadmap item before production hardening.
-
 ## Local Development Stack
 
-## 1) Environment
+### 1) Environment
 
 ```bash
 cp infra/compose/.env.example infra/compose/.env
 ```
 
-## 2) Start Infrastructure
+### 2) Start Infrastructure
 
 ```bash
 docker compose -f infra/compose/docker-compose.local.yml up -d
 ```
 
-## 3) Typecheck and Build
+### 3) Typecheck and Build
 
 ```bash
 pnpm typecheck
 pnpm build
 ```
 
-## 4) Start Dev Servers
+### 4) Start Dev Servers
 
 ```bash
 pnpm dev
 ```
 
-## Service Endpoints (Local)
+### Service Endpoints (Local)
 
-- Web: `http://localhost:3000`
-- API: `http://localhost:3001`
-- n8n: `http://localhost:5678`
-- PostgreSQL: `localhost:5432`
-- Redis: `localhost:6379`
+| Service    | URL                        |
+| ---------- | -------------------------- |
+| Web        | `http://localhost:3000`     |
+| API        | `http://localhost:3001`     |
+| n8n        | `http://localhost:5678`     |
+| PostgreSQL | `localhost:5432`           |
+| Redis      | `localhost:6379`           |
 
-## Production Compose Deployment
+## Production Deployment (VPS)
+
+The production stack runs on a single VPS. See
+[VPS Operations](./vps-operations.md) for full operational details.
+
+### First-time setup
 
 ```bash
-docker compose -f infra/compose/docker-compose.prod.yml build
+ssh deploy@<vps-ip>
+cd /srv
+git clone <repo-url> agentmou-stack
+cd agentmou-stack
+bash infra/scripts/setup.sh
+nano infra/compose/.env              # Fill in real secrets
 docker compose -f infra/compose/docker-compose.prod.yml up -d
+```
+
+### Subsequent deploys
+
+```bash
+ssh deploy@<vps-ip>
+cd /srv/agentmou-stack
+bash infra/scripts/deploy.sh
+```
+
+### Deploy only a specific service
+
+```bash
+cd /srv/agentmou-stack
+git pull origin main
+docker compose -f infra/compose/docker-compose.prod.yml build agents
+docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents
+```
+
+### Activate Node services (when ready)
+
+The Node services (api, worker, web) are behind a Docker Compose profile.
+They are not started by default.
+
+```bash
+docker compose -f infra/compose/docker-compose.prod.yml --profile node up -d
 ```
 
 ## Health Verification
 
 ```bash
-curl -f http://localhost:3001/health
+# From the VPS
+curl -f https://agents.DOMAIN/health
+
+# Or via Uptime Kuma at https://uptime.DOMAIN
 ```
 
-For web checks, validate key routes through your external ingress/proxy.
-
-## Backup Procedure
-
-Use the provided script:
+## Rollback
 
 ```bash
-pnpm backup
+cd /srv/agentmou-stack
+git log --oneline -10
+git checkout <good-commit>
+docker compose -f infra/compose/docker-compose.prod.yml build
+docker compose -f infra/compose/docker-compose.prod.yml up -d
 ```
 
-Current script backs up local Docker Postgres/Redis artifacts under `infra/backups`.
+## Backup
 
-For production resilience, add offsite backup replication (S3/R2/B2) as a mandatory next step.
+```bash
+bash infra/scripts/backup.sh
+```
+
+Backups are stored in `backups/out/` with 14-day automatic rotation.
+See [VPS Operations](./vps-operations.md) for restore procedures and
+cron setup.

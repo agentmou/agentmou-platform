@@ -29,6 +29,7 @@ agentmou-platform/
 ├─ apps/
 │  └─ web/                # Next.js: marketing + tenant control plane
 ├─ services/
+│  ├─ agents/             # Python FastAPI agent endpoints (production)
 │  ├─ api/                # Fastify control-plane API (real DB persistence)
 │  └─ worker/             # BullMQ workers (install-pack implemented)
 ├─ packages/
@@ -120,6 +121,7 @@ pnpm dev
 - [ADR-003: n8n Role](./docs/adr/003-n8n-role.md)
 - [ADR-004: TypeScript Runtime First](./docs/adr/004-typescript-runtime-first.md)
 - [ADR-005: Postgres + pgvector + Redis](./docs/adr/005-postgres-pgvector-redis-stack.md)
+- [ADR-006: VPS Stack Alignment](./docs/adr/006-vps-stack-alignment.md)
 
 ### Refactor Logs
 
@@ -134,6 +136,7 @@ pnpm dev
 ### Operations
 
 - [Deployment Runbook](./docs/runbooks/deployment.md)
+- [VPS Operations](./docs/runbooks/vps-operations.md)
 
 ## Development Guidance
 

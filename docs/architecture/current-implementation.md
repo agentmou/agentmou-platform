@@ -70,6 +70,37 @@ Stub modules (not needed for Phase 1): `usage`, `billing`, `security`,
 - Vitest configured with 25 tests across 3 packages.
 - `pnpm test` runs as part of the Turbo task graph.
 
+### Agents Service (services/agents)
+
+- Python FastAPI service with `/health` and `/hello` endpoints.
+- Runs on the VPS behind Traefik with BasicAuth + API key auth.
+- No business logic yet — scaffold for future agent endpoints called by
+  n8n workflows.
+
+### Infrastructure (VPS)
+
+The production stack runs on a single VPS
+([ADR-006](../adr/006-vps-stack-alignment.md)):
+
+- **Compose**: `infra/compose/docker-compose.prod.yml` is the source of
+  truth for the VPS stack (project name: `agentmou-stack`).
+- **Services**: Traefik, Postgres 16, Redis 7, n8n, agents (Python),
+  Uptime Kuma.
+- **Node services** (api, worker, web): available via `--profile node`
+  but not yet active in production.
+- **Networks**: `web` (external, Traefik-facing) and `internal` (isolated,
+  DB-only).
+- **Data**: bind mounts to repo-relative directories (postgres/data,
+  redis/data, n8n/data, etc.).
+- **TLS**: Traefik with Let's Encrypt ACME HTTP challenge.
+- **Middlewares**: BasicAuth, HSTS/secure-headers, rate-limit, noindex.
+- **Backups**: daily PostgreSQL dump + Redis snapshot + n8n workflow
+  export with 14-day rotation.
+- **Monitoring**: Uptime Kuma at `uptime.DOMAIN`.
+
+See [VPS Operations](../runbooks/vps-operations.md) for operational
+details.
+
 ## What Is Still Incomplete
 
 - Agent runtime does not call real LLMs (executeWithTools is stub).
