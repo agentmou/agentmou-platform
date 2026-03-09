@@ -58,12 +58,13 @@ Eye,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils'
-import {
-  listCatalogAgentTemplates,
-  listCatalogWorkflowTemplates,
-  listTenantInstalledAgents,
-  listTenantInstalledWorkflows,
-} from '@/lib/fleetops/read-model'
+import { useProviderQuery } from '@/lib/data/use-provider-query'
+import type {
+  AgentTemplate,
+  WorkflowTemplate,
+  InstalledAgent,
+  InstalledWorkflow,
+} from '@agentmou/contracts'
 
 type ActionType = 'pause' | 'resume' | 'delete' | 'trigger' | 'duplicate'
 type ItemType = 'agent' | 'workflow'
@@ -76,43 +77,70 @@ interface ActionState {
 }
 
 export default function FleetPage() {
-const params = useParams()
-const tenantId = params.tenantId as string
-const agentTemplates = useMemo(() => listCatalogAgentTemplates(), [])
-const workflowTemplates = useMemo(() => listCatalogWorkflowTemplates(), [])
+  const params = useParams()
+  const tenantId = params.tenantId as string
 
-const [searchQuery, setSearchQuery] = useState('')
-const [actionState, setActionState] = useState<ActionState | null>(null)
-const [isLoading, setIsLoading] = useState(false)
-  
-  const installedAgents = listTenantInstalledAgents(tenantId).map((installation) => {
-    const agent = agentTemplates.find((template) => template.id === installation.templateId)
-    return {
-      ...installation,
-      agent,
-      agentId: installation.templateId,
-      version: '1.0.0',
-      metrics: {
-        runsToday: Math.floor(installation.runsTotal / 30),
-        successRate: Math.round((installation.runsSuccess / installation.runsTotal) * 100),
-        lastRunAt: installation.lastRunAt,
-      },
-    }
-  })
-  
-  const installedWorkflows = listTenantInstalledWorkflows(tenantId).map((installation) => {
-    const workflow = workflowTemplates.find((template) => template.id === installation.templateId)
-    return {
-      ...installation,
-      workflow,
-      workflowId: installation.templateId,
-      metrics: {
-        runsToday: Math.floor(installation.runsTotal / 30),
-        successRate: Math.round((installation.runsSuccess / installation.runsTotal) * 100),
-        lastRunAt: installation.lastRunAt,
-      },
-    }
-  })
+  const { data: agentTemplates } = useProviderQuery<AgentTemplate[]>(
+    (p) => p.listCatalogAgentTemplates(),
+    [],
+    [],
+  )
+  const { data: workflowTemplates } = useProviderQuery<WorkflowTemplate[]>(
+    (p) => p.listCatalogWorkflowTemplates(),
+    [],
+    [],
+  )
+  const { data: rawInstalledAgents } = useProviderQuery<InstalledAgent[]>(
+    (p) => p.listTenantInstalledAgents(tenantId),
+    [],
+    [tenantId],
+  )
+  const { data: rawInstalledWorkflows } = useProviderQuery<InstalledWorkflow[]>(
+    (p) => p.listTenantInstalledWorkflows(tenantId),
+    [],
+    [tenantId],
+  )
+
+  const [searchQuery, setSearchQuery] = useState('')
+  const [actionState, setActionState] = useState<ActionState | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const installedAgents = useMemo(() => {
+    return rawInstalledAgents.map((installation) => {
+      const agent = agentTemplates.find((template) => template.id === installation.templateId)
+      return {
+        ...installation,
+        agent,
+        agentId: installation.templateId,
+        version: '1.0.0',
+        metrics: {
+          runsToday: Math.floor(installation.runsTotal / 30),
+          successRate: installation.runsTotal > 0
+            ? Math.round((installation.runsSuccess / installation.runsTotal) * 100)
+            : 0,
+          lastRunAt: installation.lastRunAt,
+        },
+      }
+    })
+  }, [rawInstalledAgents, agentTemplates])
+
+  const installedWorkflows = useMemo(() => {
+    return rawInstalledWorkflows.map((installation) => {
+      const workflow = workflowTemplates.find((template) => template.id === installation.templateId)
+      return {
+        ...installation,
+        workflow,
+        workflowId: installation.templateId,
+        metrics: {
+          runsToday: Math.floor(installation.runsTotal / 30),
+          successRate: installation.runsTotal > 0
+            ? Math.round((installation.runsSuccess / installation.runsTotal) * 100)
+            : 0,
+          lastRunAt: installation.lastRunAt,
+        },
+      }
+    })
+  }, [rawInstalledWorkflows, workflowTemplates])
   
   const filteredAgents = installedAgents.filter(ia => 
     ia.agent?.name.toLowerCase().includes(searchQuery.toLowerCase())

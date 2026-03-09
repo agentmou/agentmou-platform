@@ -22,60 +22,111 @@ import {
 } from '@/components/ui/chart'
 import { MinimalButton } from '@/components/ui/minimal-button'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line } from 'recharts'
-import {
-  getTenantDashboardMetrics,
-  listCatalogAgentTemplates,
-  listCatalogWorkflowTemplates,
-  listTenantApprovals,
-  listTenantInstalledAgents,
-  listTenantInstalledWorkflows,
-  listTenantIntegrations,
-  listTenantRuns,
-  listTenantSecurityFindings,
-} from '@/lib/fleetops/read-model'
+import { useProviderQuery } from '@/lib/data/use-provider-query'
+import type {
+  AgentTemplate,
+  WorkflowTemplate,
+  InstalledAgent,
+  InstalledWorkflow,
+  ApprovalRequest,
+  ExecutionRun,
+  Integration,
+  SecurityFinding,
+  DashboardMetrics,
+} from '@agentmou/contracts'
+
+const emptyMetrics: DashboardMetrics = {
+  tenantId: '',
+  period: 'week',
+  runsTotal: 0,
+  runsSuccess: 0,
+  runsFailed: 0,
+  avgLatencyMs: 0,
+  totalCost: 0,
+  topAgents: [],
+  topWorkflows: [],
+  costByDay: [],
+  runsByDay: [],
+  errorsByType: [],
+}
 
 export default function DashboardPage() {
   const params = useParams()
   const tenantId = params.tenantId as string
-  
-  const metrics = React.useMemo(() => getTenantDashboardMetrics(tenantId), [tenantId])
-  const catalogAgents = React.useMemo(() => listCatalogAgentTemplates(), [])
-  const catalogWorkflows = React.useMemo(() => listCatalogWorkflowTemplates(), [])
-  const agents = React.useMemo(() => listTenantInstalledAgents(tenantId), [tenantId])
-  const workflows = React.useMemo(
-    () => listTenantInstalledWorkflows(tenantId),
+
+  const { data: metrics } = useProviderQuery<DashboardMetrics>(
+    (p) => p.getTenantDashboardMetrics(tenantId, 'week'),
+    emptyMetrics,
     [tenantId],
   )
-  const pendingApprovals = React.useMemo(
-    () =>
-      listTenantApprovals(tenantId).filter(
-        (approval) => approval.status === 'pending',
-      ),
+  const { data: catalogAgents } = useProviderQuery<AgentTemplate[]>(
+    (p) => p.listCatalogAgentTemplates(),
+    [],
+    [],
+  )
+  const { data: catalogWorkflows } = useProviderQuery<WorkflowTemplate[]>(
+    (p) => p.listCatalogWorkflowTemplates(),
+    [],
+    [],
+  )
+  const { data: agents } = useProviderQuery<InstalledAgent[]>(
+    (p) => p.listTenantInstalledAgents(tenantId),
+    [],
     [tenantId],
+  )
+  const { data: workflows } = useProviderQuery<InstalledWorkflow[]>(
+    (p) => p.listTenantInstalledWorkflows(tenantId),
+    [],
+    [tenantId],
+  )
+  const { data: approvals } = useProviderQuery<ApprovalRequest[]>(
+    (p) => p.listTenantApprovals(tenantId),
+    [],
+    [tenantId],
+  )
+  const { data: runs } = useProviderQuery<ExecutionRun[]>(
+    (p) => p.listTenantRuns(tenantId),
+    [],
+    [tenantId],
+  )
+  const { data: integrations } = useProviderQuery<Integration[]>(
+    (p) => p.listTenantIntegrations(tenantId),
+    [],
+    [tenantId],
+  )
+  const { data: securityFindings } = useProviderQuery<SecurityFinding[]>(
+    (p) => p.listTenantSecurityFindings(tenantId),
+    [],
+    [tenantId],
+  )
+
+  const pendingApprovals = React.useMemo(
+    () => approvals.filter((approval) => approval.status === 'pending'),
+    [approvals],
   )
   const failedRuns = React.useMemo(
     () =>
-      listTenantRuns(tenantId)
+      runs
         .filter((run) => run.status === 'failed')
         .slice(0, 3),
-    [tenantId],
+    [runs],
   )
   const disconnectedIntegrations = React.useMemo(
     () =>
-      listTenantIntegrations(tenantId)
+      integrations
         .filter((integration) => integration.status === 'disconnected')
         .slice(0, 3),
-    [tenantId],
+    [integrations],
   )
   const securityWarnings = React.useMemo(
     () =>
-      listTenantSecurityFindings(tenantId)
+      securityFindings
         .filter(
           (finding) =>
             finding.severity === 'high' || finding.severity === 'critical',
         )
         .slice(0, 3),
-    [tenantId],
+    [securityFindings],
   )
   
   const successRate = metrics.runsTotal > 0 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -27,19 +27,30 @@ import {
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { StatusPill, IntegrationChip } from '@/components/badges'
-import {
-  listTenantAuditEvents,
-  listTenantMembers,
-  listTenantSecrets,
-} from '@/lib/fleetops/read-model'
+import { useProviderQuery } from '@/lib/data/use-provider-query'
+import type { FleetSecret, FleetAuditEvent } from '@/lib/fleetops/read-model'
+import type { TenantMember } from '@agentmou/contracts'
 
 export default function SecurityPage() {
   const params = useParams()
   const tenantId = params.tenantId as string
-  const auditEvents = useMemo(() => listTenantAuditEvents(tenantId), [tenantId])
-  const teamMembers = useMemo(() => listTenantMembers(tenantId), [tenantId])
-  
-  const [secrets, setSecrets] = useState(() => listTenantSecrets(tenantId))
+
+  const { data: auditEvents } = useProviderQuery<FleetAuditEvent[]>(
+    (p) => p.listTenantAuditEvents(tenantId),
+    [],
+    [tenantId],
+  )
+  const { data: teamMembers } = useProviderQuery<TenantMember[]>(
+    (p) => p.listTenantMembers(tenantId),
+    [],
+    [tenantId],
+  )
+  const { data: serverSecrets } = useProviderQuery<FleetSecret[]>(
+    (p) => p.listTenantSecrets(tenantId),
+    [],
+    [tenantId],
+  )
+  const [secrets, setSecrets] = useState<FleetSecret[]>([])
   const [showSecretValues, setShowSecretValues] = useState<Record<string, boolean>>({})
   const [auditFilter, setAuditFilter] = useState('all')
   const [newSecretOpen, setNewSecretOpen] = useState(false)
@@ -47,8 +58,8 @@ export default function SecurityPage() {
   const [newSecretValue, setNewSecretValue] = useState('')
 
   useEffect(() => {
-    setSecrets(listTenantSecrets(tenantId))
-  }, [tenantId])
+    setSecrets(serverSecrets)
+  }, [serverSecrets])
   
   const toggleSecretVisibility = (secretId: string) => {
     setShowSecretValues(prev => ({ ...prev, [secretId]: !prev[secretId] }))
