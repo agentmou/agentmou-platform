@@ -169,10 +169,9 @@ services:
       - traefik.http.services.uptime.loadbalancer.server.port=3001
 
   # ---------------------------------------------------------------------------
-  # Node services — activate with: docker compose --profile node up -d
+  # Control Plane API (Fastify)
   # ---------------------------------------------------------------------------
   api:
-    profiles: ["node"]
     build:
       context: ../..
       dockerfile: services/api/Dockerfile
@@ -181,6 +180,7 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
       - NODE_ENV=production
     depends_on:
       postgres:
@@ -199,8 +199,10 @@ services:
       - traefik.http.routers.api.middlewares=secure-headers@docker,rate-limit@docker,noindex@docker
       - traefik.http.services.api.loadbalancer.server.port=3001
 
+  # ---------------------------------------------------------------------------
+  # Background Worker (BullMQ)
+  # ---------------------------------------------------------------------------
   worker:
-    profiles: ["node"]
     build:
       context: ../..
       dockerfile: services/worker/Dockerfile
@@ -208,6 +210,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - REDIS_URL=redis://redis:6379
+      - AGENTS_API_KEY=${AGENTS_API_KEY}
       - NODE_ENV=production
     depends_on:
       postgres:
@@ -217,8 +220,12 @@ services:
     networks:
       - internal
 
+  # ---------------------------------------------------------------------------
+  # Web App — activate with: docker compose --profile web up -d
+  # Deploy on Vercel instead for production.
+  # ---------------------------------------------------------------------------
   web:
-    profiles: ["node"]
+    profiles: ["web"]
     build:
       context: ../..
       dockerfile: apps/web/Dockerfile
