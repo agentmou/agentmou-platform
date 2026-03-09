@@ -3,8 +3,9 @@ import { BaseConnector } from './base';
 import { GmailConnector } from './gmail';
 
 export { BaseConnector, type ConnectorConfig } from './base';
-export { GmailConnector, type GmailConfig } from './gmail';
+export { GmailConnector, type GmailConfig, type GmailMessage } from './gmail';
 export { encrypt, decrypt } from './crypto';
+export { loadGmailConnector, loadTenantConnectors, ConnectorLoadError } from './loader';
 
 // Connector types to be implemented
 export type ConnectorType = 
