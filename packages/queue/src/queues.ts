@@ -22,6 +22,16 @@ export interface InstallPackPayload {
 export interface RunAgentPayload {
   tenantId: string;
   agentInstallationId: string;
+  runId: string;
   input?: Record<string, unknown>;
   triggeredBy: 'manual' | 'cron' | 'webhook' | 'api' | 'agent';
+}
+
+/** Typed payload for run-workflow jobs. */
+export interface RunWorkflowPayload {
+  tenantId: string;
+  workflowInstallationId: string;
+  runId: string;
+  input?: Record<string, unknown>;
+  triggeredBy: 'manual' | 'cron' | 'webhook' | 'api';
 }

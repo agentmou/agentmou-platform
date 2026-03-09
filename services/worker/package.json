@@ -20,6 +20,7 @@
     "@agentmou/agent-engine": "workspace:*",
     "@agentmou/observability": "workspace:*",
     "@agentmou/connectors": "workspace:*",
+    "@agentmou/n8n-client": "workspace:*",
     "drizzle-orm": "^0.39.0"
   },
   "devDependencies": {

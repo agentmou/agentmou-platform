@@ -1,74 +1,99 @@
-import { Job } from 'bullmq';
+/**
+ * run-agent job processor.
+ *
+ * Loads the agent installation, calls the Python agents API,
+ * and records execution steps in the database.
+ */
 
-export interface RunAgentJobData {
-  tenantId: string;
-  agentId: string;
-  installationId: string;
-  triggerType: 'schedule' | 'webhook' | 'manual';
-  payload?: Record<string, any>;
-  runId?: string;
-}
+import type { Job } from 'bullmq';
+import type { RunAgentPayload } from '@agentmou/queue';
+import { db, executionRuns, executionSteps, agentInstallations } from '@agentmou/db';
+import { eq } from 'drizzle-orm';
 
-export class RunAgentJob {
-  static async process(job: Job<RunAgentJobData>) {
-    const { tenantId, agentId, installationId, triggerType, payload, runId } = job.data;
+const AGENTS_API_URL = process.env.AGENTS_API_URL || 'http://agents:8000';
+const AGENTS_API_KEY = process.env.AGENTS_API_KEY || '';
 
-    const runId_ = runId || `run_${Date.now()}`;
-    
-    console.log(`Running agent ${agentId} for tenant ${tenantId} [${runId_}]`);
+export async function processRunAgent(job: Job<RunAgentPayload>) {
+  const { tenantId, agentInstallationId, runId, input } = job.data;
 
-    // Initialize run logger
-    await this.initializeRunLogger(runId_);
+  console.log(`[run-agent] Running agent installation ${agentInstallationId} for tenant ${tenantId} [${runId}]`);
 
-    try {
-      job.updateProgress(10);
+  const startedAt = new Date();
 
-      // Load agent configuration
-      const agentConfig = await this.loadAgentConfig(tenantId, installationId);
+  try {
+    await job.updateProgress(10);
 
-      job.updateProgress(30);
+    const [installation] = await db
+      .select()
+      .from(agentInstallations)
+      .where(eq(agentInstallations.id, agentInstallationId));
 
-      // Execute agent with engine
-      const result = await this.executeAgent(agentId, agentConfig, payload);
-
-      job.updateProgress(80);
-
-      // Log results
-      await this.logRunResults(runId_, result);
-
-      job.updateProgress(100);
-
-      return {
-        success: true,
-        runId: runId_,
-        completedAt: new Date(),
-        ...result,
-      };
-    } catch (error) {
-      await this.logRunError(runId_, error);
-      throw error;
+    if (!installation) {
+      throw new Error(`Agent installation ${agentInstallationId} not found`);
     }
-  }
 
-  private static async initializeRunLogger(runId: string) {
-    // Initialize run logging
-  }
+    await db.insert(executionSteps).values({
+      runId,
+      type: 'agent-call',
+      name: `Call agent ${installation.templateId}`,
+      status: 'running',
+      input: input || {},
+      startedAt: new Date(),
+    });
 
-  private static async loadAgentConfig(tenantId: string, installationId: string) {
-    // Load agent configuration from database
-    return { config: {} };
-  }
+    await job.updateProgress(30);
 
-  private static async executeAgent(agentId: string, config: any, payload?: any) {
-    // Execute agent using agent-engine
-    return { output: {}, metrics: {} };
-  }
+    const response = await fetch(`${AGENTS_API_URL}/analyze-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': AGENTS_API_KEY,
+      },
+      body: JSON.stringify(input || { subject: 'test', content: 'test' }),
+    });
 
-  private static async logRunResults(runId: string, result: any) {
-    // Log run results to database
-  }
+    const result = await response.json();
+    const completedAt = new Date();
+    const durationMs = completedAt.getTime() - startedAt.getTime();
 
-  private static async logRunError(runId: string, error: any) {
-    // Log run error to database
+    await job.updateProgress(70);
+
+    await db
+      .update(executionSteps)
+      .set({
+        status: response.ok ? 'completed' : 'failed',
+        output: result,
+        error: response.ok ? null : JSON.stringify(result),
+        durationMs,
+        completedAt,
+      })
+      .where(eq(executionSteps.runId, runId));
+
+    await db
+      .update(executionRuns)
+      .set({
+        status: response.ok ? 'success' : 'failed',
+        durationMs,
+        completedAt,
+      })
+      .where(eq(executionRuns.id, runId));
+
+    await job.updateProgress(100);
+
+    console.log(`[run-agent] Completed run ${runId} in ${durationMs}ms`);
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(`[run-agent] Failed run ${runId}:`, msg);
+
+    await db
+      .update(executionRuns)
+      .set({
+        status: 'failed',
+        durationMs: Date.now() - startedAt.getTime(),
+        completedAt: new Date(),
+      })
+      .where(eq(executionRuns.id, runId));
+
+    throw error;
   }
 }

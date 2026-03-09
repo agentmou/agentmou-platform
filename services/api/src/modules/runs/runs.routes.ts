@@ -22,4 +22,15 @@ export async function runRoutes(fastify: FastifyInstance) {
     const logs = await service.getRunLogs(tenantId, runId);
     return reply.send({ logs });
   });
+
+  fastify.post('/tenants/:tenantId/runs', async (request: FastifyRequest, reply: FastifyReply) => {
+    const { tenantId } = request.params as { tenantId: string };
+    const body = request.body as {
+      agentInstallationId?: string;
+      workflowInstallationId?: string;
+      input?: Record<string, unknown>;
+    };
+    const run = await service.triggerRun(tenantId, body);
+    return reply.status(201).send({ run });
+  });
 }
