@@ -21,6 +21,7 @@
     "@agentmou/contracts": "workspace:*",
     "@agentmou/agent-engine": "workspace:*",
     "@agentmou/catalog-sdk": "workspace:*",
+    "@agentmou/n8n-client": "workspace:*",
     "@agentmou/observability": "workspace:*",
     "zod": "^3.24.0"
   },

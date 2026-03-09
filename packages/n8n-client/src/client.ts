@@ -30,18 +30,41 @@ export class N8nClient {
     });
   }
 
+  async listWorkflows(): Promise<N8nWorkflow[]> {
+    const response = await this.client.get('/workflows');
+    return response.data.data ?? response.data;
+  }
+
   async getWorkflow(id: string): Promise<N8nWorkflow> {
     const response = await this.client.get(`/workflows/${id}`);
     return response.data;
   }
 
-  async executeWorkflow(id: string, data?: unknown): Promise<N8nExecutionResult> {
-    const response = await this.client.post(`/workflows/${id}/execute`, data);
+  /**
+   * Import a workflow JSON into n8n (creates a new workflow).
+   * The n8n REST API uses POST /workflows with the full workflow body.
+   */
+  async createWorkflow(workflow: Record<string, unknown>): Promise<N8nWorkflow> {
+    const response = await this.client.post('/workflows', workflow);
     return response.data;
   }
 
-  async listWorkflows(): Promise<N8nWorkflow[]> {
-    const response = await this.client.get('/workflows');
+  async activateWorkflow(id: string): Promise<N8nWorkflow> {
+    const response = await this.client.patch(`/workflows/${id}`, { active: true });
+    return response.data;
+  }
+
+  async deactivateWorkflow(id: string): Promise<N8nWorkflow> {
+    const response = await this.client.patch(`/workflows/${id}`, { active: false });
+    return response.data;
+  }
+
+  async deleteWorkflow(id: string): Promise<void> {
+    await this.client.delete(`/workflows/${id}`);
+  }
+
+  async executeWorkflow(id: string, data?: unknown): Promise<N8nExecutionResult> {
+    const response = await this.client.post(`/workflows/${id}/execute`, data);
     return response.data;
   }
 }

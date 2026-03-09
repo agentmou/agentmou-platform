@@ -1,108 +1,57 @@
-import { FastifyInstance } from 'fastify';
+import { N8nClient, type N8nWorkflow } from '@agentmou/n8n-client';
+
+const N8N_API_URL = process.env.N8N_API_URL || 'http://n8n:5678/api/v1';
+const N8N_API_KEY = process.env.N8N_API_KEY || '';
+
+function getClient(): N8nClient {
+  if (!N8N_API_KEY) {
+    throw Object.assign(new Error('N8N_API_KEY not configured'), { statusCode: 500 });
+  }
+  return new N8nClient(N8N_API_URL, N8N_API_KEY);
+}
 
 export class N8nService {
-  private fastify: FastifyInstance;
-  private n8nClient: any;
-
-  constructor(fastify: FastifyInstance) {
-    this.fastify = fastify;
-    // Initialize n8n client
+  async listWorkflows(): Promise<N8nWorkflow[]> {
+    return getClient().listWorkflows();
   }
 
-  async listWorkflows(tenantId: string) {
-    return [
-      {
-        id: 'wf_1',
-        tenantId,
-        name: 'Auto Label Gmail',
-        active: true,
-        updatedAt: new Date(),
-      },
-    ];
+  async getWorkflow(workflowId: string): Promise<N8nWorkflow> {
+    return getClient().getWorkflow(workflowId);
   }
 
-  async getWorkflow(tenantId: string, workflowId: string) {
-    return {
-      id: workflowId,
-      tenantId,
-      name: 'Auto Label Gmail',
-      nodes: [],
-      connections: {},
-      active: true,
-      settings: {},
-    };
+  async importWorkflow(workflowJson: Record<string, unknown>): Promise<N8nWorkflow> {
+    return getClient().createWorkflow(workflowJson);
   }
 
-  async importWorkflow(tenantId: string, workflowJson: any) {
-    return {
-      id: 'wf_' + Date.now(),
-      tenantId,
-      ...workflowJson,
-      importedAt: new Date(),
-    };
+  async exportWorkflow(workflowId: string): Promise<{ workflow: N8nWorkflow }> {
+    const wf = await getClient().getWorkflow(workflowId);
+    return { workflow: wf };
   }
 
-  async exportWorkflow(tenantId: string, workflowId: string) {
-    return {
-      workflow: {
-        id: workflowId,
-        name: 'Auto Label Gmail',
-        nodes: [],
-        connections: {},
-      },
-    };
+  async executeWorkflow(workflowId: string, data?: unknown) {
+    return getClient().executeWorkflow(workflowId, data);
   }
 
-  async executeWorkflow(tenantId: string, workflowId: string, data?: any) {
-    return {
-      executionId: 'exec_' + Date.now(),
-      status: 'running',
-      startedAt: new Date(),
-    };
+  async activateWorkflow(workflowId: string): Promise<N8nWorkflow> {
+    return getClient().activateWorkflow(workflowId);
   }
 
-  async getExecutions(tenantId: string, workflowId: string) {
-    return [
-      {
-        id: 'exec_1',
-        workflowId,
-        status: 'success',
-        startedAt: new Date(Date.now() - 60000),
-        stoppedAt: new Date(),
-        duration: 1200,
-      },
-    ];
+  async deactivateWorkflow(workflowId: string): Promise<N8nWorkflow> {
+    return getClient().deactivateWorkflow(workflowId);
   }
 
-  async activateWorkflow(tenantId: string, workflowId: string) {
-    return {
-      id: workflowId,
-      active: true,
-      activatedAt: new Date(),
-    };
+  async deleteWorkflow(workflowId: string): Promise<void> {
+    return getClient().deleteWorkflow(workflowId);
   }
 
-  async deactivateWorkflow(tenantId: string, workflowId: string) {
-    return {
-      id: workflowId,
-      active: false,
-      deactivatedAt: new Date(),
-    };
-  }
-
-  async getCredentialsStatus(tenantId: string) {
-    return {
-      connected: true,
-      lastSyncedAt: new Date(),
-      credentials: { valid: true },
-    };
-  }
-
-  async testConnection(tenantId: string) {
-    return {
-      success: true,
-      message: 'Connection to n8n successful',
-      latency: 85,
-    };
+  async testConnection() {
+    try {
+      const start = Date.now();
+      await getClient().listWorkflows();
+      return { success: true, message: 'Connection to n8n successful', latency: Date.now() - start };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { success: false, message: `n8n connection failed: ${msg}`, latency: 0 };
+    }
   }
 }
