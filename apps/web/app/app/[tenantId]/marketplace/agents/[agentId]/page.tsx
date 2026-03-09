@@ -21,11 +21,8 @@ import {
   Info,
 } from 'lucide-react'
 import { AvailabilityBadge, AudienceBadge, DomainBadge } from '@/components/badges'
-import {
-  listCatalogAgentTemplates,
-  listCatalogWorkflowTemplates,
-  listIntegrations,
-} from '@/lib/fleetops/read-model'
+import { useProviderQuery } from '@/lib/data/use-provider-query'
+import type { AgentTemplate, WorkflowTemplate, Integration } from '@agentmou/contracts'
 
 const riskColors = {
   low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
@@ -44,15 +41,26 @@ export default function AgentDetailPage() {
   const router = useRouter()
   const tenantId = params.tenantId as string
   const agentId = params.agentId as string
-  const agentTemplates = React.useMemo(() => listCatalogAgentTemplates(), [])
-  const workflowTemplates = React.useMemo(
-    () => listCatalogWorkflowTemplates(),
-    [],
+  const { data: agent, isLoading: loadingAgent } = useProviderQuery<AgentTemplate | null>(
+    (p) => p.getAgentTemplate(agentId), null, [agentId],
   )
-  const integrations = React.useMemo(() => listIntegrations(), [])
+  const { data: workflowTemplates } = useProviderQuery<WorkflowTemplate[]>(
+    (p) => p.listCatalogWorkflowTemplates(), [],
+  )
+  const { data: integrations } = useProviderQuery<Integration[]>(
+    (p) => p.listIntegrations(), [],
+  )
   
-  const agent = agentTemplates.find(a => a.id === agentId)
-  
+  if (loadingAgent) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Loading agent...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!agent) {
     return (
       <div className="p-6 lg:p-8">

@@ -17,10 +17,8 @@ import {
   FileCode,
 } from 'lucide-react'
 import { AvailabilityBadge } from '@/components/badges'
-import {
-  listCatalogWorkflowTemplates,
-  listIntegrations,
-} from '@/lib/fleetops/read-model'
+import { useProviderQuery } from '@/lib/data/use-provider-query'
+import type { WorkflowTemplate, Integration } from '@agentmou/contracts'
 
 const riskColors = {
   low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
@@ -42,14 +40,23 @@ export default function WorkflowDetailPage() {
   const router = useRouter()
   const tenantId = params.tenantId as string
   const workflowId = params.workflowId as string
-  const workflowTemplates = React.useMemo(
-    () => listCatalogWorkflowTemplates(),
-    [],
+  const { data: workflow, isLoading: loadingWorkflow } = useProviderQuery<WorkflowTemplate | null>(
+    (p) => p.getWorkflowTemplate(workflowId), null, [workflowId],
   )
-  const integrations = React.useMemo(() => listIntegrations(), [])
+  const { data: integrations } = useProviderQuery<Integration[]>(
+    (p) => p.listIntegrations(), [],
+  )
   
-  const workflow = workflowTemplates.find(w => w.id === workflowId)
-  
+  if (loadingWorkflow) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Loading workflow...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!workflow) {
     return (
       <div className="p-6 lg:p-8">

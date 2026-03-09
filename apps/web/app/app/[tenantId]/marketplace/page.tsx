@@ -24,21 +24,21 @@ import {
 import { RiskBadge, ChannelBadge, IntegrationChip, SpecLine, AvailabilityBadge, DomainBadge } from '@/components/badges'
 import { BrandStrip } from '@/components/brand/brand-frame'
 import { CATEGORY_OPTIONS, normalizeCategory, type Category } from '@/lib/fleetops/category-config'
-import {
-  listMarketplaceAgentTemplates,
-  listMarketplaceWorkflowTemplates,
-  listPackTemplates,
-} from '@/lib/fleetops/read-model'
+import { useProviderQuery } from '@/lib/data/use-provider-query'
+import type { AgentTemplate, WorkflowTemplate, PackTemplate } from '@agentmou/contracts'
 
 export default function MarketplacePage() {
   const params = useParams()
   const tenantId = params.tenantId as string
-  const agentTemplates = React.useMemo(() => listMarketplaceAgentTemplates(), [])
-  const workflowTemplates = React.useMemo(
-    () => listMarketplaceWorkflowTemplates(),
-    [],
+  const { data: agentTemplates, isLoading: loadingAgents } = useProviderQuery<AgentTemplate[]>(
+    (p) => p.listMarketplaceAgentTemplates(), [],
   )
-  const packTemplates = React.useMemo(() => listPackTemplates(), [])
+  const { data: workflowTemplates, isLoading: loadingWorkflows } = useProviderQuery<WorkflowTemplate[]>(
+    (p) => p.listMarketplaceWorkflowTemplates(), [],
+  )
+  const { data: packTemplates } = useProviderQuery<PackTemplate[]>(
+    (p) => p.listPackTemplates(), [],
+  )
   
   const [search, setSearch] = React.useState('')
   const [categoryFilter, setCategoryFilter] = React.useState<string>('all')
