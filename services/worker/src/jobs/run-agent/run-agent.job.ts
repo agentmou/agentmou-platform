@@ -1,99 +1,121 @@
 /**
  * run-agent job processor.
  *
- * Loads the agent installation, calls the Python agents API,
- * and records execution steps in the database.
+ * Loads the agent installation and catalog assets (prompt, policy),
+ * then delegates execution to AgentEngine which handles planning,
+ * policy checks, tool calls, and step-level DB logging.
  */
 
+import * as path from 'node:path';
+import * as fs from 'node:fs/promises';
+import * as yaml from 'yaml';
 import type { Job } from 'bullmq';
 import type { RunAgentPayload } from '@agentmou/queue';
-import { db, executionRuns, executionSteps, agentInstallations } from '@agentmou/db';
+import { db, agentInstallations } from '@agentmou/db';
 import { eq } from 'drizzle-orm';
+import { AgentEngine, type AgentPolicyConfig } from '@agentmou/agent-engine';
+import { loadTenantConnectors } from '@agentmou/connectors';
 
-const AGENTS_API_URL = process.env.AGENTS_API_URL || 'http://agents:8000';
-const AGENTS_API_KEY = process.env.AGENTS_API_KEY || '';
+const REPO_ROOT = path.resolve(import.meta.dirname, '../../../../..');
+const CATALOG_DIR = path.join(REPO_ROOT, 'catalog');
 
 export async function processRunAgent(job: Job<RunAgentPayload>) {
   const { tenantId, agentInstallationId, runId, input } = job.data;
 
-  console.log(`[run-agent] Running agent installation ${agentInstallationId} for tenant ${tenantId} [${runId}]`);
+  console.log(
+    `[run-agent] Running agent ${agentInstallationId} for tenant ${tenantId} [${runId}]`
+  );
 
-  const startedAt = new Date();
+  await job.updateProgress(10);
 
+  // 1. Load installation
+  const [installation] = await db
+    .select()
+    .from(agentInstallations)
+    .where(eq(agentInstallations.id, agentInstallationId));
+
+  if (!installation) {
+    throw new Error(`Agent installation ${agentInstallationId} not found`);
+  }
+
+  await job.updateProgress(20);
+
+  // 2. Load catalog assets (prompt + policy)
+  const templateId = installation.templateId;
+  const agentDir = path.join(CATALOG_DIR, 'agents', templateId);
+
+  const systemPrompt = await loadFileOrDefault(
+    path.join(agentDir, 'prompt.md'),
+    `You are an AI assistant executing the "${templateId}" agent.`
+  );
+
+  const policyConfig = await loadPolicyConfig(
+    path.join(agentDir, 'policy.yaml')
+  );
+
+  await job.updateProgress(30);
+
+  // 3. Load tenant connectors (decrypted from DB)
+  let connectors;
   try {
-    await job.updateProgress(10);
+    connectors = await loadTenantConnectors(tenantId);
+  } catch {
+    connectors = new Map();
+  }
 
-    const [installation] = await db
-      .select()
-      .from(agentInstallations)
-      .where(eq(agentInstallations.id, agentInstallationId));
+  await job.updateProgress(40);
 
-    if (!installation) {
-      throw new Error(`Agent installation ${agentInstallationId} not found`);
-    }
+  // 4. Execute via AgentEngine
+  const engine = new AgentEngine({
+    openaiApiKey: process.env.OPENAI_API_KEY,
+    agentsApiUrl: process.env.AGENTS_API_URL || 'http://agents:8000',
+    agentsApiKey: process.env.AGENTS_API_KEY,
+  });
 
-    await db.insert(executionSteps).values({
-      runId,
-      type: 'agent-call',
-      name: `Call agent ${installation.templateId}`,
-      status: 'running',
-      input: input || {},
-      startedAt: new Date(),
-    });
+  const result = await engine.execute({
+    runId,
+    tenantId,
+    templateId,
+    systemPrompt,
+    input,
+    connectors,
+    policyConfig: policyConfig ?? undefined,
+  });
 
-    await job.updateProgress(30);
+  await job.updateProgress(100);
 
-    const response = await fetch(`${AGENTS_API_URL}/analyze-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': AGENTS_API_KEY,
-      },
-      body: JSON.stringify(input || { subject: 'test', content: 'test' }),
-    });
+  if (!result.success) {
+    console.error(`[run-agent] Failed run ${runId}: ${result.error}`);
+    throw new Error(result.error ?? 'Agent execution failed');
+  }
 
-    const result = await response.json();
-    const completedAt = new Date();
-    const durationMs = completedAt.getTime() - startedAt.getTime();
+  console.log(
+    `[run-agent] Completed run ${runId} in ${result.duration}ms (${result.stepsCompleted} steps)`
+  );
+}
 
-    await job.updateProgress(70);
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
-    await db
-      .update(executionSteps)
-      .set({
-        status: response.ok ? 'completed' : 'failed',
-        output: result,
-        error: response.ok ? null : JSON.stringify(result),
-        durationMs,
-        completedAt,
-      })
-      .where(eq(executionSteps.runId, runId));
+async function loadFileOrDefault(
+  filePath: string,
+  fallback: string
+): Promise<string> {
+  try {
+    return await fs.readFile(filePath, 'utf-8');
+  } catch {
+    return fallback;
+  }
+}
 
-    await db
-      .update(executionRuns)
-      .set({
-        status: response.ok ? 'success' : 'failed',
-        durationMs,
-        completedAt,
-      })
-      .where(eq(executionRuns.id, runId));
-
-    await job.updateProgress(100);
-
-    console.log(`[run-agent] Completed run ${runId} in ${durationMs}ms`);
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.error(`[run-agent] Failed run ${runId}:`, msg);
-
-    await db
-      .update(executionRuns)
-      .set({
-        status: 'failed',
-        durationMs: Date.now() - startedAt.getTime(),
-        completedAt: new Date(),
-      })
-      .where(eq(executionRuns.id, runId));
-
-    throw error;
+async function loadPolicyConfig(
+  filePath: string
+): Promise<AgentPolicyConfig | null> {
+  try {
+    const content = await fs.readFile(filePath, 'utf-8');
+    return yaml.parse(content) as AgentPolicyConfig;
+  } catch {
+    return null;
   }
 }
