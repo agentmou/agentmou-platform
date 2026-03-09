@@ -49,7 +49,7 @@ export default function MarketingLayout({
                 Sign in
               </MinimalButton>
             </Link>
-            <Link href="/app/demo-workspace/dashboard">
+            <Link href="/register">
               <MinimalButton size="sm" className="text-xs">
                 Get started
                 <ArrowRight className="h-3 w-3" />
