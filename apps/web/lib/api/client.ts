@@ -18,6 +18,8 @@ import type {
   ApprovalRequest,
 } from '@agentmou/contracts';
 
+import { getTokenCookie } from '@/lib/auth/cookies';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 class ApiError extends Error {
@@ -30,12 +32,18 @@ class ApiError extends Error {
   }
 }
 
+function authHeaders(): Record<string, string> {
+  const token = getTokenCookie();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_URL}${path}`;
   const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders(),
       ...options?.headers,
     },
   });

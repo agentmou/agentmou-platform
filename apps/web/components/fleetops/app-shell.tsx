@@ -40,6 +40,7 @@ import {
 } from 'lucide-react'
 import { CommandPalette } from '@/components/fleetops/command-palette'
 import { listTenants, listTenantApprovals } from '@/lib/fleetops/read-model'
+import { useAuthStore } from '@/lib/auth/store'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -61,7 +62,28 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
   const pathname = usePathname()
   const params = useParams()
   const tenantId = params.tenantId as string
-  const tenants = React.useMemo(() => listTenants(), [])
+
+  const authUser = useAuthStore((s) => s.user)
+  const authTenants = useAuthStore((s) => s.tenants)
+  const logout = useAuthStore((s) => s.logout)
+  const hydrate = useAuthStore((s) => s.hydrate)
+
+  React.useEffect(() => { hydrate() }, [hydrate])
+
+  const isDemoWorkspace = tenantId === 'demo-workspace'
+  const mockTenants = React.useMemo(() => listTenants(), [])
+
+  const tenants = isDemoWorkspace
+    ? mockTenants
+    : authTenants.map((t) => ({
+        id: t.id,
+        name: t.name,
+        type: 'business' as const,
+        plan: t.plan as 'free' | 'starter' | 'pro' | 'scale' | 'enterprise',
+        createdAt: '',
+        ownerId: authUser?.id ?? '',
+        settings: { timezone: 'UTC', defaultHITL: false, logRetentionDays: 30, memoryRetentionDays: 30 },
+      }))
   
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const [collapsed, setCollapsed] = React.useState(false)
@@ -266,8 +288,8 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
-                    <span className="text-sm">Admin User</span>
-                    <span className="text-xs font-normal text-muted-foreground">admin@acme.com</span>
+                    <span className="text-sm">{authUser?.name ?? 'Admin User'}</span>
+                    <span className="text-xs font-normal text-muted-foreground">{authUser?.email ?? 'admin@acme.com'}</span>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -278,11 +300,14 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign out
-                  </Link>
+                <DropdownMenuItem
+                  onClick={() => {
+                    logout()
+                    window.location.href = '/login'
+                  }}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
