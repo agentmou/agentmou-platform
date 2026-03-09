@@ -20,29 +20,37 @@ import {
   Shield,
 } from 'lucide-react'
 import { RiskBadge, IntegrationChip, AvailabilityBadge } from '@/components/badges'
-import {
-  listCatalogAgentTemplates,
-  listCatalogWorkflowTemplates,
-  listIntegrations,
-  listPackTemplates,
-} from '@/lib/fleetops/read-model'
+import { useProviderQuery } from '@/lib/data/use-provider-query'
+import type { AgentTemplate, WorkflowTemplate, PackTemplate, Integration } from '@agentmou/contracts'
 
 export default function PackDetailPage() {
   const params = useParams()
   const router = useRouter()
   const tenantId = params.tenantId as string
   const packId = params.packId as string
-  const packTemplates = React.useMemo(() => listPackTemplates(), [])
-  const agentTemplates = React.useMemo(() => listCatalogAgentTemplates(), [])
-  const workflowTemplates = React.useMemo(
-    () => listCatalogWorkflowTemplates(),
-    [],
+  const { data: pack, isLoading: loadingPack } = useProviderQuery<PackTemplate | null>(
+    (p) => p.getPackTemplate(packId), null, [packId],
   )
-  const integrations = React.useMemo(() => listIntegrations(), [])
+  const { data: agentTemplates } = useProviderQuery<AgentTemplate[]>(
+    (p) => p.listCatalogAgentTemplates(), [],
+  )
+  const { data: workflowTemplates } = useProviderQuery<WorkflowTemplate[]>(
+    (p) => p.listCatalogWorkflowTemplates(), [],
+  )
+  const { data: integrations } = useProviderQuery<Integration[]>(
+    (p) => p.listIntegrations(), [],
+  )
   
-  // Find pack by slug or id for backwards compatibility
-  const pack = packTemplates.find(p => p.slug === packId || p.id === packId)
-  
+  if (loadingPack) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Loading pack...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!pack) {
     return (
       <div className="p-6 lg:p-8">
