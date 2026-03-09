@@ -51,26 +51,58 @@ direction in `whole-initial-context.md`.
   (Python agents API call, n8n execution, DB recording).
 - API: `POST /tenants/:id/runs` triggers manual execution.
 
+### Phase 2.5: Connectors & Real Execution
+
+- OAuth2 flow for Gmail: authorize URL generation, callback handling,
+  token exchange, AES-256-GCM encryption at rest
+  ([ADR-008](../adr/008-connector-oauth-token-storage.md)).
+- Real `GmailConnector` backed by `googleapis`: list/get/modify messages,
+  automatic token refresh.
+- Agent engine wired to real LLM calls (GPT-4o-mini planning), policy
+  checks from `policy.yaml`, and step-level DB logging.
+- Worker `run-agent` job delegates to `AgentEngine.execute()` instead of
+  raw fetch to Python API.
+- `schedule-trigger` job: BullMQ repeatable jobs fire cron-based agent
+  runs (e.g. inbox-triage every 15 minutes).
+- `approval-timeout` job: auto-resolves pending approvals with
+  configurable actions (auto-approve, auto-reject, escalate).
+- `install-pack` creates schedule entries for agents with cron triggers.
+- Web cleanup: zero direct `read-model` imports outside `lib/data/`;
+  empty states for new tenants (dashboard, fleet, runs, approvals).
+- DB schema: 14 tables, 3 migrations (`connector_oauth_states`,
+  `schedules`, OAuth fields on `connector_accounts`).
+- 61+ unit tests across 7 packages/services.
+- E2E test script: `scripts/test-e2e-triage.ts`.
+
 ## Next (Phase 3: Production Hardening)
 
-### 1) Real Connector OAuth Flows
+### 1) Deploy Phase 2.5 to VPS
 
-- Implement OAuth2 flow for Gmail connector.
-- Store tokens in secret envelopes with basic encryption.
-- Test connection functionality.
+- Rebuild containers, run migrations, add new env vars.
+- Smoke test full stack end-to-end on production.
+
+### 2) Multi-Tenant Marketplace
+
+- Public agent/workflow publishing.
+- Tenant-scoped connector and secret isolation.
+- RBAC with role-based permissions per tenant.
 
 ## Later (Phase 3+)
 
-- RBAC and multi-tenant isolation hardening.
 - Dynamic catalog from manifests with versioning.
 - Usage metering and billing events.
 - Knowledge/memory with pgvector.
 - Enterprise hardening: SSO/SAML, audit export, retention controls.
+- Additional connector providers (Slack, Drive, Salesforce, etc.).
 - Extract shared UI into `packages/ui` when needed.
 
 ## Risks
 
+- Google OAuth review required for production (100-user "testing" mode
+  limit until verified).
+- Token encryption key management: if lost, all stored tokens are
+  unreadable.
+- Gmail API rate limits (250 quota units/user/sec).
 - Reintroducing a second web domain model (legacy drift).
 - Treating n8n as control-plane source of truth.
-- Expanding catalog breadth before runtime depth.
 - Scope creep into enterprise features before vertical slice is proven.
