@@ -35,3 +35,11 @@ export interface RunWorkflowPayload {
   input?: Record<string, unknown>;
   triggeredBy: 'manual' | 'cron' | 'webhook' | 'api';
 }
+
+/** Typed payload for schedule-trigger jobs. */
+export interface ScheduleTriggerPayload {
+  tenantId: string;
+  scheduleId: string;
+  targetType: 'agent' | 'workflow';
+  installationId: string;
+}
