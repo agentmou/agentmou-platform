@@ -36,28 +36,48 @@ in [`whole-initial-context.md`](../../whole-initial-context.md).
 | runs | Real query + steps join | `execution_runs`, `execution_steps` |
 | approvals | Real CRUD + decide | `approval_requests` |
 
-Stub modules (not needed for Phase 1): `usage`, `billing`, `security`,
-`webhooks`, `n8n`.
+Stub modules (not needed for Phase 2): `usage`, `billing`, `security`,
+`webhooks`.
+
+Phase 2 additions:
+
+- `auth` module: register creates user + tenant + membership in
+  transaction; JWT middleware + tenant access guard on all tenant routes.
+- `n8n` module: wired to real n8n instance via `@agentmou/n8n-client`
+  ([ADR-007](../adr/007-n8n-workflow-provisioning.md)).
+- `runs` module: `POST /tenants/:id/runs` triggers agent or workflow
+  execution by enqueuing BullMQ jobs.
 
 ### Data Plane (services/worker)
 
-- BullMQ workers initialized with real Redis connection.
-- `install-pack` job processes end-to-end: reads pack manifest, creates
-  agent and workflow installations in DB.
+- BullMQ workers with 3 active queues: `install-pack`, `run-agent`,
+  `run-workflow`.
+- `install-pack`: reads pack manifest, creates agent and workflow
+  installations in DB.
+- `run-agent`: loads installation, calls Python agents API, records
+  execution steps in DB.
+- `run-workflow`: loads installation + n8nWorkflowId, triggers execution
+  via N8nClient, records steps.
 - Shared `packages/queue` provides queue names and typed payloads.
 
 ### Auth
 
 - JWT (jose) + PBKDF2 password hashing in `packages/auth`.
-- Register/login/me endpoints in API backed by `users` table.
-- No session middleware yet (stateless JWT).
+- Register creates user + tenant + membership in a single transaction.
+- Login returns user + tenants + token.
+- JWT middleware (`requireAuth`) and tenant access guard
+  (`requireTenantAccess`) protect all `/tenants/:id/*` routes.
 
 ### Web App (apps/web)
 
-- Typed API client (`lib/api/client.ts`) with 20+ methods.
-- `useApiData` hook for progressive page migration.
-- Pages still consume mock data via `read-model.ts` — migration to API
-  client is Phase 2 work.
+- Real login/register pages with API integration (zustand auth store,
+  JWT cookie, Next.js middleware for route protection).
+- DataProvider abstraction: `mockProvider` for marketing/demo routes,
+  `apiProvider` for authenticated app routes.
+- All 13 tenant pages migrated from mock data to API provider via
+  `useProviderQuery` hook.
+- Marketing pages still use mock provider for full demo catalog.
+- Toaster (sonner) for user feedback on auth and data operations.
 
 ### Database
 
@@ -72,10 +92,12 @@ Stub modules (not needed for Phase 1): `usage`, `billing`, `security`,
 
 ### Agents Service (services/agents)
 
-- Python FastAPI service with `/health` and `/hello` endpoints.
-- Runs on the VPS behind Traefik with BasicAuth + API key auth.
-- No business logic yet — scaffold for future agent endpoints called by
-  n8n workflows.
+- Python FastAPI service with `/health`, `/health/deep`, `/hello`, and
+  `/analyze-email` endpoints.
+- `POST /analyze-email`: classifies emails using GPT-4o-mini with
+  structured JSON output (priority, category, action, labels, summary).
+- `POST /health/deep`: verifies OpenAI API connectivity.
+- Runs on the VPS behind Traefik, protected by `x-api-key` header.
 
 ### Infrastructure (VPS)
 
