@@ -140,6 +140,7 @@ services:
     restart: unless-stopped
     environment:
       AGENTS_API_KEY: ${AGENTS_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     networks:
       - web
     labels:
