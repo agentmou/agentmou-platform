@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ChatWidget } from '@/components/chat'
 import { MinimalButton } from '@/components/ui/minimal-button'
 import { Bot, ArrowRight } from 'lucide-react'
+import { DataProviderContext, mockProvider } from '@/lib/data'
 
 export default function MarketingLayout({
   children,
@@ -11,6 +12,7 @@ export default function MarketingLayout({
   children: React.ReactNode
 }) {
   return (
+    <DataProviderContext.Provider value={mockProvider}>
     <div data-surface="marketing" className="surface-marketing min-h-screen bg-background">
       {/* Header - minimal editorial */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm">
@@ -125,5 +127,6 @@ export default function MarketingLayout({
       
       <ChatWidget mode="public" />
     </div>
+    </DataProviderContext.Provider>
   )
 }
