@@ -1,65 +1,186 @@
+name: agentmou-stack
+
 services:
+  # ---------------------------------------------------------------------------
+  # Reverse Proxy
+  # ---------------------------------------------------------------------------
+  traefik:
+    image: traefik:v3.6.8
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - --api=false
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --certificatesresolvers.le.acme.email=${LE_EMAIL}
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+      - --log.level=INFO
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ../../traefik/letsencrypt:/letsencrypt
+    networks:
+      - web
+    labels:
+      - traefik.enable=true
+      # Shared middlewares
+      - traefik.http.middlewares.auth.basicauth.users=${BASIC_AUTH_USERS}
+      - traefik.http.middlewares.secure-headers.headers.stsSeconds=31536000
+      - traefik.http.middlewares.secure-headers.headers.stsIncludeSubdomains=true
+      - traefik.http.middlewares.secure-headers.headers.stsPreload=true
+      - traefik.http.middlewares.secure-headers.headers.frameDeny=true
+      - traefik.http.middlewares.secure-headers.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.secure-headers.headers.referrerPolicy=no-referrer
+      - traefik.http.middlewares.rate-limit.ratelimit.average=30
+      - traefik.http.middlewares.rate-limit.ratelimit.burst=60
+      - traefik.http.middlewares.noindex.headers.customResponseHeaders.X-Robots-Tag=noindex, nofollow, noarchive, nosnippet
+
+  # ---------------------------------------------------------------------------
   # Databases
+  # ---------------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
-    container_name: agentmou-postgres
-    restart: always
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME:-agentmou}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ../../postgres/data:/var/lib/postgresql/data
+    networks:
+      - internal
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER}']
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - internal
 
   redis:
     image: redis:7-alpine
-    container_name: agentmou-redis
-    restart: always
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
     volumes:
-      - redis_data:/data
+      - ../../redis/data:/data
+    networks:
+      - internal
     healthcheck:
-      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - internal
+      timeout: 3s
+      retries: 10
 
+  # ---------------------------------------------------------------------------
+  # n8n — Workflow engine (ADR-003)
+  # ---------------------------------------------------------------------------
   n8n:
-    image: n8n/n8n:latest
-    container_name: agentmou-n8n
-    restart: always
+    image: n8nio/n8n:latest
+    restart: unless-stopped
     environment:
-      - N8N_HOST=${N8N_HOST}
-      - N8N_PORT=5678
-      - GENERIC_TIMEZONE=${TZ:-UTC}
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=${N8N_USER}
-      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD}
+      TZ: ${TZ}
+      GENERIC_TIMEZONE: ${TZ}
+      NODE_ENV: production
+      N8N_EDITOR_BASE_URL: ${N8N_EDITOR_BASE_URL}
+      WEBHOOK_URL: ${WEBHOOK_URL}
+      N8N_PROXY_HOPS: ${N8N_PROXY_HOPS}
+      N8N_HOST: n8n.${DOMAIN}
+      N8N_PROTOCOL: https
+      N8N_PORT: 5678
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: ${POSTGRES_DB}
+      DB_POSTGRESDB_USER: ${POSTGRES_USER}
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+      QUEUE_BULL_REDIS_HOST: redis
+      QUEUE_BULL_REDIS_PORT: 6379
     volumes:
-      - n8n_data:/home/node/.n8n
+      - ../../n8n/data:/home/node/.n8n
     networks:
+      - web
       - internal
-      - traefik
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web
+      # Explicit Traefik service for n8n
+      - traefik.http.services.n8n-svc.loadbalancer.server.port=5678
+      # Editor — private (BasicAuth)
+      - traefik.http.routers.n8n-editor.rule=Host(`n8n.${DOMAIN}`)
+      - traefik.http.routers.n8n-editor.entrypoints=websecure
+      - traefik.http.routers.n8n-editor.tls.certresolver=le
+      - traefik.http.routers.n8n-editor.middlewares=secure-headers@docker,noindex@docker
+      - traefik.http.routers.n8n-editor.service=n8n-svc
+      # Webhooks — public (rate-limited, no BasicAuth)
+      - traefik.http.routers.n8n-hooks.rule=Host(`hooks.${DOMAIN}`) && (PathPrefix(`/webhook`) || PathPrefix(`/webhook-test`))
+      - traefik.http.routers.n8n-hooks.entrypoints=websecure
+      - traefik.http.routers.n8n-hooks.tls.certresolver=le
+      - traefik.http.routers.n8n-hooks.middlewares=secure-headers@docker,rate-limit@docker,noindex@docker
+      - traefik.http.routers.n8n-hooks.service=n8n-svc
 
-  # API Service
+  # ---------------------------------------------------------------------------
+  # Agents — Python FastAPI (ADR-004 allows Python for justified cases)
+  # ---------------------------------------------------------------------------
+  agents:
+    build:
+      context: ../..
+      dockerfile: services/agents/Dockerfile
+    restart: unless-stopped
+    environment:
+      AGENTS_API_KEY: ${AGENTS_API_KEY}
+    networks:
+      - web
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.agents.rule=Host(`agents.${DOMAIN}`)
+      - traefik.http.routers.agents.entrypoints=websecure
+      - traefik.http.routers.agents.tls.certresolver=le
+      - traefik.http.routers.agents.middlewares=auth@docker,secure-headers@docker,noindex@docker
+      - traefik.http.services.agents.loadbalancer.server.port=8000
+
+  # ---------------------------------------------------------------------------
+  # Monitoring
+  # ---------------------------------------------------------------------------
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    restart: unless-stopped
+    volumes:
+      - ../../uptime-kuma/data:/app/data
+    networks:
+      - web
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.uptime.rule=Host(`uptime.${DOMAIN}`)
+      - traefik.http.routers.uptime.entrypoints=websecure
+      - traefik.http.routers.uptime.tls.certresolver=le
+      - traefik.http.routers.uptime.middlewares=auth@docker,secure-headers@docker,rate-limit@docker,noindex@docker
+      - traefik.http.services.uptime.loadbalancer.server.port=3001
+
+  # ---------------------------------------------------------------------------
+  # Node services — activate with: docker compose --profile node up -d
+  # ---------------------------------------------------------------------------
   api:
+    profiles: ["node"]
     build:
       context: ../..
       dockerfile: services/api/Dockerfile
-    container_name: agentmou-api
-    restart: always
+    restart: unless-stopped
     environment:
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-agentmou}
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=production
     depends_on:
       postgres:
@@ -68,25 +189,25 @@ services:
         condition: service_healthy
     networks:
       - internal
-      - traefik
+      - web
     labels:
       - traefik.enable=true
-      - traefik.http.routers.api.rule=Host(`${API_HOST}`)
+      - traefik.docker.network=web
+      - traefik.http.routers.api.rule=Host(`api.${DOMAIN}`)
       - traefik.http.routers.api.entrypoints=websecure
-      - traefik.http.routers.api.tls.certresolver=letsencrypt
+      - traefik.http.routers.api.tls.certresolver=le
+      - traefik.http.routers.api.middlewares=secure-headers@docker,rate-limit@docker,noindex@docker
+      - traefik.http.services.api.loadbalancer.server.port=3001
 
-  # Worker Service (multiple replicas)
   worker:
+    profiles: ["node"]
     build:
       context: ../..
       dockerfile: services/worker/Dockerfile
-    container_name: agentmou-worker
-    restart: always
-    deploy:
-      replicas: 3
+    restart: unless-stopped
     environment:
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-agentmou}
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379
       - NODE_ENV=production
     depends_on:
       postgres:
@@ -96,33 +217,31 @@ services:
     networks:
       - internal
 
-  # Web Application
   web:
+    profiles: ["node"]
     build:
       context: ../..
       dockerfile: apps/web/Dockerfile
-    container_name: agentmou-web
-    restart: always
+    restart: unless-stopped
     environment:
-      - NEXT_PUBLIC_API_URL=https://${API_HOST}
+      - NEXT_PUBLIC_API_URL=https://api.${DOMAIN}
       - NODE_ENV=production
     depends_on:
       - api
     networks:
-      - traefik
+      - web
     labels:
       - traefik.enable=true
-      - traefik.http.routers.web.rule=Host(`${WEB_HOST}`)
+      - traefik.docker.network=web
+      - traefik.http.routers.web.rule=Host(`app.${DOMAIN}`)
       - traefik.http.routers.web.entrypoints=websecure
-      - traefik.http.routers.web.tls.certresolver=letsencrypt
-
-volumes:
-  postgres_data:
-  redis_data:
-  n8n_data:
+      - traefik.http.routers.web.tls.certresolver=le
+      - traefik.http.routers.web.middlewares=secure-headers@docker,noindex@docker
+      - traefik.http.services.web.loadbalancer.server.port=3000
 
 networks:
+  web:
+    name: web
   internal:
-    driver: bridge
-  traefik:
-    external: true
+    name: internal
+    internal: true
