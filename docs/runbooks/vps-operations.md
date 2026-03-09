@@ -30,10 +30,10 @@ networks.
 
 ## Docker Networks
 
-| Network    | Type     | Services                            |
-| ---------- | -------- | ----------------------------------- |
-| `web`      | External | Traefik, n8n, agents, uptime-kuma   |
-| `internal` | Internal | Postgres, Redis, n8n                |
+| Network    | Type     | Services                                  |
+| ---------- | -------- | ----------------------------------------- |
+| `web`      | External | Traefik, n8n, agents, api, uptime-kuma    |
+| `internal` | Internal | Postgres, Redis, n8n, api, worker         |
 
 `internal` is a true Docker internal network — no outbound internet
 access. n8n is on both networks: `web` for HTTP traffic and `internal` to
@@ -44,12 +44,13 @@ reach Postgres and Redis.
 All traffic enters through Traefik on ports 80/443. HTTP redirects to
 HTTPS automatically.
 
-| Subdomain           | Service     | Auth       | Middlewares                                |
-| ------------------- | ----------- | ---------- | ------------------------------------------ |
-| `n8n.DOMAIN`        | n8n editor  | —          | secure-headers, noindex                    |
-| `hooks.DOMAIN`      | n8n webhooks| None       | secure-headers, rate-limit, noindex        |
-| `agents.DOMAIN`     | agents API  | BasicAuth  | auth, secure-headers, noindex              |
-| `uptime.DOMAIN`     | Uptime Kuma | BasicAuth  | auth, secure-headers, rate-limit, noindex  |
+| Subdomain           | Service          | Auth       | Middlewares                                |
+| ------------------- | ---------------- | ---------- | ------------------------------------------ |
+| `api.DOMAIN`        | Control Plane API| None (JWT) | secure-headers, rate-limit, noindex        |
+| `n8n.DOMAIN`        | n8n editor       | —          | secure-headers, noindex                    |
+| `hooks.DOMAIN`      | n8n webhooks     | None       | secure-headers, rate-limit, noindex        |
+| `agents.DOMAIN`     | agents API       | BasicAuth  | auth, secure-headers, noindex              |
+| `uptime.DOMAIN`     | Uptime Kuma      | BasicAuth  | auth, secure-headers, rate-limit, noindex  |
 
 Replace `DOMAIN` with the value of the `DOMAIN` env var
 (e.g., `agentmou.io`).

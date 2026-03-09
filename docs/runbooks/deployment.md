@@ -81,19 +81,27 @@ docker compose -f infra/compose/docker-compose.prod.yml build agents
 docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents
 ```
 
-### Activate Node services (when ready)
+### Run database migrations
 
-The Node services (api, worker, web) are behind a Docker Compose profile.
-They are not started by default.
+After first deploy or after schema changes:
 
 ```bash
-docker compose -f infra/compose/docker-compose.prod.yml --profile node up -d
+docker compose -f infra/compose/docker-compose.prod.yml exec api pnpm db:migrate
 ```
+
+### Active services
+
+The `api` and `worker` services start automatically with the stack. The
+`web` service is behind a profile (`--profile web`) because the web app
+is deployed on Vercel instead.
 
 ## Health Verification
 
 ```bash
-# From the VPS
+# API health
+curl -f https://api.DOMAIN/health
+
+# Agents health
 curl -f https://agents.DOMAIN/health
 
 # Or via Uptime Kuma at https://uptime.DOMAIN
