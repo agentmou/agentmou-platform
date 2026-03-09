@@ -409,6 +409,9 @@ importers:
       '@agentmou/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@agentmou/n8n-client':
+        specifier: workspace:*
+        version: link:../../packages/n8n-client
       '@agentmou/observability':
         specifier: workspace:*
         version: link:../../packages/observability

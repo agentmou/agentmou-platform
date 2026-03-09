@@ -181,6 +181,8 @@ services:
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET}
       - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - N8N_API_URL=${N8N_API_URL:-http://n8n:5678/api/v1}
+      - N8N_API_KEY=${N8N_API_KEY}
       - NODE_ENV=production
     depends_on:
       postgres:
