@@ -14,7 +14,7 @@ import {
   type RunWorkflowPayload,
   type ScheduleTriggerPayload,
 } from '@agentmou/queue';
-import { processInstallPack, processRunAgent, processRunWorkflow, processScheduleTrigger } from './jobs';
+import { processInstallPack, processRunAgent, processRunWorkflow, processScheduleTrigger, processApprovalTimeout, type ApprovalTimeoutPayload } from './jobs';
 
 const connection = getConnectionOptions();
 
@@ -41,6 +41,7 @@ const workers = [
   startWorker<RunAgentPayload>(QUEUE_NAMES.RUN_AGENT, processRunAgent),
   startWorker<RunWorkflowPayload>(QUEUE_NAMES.RUN_WORKFLOW, processRunWorkflow),
   startWorker<ScheduleTriggerPayload>(QUEUE_NAMES.SCHEDULE_TRIGGER, processScheduleTrigger),
+  startWorker<ApprovalTimeoutPayload>(QUEUE_NAMES.APPROVAL_TIMEOUT, processApprovalTimeout),
 ];
 
 async function shutdown() {
