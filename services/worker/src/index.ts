@@ -6,8 +6,14 @@
  */
 
 import { Worker, type Job } from 'bullmq';
-import { getConnectionOptions, QUEUE_NAMES, type InstallPackPayload } from '@agentmou/queue';
-import { processInstallPack } from './jobs/install-pack/install-pack.job';
+import {
+  getConnectionOptions,
+  QUEUE_NAMES,
+  type InstallPackPayload,
+  type RunAgentPayload,
+  type RunWorkflowPayload,
+} from '@agentmou/queue';
+import { processInstallPack, processRunAgent, processRunWorkflow } from './jobs';
 
 const connection = getConnectionOptions();
 
@@ -29,9 +35,10 @@ function startWorker<T>(
   return worker;
 }
 
-// Start workers for implemented queues
 const workers = [
   startWorker<InstallPackPayload>(QUEUE_NAMES.INSTALL_PACK, processInstallPack),
+  startWorker<RunAgentPayload>(QUEUE_NAMES.RUN_AGENT, processRunAgent),
+  startWorker<RunWorkflowPayload>(QUEUE_NAMES.RUN_WORKFLOW, processRunWorkflow),
 ];
 
 async function shutdown() {
