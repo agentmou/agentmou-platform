@@ -12,8 +12,9 @@ import {
   type InstallPackPayload,
   type RunAgentPayload,
   type RunWorkflowPayload,
+  type ScheduleTriggerPayload,
 } from '@agentmou/queue';
-import { processInstallPack, processRunAgent, processRunWorkflow } from './jobs';
+import { processInstallPack, processRunAgent, processRunWorkflow, processScheduleTrigger } from './jobs';
 
 const connection = getConnectionOptions();
 
@@ -39,6 +40,7 @@ const workers = [
   startWorker<InstallPackPayload>(QUEUE_NAMES.INSTALL_PACK, processInstallPack),
   startWorker<RunAgentPayload>(QUEUE_NAMES.RUN_AGENT, processRunAgent),
   startWorker<RunWorkflowPayload>(QUEUE_NAMES.RUN_WORKFLOW, processRunWorkflow),
+  startWorker<ScheduleTriggerPayload>(QUEUE_NAMES.SCHEDULE_TRIGGER, processScheduleTrigger),
 ];
 
 async function shutdown() {

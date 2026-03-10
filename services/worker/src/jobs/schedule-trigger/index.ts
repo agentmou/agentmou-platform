@@ -1,1 +1,1 @@
-export * from './schedule-trigger.job';
+export { processScheduleTrigger } from './schedule-trigger.job';

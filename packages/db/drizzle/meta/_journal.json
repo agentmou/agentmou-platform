@@ -15,6 +15,13 @@
       "when": 1773097076376,
       "tag": "0001_rainy_nick_fury",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773099233308,
+      "tag": "0002_brown_adam_warlock",
+      "breakpoints": true
     }
   ]
 }

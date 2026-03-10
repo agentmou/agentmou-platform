@@ -242,6 +242,23 @@ export const auditEvents = pgTable('audit_events', {
 });
 
 // ---------------------------------------------------------------------------
+// Schedules (cron-based triggers)
+// ---------------------------------------------------------------------------
+
+export const schedules = pgTable('schedules', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  targetType: text('target_type').notNull(),
+  installationId: uuid('installation_id').notNull(),
+  cron: text('cron').notNull(),
+  enabled: boolean('enabled').notNull().default(true),
+  lastTriggeredAt: timestamp('last_triggered_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
 // Usage Events (metering)
 // ---------------------------------------------------------------------------
 
