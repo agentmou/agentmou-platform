@@ -1,60 +1,118 @@
-import { Job } from 'bullmq';
+/**
+ * approval-timeout job processor.
+ *
+ * Fired as a delayed BullMQ job when an approval request is created
+ * with a timeout. If the approval is still pending when the job fires,
+ * it auto-resolves based on the configured action.
+ */
 
-export interface ApprovalTimeoutJobData {
+import type { Job } from 'bullmq';
+import { db, approvalRequests, executionRuns, auditEvents } from '@agentmou/db';
+import { eq } from 'drizzle-orm';
+import { getQueue, QUEUE_NAMES } from '@agentmou/queue';
+
+export interface ApprovalTimeoutPayload {
   tenantId: string;
   approvalId: string;
+  runId: string;
   actionOnTimeout: 'auto_approve' | 'auto_reject' | 'escalate';
-  escalationTarget?: string;
+  escalationNote?: string;
 }
 
-export class ApprovalTimeoutJob {
-  static async process(job: Job<ApprovalTimeoutJobData>) {
-    const { tenantId, approvalId, actionOnTimeout, escalationTarget } = job.data;
+export async function processApprovalTimeout(job: Job<ApprovalTimeoutPayload>) {
+  const { tenantId, approvalId, runId, actionOnTimeout, escalationNote } = job.data;
 
-    console.log(`Processing approval timeout for ${approvalId}`);
+  console.log(
+    `[approval-timeout] Processing timeout for approval ${approvalId} (action: ${actionOnTimeout})`
+  );
 
-    try {
-      // Get current approval status
-      const approval = await this.getApproval(tenantId, approvalId);
+  // 1. Load the approval request
+  const [approval] = await db
+    .select()
+    .from(approvalRequests)
+    .where(eq(approvalRequests.id, approvalId))
+    .limit(1);
 
-      // Check if still pending
-      if (approval.status !== 'pending') {
-        return { skipped: true, reason: `approval already ${approval.status}` };
-      }
+  if (!approval) {
+    console.warn(`[approval-timeout] Approval ${approvalId} not found`);
+    return;
+  }
 
-      // Take action based on timeout policy
-      if (actionOnTimeout === 'auto_approve') {
-        return await this.autoApprove(tenantId, approvalId);
-      } else if (actionOnTimeout === 'auto_reject') {
-        return await this.autoReject(tenantId, approvalId);
-      } else if (actionOnTimeout === 'escalate') {
-        return await this.escalate(tenantId, approvalId, escalationTarget);
-      }
+  // 2. Skip if already resolved
+  if (approval.status !== 'pending') {
+    console.log(
+      `[approval-timeout] Approval ${approvalId} already ${approval.status}, skipping`
+    );
+    return;
+  }
 
-      return { success: true, action: actionOnTimeout };
-    } catch (error) {
-      console.error('Approval timeout processing failed:', error);
-      throw error;
+  const now = new Date();
+
+  // 3. Apply the configured timeout action
+  if (actionOnTimeout === 'auto_approve') {
+    await db
+      .update(approvalRequests)
+      .set({
+        status: 'approved',
+        decidedAt: now,
+        decisionReason: 'Auto-approved: timeout exceeded',
+      })
+      .where(eq(approvalRequests.id, approvalId));
+
+    // Resume the paused run
+    await db
+      .update(executionRuns)
+      .set({ status: 'running' })
+      .where(eq(executionRuns.id, runId));
+
+    // Re-enqueue the run-agent job to continue execution
+    if (approval.agentInstallationId) {
+      const queue = getQueue(QUEUE_NAMES.RUN_AGENT);
+      await queue.add('run-agent', {
+        tenantId,
+        agentInstallationId: approval.agentInstallationId,
+        runId,
+        triggeredBy: 'agent',
+      });
     }
+  } else if (actionOnTimeout === 'auto_reject') {
+    await db
+      .update(approvalRequests)
+      .set({
+        status: 'rejected',
+        decidedAt: now,
+        decisionReason: 'Auto-rejected: timeout exceeded',
+      })
+      .where(eq(approvalRequests.id, approvalId));
+
+    await db
+      .update(executionRuns)
+      .set({ status: 'failed', completedAt: now })
+      .where(eq(executionRuns.id, runId));
+  } else if (actionOnTimeout === 'escalate') {
+    await db
+      .update(approvalRequests)
+      .set({
+        status: 'pending',
+        decisionReason: `Escalated: ${escalationNote ?? 'timeout exceeded'}`,
+      })
+      .where(eq(approvalRequests.id, approvalId));
   }
 
-  private static async getApproval(tenantId: string, approvalId: string) {
-    // Get approval from database
-    return { id: approvalId, status: 'pending' };
-  }
+  // 4. Write audit event
+  await db.insert(auditEvents).values({
+    tenantId,
+    action: `approval.${actionOnTimeout}`,
+    category: 'approval',
+    details: {
+      approvalId,
+      runId,
+      actionOnTimeout,
+      reason: 'timeout',
+    },
+  });
 
-  private static async autoApprove(tenantId: string, approvalId: string) {
-    // Auto-approve pending approval
-    return { action: 'approved', approvedAt: new Date() };
-  }
-
-  private static async autoReject(tenantId: string, approvalId: string) {
-    // Auto-reject pending approval
-    return { action: 'rejected', rejectedAt: new Date() };
-  }
-
-  private static async escalate(tenantId: string, approvalId: string, target?: string) {
-    // Escalate to another approver
-    return { action: 'escalated', escalatedTo: target };
-  }
+  console.log(
+    `[approval-timeout] Applied ${actionOnTimeout} to approval ${approvalId}`
+  );
 }

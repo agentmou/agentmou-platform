@@ -1,1 +1,1 @@
-export * from './approval-timeout.job';
+export { processApprovalTimeout, type ApprovalTimeoutPayload } from './approval-timeout.job';
