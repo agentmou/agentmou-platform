@@ -7,7 +7,7 @@ import { tenantRoutes } from './modules/tenants';
 import { membershipRoutes } from './modules/memberships';
 import { catalogRoutes } from './modules/catalog';
 import { installationRoutes } from './modules/installations';
-import { connectorRoutes } from './modules/connectors';
+import { connectorRoutes, oauthCallbackRoutes } from './modules/connectors';
 import { secretRoutes } from './modules/secrets';
 import { approvalRoutes } from './modules/approvals';
 import { runRoutes } from './modules/runs';
@@ -35,6 +35,7 @@ fastify.get('/health', async () => {
 // --- Public routes (no auth) ------------------------------------------------
 fastify.register(authRoutes, { prefix: '/api/v1/auth' });
 fastify.register(catalogRoutes, { prefix: '/api/v1/catalog' });
+fastify.register(oauthCallbackRoutes, { prefix: '/api/v1' });
 
 // --- Authenticated routes (JWT required) ------------------------------------
 fastify.register(async function authenticatedRoutes(app) {
