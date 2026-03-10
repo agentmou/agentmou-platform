@@ -206,7 +206,7 @@ export const analyzeEmailTool: Tool = {
         continue;
       }
 
-      const analysis = await response.json();
+      const analysis = (await response.json()) as Record<string, unknown>;
       results.push({ emailId: email.id, ...analysis });
     }
 
