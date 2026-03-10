@@ -500,6 +500,9 @@ importers:
       ioredis:
         specifier: ^5.4.0
         version: 5.10.0
+      yaml:
+        specifier: ^2.7.0
+        version: 2.8.2
     devDependencies:
       '@types/node':
         specifier: ^22.13.0
