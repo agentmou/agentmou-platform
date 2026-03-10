@@ -1,10 +1,13 @@
+import { db, executionRuns, executionSteps } from '@agentmou/db';
+import { eq } from 'drizzle-orm';
+
 export interface LogEntry {
   id: string;
   runId: string;
   timestamp: Date;
   level: 'debug' | 'info' | 'warn' | 'error';
   message: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface RunMetrics {
@@ -15,11 +18,7 @@ export interface RunMetrics {
   steps: RunStep[];
   totalDuration?: number;
   cost?: number;
-  tokensUsed?: {
-    input: number;
-    output: number;
-    total: number;
-  };
+  tokensUsed?: { input: number; output: number; total: number };
 }
 
 export interface RunStep {
@@ -31,144 +30,212 @@ export interface RunStep {
   completedAt?: Date;
   duration?: number;
   error?: string;
-  output?: any;
+  output?: unknown;
+  tokenUsage?: number;
+  cost?: number;
 }
 
+/**
+ * Logs execution steps and run metrics to the database.
+ *
+ * Each step is persisted as an `execution_steps` row and the overall
+ * run metrics are updated on `execution_runs` when the run finishes.
+ */
 export class RunLogger {
-  private logs: Map<string, LogEntry[]> = new Map();
-  private metrics: Map<string, RunMetrics> = new Map();
+  private steps: Map<string, RunStep[]> = new Map();
 
-  async startRun(runId: string, metadata?: Record<string, any>): Promise<RunMetrics> {
-    const runMetrics: RunMetrics = {
+  async startRun(
+    runId: string,
+    metadata?: Record<string, unknown>
+  ): Promise<RunMetrics> {
+    this.steps.set(runId, []);
+
+    return {
       runId,
       startTime: new Date(),
       status: 'running',
       steps: [],
     };
-
-    this.metrics.set(runId, runMetrics);
-    await this.log(runId, 'info', `Run started`, metadata);
-
-    return runMetrics;
   }
 
-  async log(
+  /**
+   * Records a step starting — persists to the `execution_steps` table.
+   */
+  async startStep(
     runId: string,
-    level: LogEntry['level'],
-    message: string,
-    metadata?: Record<string, any>
-  ): Promise<LogEntry> {
-    const entry: LogEntry = {
-      id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      runId,
-      timestamp: new Date(),
-      level,
-      message,
-      metadata,
-    };
-
-    if (!this.logs.has(runId)) {
-      this.logs.set(runId, []);
-    }
-    this.logs.get(runId)!.push(entry);
-
-    return entry;
-  }
-
-  async startStep(runId: string, step: Omit<RunStep, 'status' | 'startedAt'>): Promise<RunStep> {
-    const metrics = this.metrics.get(runId);
-    if (!metrics) {
-      throw new Error(`Run ${runId} not found`);
-    }
-
+    step: Omit<RunStep, 'status' | 'startedAt'>
+  ): Promise<RunStep> {
     const newStep: RunStep = {
       ...step,
       status: 'running',
       startedAt: new Date(),
     };
 
-    metrics.steps.push(newStep);
-    await this.log(runId, 'info', `Step started: ${step.name}`, { stepId: step.id });
+    // Persist to DB
+    await db.insert(executionSteps).values({
+      id: step.id,
+      runId,
+      type: step.type,
+      name: step.name,
+      status: 'running',
+      input: (step as Record<string, unknown>).input ?? null,
+      startedAt: new Date(),
+    });
+
+    const runSteps = this.steps.get(runId) ?? [];
+    runSteps.push(newStep);
+    this.steps.set(runId, runSteps);
 
     return newStep;
   }
 
+  /**
+   * Marks a step as completed and persists output/duration to the DB.
+   */
   async completeStep(
     runId: string,
     stepId: string,
-    output?: any
+    output?: unknown,
+    tokenUsage?: number,
+    cost?: number
   ): Promise<RunStep | undefined> {
-    const metrics = this.metrics.get(runId);
-    if (!metrics) return;
-
-    const step = metrics.steps.find(s => s.id === stepId);
+    const runSteps = this.steps.get(runId);
+    const step = runSteps?.find((s) => s.id === stepId);
     if (!step) return;
 
+    const now = new Date();
     step.status = 'completed';
-    step.completedAt = new Date();
-    step.duration = step.completedAt.getTime() - step.startedAt!.getTime();
+    step.completedAt = now;
+    step.duration = now.getTime() - (step.startedAt?.getTime() ?? now.getTime());
     step.output = output;
+    step.tokenUsage = tokenUsage;
+    step.cost = cost;
 
-    await this.log(runId, 'info', `Step completed: ${step.name}`, {
-      stepId,
-      duration: step.duration,
-    });
+    await db
+      .update(executionSteps)
+      .set({
+        status: 'completed',
+        output: output as Record<string, unknown>,
+        durationMs: step.duration,
+        tokenUsage: tokenUsage ?? null,
+        cost: cost ?? null,
+        completedAt: now,
+      })
+      .where(eq(executionSteps.id, stepId));
 
     return step;
   }
 
+  /**
+   * Marks a step as failed and persists the error to the DB.
+   */
   async failStep(
     runId: string,
     stepId: string,
     error: string
   ): Promise<RunStep | undefined> {
-    const metrics = this.metrics.get(runId);
-    if (!metrics) return;
-
-    const step = metrics.steps.find(s => s.id === stepId);
+    const runSteps = this.steps.get(runId);
+    const step = runSteps?.find((s) => s.id === stepId);
     if (!step) return;
 
+    const now = new Date();
     step.status = 'failed';
-    step.completedAt = new Date();
-    step.duration = step.completedAt.getTime() - step.startedAt!.getTime();
+    step.completedAt = now;
+    step.duration = now.getTime() - (step.startedAt?.getTime() ?? now.getTime());
     step.error = error;
 
-    await this.log(runId, 'error', `Step failed: ${step.name}`, { stepId, error });
+    await db
+      .update(executionSteps)
+      .set({
+        status: 'failed',
+        error,
+        durationMs: step.duration,
+        completedAt: now,
+      })
+      .where(eq(executionSteps.id, stepId));
 
     return step;
   }
 
-  async completeRun(runId: string, status: 'completed' | 'failed' | 'cancelled'): Promise<RunMetrics> {
-    const metrics = this.metrics.get(runId);
-    if (!metrics) {
-      throw new Error(`Run ${runId} not found`);
+  /**
+   * Finishes a run — updates `execution_runs` with final metrics.
+   */
+  async completeRun(
+    runId: string,
+    status: 'completed' | 'failed' | 'cancelled',
+    metrics?: {
+      tokensUsed?: number;
+      costEstimate?: number;
     }
+  ): Promise<RunMetrics> {
+    const now = new Date();
+    const runSteps = this.steps.get(runId) ?? [];
+    const totalDuration = runSteps.reduce((sum, s) => sum + (s.duration ?? 0), 0);
 
-    metrics.endTime = new Date();
-    metrics.status = status;
-    metrics.totalDuration = metrics.endTime.getTime() - metrics.startTime.getTime();
+    await db
+      .update(executionRuns)
+      .set({
+        status,
+        completedAt: now,
+        durationMs: totalDuration,
+        tokensUsed: metrics?.tokensUsed ?? null,
+        costEstimate: metrics?.costEstimate ?? null,
+      })
+      .where(eq(executionRuns.id, runId));
 
-    await this.log(runId, 'info', `Run ${status}`, {
-      duration: metrics.totalDuration,
-      stepsCount: metrics.steps.length,
-    });
-
-    return metrics;
+    return {
+      runId,
+      startTime: new Date(),
+      endTime: now,
+      status,
+      steps: runSteps,
+      totalDuration,
+      cost: metrics?.costEstimate,
+      tokensUsed: metrics?.tokensUsed
+        ? { input: 0, output: 0, total: metrics.tokensUsed }
+        : undefined,
+    };
   }
 
-  async getLogs(runId: string, filters?: { level?: LogEntry['level'] }): Promise<LogEntry[]> {
-    const logs = this.logs.get(runId) || [];
-    if (filters?.level) {
-      return logs.filter(log => log.level === filters.level);
-    }
-    return logs;
+  async log(
+    runId: string,
+    level: LogEntry['level'],
+    message: string,
+    _metadata?: Record<string, unknown>
+  ): Promise<LogEntry> {
+    return {
+      id: `log_${Date.now()}`,
+      runId,
+      timestamp: new Date(),
+      level,
+      message,
+      metadata: _metadata,
+    };
+  }
+
+  getSteps(runId: string): RunStep[] {
+    return this.steps.get(runId) ?? [];
   }
 
   async getMetrics(runId: string): Promise<RunMetrics | undefined> {
-    return this.metrics.get(runId);
+    const steps = this.steps.get(runId);
+    if (!steps) return;
+    return {
+      runId,
+      startTime: new Date(),
+      status: 'running',
+      steps,
+    };
   }
 
   async getActiveRuns(): Promise<RunMetrics[]> {
-    return Array.from(this.metrics.values()).filter(m => m.status === 'running');
+    return [];
+  }
+
+  async getLogs(
+    runId: string,
+    _filters?: { level?: LogEntry['level'] }
+  ): Promise<LogEntry[]> {
+    return [];
   }
 }
