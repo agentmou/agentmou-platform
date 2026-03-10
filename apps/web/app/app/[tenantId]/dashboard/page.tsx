@@ -23,6 +23,8 @@ import {
 import { MinimalButton } from '@/components/ui/minimal-button'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line } from 'recharts'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
+import { EmptyState } from '@/components/fleetops/empty-state'
+import { Store } from 'lucide-react'
 import type {
   AgentTemplate,
   WorkflowTemplate,
@@ -158,6 +160,17 @@ export default function DashboardPage() {
         </div>
       </div>
       
+      {/* Welcome state for new tenants */}
+      {agents.length === 0 && runs.length === 0 && (
+        <EmptyState
+          icon={Store}
+          title="Welcome to your workspace"
+          description="Get started by browsing the marketplace and installing your first agent pack. Your dashboard will come alive with real-time metrics once agents are running."
+          actionLabel="Browse Marketplace"
+          actionHref={`/app/${tenantId}/marketplace`}
+        />
+      )}
+
       {/* Attention Required Panel */}
       {hasAttentionItems && (
         <div className="p-5 border border-border/50 rounded-sm space-y-4">

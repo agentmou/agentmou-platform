@@ -12,7 +12,7 @@ import {
   listMarketplaceAgentTemplates,
   listMarketplaceWorkflowTemplates,
   listPackTemplates,
-} from '@/lib/fleetops/read-model'
+} from '@/lib/data/catalog-sync'
 
 // Compute real stats from catalog
 const agentTemplates = listMarketplaceAgentTemplates()

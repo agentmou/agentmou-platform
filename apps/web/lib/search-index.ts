@@ -1,12 +1,7 @@
 'use client'
 
 import { normalizeCategory } from '@/lib/fleetops/category-config'
-import {
-  listMarketplaceAgentTemplates,
-  listMarketplaceWorkflowTemplates,
-  listPackTemplates,
-  listTenantRuns,
-} from '@/lib/fleetops/read-model'
+import type { DataProvider } from '@/lib/data/provider'
 
 export type SearchItemType = 'navigate' | 'agent' | 'workflow' | 'pack' | 'run' | 'action'
 
@@ -42,11 +37,11 @@ const quickActions: Omit<SearchItem, 'href'>[] = [
   { type: 'action', id: 'action-test', label: 'Run Workflow Smoke Test', keywords: ['test', 'smoke', 'validate'], icon: 'play', description: 'Run a quick test on workflows' },
 ]
 
-export function buildSearchIndex(tenantId: string): SearchItem[] {
+export async function buildSearchIndex(tenantId: string, provider: DataProvider): Promise<SearchItem[]> {
   const items: SearchItem[] = []
-  const marketplaceAgents = listMarketplaceAgentTemplates()
-  const marketplaceWorkflows = listMarketplaceWorkflowTemplates()
-  const packTemplates = listPackTemplates()
+  const marketplaceAgents = await provider.listMarketplaceAgentTemplates()
+  const marketplaceWorkflows = await provider.listMarketplaceWorkflowTemplates()
+  const packTemplates = await provider.listPackTemplates()
   
   // Navigation items with tenant-specific hrefs
   for (const navItem of navigationItems) {
@@ -133,7 +128,8 @@ export function buildSearchIndex(tenantId: string): SearchItem[] {
   }
   
   // Recent runs (tenant-specific)
-  const tenantRuns = listTenantRuns(tenantId).slice(0, 10)
+  const allRuns = await provider.listTenantRuns(tenantId)
+  const tenantRuns = allRuns.slice(0, 10)
   for (const run of tenantRuns) {
     const agent = marketplaceAgents.find((template) => template.id === run.agentId)
     items.push({

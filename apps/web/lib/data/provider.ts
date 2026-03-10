@@ -27,11 +27,30 @@ import type {
   DashboardMetrics,
 } from '@agentmou/contracts';
 
-import type {
-  FleetSecret,
-  FleetAuditEvent,
-  FleetBillingInfo,
-} from '@/lib/fleetops/read-model';
+export interface FleetSecret {
+  id: string;
+  key: string;
+  value: string;
+  createdAt: string;
+  lastRotated: string;
+  usedBy: string[];
+}
+
+export interface FleetAuditEvent {
+  id: string;
+  timestamp: string;
+  action: string;
+  actor: string;
+  category: 'agent' | 'workflow' | 'security' | 'billing';
+  details: string;
+}
+
+export interface FleetBillingInfo {
+  plan: string;
+  monthlySpend: number;
+  agentsInstalled: number;
+  runsThisMonth: number;
+}
 
 // ---------------------------------------------------------------------------
 // Catalog

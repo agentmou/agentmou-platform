@@ -30,6 +30,7 @@ import {
   Clock,
 } from 'lucide-react'
 import { buildSearchIndex, searchItems, groupSearchItems, type SearchItem } from '@/lib/search-index'
+import { useDataProvider } from '@/lib/data'
 import { toast } from 'sonner'
 
 const iconMap: Record<string, React.ElementType> = {
@@ -61,12 +62,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const params = useParams()
   const tenantId = params.tenantId as string
   
+  const provider = useDataProvider()
   const [query, setQuery] = React.useState('')
   
   // Build search index with current tenant
-  const searchIndex = React.useMemo(() => {
-    return buildSearchIndex(tenantId)
-  }, [tenantId])
+  const [searchIndex, setSearchIndex] = React.useState<SearchItem[]>([])
+  React.useEffect(() => {
+    buildSearchIndex(tenantId, provider).then(setSearchIndex).catch(() => setSearchIndex([]))
+  }, [tenantId, provider])
   
   // Filter items based on query
   const filteredItems = React.useMemo(() => {
