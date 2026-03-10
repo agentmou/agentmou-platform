@@ -39,6 +39,8 @@ coverage
 
 # Dependencies
 turbo-cache
+.turbo
+.pnpm-store
 
 # Database
 *.db
