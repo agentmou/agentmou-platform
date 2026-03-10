@@ -14,7 +14,7 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN corepack enable pnpm && pnpm --filter @agentmou/worker build
+RUN corepack enable pnpm && pnpm install --frozen-lockfile && pnpm --filter @agentmou/worker build
 
 # Runner stage
 FROM base AS runner

@@ -1,0 +1,20 @@
+# Data volumes (permission denied when read during build context)
+postgres/
+redis/
+n8n/
+traefik/
+uptime-kuma/
+
+# Git and dependencies
+.git/
+.gitignore
+node_modules/
+.pnpm-store/
+
+# Documentation and local config
+*.md
+.env
+.env.*
+!.env.example
+.cursor/
+.idea/
