@@ -68,9 +68,30 @@ export const connectorAccounts = pgTable('connector_accounts', {
   provider: text('provider').notNull(),
   status: text('status').notNull().default('disconnected'),
   scopes: jsonb('scopes').default([]),
+  accessToken: text('access_token'),
+  refreshToken: text('refresh_token'),
+  tokenExpiresAt: timestamp('token_expires_at'),
+  externalAccountId: text('external_account_id'),
+  connectedAt: timestamp('connected_at'),
   lastTestAt: timestamp('last_test_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Connector OAuth States (CSRF protection during OAuth dance)
+// ---------------------------------------------------------------------------
+
+export const connectorOauthStates = pgTable('connector_oauth_states', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  provider: text('provider').notNull(),
+  state: text('state').notNull().unique(),
+  redirectUrl: text('redirect_url'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
 });
 
 // ---------------------------------------------------------------------------

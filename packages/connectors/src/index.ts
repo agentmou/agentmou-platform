@@ -4,6 +4,7 @@ import { GmailConnector } from './gmail';
 
 export { BaseConnector, type ConnectorConfig } from './base';
 export { GmailConnector, type GmailConfig } from './gmail';
+export { encrypt, decrypt } from './crypto';
 
 // Connector types to be implemented
 export type ConnectorType = 
