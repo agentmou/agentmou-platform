@@ -14,7 +14,10 @@
   },
   "dependencies": {
     "@agentmou/contracts": "workspace:*",
-    "@agentmou/observability": "workspace:*"
+    "@agentmou/db": "workspace:*",
+    "@agentmou/observability": "workspace:*",
+    "googleapis": "^144.0.0",
+    "drizzle-orm": "^0.39.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.0",
