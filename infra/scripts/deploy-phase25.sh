@@ -33,6 +33,26 @@ warn() { echo -e "${YELLOW}⚠ $1${NC}"; }
 fail() { echo -e "${RED}✗ $1${NC}"; exit 1; }
 ok()   { echo -e "${GREEN}  ✓ $1${NC}"; }
 
+wait_for_postgres() {
+  local retries=30
+  local delay_seconds=2
+  local container_id=""
+  local status=""
+
+  for attempt in $(seq 1 "$retries"); do
+    container_id=$(docker compose -f "$COMPOSE_FILE" ps -q postgres)
+    if [ -n "$container_id" ]; then
+      status=$(docker inspect --format '{{.State.Health.Status}}' "$container_id" 2>/dev/null || echo "unknown")
+      if [ "$status" = "healthy" ]; then
+        return 0
+      fi
+    fi
+    sleep "$delay_seconds"
+  done
+
+  return 1
+}
+
 # ===========================================================================
 # Step 1: Pull latest code
 # ===========================================================================
@@ -83,7 +103,7 @@ fi
 # Step 3: Rebuild containers
 # ===========================================================================
 step "Step 3/6 — Rebuilding API and worker containers"
-docker compose -f "$COMPOSE_FILE" build api worker
+docker compose --profile ops -f "$COMPOSE_FILE" build api worker migrate
 ok "Containers rebuilt"
 
 # ===========================================================================
@@ -93,11 +113,12 @@ step "Step 4/6 — Running database migrations"
 
 docker compose -f "$COMPOSE_FILE" up -d postgres
 echo "  Waiting for Postgres to be healthy..."
-sleep 5
+if ! wait_for_postgres; then
+  docker compose -f "$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+  fail "Postgres did not become healthy"
+fi
 
-docker compose -f "$COMPOSE_FILE" run --rm api sh -c \
-  "cd /app/packages/db && npx drizzle-kit migrate" \
-  2>&1 || warn "Migration command may need adjustment for your Dockerfile setup"
+docker compose --profile ops -f "$COMPOSE_FILE" run --rm migrate
 
 ok "Migrations applied"
 
@@ -119,11 +140,29 @@ step "Step 6/6 — Running smoke tests"
 API_URL="https://api.${API_DOMAIN}"
 
 # Health check
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL/health" 2>/dev/null || echo "000")
-if [ "$HTTP_CODE" = "200" ]; then
-  ok "Health check: $API_URL/health → 200"
-else
-  warn "Health check failed: $API_URL/health → $HTTP_CODE"
+MAX_HEALTH_RETRIES=12
+HEALTH_DELAY_SECONDS=5
+HEALTH_OK=0
+
+for attempt in $(seq 1 "$MAX_HEALTH_RETRIES"); do
+  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL/health" 2>/dev/null || echo "000")
+  if [ "$HTTP_CODE" = "200" ]; then
+    ok "Health check: $API_URL/health → 200"
+    HEALTH_OK=1
+    break
+  fi
+
+  warn "Health check attempt ${attempt}/${MAX_HEALTH_RETRIES} failed: $API_URL/health → $HTTP_CODE"
+  sleep "$HEALTH_DELAY_SECONDS"
+done
+
+if [ "$HEALTH_OK" -ne 1 ]; then
+  warn "API health check failed after ${MAX_HEALTH_RETRIES} attempts"
+  echo ""
+  docker compose -f "$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+  echo ""
+  docker compose -f "$COMPOSE_FILE" logs --tail 120 api || true
+  fail "Deploy failed because API is unhealthy"
 fi
 
 # Container status

@@ -207,6 +207,27 @@ services:
       - traefik.http.services.api.loadbalancer.server.port=3001
 
   # ---------------------------------------------------------------------------
+  # Database migrations (one-off job)
+  # ---------------------------------------------------------------------------
+  migrate:
+    profiles: ["ops"]
+    build:
+      context: ../..
+      dockerfile: services/api/Dockerfile
+      target: builder
+    working_dir: /app
+    command: ["pnpm", "--filter", "@agentmou/db", "migrate"]
+    restart: "no"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - NODE_ENV=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+
+  # ---------------------------------------------------------------------------
   # Background Worker (BullMQ)
   # ---------------------------------------------------------------------------
   worker:
