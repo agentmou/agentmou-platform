@@ -1,79 +1,19 @@
 // Control Plane API - Fastify server
-import Fastify from 'fastify';
-import cors from '@fastify/cors';
-
-import { authRoutes } from './modules/auth/index.js';
-import { tenantRoutes } from './modules/tenants/index.js';
-import { membershipRoutes } from './modules/memberships/index.js';
-import { catalogRoutes } from './modules/catalog/index.js';
-import { installationRoutes } from './modules/installations/index.js';
-import { connectorRoutes, oauthCallbackRoutes } from './modules/connectors/index.js';
-import { secretRoutes } from './modules/secrets/index.js';
-import { approvalRoutes } from './modules/approvals/index.js';
-import { runRoutes } from './modules/runs/index.js';
-import { usageRoutes } from './modules/usage/index.js';
-import { billingRoutes } from './modules/billing/index.js';
-import { securityRoutes } from './modules/security/index.js';
-import { webhookRoutes } from './modules/webhooks/index.js';
-import { n8nRoutes } from './modules/n8n/index.js';
-import { requireAuth, requireTenantAccess } from './middleware/index.js';
-
-const fastify = Fastify({
-  logger: {
-    level: process.env.LOG_LEVEL || 'info',
-  },
-});
-
-fastify.register(cors, {
-  origin: process.env.CORS_ORIGIN || '*',
-});
-
-fastify.get('/health', async () => {
-  return { status: 'ok', timestamp: new Date().toISOString() };
-});
-
-// --- Public routes (no auth) ------------------------------------------------
-fastify.register(authRoutes, { prefix: '/api/v1/auth' });
-fastify.register(catalogRoutes, { prefix: '/api/v1/catalog' });
-fastify.register(oauthCallbackRoutes, { prefix: '/api/v1' });
-
-// --- Authenticated routes (JWT required) ------------------------------------
-fastify.register(async function authenticatedRoutes(app) {
-  app.addHook('preHandler', requireAuth);
-
-  app.register(tenantRoutes, { prefix: '/api/v1/tenants' });
-
-  // Tenant-scoped routes (JWT + tenant membership required)
-  app.register(async function tenantRoutes(tenant) {
-    tenant.addHook('preHandler', requireTenantAccess);
-
-    tenant.register(membershipRoutes, { prefix: '/api/v1' });
-    tenant.register(installationRoutes, { prefix: '/api/v1' });
-    tenant.register(connectorRoutes, { prefix: '/api/v1' });
-    tenant.register(secretRoutes, { prefix: '/api/v1' });
-    tenant.register(approvalRoutes, { prefix: '/api/v1' });
-    tenant.register(runRoutes, { prefix: '/api/v1' });
-    tenant.register(usageRoutes, { prefix: '/api/v1' });
-    tenant.register(billingRoutes, { prefix: '/api/v1' });
-    tenant.register(securityRoutes, { prefix: '/api/v1' });
-    tenant.register(webhookRoutes, { prefix: '/api/v1' });
-    tenant.register(n8nRoutes, { prefix: '/api/v1' });
-  });
-});
+import { buildApp } from './app.js';
 
 const start = async () => {
+  const app = buildApp();
+
   try {
     const port = parseInt(process.env.PORT || '3001', 10);
     const host = process.env.HOST || '0.0.0.0';
 
-    await fastify.listen({ port, host });
+    await app.listen({ port, host });
     console.log(`Control Plane API running at http://${host}:${port}`);
   } catch (err) {
-    fastify.log.error(err);
+    app.log.error(err);
     process.exit(1);
   }
 };
 
 start();
-
-export { fastify };
