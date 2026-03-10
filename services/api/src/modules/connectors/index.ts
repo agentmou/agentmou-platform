@@ -1,3 +1,3 @@
-export * from './connectors.routes';
-export * from './connectors.service';
-export * from './oauth.service';
+export * from './connectors.routes.js';
+export * from './connectors.service.js';
+export * from './oauth.service.js';

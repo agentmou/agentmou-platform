@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { ApprovalsService } from './approvals.service';
+import { ApprovalsService } from './approvals.service.js';
 
 export async function approvalRoutes(fastify: FastifyInstance) {
   const service = new ApprovalsService();

@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { SecurityService } from './security.service';
+import { SecurityService } from './security.service.js';
 
 export async function securityRoutes(fastify: FastifyInstance) {
   const securityService = new SecurityService(fastify);

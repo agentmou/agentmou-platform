@@ -1,3 +1,3 @@
-export * from './memberships.routes';
-export * from './memberships.service';
-export * from './memberships.schema';
+export * from './memberships.routes.js';
+export * from './memberships.service.js';
+export * from './memberships.schema.js';

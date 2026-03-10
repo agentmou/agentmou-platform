@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { CatalogService } from './catalog.service';
+import { CatalogService } from './catalog.service.js';
 
 export async function catalogRoutes(fastify: FastifyInstance) {
   const catalogService = new CatalogService();

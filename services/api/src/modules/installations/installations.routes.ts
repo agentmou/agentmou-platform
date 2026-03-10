@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { InstallationsService } from './installations.service';
+import { InstallationsService } from './installations.service.js';
 import { getQueue, QUEUE_NAMES, type InstallPackPayload } from '@agentmou/queue';
 
 export async function installationRoutes(fastify: FastifyInstance) {

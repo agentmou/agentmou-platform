@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { WebhooksService } from './webhooks.service';
+import { WebhooksService } from './webhooks.service.js';
 
 export async function webhookRoutes(fastify: FastifyInstance) {
   const webhooksService = new WebhooksService(fastify);

@@ -1,2 +1,2 @@
-export * from './billing.routes';
-export * from './billing.service';
+export * from './billing.routes.js';
+export * from './billing.service.js';

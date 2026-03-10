@@ -1,2 +1,2 @@
-export * from './installations.routes';
-export * from './installations.service';
+export * from './installations.routes.js';
+export * from './installations.service.js';

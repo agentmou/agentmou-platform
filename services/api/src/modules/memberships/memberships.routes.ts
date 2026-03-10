@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { MembershipsService } from './memberships.service';
-import { addMemberSchema, updateMemberRoleSchema } from './memberships.schema';
+import { MembershipsService } from './memberships.service.js';
+import { addMemberSchema, updateMemberRoleSchema } from './memberships.schema.js';
 
 export async function membershipRoutes(fastify: FastifyInstance) {
   const membershipsService = new MembershipsService();

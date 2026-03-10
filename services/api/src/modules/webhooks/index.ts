@@ -1,2 +1,2 @@
-export * from './webhooks.routes';
-export * from './webhooks.service';
+export * from './webhooks.routes.js';
+export * from './webhooks.service.js';

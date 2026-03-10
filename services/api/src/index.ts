@@ -2,21 +2,21 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 
-import { authRoutes } from './modules/auth';
-import { tenantRoutes } from './modules/tenants';
-import { membershipRoutes } from './modules/memberships';
-import { catalogRoutes } from './modules/catalog';
-import { installationRoutes } from './modules/installations';
-import { connectorRoutes, oauthCallbackRoutes } from './modules/connectors';
-import { secretRoutes } from './modules/secrets';
-import { approvalRoutes } from './modules/approvals';
-import { runRoutes } from './modules/runs';
-import { usageRoutes } from './modules/usage';
-import { billingRoutes } from './modules/billing';
-import { securityRoutes } from './modules/security';
-import { webhookRoutes } from './modules/webhooks';
-import { n8nRoutes } from './modules/n8n';
-import { requireAuth, requireTenantAccess } from './middleware';
+import { authRoutes } from './modules/auth/index.js';
+import { tenantRoutes } from './modules/tenants/index.js';
+import { membershipRoutes } from './modules/memberships/index.js';
+import { catalogRoutes } from './modules/catalog/index.js';
+import { installationRoutes } from './modules/installations/index.js';
+import { connectorRoutes, oauthCallbackRoutes } from './modules/connectors/index.js';
+import { secretRoutes } from './modules/secrets/index.js';
+import { approvalRoutes } from './modules/approvals/index.js';
+import { runRoutes } from './modules/runs/index.js';
+import { usageRoutes } from './modules/usage/index.js';
+import { billingRoutes } from './modules/billing/index.js';
+import { securityRoutes } from './modules/security/index.js';
+import { webhookRoutes } from './modules/webhooks/index.js';
+import { n8nRoutes } from './modules/n8n/index.js';
+import { requireAuth, requireTenantAccess } from './middleware/index.js';
 
 const fastify = Fastify({
   logger: {

@@ -1,2 +1,2 @@
-export * from './usage.routes';
-export * from './usage.service';
+export * from './usage.routes.js';
+export * from './usage.service.js';

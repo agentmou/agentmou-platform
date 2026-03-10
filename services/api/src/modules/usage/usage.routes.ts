@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { UsageService } from './usage.service';
+import { UsageService } from './usage.service.js';
 
 export async function usageRoutes(fastify: FastifyInstance) {
   const usageService = new UsageService(fastify);

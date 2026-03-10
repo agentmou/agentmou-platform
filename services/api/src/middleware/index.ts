@@ -1,2 +1,2 @@
-export { requireAuth } from './auth';
-export { requireTenantAccess } from './tenant-access';
+export { requireAuth } from './auth.js';
+export { requireTenantAccess } from './tenant-access.js';

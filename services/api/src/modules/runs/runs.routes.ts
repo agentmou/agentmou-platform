@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { RunsService } from './runs.service';
+import { RunsService } from './runs.service.js';
 
 export async function runRoutes(fastify: FastifyInstance) {
   const service = new RunsService();
