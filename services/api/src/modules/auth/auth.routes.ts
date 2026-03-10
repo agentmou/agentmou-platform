@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { AuthService } from './auth.service';
+import { AuthService } from './auth.service.js';
 
 export async function authRoutes(fastify: FastifyInstance) {
   const service = new AuthService();

@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { TenantsService } from './tenants.service';
-import { createTenantSchema, updateTenantSchema } from './tenants.schema';
+import { TenantsService } from './tenants.service.js';
+import { createTenantSchema, updateTenantSchema } from './tenants.schema.js';
 
 export async function tenantRoutes(fastify: FastifyInstance) {
   const tenantsService = new TenantsService();

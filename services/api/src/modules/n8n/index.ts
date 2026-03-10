@@ -1,2 +1,2 @@
-export * from './n8n.routes';
-export * from './n8n.service';
+export * from './n8n.routes.js';
+export * from './n8n.service.js';

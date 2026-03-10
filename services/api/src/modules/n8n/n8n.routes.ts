@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { N8nService } from './n8n.service';
+import { N8nService } from './n8n.service.js';
 
 export async function n8nRoutes(fastify: FastifyInstance) {
   const n8nService = new N8nService();

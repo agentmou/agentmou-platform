@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { BillingService } from './billing.service';
+import { BillingService } from './billing.service.js';
 
 export async function billingRoutes(fastify: FastifyInstance) {
   const billingService = new BillingService(fastify);

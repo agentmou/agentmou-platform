@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { ConnectorsService } from './connectors.service';
-import { OAuthService, OAuthError } from './oauth.service';
+import { ConnectorsService } from './connectors.service.js';
+import { OAuthService, OAuthError } from './oauth.service.js';
 
 export async function connectorRoutes(fastify: FastifyInstance) {
   const service = new ConnectorsService();

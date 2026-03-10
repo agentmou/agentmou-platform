@@ -1,2 +1,2 @@
-export * from './security.routes';
-export * from './security.service';
+export * from './security.routes.js';
+export * from './security.service.js';

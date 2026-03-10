@@ -1,3 +1,3 @@
-export * from './tenants.routes';
-export * from './tenants.service';
-export * from './tenants.schema';
+export * from './tenants.routes.js';
+export * from './tenants.service.js';
+export * from './tenants.schema.js';

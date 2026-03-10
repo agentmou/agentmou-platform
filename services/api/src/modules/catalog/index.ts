@@ -1,2 +1,2 @@
-export * from './catalog.routes';
-export * from './catalog.service';
+export * from './catalog.routes.js';
+export * from './catalog.service.js';

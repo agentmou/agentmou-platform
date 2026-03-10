@@ -1,2 +1,2 @@
-export * from './approvals.routes';
-export * from './approvals.service';
+export * from './approvals.routes.js';
+export * from './approvals.service.js';

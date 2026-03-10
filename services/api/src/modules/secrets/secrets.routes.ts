@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { SecretsService } from './secrets.service';
+import { SecretsService } from './secrets.service.js';
 
 export async function secretRoutes(fastify: FastifyInstance) {
   const service = new SecretsService();

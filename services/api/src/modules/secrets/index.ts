@@ -1,2 +1,2 @@
-export * from './secrets.routes';
-export * from './secrets.service';
+export * from './secrets.routes.js';
+export * from './secrets.service.js';
