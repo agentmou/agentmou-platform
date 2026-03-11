@@ -32,6 +32,8 @@ logs
 *.log
 npm-debug.log*
 pnpm-debug.log*
+__pycache__/
+*.pyc
 
 # Testing
 coverage
