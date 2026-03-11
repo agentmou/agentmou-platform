@@ -1,6 +1,12 @@
 import { db, agentInstallations, workflowInstallations } from '@agentmou/db';
 import { eq, and } from 'drizzle-orm';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 import { N8nService } from '../n8n/n8n.service';
+
+const REPO_ROOT = path.resolve(import.meta.dirname, '../../../../..');
+const WORKFLOWS_PUBLIC_DIR = path.join(REPO_ROOT, 'workflows', 'public');
+const TEMPLATE_ID_PATTERN = /^[a-zA-Z0-9-_]+$/;
 
 export class InstallationsService {
   async listAgentInstallations(tenantId: string) {
@@ -44,38 +50,46 @@ export class InstallationsService {
     config?: Record<string, unknown>,
     workflowJson?: Record<string, unknown>,
   ) {
+    const workflowDefinition = workflowJson ?? await loadWorkflowDefinition(templateId);
+
+    if (!workflowDefinition) {
+      throw Object.assign(
+        new Error(`Workflow template "${templateId}" is not installable`),
+        { statusCode: 404 },
+      );
+    }
+
     const [installation] = await db
       .insert(workflowInstallations)
       .values({
         tenantId,
         templateId,
-        status: 'active',
+        status: 'configuring',
         config: config || {},
       })
       .returning();
 
-    if (workflowJson) {
-      try {
-        const n8n = new N8nService();
-        const created = await n8n.importWorkflow({
-          ...workflowJson,
-          name: `[${tenantId.slice(0, 8)}] ${(workflowJson as { name?: string }).name || templateId}`,
-        });
-        await db
-          .update(workflowInstallations)
-          .set({ n8nWorkflowId: created.id })
-          .where(eq(workflowInstallations.id, installation.id));
-        return { ...installation, n8nWorkflowId: created.id };
-      } catch {
-        await db
-          .update(workflowInstallations)
-          .set({ status: 'error' })
-          .where(eq(workflowInstallations.id, installation.id));
-        return { ...installation, status: 'error' };
-      }
+    try {
+      const n8n = new N8nService();
+      const created = await n8n.importWorkflow({
+        ...workflowDefinition,
+        name: `[${tenantId.slice(0, 8)}] ${(workflowDefinition as { name?: string }).name || templateId}`,
+      });
+      await db
+        .update(workflowInstallations)
+        .set({ n8nWorkflowId: created.id, status: 'active' })
+        .where(eq(workflowInstallations.id, installation.id));
+      return { ...installation, status: 'active', n8nWorkflowId: created.id };
+    } catch (error) {
+      await db
+        .update(workflowInstallations)
+        .set({ status: 'error' })
+        .where(eq(workflowInstallations.id, installation.id));
+      throw Object.assign(
+        new Error(`Workflow installation failed for template "${templateId}"`),
+        { statusCode: getStatusCode(error) || 502 },
+      );
     }
-
-    return installation;
   }
 
   async getInstallation(tenantId: string, installationId: string) {
@@ -122,4 +136,37 @@ export class InstallationsService {
         )
       );
   }
+}
+
+function getStatusCode(error: unknown): number | undefined {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'statusCode' in error &&
+    typeof (error as { statusCode?: unknown }).statusCode === 'number'
+  ) {
+    return (error as { statusCode: number }).statusCode;
+  }
+  return undefined;
+}
+
+async function loadWorkflowDefinition(
+  templateId: string,
+): Promise<Record<string, unknown> | null> {
+  if (!TEMPLATE_ID_PATTERN.test(templateId)) {
+    return null;
+  }
+
+  const workflowPath = path.join(WORKFLOWS_PUBLIC_DIR, templateId, 'workflow.json');
+  try {
+    const raw = await fs.readFile(workflowPath, 'utf8');
+    const parsed = JSON.parse(raw);
+    return isRecord(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

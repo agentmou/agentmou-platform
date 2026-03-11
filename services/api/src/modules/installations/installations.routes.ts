@@ -31,8 +31,14 @@ export async function installationRoutes(fastify: FastifyInstance) {
   fastify.post('/tenants/:tenantId/installations/workflows', async (request: FastifyRequest, reply: FastifyReply) => {
     const { tenantId } = request.params as { tenantId: string };
     const { templateId, config } = request.body as { templateId: string; config?: Record<string, unknown> };
-    const installation = await service.installWorkflow(tenantId, templateId, config);
-    return reply.status(201).send({ installation });
+    try {
+      const installation = await service.installWorkflow(tenantId, templateId, config);
+      return reply.status(201).send({ installation });
+    } catch (error) {
+      const statusCode = getStatusCode(error) || 500;
+      const message = error instanceof Error ? error.message : 'Workflow installation failed';
+      return reply.status(statusCode).send({ error: message });
+    }
   });
 
   fastify.post('/tenants/:tenantId/installations/packs', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -58,4 +64,16 @@ export async function installationRoutes(fastify: FastifyInstance) {
     await service.uninstall(tenantId, installationId);
     return reply.send({ success: true });
   });
+}
+
+function getStatusCode(error: unknown): number | undefined {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'statusCode' in error &&
+    typeof (error as { statusCode?: unknown }).statusCode === 'number'
+  ) {
+    return (error as { statusCode: number }).statusCode;
+  }
+  return undefined;
 }
