@@ -21,7 +21,6 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 COMPOSE_FILE="$REPO_ROOT/infra/compose/docker-compose.prod.yml"
 ENV_FILE="$REPO_ROOT/infra/compose/.env"
-API_DOMAIN="${DOMAIN:-agentmou.io}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -71,6 +70,8 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 source "$ENV_FILE"
+API_DOMAIN="${DOMAIN:-agentmou.io}"
+WEB_ORIGIN="${CORS_ORIGIN:-https://agentmou.io}"
 
 MISSING=0
 for var in GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GOOGLE_REDIRECT_URI CONNECTOR_ENCRYPTION_KEY; do
@@ -137,32 +138,35 @@ sleep 10
 # ===========================================================================
 step "Step 6/6 — Running smoke tests"
 
-API_URL="https://api.${API_DOMAIN}"
+API_HOST="api.${API_DOMAIN}"
+LOCAL_HEALTH_URL="https://${API_HOST}/health"
 
-# Health check
+# Local edge health check via Traefik (separate from public DNS/TLS readiness)
 MAX_HEALTH_RETRIES=12
 HEALTH_DELAY_SECONDS=5
 HEALTH_OK=0
 
 for attempt in $(seq 1 "$MAX_HEALTH_RETRIES"); do
-  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL/health" 2>/dev/null || echo "000")
+  HTTP_CODE=$(curl -sk --resolve "${API_HOST}:443:127.0.0.1" -o /dev/null -w "%{http_code}" "$LOCAL_HEALTH_URL" 2>/dev/null || echo "000")
   if [ "$HTTP_CODE" = "200" ]; then
-    ok "Health check: $API_URL/health → 200"
+    ok "Local edge health: $LOCAL_HEALTH_URL → 200"
     HEALTH_OK=1
     break
   fi
 
-  warn "Health check attempt ${attempt}/${MAX_HEALTH_RETRIES} failed: $API_URL/health → $HTTP_CODE"
+  warn "Local health attempt ${attempt}/${MAX_HEALTH_RETRIES} failed: $LOCAL_HEALTH_URL → $HTTP_CODE"
   sleep "$HEALTH_DELAY_SECONDS"
 done
 
 if [ "$HEALTH_OK" -ne 1 ]; then
-  warn "API health check failed after ${MAX_HEALTH_RETRIES} attempts"
+  warn "Local API health failed after ${MAX_HEALTH_RETRIES} attempts"
   echo ""
   docker compose -f "$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
   echo ""
   docker compose -f "$COMPOSE_FILE" logs --tail 120 api || true
-  fail "Deploy failed because API is unhealthy"
+  echo ""
+  docker compose -f "$COMPOSE_FILE" logs --tail 120 traefik || true
+  fail "Deploy failed because local edge/API health is unhealthy"
 fi
 
 # Container status
@@ -179,6 +183,7 @@ echo -e "${GREEN}═════════════════════
 echo ""
 echo "Next steps:"
 echo "  1. Verify all containers are healthy above"
-echo "  2. Test OAuth flow: open https://app.${API_DOMAIN} and connect Gmail"
-echo "  3. Run full E2E test: API_URL=$API_URL tsx scripts/test-e2e-triage.ts"
+echo "  2. Test OAuth flow: open ${WEB_ORIGIN} and connect Gmail"
+echo "  3. Run public smoke test: DOMAIN=$API_DOMAIN bash infra/scripts/smoke-test.sh"
+echo "  4. Run full E2E test: API_URL=https://${API_HOST} tsx scripts/test-e2e-triage.ts"
 echo ""

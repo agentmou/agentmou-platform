@@ -86,23 +86,24 @@ docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents
 After first deploy or after schema changes:
 
 ```bash
-docker compose -f infra/compose/docker-compose.prod.yml exec api pnpm db:migrate
+docker compose --profile ops -f infra/compose/docker-compose.prod.yml run --rm migrate
 ```
 
 ### Active services
 
 The `api` and `worker` services start automatically with the stack. The
 `web` service is behind a profile (`--profile web`) because the web app
-is deployed on Vercel instead.
+is deployed on Vercel instead (`https://agentmou.io`, with `www` redirecting
+to apex).
 
 ## Health Verification
 
 ```bash
-# API health
-curl -f https://api.DOMAIN/health
+# Local deploy gate (through Traefik on the VPS host)
+curl -sk --resolve api.DOMAIN:443:127.0.0.1 https://api.DOMAIN/health
 
-# Agents health
-curl -f https://agents.DOMAIN/health
+# Public DNS/TLS/API smoke
+bash infra/scripts/smoke-test.sh
 
 # Or via Uptime Kuma at https://uptime.DOMAIN
 ```

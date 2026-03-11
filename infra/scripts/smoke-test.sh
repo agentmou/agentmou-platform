@@ -21,19 +21,57 @@ NC='\033[0m'
 PASS=0
 FAIL=0
 
+extract_host() {
+  printf '%s' "$1" | sed -E 's#^[a-z]+://([^/]+).*$#\1#'
+}
+
 check() {
   local name="$1"
   local url="$2"
   local expected="${3:-200}"
+  local host
+  local err_file
+  local err_msg
+  local http_code
+  local curl_exit=0
 
-  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$url" 2>/dev/null || echo "000")
-  if [ "$HTTP_CODE" = "$expected" ]; then
-    echo -e "${GREEN}  ✓${NC} $name → $HTTP_CODE"
-    PASS=$((PASS + 1))
-  else
-    echo -e "${RED}  ✗${NC} $name → $HTTP_CODE (expected $expected)"
+  host="$(extract_host "$url")"
+  if ! getent hosts "$host" >/dev/null 2>&1; then
+    echo -e "${RED}  ✗${NC} $name → DNS failed for $host"
     FAIL=$((FAIL + 1))
+    return
   fi
+
+  err_file="$(mktemp)"
+  http_code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 "$url" 2>"$err_file") || curl_exit=$?
+  err_msg="$(tr '\n' ' ' < "$err_file" | sed -E 's/[[:space:]]+/ /g')"
+  rm -f "$err_file"
+
+  if [ "$curl_exit" -eq 0 ] && [ "$http_code" = "$expected" ]; then
+    echo -e "${GREEN}  ✓${NC} $name → HTTP $http_code"
+    PASS=$((PASS + 1))
+    return
+  fi
+
+  if [ "$curl_exit" -eq 60 ] || [ "$curl_exit" -eq 35 ]; then
+    echo -e "${RED}  ✗${NC} $name → TLS failed (${err_msg:-certificate/handshake error})"
+    FAIL=$((FAIL + 1))
+    return
+  fi
+
+  if [ "$curl_exit" -ne 0 ]; then
+    echo -e "${RED}  ✗${NC} $name → Connection failed (${err_msg:-curl exit $curl_exit})"
+    FAIL=$((FAIL + 1))
+    return
+  fi
+
+  if [ "$http_code" = "000" ]; then
+    echo -e "${RED}  ✗${NC} $name → No HTTP response (network/edge issue)"
+  else
+    echo -e "${RED}  ✗${NC} $name → HTTP $http_code (expected $expected)"
+  fi
+
+  FAIL=$((FAIL + 1))
 }
 
 echo "═══════════════════════════════════════════"
