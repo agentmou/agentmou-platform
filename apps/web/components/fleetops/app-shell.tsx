@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { usePathname, useParams } from 'next/navigation'
+import { usePathname, useParams, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -59,12 +59,14 @@ interface AgentmouShellProps {
 }
 
 export function FleetOpsShell({ children }: AgentmouShellProps) {
+  const router = useRouter()
   const pathname = usePathname()
   const params = useParams()
   const tenantId = params.tenantId as string
 
   const authUser = useAuthStore((s) => s.user)
   const authTenants = useAuthStore((s) => s.tenants)
+  const isHydrated = useAuthStore((s) => s.isHydrated)
   const logout = useAuthStore((s) => s.logout)
   const hydrate = useAuthStore((s) => s.hydrate)
 
@@ -72,6 +74,7 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
 
   const provider = useDataProvider()
   const isDemoWorkspace = tenantId === 'demo-workspace'
+  const hasTenantAccess = isDemoWorkspace || authTenants.some((tenant) => tenant.id === tenantId)
 
   const tenants = authTenants.map((t) => ({
     id: t.id,
@@ -82,6 +85,16 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
     ownerId: authUser?.id ?? '',
     settings: { timezone: 'UTC', defaultHITL: false, logRetentionDays: 30, memoryRetentionDays: 30 },
   }))
+
+  const demoTenant = {
+    id: 'demo-workspace',
+    name: 'Demo Workspace',
+    type: 'business' as const,
+    plan: 'free' as const,
+    createdAt: '',
+    ownerId: '',
+    settings: { timezone: 'UTC', defaultHITL: false, logRetentionDays: 30, memoryRetentionDays: 30 },
+  }
   
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const [collapsed, setCollapsed] = React.useState(false)
@@ -100,13 +113,43 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
   
-  const currentTenant = tenants.find((tenant) => tenant.id === tenantId) || tenants[0]
+  const currentTenant = tenants.find((tenant) => tenant.id === tenantId) ||
+    (isDemoWorkspace ? demoTenant : tenants[0] ?? null)
+
+  React.useEffect(() => {
+    if (isDemoWorkspace || !isHydrated) return
+
+    if (authTenants.length === 0) {
+      router.replace('/app')
+      return
+    }
+
+    if (!hasTenantAccess) {
+      router.replace(`/app/${authTenants[0].id}/dashboard`)
+    }
+  }, [isDemoWorkspace, isHydrated, authTenants, hasTenantAccess, router])
+
   const [pendingApprovals, setPendingApprovals] = React.useState(0)
   React.useEffect(() => {
+    if (!isDemoWorkspace && (!isHydrated || !hasTenantAccess)) {
+      return
+    }
     provider.listTenantApprovals(tenantId).then((approvals) => {
       setPendingApprovals(approvals.filter((a) => a.status === 'pending').length)
     }).catch(() => setPendingApprovals(0))
-  }, [tenantId, provider])
+  }, [tenantId, provider, isDemoWorkspace, isHydrated, hasTenantAccess])
+
+  if (!isDemoWorkspace && !isHydrated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-sm text-muted-foreground">Loading workspace...</p>
+      </div>
+    )
+  }
+
+  if (!currentTenant || (!isDemoWorkspace && !hasTenantAccess)) {
+    return null
+  }
   
   const isActive = (href: string) => {
     const fullPath = `/app/${tenantId}${href}`
