@@ -5,9 +5,12 @@ const TOKEN_COOKIE = 'agentmou-token';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(TOKEN_COOKIE)?.value;
+  const isPublicDemoPath =
+    pathname === '/app/demo-workspace' ||
+    pathname.startsWith('/app/demo-workspace/');
 
   if (pathname.startsWith('/app/') || pathname === '/app') {
-    if (!token) {
+    if (!token && !isPublicDemoPath) {
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/login';
       loginUrl.searchParams.set('redirect', pathname);

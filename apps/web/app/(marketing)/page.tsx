@@ -1,76 +1,54 @@
 'use client'
 
+import * as React from 'react'
 import Link from 'next/link'
-import { ArrowRight, Mail, MessageSquare, TrendingUp, Calendar, Users, Zap, Shield, Bot, Workflow, FileText, Lock, Eye, Key } from 'lucide-react'
+import { ArrowRight, Mail, MessageSquare, TrendingUp, Calendar, Users, Zap, Shield, Bot, Workflow, Lock, Eye, Key } from 'lucide-react'
 import { HalftoneBackground } from '@/components/brand/halftone-background'
 import { HalftoneIllustration } from '@/components/brand/halftone-illustration'
 import { BrandFrame, BrandStrip } from '@/components/brand/brand-frame'
 import { MinimalButton } from '@/components/ui/minimal-button'
 import { motion } from 'framer-motion'
-import { normalizeCategory } from '@/lib/fleetops/category-config'
-import {
-  listMarketplaceAgentTemplates,
-  listMarketplaceWorkflowTemplates,
-  listPackTemplates,
-} from '@/lib/data/catalog-sync'
 
-// Compute real stats from catalog
-const agentTemplates = listMarketplaceAgentTemplates()
-const workflowTemplates = listMarketplaceWorkflowTemplates()
-const packTemplates = listPackTemplates()
-const publicAgents = agentTemplates
-const publicWorkflows = workflowTemplates
-const featuredAgentIds = ['agent-inbox-triage', 'agent-ticket-router', 'agent-market-monitor', 'agent-meeting-prep']
-const featuredWorkflowIds = ['wf-01', 'wf-02', 'wf-05', 'wf-10']
+interface MarketingCatalogPayload {
+  agents: Array<{
+    id: string
+    name: string
+    category: string
+    description: string
+    timeSaved: string
+    accuracy: string
+  }>
+  workflows: Array<{
+    id: string
+    name: string
+    trigger: string
+    action: string
+  }>
+  packs: Array<{
+    id: string
+    name: string
+    description: string
+    agents: number
+    workflows: number
+    outcome: string
+  }>
+}
 
 // Map icon components for featured agents
 const iconMap: Record<string, typeof Mail> = {
+  'inbox-triage': Mail,
+  'wf-01-auto-label-gmail': Workflow,
   'agent-inbox-triage': Mail,
   'agent-ticket-router': MessageSquare,
   'agent-market-monitor': TrendingUp,
   'agent-meeting-prep': Calendar,
 }
 
-// Get real featured agents from catalog
-const featuredAgents = featuredAgentIds
-  .map(id => agentTemplates.find(a => a.id === id))
-  .filter(Boolean)
-  .map(agent => ({
-    id: agent!.id,
-    name: agent!.name,
-    category: normalizeCategory(agent!.catalogGroup || agent!.domain),
-    description: agent!.outcome,
-    icon: iconMap[agent!.id] || Bot,
-    metrics: { timeSaved: `${agent!.setupTimeMinutes * 2}h/week`, accuracy: '94%' },
-  }))
-
-// Get real featured workflows from catalog
-const featuredWorkflows = featuredWorkflowIds
-  .map(id => workflowTemplates.find(w => w.id === id))
-  .filter(Boolean)
-  .map(wf => ({
-    id: wf!.id,
-    name: wf!.name,
-    trigger: wf!.trigger,
-    action: wf!.output.split(' ').slice(0, 3).join(' '),
-  }))
-
-// Get real packs from catalog (use slug for linking)
-const packs = packTemplates.slice(0, 3).map(pack => ({
-  id: pack.slug,
-  name: pack.name,
-  description: pack.description,
-  agents: pack.includedAgents.length,
-  workflows: pack.includedWorkflows.length,
-  outcome: pack.kpis[0] || 'Streamline operations',
-}))
-
-const stats = [
-  { value: `${publicAgents.length}+`, label: 'Agents' },
-  { value: `${publicWorkflows.length}+`, label: 'Workflows' },
-  { value: '94%', label: 'Accuracy' },
-  { value: '70%', label: 'Time saved' },
-]
+const emptyCatalog: MarketingCatalogPayload = {
+  agents: [],
+  workflows: [],
+  packs: [],
+}
 
 const securityFeatures = [
   { icon: Shield, title: 'Workspace isolation', description: 'Multi-tenant architecture with complete data isolation.' },
@@ -80,6 +58,46 @@ const securityFeatures = [
 ]
 
 export default function HomePage() {
+  const [catalog, setCatalog] = React.useState<MarketingCatalogPayload>(emptyCatalog)
+
+  React.useEffect(() => {
+    let isActive = true
+    fetch('/api/public-catalog')
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`public-catalog ${res.status}`)
+        return res.json() as Promise<MarketingCatalogPayload>
+      })
+      .then((data) => {
+        if (isActive) {
+          setCatalog(data)
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setCatalog(emptyCatalog)
+        }
+      })
+
+    return () => {
+      isActive = false
+    }
+  }, [])
+
+  const featuredAgents = catalog.agents.slice(0, 4).map((agent) => ({
+    ...agent,
+    icon: iconMap[agent.id] || Bot,
+    metrics: { timeSaved: agent.timeSaved, accuracy: agent.accuracy },
+  }))
+
+  const featuredWorkflows = catalog.workflows.slice(0, 4)
+  const packs = catalog.packs.slice(0, 3)
+  const stats = [
+    { value: `${catalog.agents.length}+`, label: 'Agents' },
+    { value: `${catalog.workflows.length}+`, label: 'Workflows' },
+    { value: 'Real', label: 'Catalog source' },
+    { value: 'Live', label: 'Status' },
+  ]
+
   return (
     <div className="relative">
       {/* Hero Section - Full brand expression */}

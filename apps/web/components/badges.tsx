@@ -263,7 +263,7 @@ const availabilityConfig: Record<AvailabilityType, { label: string; className: s
     className: 'border-accent/40 text-foreground bg-transparent',
   },
   planned: {
-    label: 'Planned',
+    label: 'Coming soon',
     className: 'border-muted-foreground/20 text-muted-foreground bg-transparent',
   },
 }
