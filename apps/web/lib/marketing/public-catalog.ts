@@ -4,6 +4,8 @@ import * as fs from 'node:fs/promises';
 import type { Dirent } from 'node:fs';
 import * as path from 'node:path';
 
+const DEFAULT_API_BASE_URL = 'https://api.agentmou.io';
+
 export interface MarketingAgent {
   id: string;
   name: string;
@@ -35,34 +37,163 @@ export interface MarketingCatalogPayload {
   packs: MarketingPack[];
 }
 
-export async function getPublicMarketingCatalog(): Promise<MarketingCatalogPayload> {
-  const repoRoot = await resolveRepoRoot();
-  const [agents, workflows, packs] = await Promise.all([
-    loadAgents(path.join(repoRoot, 'catalog', 'agents')),
-    loadWorkflows(path.join(repoRoot, 'workflows', 'public')),
-    loadPacks(path.join(repoRoot, 'catalog', 'packs')),
-  ]);
+type MarketingCatalogSource = 'api' | 'filesystem' | 'empty';
 
-  return { agents, workflows, packs };
+export interface MarketingCatalogResult {
+  payload: MarketingCatalogPayload;
+  source: MarketingCatalogSource;
+  degraded: boolean;
+  reason?: string;
 }
 
-async function resolveRepoRoot(): Promise<string> {
-  const candidates = [
+interface ApiAgentManifest {
+  id?: unknown;
+  name?: unknown;
+  description?: unknown;
+  category?: unknown;
+}
+
+interface ApiWorkflowManifest {
+  id?: unknown;
+  name?: unknown;
+  description?: unknown;
+  trigger?: {
+    type?: unknown;
+  };
+}
+
+interface ApiPackManifest {
+  id?: unknown;
+  name?: unknown;
+  description?: unknown;
+  agents?: unknown;
+  workflows?: unknown;
+}
+
+const EMPTY_CATALOG: MarketingCatalogPayload = {
+  agents: [],
+  workflows: [],
+  packs: [],
+};
+
+export async function getPublicMarketingCatalog(): Promise<MarketingCatalogPayload> {
+  const result = await getPublicMarketingCatalogResult();
+  return result.payload;
+}
+
+export async function getPublicMarketingCatalogResult(): Promise<MarketingCatalogResult> {
+  const fromApi = await loadCatalogFromApi();
+  if (fromApi) {
+    return {
+      payload: fromApi,
+      source: 'api',
+      degraded: false,
+    };
+  }
+
+  const fromFilesystem = await loadCatalogFromFilesystem();
+  if (fromFilesystem) {
+    return {
+      payload: fromFilesystem,
+      source: 'filesystem',
+      degraded: true,
+      reason: 'api_unavailable',
+    };
+  }
+
+  return {
+    payload: EMPTY_CATALOG,
+    source: 'empty',
+    degraded: true,
+    reason: 'api_and_filesystem_unavailable',
+  };
+}
+
+async function loadCatalogFromApi(): Promise<MarketingCatalogPayload | null> {
+  const apiBaseUrl = resolveApiBaseUrl();
+  const timeoutSignal = AbortSignal.timeout(5000);
+
+  try {
+    const [agentsResponse, workflowsResponse, packsResponse] = await Promise.all([
+      fetch(catalogUrl(apiBaseUrl, '/api/v1/catalog/agents'), { signal: timeoutSignal }),
+      fetch(catalogUrl(apiBaseUrl, '/api/v1/catalog/workflows'), { signal: timeoutSignal }),
+      fetch(catalogUrl(apiBaseUrl, '/api/v1/catalog/packs'), { signal: timeoutSignal }),
+    ]);
+
+    if (!agentsResponse.ok || !workflowsResponse.ok || !packsResponse.ok) {
+      throw new Error(
+        `Catalog API HTTP status mismatch: agents=${agentsResponse.status}, workflows=${workflowsResponse.status}, packs=${packsResponse.status}`,
+      );
+    }
+
+    const [agentsBody, workflowsBody, packsBody] = await Promise.all([
+      agentsResponse.json() as Promise<{ agents?: ApiAgentManifest[] }>,
+      workflowsResponse.json() as Promise<{ workflows?: ApiWorkflowManifest[] }>,
+      packsResponse.json() as Promise<{ packs?: ApiPackManifest[] }>,
+    ]);
+
+    return {
+      agents: mapApiAgents(agentsBody.agents),
+      workflows: mapApiWorkflows(workflowsBody.workflows),
+      packs: mapApiPacks(packsBody.packs),
+    };
+  } catch (error) {
+    console.warn(`[public-catalog] api source failed: ${toErrorMessage(error)}`);
+    return null;
+  }
+}
+
+async function loadCatalogFromFilesystem(): Promise<MarketingCatalogPayload | null> {
+  const repoRoot = await resolveRepoRoot();
+  if (!repoRoot) {
+    return null;
+  }
+
+  try {
+    const [agents, workflows, packs] = await Promise.all([
+      loadAgents(path.join(repoRoot, 'catalog', 'agents')),
+      loadWorkflows(path.join(repoRoot, 'workflows', 'public')),
+      loadPacks(path.join(repoRoot, 'catalog', 'packs')),
+    ]);
+
+    return { agents, workflows, packs };
+  } catch (error) {
+    console.warn(`[public-catalog] filesystem source failed: ${toErrorMessage(error)}`);
+    return null;
+  }
+}
+
+function resolveApiBaseUrl(): string {
+  const candidate = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || DEFAULT_API_BASE_URL;
+  return candidate.replace(/\/+$/, '');
+}
+
+function catalogUrl(baseUrl: string, catalogPath: string): string {
+  return `${baseUrl}${catalogPath}`;
+}
+
+async function resolveRepoRoot(): Promise<string | null> {
+  const candidates = new Set<string>([
     process.cwd(),
     path.resolve(process.cwd(), '..'),
     path.resolve(process.cwd(), '../..'),
     path.resolve(process.cwd(), '../../..'),
-  ];
+  ]);
+
+  for (let level = 0; level <= 7; level += 1) {
+    const parentChain = Array.from({ length: level }, () => '..');
+    candidates.add(path.resolve(import.meta.dirname, ...parentChain));
+  }
 
   for (const candidate of candidates) {
     const hasCatalog = await pathExists(path.join(candidate, 'catalog'));
-    const hasWorkflows = await pathExists(path.join(candidate, 'workflows'));
+    const hasWorkflows = await pathExists(path.join(candidate, 'workflows', 'public'));
     if (hasCatalog && hasWorkflows) {
       return candidate;
     }
   }
 
-  throw new Error('Unable to resolve monorepo root for marketing catalog');
+  return null;
 }
 
 async function pathExists(targetPath: string): Promise<boolean> {
@@ -258,4 +389,78 @@ function deriveWorkflowAction(description?: string): string {
 function derivePackOutcome(description?: string): string {
   if (!description) return 'Streamline operations';
   return description.split('.').at(0)?.trim() || 'Streamline operations';
+}
+
+function mapApiAgents(agents: ApiAgentManifest[] | undefined): MarketingAgent[] {
+  return asArray(agents).map((agent) => {
+    const id = toStringValue(agent.id) || 'unknown-agent';
+    const name = toStringValue(agent.name) || humanizeId(id);
+    const description = toStringValue(agent.description) || 'AI agent for operational automation';
+    const category = normalizeMarketingCategory(toStringValue(agent.category));
+
+    return {
+      id,
+      name,
+      category,
+      description,
+      timeSaved: 'Live',
+      accuracy: 'Real',
+    };
+  });
+}
+
+function mapApiWorkflows(workflows: ApiWorkflowManifest[] | undefined): MarketingWorkflow[] {
+  return asArray(workflows).map((workflow) => {
+    const id = toStringValue(workflow.id) || 'unknown-workflow';
+    const name = toStringValue(workflow.name) || humanizeId(id);
+    const description = toStringValue(workflow.description);
+    const trigger = toStringValue(workflow.trigger?.type) || 'manual';
+
+    return {
+      id,
+      name,
+      trigger,
+      action: deriveWorkflowAction(description),
+    };
+  });
+}
+
+function mapApiPacks(packs: ApiPackManifest[] | undefined): MarketingPack[] {
+  return asArray(packs).map((pack) => {
+    const id = toStringValue(pack.id) || 'unknown-pack';
+    const name = toStringValue(pack.name) || humanizeId(id);
+    const description = toStringValue(pack.description) || 'Curated bundle for automation outcomes';
+
+    return {
+      id,
+      name,
+      description,
+      agents: toStringArray(pack.agents).length,
+      workflows: toStringArray(pack.workflows).length,
+      outcome: derivePackOutcome(description),
+    };
+  });
+}
+
+function asArray<T>(value: T[] | undefined): T[] {
+  if (!Array.isArray(value)) return [];
+  return value;
+}
+
+function toStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => toStringValue(item))
+    .filter((item): item is string => Boolean(item));
+}
+
+function toStringValue(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function toErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
 }
