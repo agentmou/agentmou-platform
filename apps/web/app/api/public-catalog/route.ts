@@ -1,18 +1,29 @@
 import { NextResponse } from 'next/server';
-import { getPublicMarketingCatalog } from '@/lib/marketing/public-catalog';
+import { getPublicMarketingCatalogResult } from '@/lib/marketing/public-catalog';
+
+const EMPTY_PAYLOAD = { agents: [], workflows: [], packs: [] };
 
 export async function GET() {
   try {
-    const payload = await getPublicMarketingCatalog();
-    return NextResponse.json(payload, {
+    const result = await getPublicMarketingCatalogResult();
+
+    if (result.degraded) {
+      console.warn(
+        `[public-catalog] degraded response source=${result.source} reason=${result.reason ?? 'unknown'}`,
+      );
+    }
+
+    return NextResponse.json(result.payload, {
       headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        'Cache-Control': result.degraded
+          ? 'public, s-maxage=60, stale-while-revalidate=120'
+          : 'public, s-maxage=300, stale-while-revalidate=600',
       },
     });
   } catch (error) {
-    console.error('[public-catalog] failed to load catalog', error);
+    console.warn('[public-catalog] unexpected route failure', error);
     return NextResponse.json(
-      { agents: [], workflows: [], packs: [] },
+      EMPTY_PAYLOAD,
       {
         headers: {
           'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',

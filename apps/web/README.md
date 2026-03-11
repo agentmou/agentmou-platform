@@ -19,7 +19,8 @@ or workflows itself.
 - Protect tenant routes with Next.js middleware and a JWT cookie.
 - Consume the control-plane API through typed client helpers in `lib/api/`.
 - Serve marketing catalog cards from a real-catalog adapter (`/api/public-catalog`)
-  backed by `catalog/` and `workflows/public`.
+  using an API-first source (`/api/v1/catalog/*`) with local filesystem
+  fallback for development (`catalog/` and `workflows/public`).
 - Switch between `apiProvider` and `demoProvider` so real tenants use backend
   data while `demo-workspace` stays read-only and can show `planned` as
   `Coming soon`.
@@ -70,7 +71,7 @@ pnpm --filter @agentmou/web start
 - `lib/data/api-provider.ts` adapts the real API to the `DataProvider` interface.
 - `lib/data/demo-provider.ts` powers `demo-workspace` with read-only demo data.
 - `lib/marketing/public-catalog.ts` loads real public catalog assets for
-  marketing pages.
+  marketing pages using API-first loading with resilient fallback.
 - `lib/auth/store.ts` owns login, registration, cookie hydration, and active-tenant selection.
 
 ## Configuration
