@@ -18,8 +18,11 @@ or workflows itself.
 - Handle login and registration under `app/(auth)`.
 - Protect tenant routes with Next.js middleware and a JWT cookie.
 - Consume the control-plane API through typed client helpers in `lib/api/`.
-- Switch between `mockProvider` and `apiProvider` so marketing/demo routes can
-  stay mock-backed while authenticated routes use real backend data.
+- Serve marketing catalog cards from a real-catalog adapter (`/api/public-catalog`)
+  backed by `catalog/` and `workflows/public`.
+- Switch between `apiProvider` and `demoProvider` so real tenants use backend
+  data while `demo-workspace` stays read-only and can show `planned` as
+  `Coming soon`.
 
 ## How It Fits Into The System
 
@@ -60,10 +63,14 @@ pnpm --filter @agentmou/web start
 ### Important Modules
 
 - `app/layout.tsx` mounts theme support, toaster notifications, and analytics.
-- `middleware.ts` redirects unauthenticated traffic away from `/app/*` and keeps authenticated users out of `/login` and `/register`.
+- `middleware.ts` redirects unauthenticated traffic away from `/app/*` except
+  the public `demo-workspace`, and keeps authenticated users out of `/login`
+  and `/register`.
 - `lib/api/client.ts` contains typed fetchers for tenants, catalog, runs, approvals, connectors, and installations.
 - `lib/data/api-provider.ts` adapts the real API to the `DataProvider` interface.
-- `lib/data/mock-provider.ts` keeps marketing/demo routes working against the local read model.
+- `lib/data/demo-provider.ts` powers `demo-workspace` with read-only demo data.
+- `lib/marketing/public-catalog.ts` loads real public catalog assets for
+  marketing pages.
 - `lib/auth/store.ts` owns login, registration, cookie hydration, and active-tenant selection.
 
 ## Configuration
