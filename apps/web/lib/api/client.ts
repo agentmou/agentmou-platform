@@ -126,17 +126,17 @@ export async function fetchCatalogWorkflows(): Promise<WorkflowTemplate[]> {
 // ---------------------------------------------------------------------------
 
 export async function fetchInstalledAgents(tenantId: string): Promise<InstalledAgent[]> {
-  const data = await request<{ installations: InstalledAgent[] }>(
+  const data = await request<{ installations: { agents: InstalledAgent[]; workflows: InstalledWorkflow[] } }>(
     `/api/v1/tenants/${tenantId}/installations`,
   );
-  return data.installations;
+  return data.installations.agents;
 }
 
 export async function fetchInstalledWorkflows(tenantId: string): Promise<InstalledWorkflow[]> {
-  const data = await request<{ installations: InstalledWorkflow[] }>(
+  const data = await request<{ installations: { agents: InstalledAgent[]; workflows: InstalledWorkflow[] } }>(
     `/api/v1/tenants/${tenantId}/installations`,
   );
-  return data.installations;
+  return data.installations.workflows;
 }
 
 export async function installAgent(
@@ -146,7 +146,7 @@ export async function installAgent(
 ) {
   return request(`/api/v1/tenants/${tenantId}/installations/agents`, {
     method: 'POST',
-    body: JSON.stringify({ agentId: templateId, config }),
+    body: JSON.stringify({ templateId, config }),
   });
 }
 

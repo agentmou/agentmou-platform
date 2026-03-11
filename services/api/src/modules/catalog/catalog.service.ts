@@ -139,6 +139,9 @@ export class CatalogService {
 
     if (filters?.status) {
       result = result.filter((w) => w.status === filters.status);
+    } else {
+      // Default catalog view should only expose installable workflows.
+      result = result.filter((w) => w.status !== 'planned');
     }
     if (filters?.category) {
       result = result.filter((w) => w.category === filters.category);

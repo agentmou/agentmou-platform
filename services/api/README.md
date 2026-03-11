@@ -20,6 +20,8 @@ BullMQ.
 - Queue long-running work such as pack installation and run execution.
 - Handle Gmail OAuth initiation and callback flows.
 - Proxy selected n8n workflow management operations through `@agentmou/n8n-client`.
+- Install workflow templates only when a real definition exists in
+  `workflows/public/<templateId>/workflow.json`.
 
 ## How It Fits Into The System
 
@@ -84,6 +86,7 @@ route shape exists even where the implementation is still thin.
 - `src/modules/auth` owns register/login/me flows.
 - `src/modules/catalog` serves manifest-backed catalog data.
 - `src/modules/installations` creates installations and queues pack installs.
+  `GET /installations` returns grouped `{ agents, workflows }` lists.
 - `src/modules/connectors` manages connector records and Gmail OAuth flows.
 - `src/modules/runs` creates run records and triggers agent or workflow jobs.
 - `src/modules/approvals` manages human-in-the-loop requests and decisions.
