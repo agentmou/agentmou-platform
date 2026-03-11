@@ -18,6 +18,9 @@ export interface N8nExecutionResult {
   data?: unknown;
 }
 
+/**
+ * Typed wrapper around the subset of n8n REST endpoints used by AgentMou.
+ */
 export class N8nClient {
   private client: AxiosInstance;
 

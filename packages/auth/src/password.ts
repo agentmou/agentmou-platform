@@ -9,12 +9,18 @@ const ITERATIONS = 100_000;
 const KEY_LENGTH = 64;
 const DIGEST = 'sha512';
 
+/**
+ * Hash a plaintext password with PBKDF2 and a random salt.
+ */
 export function hashPassword(password: string): string {
   const salt = randomBytes(16).toString('hex');
   const hash = pbkdf2Sync(password, salt, ITERATIONS, KEY_LENGTH, DIGEST).toString('hex');
   return `${salt}:${hash}`;
 }
 
+/**
+ * Check whether a plaintext password matches a stored hash.
+ */
 export function verifyPassword(password: string, stored: string): boolean {
   const [salt, hash] = stored.split(':');
   if (!salt || !hash) return false;

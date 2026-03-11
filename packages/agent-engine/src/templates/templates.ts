@@ -1,3 +1,6 @@
+/**
+ * Template definition used to render an agent system prompt.
+ */
 export interface AgentTemplate {
   id: string;
   name: string;
@@ -7,6 +10,9 @@ export interface AgentTemplate {
   examples?: PromptExample[];
 }
 
+/**
+ * Variable declared by an agent template.
+ */
 export interface VariableDefinition {
   name: string;
   type: 'string' | 'number' | 'boolean' | 'object' | 'array';
@@ -15,12 +21,18 @@ export interface VariableDefinition {
   defaultValue?: any;
 }
 
+/**
+ * Example input/output pair documenting expected template behavior.
+ */
 export interface PromptExample {
   input: Record<string, any>;
   expectedOutput: string;
   description?: string;
 }
 
+/**
+ * Registry and renderer for reusable agent templates.
+ */
 export class TemplatesManager {
   private templates: Map<string, AgentTemplate> = new Map();
 
@@ -51,6 +63,9 @@ export class TemplatesManager {
   }
 }
 
+/**
+ * Seed templates bundled with the package for development and examples.
+ */
 export const defaultTemplates: AgentTemplate[] = [
   {
     id: 'customer-support',

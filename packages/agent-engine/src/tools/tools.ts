@@ -1,5 +1,8 @@
 import type { GmailConnector } from '@agentmou/connectors';
 
+/**
+ * Executable tool definition used by the planner and runtime.
+ */
 export interface Tool {
   id: string;
   name: string;
@@ -9,6 +12,9 @@ export interface Tool {
   execute: (input: unknown, context?: ToolContext) => Promise<unknown>;
 }
 
+/**
+ * Execution context passed to tools at runtime.
+ */
 export interface ToolContext {
   tenantId: string;
   userId?: string;
@@ -19,6 +25,9 @@ export interface ToolContext {
   agentsApiKey?: string;
 }
 
+/**
+ * JSON-schema-style tool description exposed to model planners.
+ */
 export interface ToolDefinition {
   type: 'function';
   function: {
@@ -28,6 +37,9 @@ export interface ToolDefinition {
   };
 }
 
+/**
+ * Registry and execution facade for the tools available to an agent.
+ */
 export class Toolkit {
   private tools: Map<string, Tool> = new Map();
 

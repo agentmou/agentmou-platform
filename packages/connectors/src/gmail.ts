@@ -2,6 +2,9 @@ import { google, gmail_v1 } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 import { BaseConnector, ConnectorConfig } from './base';
 
+/**
+ * OAuth and connector settings required to access a Gmail account.
+ */
 export interface GmailConfig extends ConnectorConfig {
   credentials: {
     clientId: string;
@@ -12,6 +15,9 @@ export interface GmailConfig extends ConnectorConfig {
   };
 }
 
+/**
+ * Normalized Gmail message shape returned by connector read operations.
+ */
 export interface GmailMessage {
   id: string;
   threadId: string;

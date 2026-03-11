@@ -1,6 +1,9 @@
 import { db, executionRuns, executionSteps } from '@agentmou/db';
 import { eq } from 'drizzle-orm';
 
+/**
+ * Single log entry emitted during a run.
+ */
 export interface LogEntry {
   id: string;
   runId: string;
@@ -10,6 +13,9 @@ export interface LogEntry {
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * Aggregated metrics tracked for an execution run.
+ */
 export interface RunMetrics {
   runId: string;
   startTime: Date;
@@ -21,6 +27,9 @@ export interface RunMetrics {
   tokensUsed?: { input: number; output: number; total: number };
 }
 
+/**
+ * Per-step execution data captured while a run is in progress.
+ */
 export interface RunStep {
   id: string;
   name: string;

@@ -1,5 +1,8 @@
 import OpenAI from 'openai';
 
+/**
+ * Single executable step inside an agent plan.
+ */
 export interface PlanStep {
   id: string;
   type: 'tool_call' | 'agent_invoke' | 'condition' | 'loop' | 'approval';
@@ -10,6 +13,9 @@ export interface PlanStep {
   config?: Record<string, unknown>;
 }
 
+/**
+ * Structured plan generated before tools are executed.
+ */
 export interface ExecutionPlan {
   id: string;
   goal: string;
@@ -19,6 +25,9 @@ export interface ExecutionPlan {
   estimatedTime?: number;
 }
 
+/**
+ * Planner configuration for model-backed plan generation.
+ */
 export interface PlannerConfig {
   openaiApiKey: string;
   model?: string;

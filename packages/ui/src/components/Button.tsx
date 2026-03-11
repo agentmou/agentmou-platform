@@ -5,6 +5,9 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md' | 'lg';
 }
 
+/**
+ * Render a shared button primitive with preset variants and sizes.
+ */
 export function Button({
   children,
   variant = 'primary',

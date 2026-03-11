@@ -1,3 +1,6 @@
+/**
+ * Approval gate definition attached to high-risk execution paths.
+ */
 export interface ApprovalGate {
   id: string;
   name: string;
@@ -8,18 +11,27 @@ export interface ApprovalGate {
   escalationPolicy?: EscalationPolicy;
 }
 
+/**
+ * Condition checked to determine whether approval is required.
+ */
 export interface ApprovalCondition {
   field: string;
   operator: 'gt' | 'lt' | 'eq' | 'contains' | 'matches';
   value: any;
 }
 
+/**
+ * Escalation path triggered when an approval is not answered in time.
+ */
 export interface EscalationPolicy {
   type: 'user' | 'role' | 'webhook';
   target: string;
   delaySeconds: number;
 }
 
+/**
+ * Persistable approval request created for a gated action.
+ */
 export interface ApprovalRequest {
   id: string;
   gateId: string;
@@ -32,6 +44,9 @@ export interface ApprovalRequest {
   context: any;
 }
 
+/**
+ * Decision payload submitted by an approver.
+ */
 export interface ApprovalResponse {
   approved: boolean;
   reason?: string;
@@ -39,6 +54,9 @@ export interface ApprovalResponse {
   respondedAt: Date;
 }
 
+/**
+ * Coordinates approval gate evaluation, request creation, and responses.
+ */
 export class ApprovalGateManager {
   private gates: Map<string, ApprovalGate> = new Map();
   private requests: Map<string, ApprovalRequest> = new Map();
