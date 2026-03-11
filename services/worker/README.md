@@ -11,7 +11,8 @@ slow or stateful work that should not happen during an API request.
 
 ## Responsibilities
 
-- Install packs by creating installation rows and cron-backed schedules.
+- Install packs by creating installation rows, provisioning workflow templates
+  in n8n, and creating cron-backed schedules.
 - Run installed agents through `@agentmou/agent-engine`.
 - Run installed workflows through `@agentmou/n8n-client`.
 - Translate repeatable cron triggers into execution runs.
@@ -50,7 +51,7 @@ pnpm --filter @agentmou/worker start
 
 | Queue | Processor | What it does |
 | --- | --- | --- |
-| `install-pack` | `processInstallPack` | Installs agents/workflows from a pack manifest and creates schedules |
+| `install-pack` | `processInstallPack` | Installs available agents/workflows from a pack manifest, provisions workflows in n8n, and creates schedules |
 | `run-agent` | `processRunAgent` | Loads prompt/policy/connectors and runs `AgentEngine.execute()` |
 | `run-workflow` | `processRunWorkflow` | Executes an installed n8n workflow and persists run status |
 | `schedule-trigger` | `processScheduleTrigger` | Converts a cron trigger into a concrete execution run and follow-up job |
