@@ -29,11 +29,14 @@ check() {
   local name="$1"
   local url="$2"
   local expected="${3:-200}"
+  local method="${4:-GET}"
+  local payload="${5:-}"
   local host
   local err_file
   local err_msg
   local http_code
   local curl_exit=0
+  local -a curl_args
 
   host="$(extract_host "$url")"
   if ! getent hosts "$host" >/dev/null 2>&1; then
@@ -43,32 +46,36 @@ check() {
   fi
 
   err_file="$(mktemp)"
-  http_code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 "$url" 2>"$err_file") || curl_exit=$?
+  curl_args=(-sS -o /dev/null -w "%{http_code}" --max-time 10 -X "$method")
+  if [ -n "$payload" ]; then
+    curl_args+=(-H "Content-Type: application/json" --data "$payload")
+  fi
+  http_code=$(curl "${curl_args[@]}" "$url" 2>"$err_file") || curl_exit=$?
   err_msg="$(tr '\n' ' ' < "$err_file" | sed -E 's/[[:space:]]+/ /g')"
   rm -f "$err_file"
 
   if [ "$curl_exit" -eq 0 ] && [ "$http_code" = "$expected" ]; then
-    echo -e "${GREEN}  ✓${NC} $name → HTTP $http_code"
+    echo -e "${GREEN}  ✓${NC} $name → $method HTTP $http_code"
     PASS=$((PASS + 1))
     return
   fi
 
   if [ "$curl_exit" -eq 60 ] || [ "$curl_exit" -eq 35 ]; then
-    echo -e "${RED}  ✗${NC} $name → TLS failed (${err_msg:-certificate/handshake error})"
+    echo -e "${RED}  ✗${NC} $name [$method $url] → TLS failed (${err_msg:-certificate/handshake error})"
     FAIL=$((FAIL + 1))
     return
   fi
 
   if [ "$curl_exit" -ne 0 ]; then
-    echo -e "${RED}  ✗${NC} $name → Connection failed (${err_msg:-curl exit $curl_exit})"
+    echo -e "${RED}  ✗${NC} $name [$method $url] → Connection failed (${err_msg:-curl exit $curl_exit})"
     FAIL=$((FAIL + 1))
     return
   fi
 
   if [ "$http_code" = "000" ]; then
-    echo -e "${RED}  ✗${NC} $name → No HTTP response (network/edge issue)"
+    echo -e "${RED}  ✗${NC} $name [$method $url] → No HTTP response (network/edge issue)"
   else
-    echo -e "${RED}  ✗${NC} $name → HTTP $http_code (expected $expected)"
+    echo -e "${RED}  ✗${NC} $name [$method $url] → HTTP $http_code (expected $expected)"
   fi
 
   FAIL=$((FAIL + 1))
@@ -81,7 +88,7 @@ echo ""
 
 check "API Health"        "$API_URL/health"
 check "API Catalog"       "$API_URL/api/v1/catalog/agents"
-check "API Auth (no body)" "$API_URL/api/v1/auth/login" "400"
+check "API Auth Login (invalid payload)" "$API_URL/api/v1/auth/login" "400" "POST" "{}"
 
 echo ""
 echo "═══════════════════════════════════════════"
