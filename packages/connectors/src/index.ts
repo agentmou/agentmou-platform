@@ -1,4 +1,3 @@
-// Connectors Package - Abstractions for external services
 import { BaseConnector } from './base';
 import { GmailConnector } from './gmail';
 
@@ -7,7 +6,9 @@ export { GmailConnector, type GmailConfig, type GmailMessage } from './gmail';
 export { encrypt, decrypt } from './crypto';
 export { loadGmailConnector, loadTenantConnectors, ConnectorLoadError } from './loader';
 
-// Connector types to be implemented
+/**
+ * Connector providers recognized by the registry layer.
+ */
 export type ConnectorType = 
   | 'gmail'
   | 'slack'
@@ -23,6 +24,9 @@ export type ConnectorType =
 
 type ConnectorConstructor = new (...args: any[]) => BaseConnector;
 
+/**
+ * Registry interface for resolving and registering connector implementations.
+ */
 export interface ConnectorRegistry {
   getConnector(type: ConnectorType): ConnectorConstructor | undefined;
   registerConnector(type: ConnectorType, connector: ConnectorConstructor): void;
@@ -45,6 +49,9 @@ class InMemoryConnectorRegistry implements ConnectorRegistry {
   }
 }
 
+/**
+ * Singleton registry containing the connector implementations bundled with this package.
+ */
 export const connectorRegistry: ConnectorRegistry = new InMemoryConnectorRegistry();
 
 // Register built-in connectors

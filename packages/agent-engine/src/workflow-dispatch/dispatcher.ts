@@ -1,3 +1,6 @@
+/**
+ * Serializable workflow definition understood by the dispatcher.
+ */
 export interface WorkflowDefinition {
   id: string;
   name: string;
@@ -6,6 +9,9 @@ export interface WorkflowDefinition {
   variables?: WorkflowVariable[];
 }
 
+/**
+ * Individual node inside a workflow graph.
+ */
 export interface WorkflowNode {
   id: string;
   type: 'action' | 'condition' | 'loop' | 'delay' | 'webhook';
@@ -13,17 +19,26 @@ export interface WorkflowNode {
   next?: string | string[];
 }
 
+/**
+ * Trigger declaration that determines how a workflow starts.
+ */
 export interface Trigger {
   type: 'schedule' | 'webhook' | 'event' | 'manual';
   config: Record<string, any>;
 }
 
+/**
+ * Declared variable available during workflow execution.
+ */
 export interface WorkflowVariable {
   name: string;
   type: 'string' | 'number' | 'boolean' | 'object' | 'array';
   defaultValue?: any;
 }
 
+/**
+ * Mutable execution state carried while a workflow runs.
+ */
 export interface ExecutionContext {
   workflowId: string;
   runId: string;
@@ -32,6 +47,9 @@ export interface ExecutionContext {
   previousOutputs: Record<string, any>;
 }
 
+/**
+ * Lightweight dispatcher that walks workflow nodes in execution order.
+ */
 export class WorkflowDispatcher {
   async executeWorkflow(definition: WorkflowDefinition, inputData?: any): Promise<WorkflowResult> {
     const context: ExecutionContext = {
@@ -108,6 +126,9 @@ export class WorkflowDispatcher {
   }
 }
 
+/**
+ * Result returned after a workflow definition finishes executing.
+ */
 export interface WorkflowResult {
   success: boolean;
   runId: string;

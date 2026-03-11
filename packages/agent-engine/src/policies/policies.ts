@@ -1,3 +1,6 @@
+/**
+ * Named policy bundle composed of rules and constraints.
+ */
 export interface Policy {
   id: string;
   name: string;
@@ -6,6 +9,9 @@ export interface Policy {
   constraints: Constraint[];
 }
 
+/**
+ * Individual policy rule that can allow, deny, or gate an action.
+ */
 export interface PolicyRule {
   id: string;
   condition: string;
@@ -13,12 +19,18 @@ export interface PolicyRule {
   parameters?: Record<string, unknown>;
 }
 
+/**
+ * Limit applied to an execution context such as cost or rate.
+ */
 export interface Constraint {
   type: 'rate_limit' | 'cost_limit' | 'scope_limit' | 'time_limit';
   value: unknown;
   description?: string;
 }
 
+/**
+ * Result returned after evaluating an action against the active policies.
+ */
 export interface PolicyEvaluation {
   allowed: boolean;
   requiresApproval: boolean;

@@ -1,3 +1,6 @@
+/**
+ * Stored memory item associated with an agent or session.
+ */
 export interface Memory {
   id: string;
   type: 'short_term' | 'long_term' | 'episodic' | 'semantic';
@@ -7,6 +10,9 @@ export interface Memory {
   expiresAt?: Date;
 }
 
+/**
+ * Single conversational turn captured for short-term context.
+ */
 export interface ConversationTurn {
   role: 'user' | 'assistant' | 'system';
   content: string;
@@ -14,6 +20,9 @@ export interface ConversationTurn {
   metadata?: Record<string, any>;
 }
 
+/**
+ * Filter options for querying stored memories.
+ */
 export interface MemoryQuery {
   type?: Memory['type'];
   search?: string;
@@ -21,6 +30,9 @@ export interface MemoryQuery {
   timeRange?: { start: Date; end: Date };
 }
 
+/**
+ * In-memory implementation of conversational and long-lived memory primitives.
+ */
 export class MemoryManager {
   private memories: Map<string, Memory> = new Map();
   private conversations: Map<string, ConversationTurn[]> = new Map();

@@ -19,16 +19,18 @@ export { ApprovalGateManager, type ApprovalGate, type ApprovalRequest } from './
 export { RunLogger, type LogEntry, type RunMetrics, type RunStep } from './run-logger';
 export { TemplatesManager, type AgentTemplate } from './templates';
 
-// ---------------------------------------------------------------------------
-// Engine config
-// ---------------------------------------------------------------------------
-
+/**
+ * Runtime dependencies injected into the agent engine.
+ */
 export interface EngineConfig {
   openaiApiKey?: string;
   agentsApiUrl?: string;
   agentsApiKey?: string;
 }
 
+/**
+ * Inputs required to execute a single agent run.
+ */
 export interface ExecuteOptions {
   runId: string;
   tenantId: string;
@@ -40,6 +42,9 @@ export interface ExecuteOptions {
   userId?: string;
 }
 
+/**
+ * High-level outcome returned after an agent run finishes or fails.
+ */
 export interface AgentExecutionResult {
   success: boolean;
   output: unknown;

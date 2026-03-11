@@ -100,6 +100,9 @@ export async function loadTenantConnectors(
   return connectors;
 }
 
+/**
+ * Error raised when a connector cannot be turned into a usable runtime client.
+ */
 export class ConnectorLoadError extends Error {
   constructor(message: string) {
     super(message);
