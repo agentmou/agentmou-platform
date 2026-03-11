@@ -44,6 +44,11 @@ reach Postgres and Redis.
 All traffic enters through Traefik on ports 80/443. HTTP redirects to
 HTTPS automatically.
 
+Public web traffic is served by Vercel:
+
+- Canonical web domain: `https://agentmou.io`
+- `https://www.agentmou.io` redirects permanently to apex
+
 | Subdomain           | Service          | Auth       | Middlewares                                |
 | ------------------- | ---------------- | ---------- | ------------------------------------------ |
 | `api.DOMAIN`        | Control Plane API| None (JWT) | secure-headers, rate-limit, noindex        |
@@ -119,6 +124,12 @@ The deploy script does:
 3. `docker compose up -d` (restarts changed services)
 4. Prints `docker compose ps` for verification
 
+For Phase 2.5 deploys, use `infra/scripts/deploy-phase25.sh`:
+
+- includes migrations via `migrate` profile service
+- gates success on local edge health (`--resolve ... 127.0.0.1`)
+- keeps public DNS/TLS checks separate in `infra/scripts/smoke-test.sh`
+
 ### Deploy a specific service only
 
 ```bash
@@ -191,6 +202,7 @@ docker compose -f infra/compose/docker-compose.prod.yml exec n8n \
 
 Uptime Kuma runs at `uptime.DOMAIN` and should monitor:
 
+- `https://api.DOMAIN/health` — API public TLS and route health
 - `https://agents.DOMAIN/health` — agents service health
 - `https://n8n.DOMAIN` — n8n editor reachability
 - `https://hooks.DOMAIN/webhook-test` — n8n webhook endpoint
