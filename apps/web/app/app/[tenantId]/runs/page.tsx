@@ -51,6 +51,7 @@ import {
   ChevronDown,
   ArrowUp,
   ArrowDown,
+  Eye,
 } from 'lucide-react'
 import { formatNumber, formatDate } from '@/lib/utils'
 import { StatusPill, IntegrationChip } from '@/components/badges'
