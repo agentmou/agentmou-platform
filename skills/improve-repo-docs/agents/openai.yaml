@@ -1,0 +1,4 @@
+interface:
+  display_name: "Improve Repo Docs"
+  short_description: "Audit and expand monorepo documentation"
+  default_prompt: "Use $improve-repo-docs to audit this monorepo, improve the docs in English, and finish with the correct Conventional Commit."
