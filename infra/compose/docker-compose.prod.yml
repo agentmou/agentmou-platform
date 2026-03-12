@@ -83,7 +83,7 @@ services:
   # n8n — Workflow engine (ADR-003)
   # ---------------------------------------------------------------------------
   n8n:
-    image: n8nio/n8n:latest
+    image: n8nio/n8n:2.11.2
     restart: unless-stopped
     environment:
       TZ: ${TZ}
