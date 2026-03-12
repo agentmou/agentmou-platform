@@ -223,7 +223,7 @@ docker compose -f infra/compose/docker-compose.prod.yml logs -f n8n
 docker compose -f infra/compose/docker-compose.prod.yml restart agents
 
 # Shell into a container
-docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U n8n
+docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou
 docker compose -f infra/compose/docker-compose.prod.yml exec n8n sh
 
 # Disk usage
