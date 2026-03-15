@@ -52,7 +52,6 @@ import {
   ArrowUp,
   ArrowDown,
   Eye,
-  X,
 } from 'lucide-react'
 import { formatNumber, formatDate } from '@/lib/utils'
 import { StatusPill, IntegrationChip } from '@/components/badges'
@@ -271,10 +270,9 @@ export default function RunsListPage() {
   
   if (runs.length === 0) {
     return (
-      <div className="p-6 lg:p-8 space-y-8">
+      <div className="p-6 lg:p-8 space-y-6">
         <div>
-          <p className="text-editorial-tiny mb-2">Runs</p>
-          <h1 className="text-2xl font-bold tracking-tight">Runs</h1>
+          <h1 className="page-title text-3xl lg:text-4xl font-bold tracking-tight">Runs</h1>
           <p className="text-sm text-muted-foreground mt-1">View all agent and workflow executions.</p>
         </div>
         <EmptyState
@@ -289,12 +287,11 @@ export default function RunsListPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-8">
+    <div className="p-6 lg:p-8 space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-editorial-tiny mb-2">Runs</p>
-          <h1 className="text-2xl font-bold tracking-tight">Runs</h1>
+          <h1 className="page-title text-3xl lg:text-4xl font-bold tracking-tight">Runs</h1>
           <p className="text-sm text-muted-foreground mt-1">
             View all agent and workflow executions.
           </p>
@@ -421,6 +418,20 @@ export default function RunsListPage() {
           </label>
         </div>
       </div>
+      
+      {/* Bulk Actions */}
+      {selectedRows.size > 0 && (
+        <div className="flex items-center gap-4 p-3 bg-muted/30 border border-border/50 rounded-sm">
+          <span className="text-sm font-medium">{selectedRows.size} selected</span>
+          <Button size="sm" variant="outline" className="h-7" onClick={handleBulkRetry}>
+            <RefreshCw className="h-3 w-3 mr-1" />
+            Retry Selected
+          </Button>
+          <Button size="sm" variant="ghost" className="h-7" onClick={() => setSelectedRows(new Set())}>
+            Clear
+          </Button>
+        </div>
+      )}
       
       {/* Runs Table */}
       <FadeContent>
@@ -566,33 +577,6 @@ export default function RunsListPage() {
         </CardContent>
       </Card>
       </FadeContent>
-      
-      {/* Selection bar - fixed popup centered in viewport */}
-      {selectedRows.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 flex w-fit items-center justify-center gap-2 rounded-lg border border-border/50 bg-background px-2 py-2 shadow-lg">
-          <div className="flex h-9 items-center gap-1.5 rounded-md bg-accent/20 px-2.5">
-            <span className="text-sm font-medium text-foreground">{selectedRows.size} selected</span>
-            <button
-              type="button"
-              onClick={() => setSelectedRows(new Set())}
-              className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground hover:bg-accent/30 hover:text-foreground transition-colors"
-              aria-label="Clear selection"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-          <div className="h-9 w-px shrink-0 bg-border/60" aria-hidden />
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-9 px-2 hover:!bg-white/10 hover:!text-foreground"
-            onClick={handleBulkRetry}
-          >
-            <RefreshCw className="h-3 w-3 mr-1" />
-            Retry Selected
-          </Button>
-        </div>
-      )}
       
       {/* Save View Dialog */}
       <Dialog open={saveViewDialogOpen} onOpenChange={setSaveViewDialogOpen}>

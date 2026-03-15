@@ -22,6 +22,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import { RiskBadge, ChannelBadge, IntegrationChip, SpecLine, AvailabilityBadge, DomainBadge } from '@/components/badges'
+import { BrandStrip } from '@/components/brand/brand-frame'
 import { FadeContent } from '@/components/reactbits/fade-content'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { CATEGORY_OPTIONS, normalizeCategory, type Category } from '@/lib/fleetops/category-config'
@@ -98,17 +99,18 @@ export default function MarketplacePage() {
   }, [filteredAgents, search, riskFilter, availabilityFilter])
   
   return (
-    <div className="p-6 lg:p-8 space-y-8">
-      {/* Header — aligned with Dashboard */}
-      <div>
-        <p className="text-editorial-tiny mb-2">Marketplace</p>
-        <h1 className="text-2xl font-bold tracking-tight">Marketplace</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Browse and install agents, workflows, and packs to automate your operations.
-        </p>
-      </div>
+    <div className="space-y-6">
+      {/* Header with brand strip */}
+      <BrandStrip className="relative -mx-6 lg:-mx-8 -mt-6 lg:-mt-8 px-6 lg:px-8 pt-6 lg:pt-8 pb-4">
+        <div>
+          <h1 className="page-title text-3xl lg:text-4xl font-bold tracking-tight">Marketplace</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Browse and install agents, workflows, and packs to automate your operations.
+          </p>
+        </div>
+      </BrandStrip>
       
-      <div className="space-y-6">
+      <div className="px-6 lg:px-8 space-y-6">
       
       {/* Filters */}
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -164,24 +166,33 @@ export default function MarketplacePage() {
         </Select>
       </div>
       
-      <Tabs defaultValue="agents" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="agents" className="gap-2">
-            <Bot className="h-4 w-4" />
+      <Tabs defaultValue="agents" className="space-y-6">
+        <TabsList className="bg-transparent border-b border-border/50 rounded-none p-0 h-auto gap-6">
+          <TabsTrigger 
+            value="agents" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs uppercase tracking-wide"
+          >
+            <Bot className="h-3.5 w-3.5 mr-1.5" />
             Agents ({filteredAgents.length})
           </TabsTrigger>
-          <TabsTrigger value="workflows" className="gap-2">
-            <Workflow className="h-4 w-4" />
+          <TabsTrigger 
+            value="workflows" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs uppercase tracking-wide"
+          >
+            <Workflow className="h-3.5 w-3.5 mr-1.5" />
             Workflows ({filteredWorkflows.length})
           </TabsTrigger>
-          <TabsTrigger value="packs" className="gap-2">
-            <Package className="h-4 w-4" />
+          <TabsTrigger 
+            value="packs" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs uppercase tracking-wide"
+          >
+            <Package className="h-3.5 w-3.5 mr-1.5" />
             Packs ({packTemplates.length})
           </TabsTrigger>
         </TabsList>
         
         {/* Agents Tab */}
-        <TabsContent value="agents" className="space-y-4">
+        <TabsContent value="agents" className="space-y-4 mt-6">
           <FadeContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredAgents.map((agent) => (
@@ -239,7 +250,7 @@ export default function MarketplacePage() {
         </TabsContent>
         
         {/* Workflows Tab */}
-        <TabsContent value="workflows" className="space-y-4">
+        <TabsContent value="workflows" className="space-y-4 mt-6">
           <FadeContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredWorkflows.map((workflow) => (
@@ -292,7 +303,7 @@ export default function MarketplacePage() {
         </TabsContent>
         
         {/* Packs Tab */}
-        <TabsContent value="packs" className="space-y-4">
+        <TabsContent value="packs" className="space-y-4 mt-6">
           <FadeContent>
           <div className="grid gap-4 md:grid-cols-2">
             {packTemplates.map((pack) => (
