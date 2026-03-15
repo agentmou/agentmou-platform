@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { HalftoneBackground } from '@/components/brand/halftone-background'
+import { FadeContent } from '@/components/reactbits/fade-content'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { 
   Shield, 
   Lock, 
@@ -102,96 +104,104 @@ const practices = [
 export default function SecurityPage() {
   return (
     <div>
-      {/* Header with halftone */}
       <HalftoneBackground variant="mint" intensity="med" className="pt-24 pb-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <Badge variant="secondary" className="mb-6">
-              Enterprise-grade security
-            </Badge>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-              Security you can trust
-            </h1>
-            <p className="mt-6 text-lg text-muted-foreground">
-                AgentMou is built with security at its core. We protect your data, your integrations, and your business.
-            </p>
-          </div>
+          <FadeContent>
+            <div className="mx-auto max-w-3xl text-center">
+              <Badge variant="secondary" className="mb-6">
+                Enterprise-grade security
+              </Badge>
+              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+                Security you can trust
+              </h1>
+              <p className="mt-6 text-lg text-muted-foreground">
+                  AgentMou is built with security at its core. We protect your data, your integrations, and your business.
+              </p>
+            </div>
+          </FadeContent>
         </div>
       </HalftoneBackground>
       
       <div className="py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-        {/* Security capabilities */}
-        <div className="mt-24">
-          <h2 className="text-center text-2xl font-bold">Security Capabilities</h2>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {capabilities.map((capability) => (
-              <Card key={capability.title}>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <div className="rounded-lg bg-muted p-2">
-                      <capability.icon className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <Badge 
-                      variant="outline"
-                      className={
-                        capability.status === 'Available' 
-                          ? 'bg-[oklch(0.55_0.15_145/0.1)] text-[oklch(0.45_0.15_145)] border-[oklch(0.55_0.15_145/0.2)]'
-                          : capability.status === 'In Progress'
-                          ? 'bg-[oklch(0.70_0.15_70/0.1)] text-[oklch(0.50_0.15_70)] border-[oklch(0.70_0.15_70/0.2)]'
-                          : 'bg-muted text-muted-foreground'
-                      }
-                    >
-                      {capability.status}
-                    </Badge>
-                  </div>
-                  <CardTitle className="mt-4 text-base">{capability.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-sm">
-                    {capability.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
+        <FadeContent>
+          <div className="mt-24">
+            <h2 className="text-center text-2xl font-bold">Security Capabilities</h2>
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {capabilities.map((capability, i) => (
+                <FadeContent key={capability.title} delay={i * 0.05}>
+                  <SpotlightCard className="h-full rounded-md border border-border/50 bg-card">
+                    <Card className="border-0 shadow-none bg-transparent">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <div className="rounded-lg bg-muted p-2">
+                            <capability.icon className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                          <Badge 
+                            variant="outline"
+                            className={
+                              capability.status === 'Available' 
+                                ? 'bg-[oklch(0.55_0.15_145/0.1)] text-[oklch(0.45_0.15_145)] border-[oklch(0.55_0.15_145/0.2)]'
+                                : capability.status === 'In Progress'
+                                ? 'bg-[oklch(0.70_0.15_70/0.1)] text-[oklch(0.50_0.15_70)] border-[oklch(0.70_0.15_70/0.2)]'
+                                : 'bg-muted text-muted-foreground'
+                            }
+                          >
+                            {capability.status}
+                          </Badge>
+                        </div>
+                        <CardTitle className="mt-4 text-base">{capability.title}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <CardDescription className="text-sm">
+                          {capability.description}
+                        </CardDescription>
+                      </CardContent>
+                    </Card>
+                  </SpotlightCard>
+                </FadeContent>
+              ))}
+            </div>
           </div>
-        </div>
+        </FadeContent>
 
-        {/* Security practices */}
-        <div className="mt-24">
-          <h2 className="text-center text-2xl font-bold">Security Practices</h2>
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
-            {practices.map((practice) => (
-              <div key={practice.title}>
-                <h3 className="font-semibold">{practice.title}</h3>
-                <ul className="mt-4 space-y-3">
-                  {practice.items.map((item) => (
-                    <li key={item} className="flex items-start gap-3">
-                      <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground" />
-                      <span className="text-sm text-muted-foreground">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+        <FadeContent>
+          <div className="mt-24">
+            <h2 className="text-center text-2xl font-bold">Security Practices</h2>
+            <div className="mt-12 grid gap-8 md:grid-cols-3">
+              {practices.map((practice) => (
+                <div key={practice.title}>
+                  <h3 className="font-semibold">{practice.title}</h3>
+                  <ul className="mt-4 space-y-3">
+                    {practice.items.map((item) => (
+                      <li key={item} className="flex items-start gap-3">
+                        <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground" />
+                        <span className="text-sm text-muted-foreground">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </FadeContent>
 
-        {/* Trust banner */}
-        <div className="mt-24">
-          <Card className="bg-muted/50">
-            <CardContent className="py-12 text-center">
-              <h2 className="text-2xl font-bold">Questions about security?</h2>
-              <p className="mt-4 text-muted-foreground">
-                Our security team is happy to answer your questions and provide additional documentation.
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Contact us at security@agentmou.io
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <FadeContent>
+          <div className="mt-24">
+            <Card className="bg-muted/50">
+              <CardContent className="py-12 text-center">
+                <h2 className="text-2xl font-bold">Questions about security?</h2>
+                <p className="mt-4 text-muted-foreground">
+                  Our security team is happy to answer your questions and provide additional documentation.
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Contact us at security@agentmou.io
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </FadeContent>
         </div>
       </div>
     </div>
