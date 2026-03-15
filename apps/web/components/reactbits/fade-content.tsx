@@ -12,7 +12,6 @@ interface FadeContentProps {
   threshold?: number
   initialOpacity?: number
   className?: string
-  style?: React.CSSProperties
   direction?: 'up' | 'down' | 'left' | 'right' | 'none'
   distance?: number
 }
@@ -25,7 +24,6 @@ export function FadeContent({
   threshold = 0.1,
   initialOpacity = 0,
   className,
-  style,
   direction = 'up',
   distance = 12,
 }: FadeContentProps) {
@@ -55,7 +53,6 @@ export function FadeContent({
       }
       transition={{ duration, delay, ease: [0.25, 0.1, 0.25, 1] }}
       className={cn(className)}
-      style={style}
     >
       {children}
     </motion.div>
