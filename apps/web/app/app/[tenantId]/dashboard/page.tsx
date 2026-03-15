@@ -184,7 +184,7 @@ export default function DashboardPage() {
           
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {pendingApprovals.length > 0 && (
-              <StarBorder color="hsl(var(--accent))" speed="8s" className="rounded-sm">
+              <StarBorder color="var(--accent)" speed="4.5s" className="rounded-sm">
                 <Link 
                   href={`/app/${tenantId}/approvals`}
                   className="flex items-start gap-3 p-3 hover:bg-muted/30 transition-colors"
@@ -202,7 +202,7 @@ export default function DashboardPage() {
             )}
             
             {failedRuns.length > 0 && (
-              <StarBorder color="hsl(var(--destructive))" speed="8s" className="rounded-sm">
+              <StarBorder color="var(--destructive)" speed="4.5s" className="rounded-sm">
                 <Link 
                   href={`/app/${tenantId}/runs?status=failed`}
                   className="flex items-start gap-3 p-3 hover:bg-muted/30 transition-colors"
@@ -242,7 +242,7 @@ export default function DashboardPage() {
             )}
             
             {securityWarnings.length > 0 && (
-              <StarBorder color="hsl(var(--destructive))" speed="8s" className="rounded-sm">
+              <StarBorder color="var(--destructive)" speed="4.5s" className="rounded-sm">
                 <Link 
                   href={`/app/${tenantId}/security`}
                   className="flex items-start gap-3 p-3 hover:bg-muted/30 transition-colors"
