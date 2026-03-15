@@ -120,6 +120,8 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -249,23 +251,31 @@
    ============================================== */
 
 /* Spotlight Card — mouse-following halo */
-.spotlight-card::before {
+.card-spotlight {
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  --spotlight-color: rgba(95, 223, 142, 0.05);
+}
+
+.card-spotlight::before {
   content: '';
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: radial-gradient(
     circle at var(--mouse-x) var(--mouse-y),
     var(--spotlight-color),
     transparent 80%
   );
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.5s ease;
   pointer-events: none;
-  z-index: 1;
 }
 
-.spotlight-card:hover::before,
-.spotlight-card:focus-within::before {
+.card-spotlight:hover::before,
+.card-spotlight:focus-within::before {
   opacity: 0.6;
 }
 

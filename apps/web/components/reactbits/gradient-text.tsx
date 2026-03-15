@@ -12,7 +12,7 @@ interface GradientTextProps {
 export function GradientText({
   children,
   className,
-  colors = ['hsl(var(--accent))', 'hsl(var(--foreground))', 'hsl(var(--accent))'],
+  colors = ['var(--accent)', 'var(--foreground)', 'var(--accent)'],
   animationSpeed = 6,
 }: GradientTextProps) {
   const gradientColors = [...colors, colors[0]].join(', ')
