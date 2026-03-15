@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, type CSSProperties } from 'react'
+import { useRef } from 'react'
 import { cn } from '@/lib/utils'
 
 interface SpotlightCardProps {
@@ -12,7 +12,7 @@ interface SpotlightCardProps {
 export function SpotlightCard({
   children,
   className,
-  spotlightColor = 'hsl(var(--accent) / 0.12)',
+  spotlightColor = 'rgba(95, 223, 142, 0.25)',
 }: SpotlightCardProps) {
   const divRef = useRef<HTMLDivElement>(null)
 
@@ -29,14 +29,7 @@ export function SpotlightCard({
     <div
       ref={divRef}
       onMouseMove={handleMouseMove}
-      className={cn('spotlight-card relative overflow-hidden', className)}
-      style={
-        {
-          '--mouse-x': '50%',
-          '--mouse-y': '50%',
-          '--spotlight-color': 'transparent',
-        } as CSSProperties
-      }
+      className={cn('card-spotlight relative overflow-hidden', className)}
     >
       {children}
     </div>
