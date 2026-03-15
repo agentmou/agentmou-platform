@@ -23,6 +23,8 @@ import {
 } from 'lucide-react'
 import { RiskBadge, ChannelBadge, IntegrationChip, SpecLine, AvailabilityBadge, DomainBadge } from '@/components/badges'
 import { BrandStrip } from '@/components/brand/brand-frame'
+import { FadeContent } from '@/components/reactbits/fade-content'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { CATEGORY_OPTIONS, normalizeCategory, type Category } from '@/lib/fleetops/category-config'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import type { AgentTemplate, WorkflowTemplate, PackTemplate } from '@agentmou/contracts'
@@ -191,9 +193,10 @@ export default function MarketplacePage() {
         
         {/* Agents Tab */}
         <TabsContent value="agents" className="space-y-4 mt-6">
+          <FadeContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredAgents.map((agent) => (
-              <Card key={agent.id} className="flex flex-col border-border/50 hover:border-border transition-colors">
+              <SpotlightCard key={agent.id} className="flex flex-col rounded-md border border-border/50 bg-card">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex h-9 w-9 items-center justify-center rounded bg-muted/50">
@@ -240,16 +243,18 @@ export default function MarketplacePage() {
                     </Link>
                   </div>
                 </CardContent>
-              </Card>
+              </SpotlightCard>
             ))}
           </div>
+          </FadeContent>
         </TabsContent>
         
         {/* Workflows Tab */}
         <TabsContent value="workflows" className="space-y-4 mt-6">
+          <FadeContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredWorkflows.map((workflow) => (
-              <Card key={workflow.id} className="flex flex-col border-border/50 hover:border-border transition-colors">
+              <SpotlightCard key={workflow.id} className="flex flex-col rounded-md border border-border/50 bg-card">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex h-9 w-9 items-center justify-center rounded bg-muted/50">
@@ -291,16 +296,18 @@ export default function MarketplacePage() {
                     </Link>
                   </div>
                 </CardContent>
-              </Card>
+              </SpotlightCard>
             ))}
           </div>
+          </FadeContent>
         </TabsContent>
         
         {/* Packs Tab */}
         <TabsContent value="packs" className="space-y-4 mt-6">
+          <FadeContent>
           <div className="grid gap-4 md:grid-cols-2">
             {packTemplates.map((pack) => (
-              <Card key={pack.id} className="border-border/50 hover:border-border transition-colors">
+              <SpotlightCard key={pack.id} className="rounded-md border border-border/50 bg-card">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex h-10 w-10 items-center justify-center rounded bg-muted/50">
@@ -352,9 +359,10 @@ export default function MarketplacePage() {
                     </Link>
                   </div>
                 </CardContent>
-              </Card>
+              </SpotlightCard>
             ))}
           </div>
+          </FadeContent>
         </TabsContent>
       </Tabs>
       </div>

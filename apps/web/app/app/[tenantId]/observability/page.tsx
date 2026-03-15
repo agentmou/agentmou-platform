@@ -4,6 +4,8 @@ import * as React from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FadeContent } from '@/components/reactbits/fade-content'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -301,6 +303,7 @@ router.push(`/app/${tenantId}/runs?agentId=${agentId}`)
 </TooltipProvider>
       
       {/* Charts */}
+      <FadeContent>
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
@@ -426,6 +429,7 @@ className="cursor-pointer"
           </ChartContainer>
         </CardContent>
       </Card>
+      </FadeContent>
       
 {/* Agent Performance - Drill-down section */}
 {agentPerformance.length > 0 && (

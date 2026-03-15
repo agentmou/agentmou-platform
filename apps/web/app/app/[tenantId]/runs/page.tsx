@@ -59,6 +59,7 @@ import { toast } from 'sonner'
 import { getSavedViews, saveView, deleteView, type SavedView } from '@/lib/saved-views'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import { EmptyState } from '@/components/fleetops/empty-state'
+import { FadeContent } from '@/components/reactbits/fade-content'
 import type { AgentTemplate, WorkflowTemplate, ExecutionRun } from '@agentmou/contracts'
 
 type SortField = 'startedAt' | 'durationMs' | 'costEstimate' | 'tokensUsed'
@@ -433,6 +434,7 @@ export default function RunsListPage() {
       )}
       
       {/* Runs Table */}
+      <FadeContent>
       <Card className="border-border/50 overflow-hidden">
         <CardContent className="p-0">
           <Table>
@@ -574,6 +576,7 @@ export default function RunsListPage() {
           </Table>
         </CardContent>
       </Card>
+      </FadeContent>
       
       {/* Save View Dialog */}
       <Dialog open={saveViewDialogOpen} onOpenChange={setSaveViewDialogOpen}>
