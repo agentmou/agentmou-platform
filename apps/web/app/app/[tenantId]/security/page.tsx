@@ -25,6 +25,7 @@ import {
   Download,
   FileQuestion,
 } from 'lucide-react'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { formatDate } from '@/lib/utils'
 import { StatusPill, IntegrationChip } from '@/components/badges'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
@@ -131,6 +132,7 @@ export default function SecurityPage() {
 
         {/* Secrets Tab */}
         <TabsContent value="secrets" className="space-y-4 mt-6">
+          <SpotlightCard>
           <Card className="border-border/50">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -266,10 +268,12 @@ export default function SecurityPage() {
               </Table>
             </CardContent>
           </Card>
+          </SpotlightCard>
         </TabsContent>
 
         {/* RBAC Tab */}
         <TabsContent value="rbac" className="space-y-4 mt-6">
+          <SpotlightCard>
           <Card className="border-border/50">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -339,7 +343,9 @@ export default function SecurityPage() {
               </Table>
             </CardContent>
           </Card>
+          </SpotlightCard>
 
+          <SpotlightCard>
           <Card className="border-border/50">
             <CardHeader>
               <CardTitle className="text-sm font-medium">Permission Matrix</CardTitle>
@@ -386,10 +392,12 @@ export default function SecurityPage() {
               </Table>
             </CardContent>
           </Card>
+          </SpotlightCard>
         </TabsContent>
 
         {/* Audit Log Tab */}
         <TabsContent value="audit" className="space-y-4 mt-6">
+          <SpotlightCard>
           <Card className="border-border/50">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -446,6 +454,7 @@ export default function SecurityPage() {
               </Table>
             </CardContent>
           </Card>
+          </SpotlightCard>
         </TabsContent>
       </Tabs>
     </div>

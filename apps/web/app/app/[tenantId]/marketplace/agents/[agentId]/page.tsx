@@ -20,6 +20,8 @@ import {
   AlertTriangle,
   Info,
 } from 'lucide-react'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
+import { FadeContent } from '@/components/reactbits/fade-content'
 import { AvailabilityBadge, AudienceBadge, DomainBadge } from '@/components/badges'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import type { AgentTemplate, WorkflowTemplate, Integration } from '@agentmou/contracts'
@@ -153,10 +155,11 @@ export default function AgentDetailPage() {
           
           {/* Inputs & Outputs */}
           <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Inputs</CardTitle>
-              </CardHeader>
+            <SpotlightCard className="rounded-lg">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Inputs</CardTitle>
+                </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
                   {agent.inputs.map((input) => (
@@ -168,10 +171,12 @@ export default function AgentDetailPage() {
                 </ul>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Outputs</CardTitle>
-              </CardHeader>
+            </SpotlightCard>
+            <SpotlightCard className="rounded-lg">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Outputs</CardTitle>
+                </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
                   {agent.outputs.map((output) => (
@@ -183,6 +188,7 @@ export default function AgentDetailPage() {
                 </ul>
               </CardContent>
             </Card>
+            </SpotlightCard>
           </div>
           
           {/* KPIs */}
@@ -204,11 +210,12 @@ export default function AgentDetailPage() {
           </Card>
           
           {/* Linked Workflows */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Linked Workflows</CardTitle>
-              <CardDescription>n8n workflows this agent orchestrates</CardDescription>
-            </CardHeader>
+          <SpotlightCard className="rounded-lg">
+            <Card>
+              <CardHeader>
+                <CardTitle>Linked Workflows</CardTitle>
+                <CardDescription>n8n workflows this agent orchestrates</CardDescription>
+              </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {linkedWorkflows.map((workflow) => (
@@ -232,15 +239,17 @@ export default function AgentDetailPage() {
               </div>
             </CardContent>
           </Card>
+          </SpotlightCard>
         </div>
         
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Quick Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Quick Info</CardTitle>
-            </CardHeader>
+          <SpotlightCard className="rounded-lg">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Quick Info</CardTitle>
+              </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground flex items-center gap-2">
@@ -276,13 +285,15 @@ export default function AgentDetailPage() {
               </div>
             </CardContent>
           </Card>
+          </SpotlightCard>
           
           {/* Required Integrations */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Required Integrations</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <SpotlightCard className="rounded-lg">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Required Integrations</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
               {requiredIntegrations.map((integration) => {
                 const isConnected = integration.status === 'connected'
                 return (
@@ -309,8 +320,9 @@ export default function AgentDetailPage() {
                   </Button>
                 </Link>
               )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </SpotlightCard>
           
           {/* Risk Info */}
           <Card>

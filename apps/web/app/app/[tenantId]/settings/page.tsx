@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { 
   Settings, 
   Building2, 
@@ -88,6 +89,7 @@ export default function SettingsPage() {
 
         {/* General Tab */}
         <TabsContent value="general" className="space-y-4">
+          <SpotlightCard>
           <Card>
             <CardHeader>
               <CardTitle>Workspace Settings</CardTitle>
@@ -155,10 +157,12 @@ export default function SettingsPage() {
               <Button onClick={handleSave}>Save Changes</Button>
             </CardFooter>
           </Card>
+          </SpotlightCard>
         </TabsContent>
 
         {/* Notifications Tab */}
         <TabsContent value="notifications" className="space-y-4">
+          <SpotlightCard>
           <Card>
             <CardHeader>
               <CardTitle>Notification Preferences</CardTitle>
@@ -214,11 +218,13 @@ export default function SettingsPage() {
               <Button onClick={handleSave}>Save Preferences</Button>
             </CardFooter>
           </Card>
+          </SpotlightCard>
         </TabsContent>
 
         {/* Billing Tab */}
         <TabsContent value="billing" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
+            <SpotlightCard>
             <Card>
               <CardHeader>
                 <CardTitle>Current Plan</CardTitle>
@@ -257,7 +263,9 @@ export default function SettingsPage() {
                 </Button>
               </CardFooter>
             </Card>
+            </SpotlightCard>
 
+            <SpotlightCard>
             <Card>
               <CardHeader>
                 <CardTitle>Payment Method</CardTitle>
@@ -278,8 +286,10 @@ export default function SettingsPage() {
                 <Button variant="outline" className="w-full">Update Payment Method</Button>
               </CardFooter>
             </Card>
+            </SpotlightCard>
           </div>
 
+          <SpotlightCard>
           <Card>
             <CardHeader>
               <CardTitle>Invoices</CardTitle>
@@ -308,6 +318,7 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+          </SpotlightCard>
         </TabsContent>
 
         {/* Danger Zone Tab */}
@@ -319,6 +330,7 @@ export default function SettingsPage() {
             </AlertDescription>
           </Alert>
 
+          <SpotlightCard>
           <Card className="border-destructive">
             <CardHeader>
               <CardTitle>Delete Workspace</CardTitle>
@@ -336,7 +348,9 @@ export default function SettingsPage() {
               </Button>
             </CardContent>
           </Card>
+          </SpotlightCard>
 
+          <SpotlightCard>
           <Card className="border-destructive">
             <CardHeader>
               <CardTitle>Export Data</CardTitle>
@@ -351,6 +365,7 @@ export default function SettingsPage() {
               </Button>
             </CardContent>
           </Card>
+          </SpotlightCard>
         </TabsContent>
       </Tabs>
     </div>

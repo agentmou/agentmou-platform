@@ -17,6 +17,8 @@ import {
   FileCode,
 } from 'lucide-react'
 import { AvailabilityBadge } from '@/components/badges'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
+import { FadeContent } from '@/components/reactbits/fade-content'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import type { WorkflowTemplate, Integration } from '@agentmou/contracts'
 
@@ -132,6 +134,7 @@ export default function WorkflowDetailPage() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Use Case */}
+          <SpotlightCard className="rounded-lg">
           <Card>
             <CardHeader>
               <CardTitle>Use Case</CardTitle>
@@ -140,8 +143,10 @@ export default function WorkflowDetailPage() {
               <p className="text-muted-foreground leading-relaxed">{workflow.useCase}</p>
             </CardContent>
           </Card>
+          </SpotlightCard>
           
           {/* Nodes Overview */}
+          <SpotlightCard className="rounded-lg">
           <Card>
             <CardHeader>
               <CardTitle>Workflow Nodes</CardTitle>
@@ -174,8 +179,10 @@ export default function WorkflowDetailPage() {
               </div>
             </CardContent>
           </Card>
+          </SpotlightCard>
           
           {/* Changelog */}
+          <SpotlightCard className="rounded-lg">
           <Card>
             <CardHeader>
               <CardTitle>Changelog</CardTitle>
@@ -191,11 +198,13 @@ export default function WorkflowDetailPage() {
               </ul>
             </CardContent>
           </Card>
+          </SpotlightCard>
         </div>
         
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Quick Info */}
+          <SpotlightCard className="rounded-lg">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Quick Info</CardTitle>
@@ -217,8 +226,10 @@ export default function WorkflowDetailPage() {
               </div>
             </CardContent>
           </Card>
+          </SpotlightCard>
           
           {/* Output */}
+          <SpotlightCard className="rounded-lg">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Output</CardTitle>
@@ -227,8 +238,10 @@ export default function WorkflowDetailPage() {
               <p className="text-sm text-muted-foreground">{workflow.output}</p>
             </CardContent>
           </Card>
+          </SpotlightCard>
           
           {/* Required Integrations */}
+          <SpotlightCard className="rounded-lg">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Integrations</CardTitle>
@@ -250,6 +263,7 @@ export default function WorkflowDetailPage() {
               ))}
             </CardContent>
           </Card>
+          </SpotlightCard>
         </div>
       </div>
     </div>
