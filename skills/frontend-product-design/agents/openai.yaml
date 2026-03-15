@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frontend Product Design"
+  short_description: "Apply professional product design aesthetics to the frontend"
+  default_prompt: "Use $frontend-product-design to refine the visual design of this component or page like a professional product designer."
