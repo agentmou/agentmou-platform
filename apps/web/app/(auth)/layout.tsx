@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Bot } from 'lucide-react'
+import { Logo } from '@/components/brand'
 
 export default function AuthLayout({
   children,
@@ -9,11 +9,8 @@ export default function AuthLayout({
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex h-14 items-center px-6">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-7 w-7 items-center justify-center rounded bg-foreground transition-transform group-hover:scale-105">
-            <Bot className="h-4 w-4 text-background" />
-          </div>
-          <span className="text-sm font-semibold tracking-tight">Agentmou</span>
+        <Link href="/" className="flex items-center group">
+          <Logo variant="header" />
         </Link>
       </header>
 

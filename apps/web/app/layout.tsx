@@ -9,20 +9,11 @@ export const metadata: Metadata = {
   description: 'Install AI agents for sales, support, finance, and ops. Connect your tools. Automate with n8n workflows.',
   icons: {
     icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
+      { url: '/logo_agentmou_32x32.png', media: '(prefers-color-scheme: light)' },
+      { url: '/logo_agentmou_32x32.png', media: '(prefers-color-scheme: dark)' },
+      { url: '/logo_agentmou.svg', type: 'image/svg+xml' },
     ],
-    apple: '/apple-icon.png',
+    apple: '/logo_agentmou_180x180.png',
   },
 }
 
