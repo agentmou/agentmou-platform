@@ -234,8 +234,9 @@ export default function FleetPage() {
 
   if (rawInstalledAgents.length === 0 && rawInstalledWorkflows.length === 0) {
     return (
-      <div className="p-6 lg:p-8 space-y-6">
+      <div className="p-6 lg:p-8 space-y-8">
         <div>
+          <p className="text-editorial-tiny mb-2">Fleet</p>
           <h1 className="text-2xl font-bold tracking-tight">My Fleet</h1>
           <p className="text-muted-foreground">Manage your installed agents and workflows</p>
         </div>
@@ -251,9 +252,10 @@ export default function FleetPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-6 lg:p-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
+          <p className="text-editorial-tiny mb-2">Fleet</p>
           <h1 className="text-2xl font-bold tracking-tight">My Fleet</h1>
           <p className="text-muted-foreground">Manage your installed agents and workflows</p>
         </div>

@@ -3,26 +3,21 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { Checkbox } from '@/components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Separator } from '@/components/ui/separator'
-import { Stepper } from '@/components/reactbits/stepper'
+import { Switch } from '@/components/ui/switch'
+import { Stepper, Step } from '@/components/reactbits/stepper'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { useToast } from '@/hooks/use-toast'
 import {
   Bot,
   Workflow,
   Package,
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  Loader2,
   Plug,
   Settings2,
   Shield,
@@ -30,23 +25,21 @@ import {
   Target,
   CheckCircle,
   AlertTriangle,
+  Loader2,
 } from 'lucide-react'
 import { normalizeCategory } from '@/lib/fleetops/category-config'
-import { BrandStrip } from '@/components/brand/brand-frame'
-import { HalftoneIllustration } from '@/components/brand/halftone-illustration'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import type { AgentTemplate, WorkflowTemplate, PackTemplate, Integration } from '@agentmou/contracts'
 
-const steps = [
-  { id: 1, name: 'Choose Outcome', icon: Target },
-  { id: 2, name: 'Select Components', icon: Package },
-  { id: 3, name: 'Connect Integrations', icon: Plug },
-  { id: 4, name: 'Configure Variables', icon: Settings2 },
-  { id: 5, name: 'Risk & HITL', icon: Shield },
-  { id: 6, name: 'Review & Install', icon: Rocket },
+const stepLabels = [
+  { id: 1, name: 'Outcome' },
+  { id: 2, name: 'Components' },
+  { id: 3, name: 'Integrations' },
+  { id: 4, name: 'Variables' },
+  { id: 5, name: 'Risk & HITL' },
+  { id: 6, name: 'Review' },
 ]
 
-// Canonical category-based outcomes (matches CATEGORY_OPTIONS)
 const outcomes = [
   { id: 'core', name: 'Core', description: 'Foundation agents for orchestration and general AI capabilities' },
   { id: 'support', name: 'Support', description: 'Automate ticket routing, email triage, and customer sentiment tracking' },
@@ -87,10 +80,9 @@ export default function InstallerWizardPage() {
   )
 
   const [currentStep, setCurrentStep] = React.useState(1)
-  const [isLoading, setIsLoading] = React.useState(false)
   const [isInstalling, setIsInstalling] = React.useState(false)
-  
-  // Form state
+  const [isLoading, setIsLoading] = React.useState(false)
+
   const [selectedOutcome, setSelectedOutcome] = React.useState<string>('')
   const [selectedPack, setSelectedPack] = React.useState<string>('')
   const [selectedAgents, setSelectedAgents] = React.useState<string[]>([])
@@ -98,13 +90,12 @@ export default function InstallerWizardPage() {
   const [connectedIntegrations, setConnectedIntegrations] = React.useState<Record<string, boolean>>({})
   const [variables, setVariables] = React.useState<Record<string, string>>({})
   const [hitlSettings, setHitlSettings] = React.useState<Record<string, boolean>>({})
-  
-  // Pre-populate from URL params
+
   React.useEffect(() => {
     const agentId = searchParams.get('agent')
     const workflowId = searchParams.get('workflow')
     const packId = searchParams.get('pack')
-    
+
     if (agentId) {
       setSelectedAgents([agentId])
       const agent = agentTemplates.find(a => a.id === agentId)
@@ -118,7 +109,6 @@ export default function InstallerWizardPage() {
       setCurrentStep(2)
     } else if (packId) {
       setSelectedPack(packId)
-      // Find pack by slug or id for backwards compatibility
       const pack = packTemplates.find(p => p.slug === packId || p.id === packId)
       if (pack) {
         setSelectedOutcome(pack.vertical)
@@ -127,86 +117,59 @@ export default function InstallerWizardPage() {
       }
       setCurrentStep(2)
     }
-    
-    // Initialize connected integrations
+
     const connected: Record<string, boolean> = {}
     integrations.forEach(i => {
       connected[i.id] = i.status === 'connected'
     })
     setConnectedIntegrations(connected)
   }, [searchParams])
-  
-  const progress = (currentStep / steps.length) * 100
-  
-  // Filter to only show available agents (not planned) and match selected category
+
   const filteredAgents = agentTemplates.filter(a => {
-    // Only show available agents in installer
     if ((a.availability || 'available') !== 'available') return false
-    // Hide variant/hidden agents
     if (a.visibility && a.visibility !== 'public') return false
-    // Normalize the agent's category
     const agentCategory = normalizeCategory(a.catalogGroup || a.domain)
-    // Match normalized category or show all if no outcome selected
     return !selectedOutcome || agentCategory === selectedOutcome
   })
-  
-  const filteredPacks = packTemplates.filter(p => 
+
+  const filteredPacks = packTemplates.filter(p =>
     !selectedOutcome || p.vertical === selectedOutcome || p.includedCategories.includes(selectedOutcome as any)
   )
-  
+
   const requiredIntegrations = React.useMemo(() => {
-    const integrationIds = new Set<string>()
+    const ids = new Set<string>()
     selectedAgents.forEach(agentId => {
       const agent = agentTemplates.find(a => a.id === agentId)
-      agent?.requiredIntegrations.forEach(i => integrationIds.add(i))
+      agent?.requiredIntegrations.forEach(i => ids.add(i))
     })
     selectedWorkflows.forEach(workflowId => {
       const workflow = workflowTemplates.find(w => w.id === workflowId)
-      workflow?.integrations.forEach(i => integrationIds.add(i))
+      workflow?.integrations.forEach(i => ids.add(i))
     })
-    return Array.from(integrationIds)
+    return Array.from(ids)
   }, [selectedAgents, selectedWorkflows])
-  
+
   const missingIntegrations = requiredIntegrations.filter(i => !connectedIntegrations[i])
-  
-  const canProceed = () => {
+
+  const canProceed = (() => {
     switch (currentStep) {
       case 1: return !!selectedOutcome
       case 2: return selectedAgents.length > 0 || selectedWorkflows.length > 0
       case 3: return missingIntegrations.length === 0
-      case 4: return true
-      case 5: return true
-      case 6: return true
-      default: return false
+      default: return true
     }
-  }
-  
-  const handleNext = () => {
-    if (currentStep < steps.length) {
-      setCurrentStep(currentStep + 1)
-    }
-  }
-  
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
-    }
-  }
-  
+  })()
+
   const handleInstall = async () => {
     setIsInstalling(true)
-    
-    // Simulate installation
     await new Promise(resolve => setTimeout(resolve, 3000))
-    
     toast({
       title: 'Installation complete!',
       description: `Successfully installed ${selectedAgents.length} agents and ${selectedWorkflows.length} workflows.`,
     })
-    
     router.push(`/app/${tenantId}/fleet`)
   }
-  
+
   const handleTestConnection = async (integrationId: string) => {
     setIsLoading(true)
     await new Promise(resolve => setTimeout(resolve, 1500))
@@ -217,43 +180,34 @@ export default function InstallerWizardPage() {
       description: `${integrationId} is now connected.`,
     })
   }
-  
+
   return (
-    <div className="space-y-6">
-      {/* Header with brand strip */}
-      <BrandStrip className="relative h-20 -mx-6 lg:-mx-8 -mt-6 lg:-mt-8 px-6 lg:px-8 flex items-end pb-4">
-        <div className="flex items-center justify-between w-full max-w-4xl mx-auto">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Install New</h1>
-            <p className="text-muted-foreground text-sm">
-              Set up agents and workflows in a few simple steps.
-            </p>
-          </div>
-          <Button variant="ghost" onClick={() => router.back()}>
-            Cancel
-          </Button>
+    <div className="p-6 lg:p-8 space-y-8">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between max-w-4xl">
+        <div>
+          <p className="text-editorial-tiny mb-2">Installer</p>
+          <h1 className="text-2xl font-bold tracking-tight">Install New</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Set up agents and workflows in a few simple steps.
+          </p>
         </div>
-        {/* Mini robot crop */}
-        <div className="pointer-events-none absolute right-8 top-0 bottom-0 w-16 hidden md:flex items-center">
-          <HalftoneIllustration type="robot-head" opacity={0.05} />
-        </div>
-      </BrandStrip>
-      
-      <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
-      
-      {/* Stepper */}
-      <Stepper
-        steps={steps}
-        currentStep={currentStep}
-        onStepClick={(step) => {
-          if (step < currentStep) setCurrentStep(step)
-        }}
-      />
-      
-      <Card>
-        <CardContent className="p-6">
+        <Button variant="ghost" onClick={() => router.back()}>
+          Cancel
+        </Button>
+      </div>
+
+      <div className="max-w-4xl space-y-6">
+        <Stepper
+          steps={stepLabels}
+          currentStep={currentStep}
+          onStepChange={setCurrentStep}
+          onComplete={handleInstall}
+          canProceed={canProceed}
+          isLoading={isInstalling}
+          completeButtonText="Install Now"
+        >
           {/* Step 1: Choose Outcome */}
-          {currentStep === 1 && (
+          <Step>
             <div className="space-y-6">
               <div>
                 <h2 className="text-lg font-semibold">What do you want to achieve?</h2>
@@ -280,17 +234,16 @@ export default function InstallerWizardPage() {
                 </div>
               </RadioGroup>
             </div>
-          )}
-          
+          </Step>
+
           {/* Step 2: Select Components */}
-          {currentStep === 2 && (
+          <Step>
             <div className="space-y-6">
               <div>
                 <h2 className="text-lg font-semibold">Select agents and workflows</h2>
                 <p className="text-sm text-muted-foreground">Choose a pack or build your custom stack.</p>
               </div>
-              
-              {/* Packs */}
+
               <div className="space-y-3">
                 <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Quick Start Packs</h3>
                 <div className="grid gap-3 md:grid-cols-2">
@@ -318,10 +271,9 @@ export default function InstallerWizardPage() {
                   ))}
                 </div>
               </div>
-              
+
               <Separator />
-              
-              {/* Individual Agents */}
+
               <div className="space-y-3">
                 <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Or select individually</h3>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -352,22 +304,21 @@ export default function InstallerWizardPage() {
                   ))}
                 </div>
               </div>
-              
-              {/* Summary */}
+
               <div className="p-4 rounded-lg bg-muted/50">
                 <p className="text-sm font-medium">Selected: {selectedAgents.length} agents, {selectedWorkflows.length} workflows</p>
               </div>
             </div>
-          )}
-          
+          </Step>
+
           {/* Step 3: Connect Integrations */}
-          {currentStep === 3 && (
+          <Step>
             <div className="space-y-6">
               <div>
                 <h2 className="text-lg font-semibold">Connect integrations</h2>
                 <p className="text-sm text-muted-foreground">These integrations are required for your selected agents and workflows.</p>
               </div>
-              
+
               <div className="space-y-3">
                 {requiredIntegrations.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
@@ -395,8 +346,8 @@ export default function InstallerWizardPage() {
                             Connected
                           </Badge>
                         ) : (
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             variant="outline"
                             onClick={() => handleTestConnection(integrationId)}
                             disabled={isLoading}
@@ -409,7 +360,7 @@ export default function InstallerWizardPage() {
                   })
                 )}
               </div>
-              
+
               {missingIntegrations.length > 0 && (
                 <div className="flex items-center gap-2 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200">
                   <AlertTriangle className="h-4 w-4" />
@@ -417,21 +368,21 @@ export default function InstallerWizardPage() {
                 </div>
               )}
             </div>
-          )}
-          
+          </Step>
+
           {/* Step 4: Configure Variables */}
-          {currentStep === 4 && (
+          <Step>
             <div className="space-y-6">
               <div>
                 <h2 className="text-lg font-semibold">Configure variables</h2>
                 <p className="text-sm text-muted-foreground">Set up parameters for your agents and workflows.</p>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="tone">Response Tone</Label>
-                  <Input 
-                    id="tone" 
+                  <Input
+                    id="tone"
                     placeholder="e.g., Professional, Friendly, Casual"
                     value={variables.tone || ''}
                     onChange={(e) => setVariables({ ...variables, tone: e.target.value })}
@@ -439,8 +390,8 @@ export default function InstallerWizardPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="slackChannel">Default Slack Channel</Label>
-                  <Input 
-                    id="slackChannel" 
+                  <Input
+                    id="slackChannel"
                     placeholder="e.g., #alerts, #daily-digest"
                     value={variables.slackChannel || ''}
                     onChange={(e) => setVariables({ ...variables, slackChannel: e.target.value })}
@@ -448,8 +399,8 @@ export default function InstallerWizardPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="schedule">Schedule (for cron workflows)</Label>
-                  <Input 
-                    id="schedule" 
+                  <Input
+                    id="schedule"
                     placeholder="e.g., 9:00 AM daily"
                     value={variables.schedule || ''}
                     onChange={(e) => setVariables({ ...variables, schedule: e.target.value })}
@@ -457,16 +408,16 @@ export default function InstallerWizardPage() {
                 </div>
               </div>
             </div>
-          )}
-          
+          </Step>
+
           {/* Step 5: Risk & HITL */}
-          {currentStep === 5 && (
+          <Step>
             <div className="space-y-6">
               <div>
                 <h2 className="text-lg font-semibold">Risk & Approval Settings</h2>
                 <p className="text-sm text-muted-foreground">Configure human-in-the-loop approvals for sensitive actions.</p>
               </div>
-              
+
               <div className="space-y-4">
                 {selectedAgents.map((agentId) => {
                   const agent = agentTemplates.find(a => a.id === agentId)
@@ -496,23 +447,23 @@ export default function InstallerWizardPage() {
                   )
                 })}
               </div>
-              
+
               <div className="p-4 rounded-lg bg-muted/50">
                 <p className="text-sm text-muted-foreground">
                   When HITL is enabled, sensitive actions will be sent to your Approvals inbox before execution.
                 </p>
               </div>
             </div>
-          )}
-          
+          </Step>
+
           {/* Step 6: Review & Install */}
-          {currentStep === 6 && (
+          <Step>
             <div className="space-y-6">
               <div>
                 <h2 className="text-lg font-semibold">Review & Install</h2>
                 <p className="text-sm text-muted-foreground">Review your configuration before installing.</p>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="p-4 rounded-lg border">
                   <h3 className="font-medium mb-2">Components</h3>
@@ -527,7 +478,7 @@ export default function InstallerWizardPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="p-4 rounded-lg border">
                   <h3 className="font-medium mb-2">Integrations</h3>
                   <div className="flex flex-wrap gap-2">
@@ -536,14 +487,14 @@ export default function InstallerWizardPage() {
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="p-4 rounded-lg border">
                   <h3 className="font-medium mb-2">HITL Enabled</h3>
                   <p className="text-sm text-muted-foreground">
                     {Object.values(hitlSettings).filter(Boolean).length} of {selectedAgents.length} agents require approval
                   </p>
                 </div>
-                
+
                 <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
                   <h3 className="font-medium mb-2">Estimated Monthly Cost</h3>
                   <p className="text-2xl font-bold">
@@ -556,38 +507,8 @@ export default function InstallerWizardPage() {
                 </div>
               </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
-      
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={handleBack} disabled={currentStep === 1}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-        
-        {currentStep < steps.length ? (
-          <Button onClick={handleNext} disabled={!canProceed()}>
-            Next
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        ) : (
-          <Button onClick={handleInstall} disabled={isInstalling}>
-            {isInstalling ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Installing...
-              </>
-            ) : (
-              <>
-                <Rocket className="h-4 w-4 mr-2" />
-                Install Now
-              </>
-            )}
-          </Button>
-        )}
-      </div>
+          </Step>
+        </Stepper>
       </div>
     </div>
   )

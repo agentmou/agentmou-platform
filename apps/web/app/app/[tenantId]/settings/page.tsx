@@ -61,10 +61,11 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 lg:p-8 space-y-8">
       <div>
+        <p className="text-editorial-tiny mb-2">Settings</p>
         <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">Manage your workspace preferences and billing</p>
+        <p className="text-sm text-muted-foreground mt-1">Manage your workspace preferences and billing</p>
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">

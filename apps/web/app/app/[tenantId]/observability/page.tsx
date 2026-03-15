@@ -175,12 +175,13 @@ router.push(`/app/${tenantId}/runs?agentId=${agentId}`)
 }
   
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-6 lg:p-8 space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
+          <p className="text-editorial-tiny mb-2">Observability</p>
           <h1 className="text-2xl font-bold tracking-tight">Observability</h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mt-1">
             Monitor execution metrics, costs, and performance.
           </p>
         </div>
