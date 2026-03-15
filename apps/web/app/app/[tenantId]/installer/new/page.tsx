@@ -11,8 +11,9 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Checkbox } from '@/components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
+import { Stepper } from '@/components/reactbits/stepper'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { useToast } from '@/hooks/use-toast'
 import {
   Bot,
@@ -240,33 +241,14 @@ export default function InstallerWizardPage() {
       
       <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
       
-      {/* Progress */}
-      <div className="space-y-4">
-        <Progress value={progress} className="h-2" />
-        <div className="flex justify-between">
-          {steps.map((step) => {
-            const StepIcon = step.icon
-            const isActive = step.id === currentStep
-            const isComplete = step.id < currentStep
-            return (
-              <div
-                key={step.id}
-                className={`flex flex-col items-center gap-1 ${
-                  isActive ? 'text-primary' : isComplete ? 'text-primary' : 'text-muted-foreground'
-                }`}
-              >
-                <div className={`flex h-8 w-8 items-center justify-center rounded-full border-2 ${
-                  isActive ? 'border-primary bg-primary text-primary-foreground' : 
-                  isComplete ? 'border-primary bg-primary/10' : 'border-muted'
-                }`}>
-                  {isComplete ? <Check className="h-4 w-4" /> : <StepIcon className="h-4 w-4" />}
-                </div>
-                <span className="text-xs hidden sm:block">{step.name}</span>
-              </div>
-            )
-          })}
-        </div>
-      </div>
+      {/* Stepper */}
+      <Stepper
+        steps={steps}
+        currentStep={currentStep}
+        onStepClick={(step) => {
+          if (step < currentStep) setCurrentStep(step)
+        }}
+      />
       
       <Card>
         <CardContent className="p-6">
@@ -280,19 +262,20 @@ export default function InstallerWizardPage() {
               <RadioGroup value={selectedOutcome} onValueChange={setSelectedOutcome}>
                 <div className="grid gap-4 md:grid-cols-2">
                   {outcomes.map((outcome) => (
-                    <Label
-                      key={outcome.id}
-                      htmlFor={outcome.id}
-                      className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-colors ${
-                        selectedOutcome === outcome.id ? 'border-primary bg-primary/5' : 'hover:bg-accent/50'
-                      }`}
-                    >
-                      <RadioGroupItem value={outcome.id} id={outcome.id} />
-                      <div>
-                        <p className="font-medium">{outcome.name}</p>
-                        <p className="text-sm text-muted-foreground">{outcome.description}</p>
-                      </div>
-                    </Label>
+                    <SpotlightCard key={outcome.id} className="rounded-lg border border-border/50">
+                      <Label
+                        htmlFor={outcome.id}
+                        className={`flex items-start gap-4 p-4 cursor-pointer transition-colors ${
+                          selectedOutcome === outcome.id ? 'bg-primary/5' : ''
+                        }`}
+                      >
+                        <RadioGroupItem value={outcome.id} id={outcome.id} />
+                        <div>
+                          <p className="font-medium">{outcome.name}</p>
+                          <p className="text-sm text-muted-foreground">{outcome.description}</p>
+                        </div>
+                      </Label>
+                    </SpotlightCard>
                   ))}
                 </div>
               </RadioGroup>
@@ -312,25 +295,26 @@ export default function InstallerWizardPage() {
                 <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Quick Start Packs</h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   {filteredPacks.map((pack) => (
-                    <Label
-                      key={pack.id}
-                      className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${
-                        selectedPack === pack.id ? 'border-primary bg-primary/5' : 'hover:bg-accent/50'
-                      }`}
-                      onClick={() => {
-                        setSelectedPack(pack.id)
-                        setSelectedAgents(pack.includedAgents)
-                        setSelectedWorkflows(pack.includedWorkflows)
-                      }}
-                    >
-                      <Package className="h-5 w-5 mt-0.5 text-primary" />
-                      <div>
-                        <p className="font-medium">{pack.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {pack.includedAgents.length} agents, {pack.includedWorkflows.length} workflows
-                        </p>
-                      </div>
-                    </Label>
+                    <SpotlightCard key={pack.id} className="rounded-lg border border-border/50">
+                      <Label
+                        className={`flex items-start gap-3 p-4 cursor-pointer transition-colors ${
+                          selectedPack === pack.id ? 'bg-primary/5' : ''
+                        }`}
+                        onClick={() => {
+                          setSelectedPack(pack.id)
+                          setSelectedAgents(pack.includedAgents)
+                          setSelectedWorkflows(pack.includedWorkflows)
+                        }}
+                      >
+                        <Package className="h-5 w-5 mt-0.5 text-primary" />
+                        <div>
+                          <p className="font-medium">{pack.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {pack.includedAgents.length} agents, {pack.includedWorkflows.length} workflows
+                          </p>
+                        </div>
+                      </Label>
+                    </SpotlightCard>
                   ))}
                 </div>
               </div>

@@ -21,6 +21,9 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart'
 import { MinimalButton } from '@/components/ui/minimal-button'
+import { FadeContent } from '@/components/reactbits/fade-content'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
+import { StarBorder } from '@/components/reactbits/star-border'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line } from 'recharts'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import { EmptyState } from '@/components/fleetops/empty-state'
@@ -180,45 +183,46 @@ export default function DashboardPage() {
           </div>
           
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Pending Approvals */}
             {pendingApprovals.length > 0 && (
-              <Link 
-                href={`/app/${tenantId}/approvals`}
-                className="flex items-start gap-3 p-3 border border-border/30 rounded-sm hover:bg-muted/30 transition-colors"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded bg-accent/10">
-                  <CheckCircle className="h-4 w-4 text-accent" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm">{pendingApprovals.length} Pending</p>
-                  <p className="text-xs text-muted-foreground">HITL approvals</p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
-              </Link>
+              <StarBorder color="hsl(var(--accent))" speed="8s" className="rounded-sm">
+                <Link 
+                  href={`/app/${tenantId}/approvals`}
+                  className="flex items-start gap-3 p-3 hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded bg-accent/10">
+                    <CheckCircle className="h-4 w-4 text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm">{pendingApprovals.length} Pending</p>
+                    <p className="text-xs text-muted-foreground">HITL approvals</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
+                </Link>
+              </StarBorder>
             )}
             
-            {/* Failed Runs */}
             {failedRuns.length > 0 && (
-              <Link 
-                href={`/app/${tenantId}/runs?status=failed`}
-                className="flex items-start gap-3 p-3 border border-border/30 rounded-sm hover:bg-muted/30 transition-colors"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded bg-destructive/10">
-                  <XCircle className="h-4 w-4 text-destructive" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm">{failedRuns.length} Failed</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {failedRuns[0]
-                      ? catalogAgents.find((agent) => agent.id === failedRuns[0].agentId)?.name || 'Unknown'
-                      : 'Recent runs'}
-                  </p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
-              </Link>
+              <StarBorder color="hsl(var(--destructive))" speed="8s" className="rounded-sm">
+                <Link 
+                  href={`/app/${tenantId}/runs?status=failed`}
+                  className="flex items-start gap-3 p-3 hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded bg-destructive/10">
+                    <XCircle className="h-4 w-4 text-destructive" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm">{failedRuns.length} Failed</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {failedRuns[0]
+                        ? catalogAgents.find((agent) => agent.id === failedRuns[0].agentId)?.name || 'Unknown'
+                        : 'Recent runs'}
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
+                </Link>
+              </StarBorder>
             )}
             
-            {/* Disconnected Integrations */}
             {disconnectedIntegrations.length > 0 && (
               <Link 
                 href={`/app/${tenantId}/security`}
@@ -237,21 +241,22 @@ export default function DashboardPage() {
               </Link>
             )}
             
-            {/* Security Warnings */}
             {securityWarnings.length > 0 && (
-              <Link 
-                href={`/app/${tenantId}/security`}
-                className="flex items-start gap-3 p-3 border border-border/30 rounded-sm hover:bg-muted/30 transition-colors"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded bg-destructive/10">
-                  <AlertTriangle className="h-4 w-4 text-destructive" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm">{securityWarnings.length} Warnings</p>
-                  <p className="text-xs text-muted-foreground">Security findings</p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
-              </Link>
+              <StarBorder color="hsl(var(--destructive))" speed="8s" className="rounded-sm">
+                <Link 
+                  href={`/app/${tenantId}/security`}
+                  className="flex items-start gap-3 p-3 hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded bg-destructive/10">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm">{securityWarnings.length} Warnings</p>
+                    <p className="text-xs text-muted-foreground">Security findings</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
+                </Link>
+              </StarBorder>
             )}
           </div>
         </div>
@@ -259,46 +264,55 @@ export default function DashboardPage() {
       
       {/* KPI Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <div className="p-5 border border-border/50 rounded-sm">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-editorial-tiny">Total Runs</p>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+        <SpotlightCard className="rounded-sm border border-border/50">
+          <div className="p-5">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-editorial-tiny">Total Runs</p>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="text-3xl font-bold tracking-tight">{formatNumber(metrics.runsTotal)}</p>
+            <p className="text-xs text-muted-foreground mt-1">This week</p>
           </div>
-          <p className="text-3xl font-bold tracking-tight">{formatNumber(metrics.runsTotal)}</p>
-          <p className="text-xs text-muted-foreground mt-1">This week</p>
-        </div>
+        </SpotlightCard>
         
-        <div className="p-5 border border-border/50 rounded-sm">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-editorial-tiny">Success Rate</p>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+        <SpotlightCard className="rounded-sm border border-border/50">
+          <div className="p-5">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-editorial-tiny">Success Rate</p>
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="text-3xl font-bold tracking-tight">{successRate}%</p>
+            <p className="text-xs text-accent mt-1">
+              +2.5% <span className="text-muted-foreground">from last week</span>
+            </p>
           </div>
-          <p className="text-3xl font-bold tracking-tight">{successRate}%</p>
-          <p className="text-xs text-accent mt-1">
-            +2.5% <span className="text-muted-foreground">from last week</span>
-          </p>
-        </div>
+        </SpotlightCard>
         
-        <div className="p-5 border border-border/50 rounded-sm">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-editorial-tiny">Avg Latency</p>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+        <SpotlightCard className="rounded-sm border border-border/50">
+          <div className="p-5">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-editorial-tiny">Avg Latency</p>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="text-3xl font-bold tracking-tight">{(metrics.avgLatencyMs / 1000).toFixed(1)}s</p>
+            <p className="text-xs text-muted-foreground mt-1">Per execution</p>
           </div>
-          <p className="text-3xl font-bold tracking-tight">{(metrics.avgLatencyMs / 1000).toFixed(1)}s</p>
-          <p className="text-xs text-muted-foreground mt-1">Per execution</p>
-        </div>
+        </SpotlightCard>
         
-        <div className="p-5 border border-border/50 rounded-sm">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-editorial-tiny">Est. LLM Cost</p>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+        <SpotlightCard className="rounded-sm border border-border/50">
+          <div className="p-5">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-editorial-tiny">Est. LLM Cost</p>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="text-3xl font-bold tracking-tight">${metrics.totalCost.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground mt-1">This week</p>
           </div>
-          <p className="text-3xl font-bold tracking-tight">${metrics.totalCost.toFixed(2)}</p>
-          <p className="text-xs text-muted-foreground mt-1">This week</p>
-        </div>
+        </SpotlightCard>
       </div>
       
       {/* Charts */}
+      <FadeContent>
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="p-5 border border-border/50 rounded-sm">
           <div className="mb-4">
@@ -362,8 +376,10 @@ export default function DashboardPage() {
           </ChartContainer>
         </div>
       </div>
+      </FadeContent>
       
       {/* Installed Overview */}
+      <FadeContent>
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Installed Agents */}
         <div className="p-5 border border-border/50 rounded-sm">
@@ -484,6 +500,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      </FadeContent>
       
       {/* Top Errors */}
       <div className="p-5 border border-border/50 rounded-sm">
