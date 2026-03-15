@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 type LogoVariant = 'header' | 'footer' | 'sidebar' | 'sidebarCollapsed'
 
 const variantClasses: Record<LogoVariant, string> = {
-  header: 'h-8 w-auto',
+  header: 'h-9 w-auto',
   footer: 'h-6 w-auto',
   sidebar: 'h-7 w-auto',
   sidebarCollapsed: 'h-7 w-7 object-contain',
@@ -21,7 +21,7 @@ interface LogoProps {
  */
 export function Logo({ variant = 'header', className }: LogoProps) {
   const isCollapsed = variant === 'sidebarCollapsed'
-  const src = isCollapsed ? '/isotipo_agentmou_32x32.png' : '/isotipo_agentmou.svg'
+  const src = isCollapsed ? '/isotipo_agentmou_32x32.png' : '/imagotipo_agentmou.svg'
 
   return (
     <img
