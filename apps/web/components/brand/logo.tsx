@@ -21,7 +21,7 @@ interface LogoProps {
  */
 export function Logo({ variant = 'header', className }: LogoProps) {
   const isCollapsed = variant === 'sidebarCollapsed'
-  const src = isCollapsed ? '/logo_agentmou_32x32.png' : '/logo_agentmou.svg'
+  const src = isCollapsed ? '/isotipo_agentmou_32x32.png' : '/isotipo_agentmou.svg'
 
   return (
     <img
