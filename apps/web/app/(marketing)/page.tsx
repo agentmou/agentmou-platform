@@ -3,17 +3,15 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { ArrowRight, Mail, MessageSquare, TrendingUp, Calendar, Users, Zap, Shield, Bot, Workflow, Lock, Eye, Key } from 'lucide-react'
-import { Threads } from '@/components/reactbits/threads'
 import { HalftoneBackground } from '@/components/brand/halftone-background'
+import { HalftoneIllustration } from '@/components/brand/halftone-illustration'
 import { BrandFrame, BrandStrip } from '@/components/brand/brand-frame'
 import { MinimalButton } from '@/components/ui/minimal-button'
 import { FadeContent } from '@/components/reactbits/fade-content'
 import { GradientText } from '@/components/reactbits/gradient-text'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
-import { TiltedCard } from '@/components/reactbits/tilted-card'
 import { StarBorder } from '@/components/reactbits/star-border'
 import { LogoLoop } from '@/components/reactbits/logo-loop'
-import { AgentmouBotAnimation } from '@/components/reactbits/agentmou-bot-animation'
 import { INTEGRATION_LOGO_LOOP } from '@/lib/integrations-logo-loop'
 
 interface MarketingCatalogPayload {
@@ -107,17 +105,35 @@ export default function HomePage() {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <div className="relative min-h-[95vh] flex items-center overflow-x-hidden">
-        <div className="absolute inset-0 bg-[#0f0f0f]" aria-hidden>
-          <Threads
-            color={[0, 0.788, 0.988]}
-            distance={0.65}
-            amplitude={0.7}
-            className="absolute inset-0"
+      <div className="relative min-h-[90vh] flex items-center overflow-hidden">
+        <HalftoneBackground 
+          variant="mint" 
+          intensity="high" 
+          className="absolute inset-0"
+        >
+          <div className="absolute inset-0" />
+        </HalftoneBackground>
+        
+        <HalftoneBackground 
+          variant="charcoalVignette" 
+          intensity="low" 
+          className="absolute inset-0"
+        >
+          <div className="absolute inset-0" />
+        </HalftoneBackground>
+        
+        <FadeContent delay={0.3} direction="right" className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-[45%] max-w-xl hidden lg:block overflow-hidden" style={{ 
+            maskImage: 'linear-gradient(to left, black 60%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to left, black 60%, transparent 100%)',
+          }}>
+          <HalftoneIllustration 
+            type="robot" 
+            className="w-full translate-x-[15%]" 
+            opacity={0.14} 
           />
-        </div>
-
-        <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 pt-24 pb-64 lg:pt-32 lg:pb-64 w-full">
+        </FadeContent>
+        
+        <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 py-24 lg:py-32 w-full">
           <div className="max-w-2xl">
             <FadeContent duration={0.5}>
               <p className="text-editorial-tiny mb-6">
@@ -125,9 +141,9 @@ export default function HomePage() {
               </p>
               
               <h1 className="text-editorial-headline">
-                <GradientText className="block" animationDelay={0}>Your business,</GradientText>
-                <GradientText className="block" animationDelay={2}>running on</GradientText>
-                <GradientText className="block" animationDelay={4}>agents.</GradientText>
+                Your business,<br />
+                <span className="text-muted-foreground">running on</span><br />
+                <GradientText className="text-editorial-headline">agents.</GradientText>
               </h1>
               
               <p className="mt-8 text-editorial-subhead max-w-lg">
@@ -165,7 +181,7 @@ export default function HomePage() {
       </div>
 
       {/* Tracks Section */}
-      <section className="pt-12 pb-32">
+      <section className="py-24 border-t border-border/50">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <p className="text-editorial-tiny mb-4">Choose your path</p>
@@ -174,68 +190,64 @@ export default function HomePage() {
           
           <div className="grid md:grid-cols-2 gap-8">
             <FadeContent delay={0.1}>
-              <TiltedCard className="h-full">
-                <SpotlightCard className="h-full rounded-md border-[0.5px] border-muted-foreground/30">
-                  <Link 
-                    href="/app/demo-workspace/marketplace?track=business"
-                    className="group block p-8 h-full"
-                  >
-                    <div className="flex items-center gap-3 mb-4">
-                      <Bot className="h-5 w-5" />
-                      <span className="text-editorial-tiny">Business</span>
-                    </div>
-                    <h3 className="text-2xl font-semibold mb-2">For teams</h3>
-                    <p className="text-muted-foreground mb-6">
-                      Multi-user workspaces. RBAC. Human-in-the-loop approvals. Audit logs.
-                    </p>
-                    <span className="text-sm font-medium group-hover:underline">
-                      Explore business agents
-                      <ArrowRight className="inline-block ml-1 h-4 w-4" />
-                    </span>
-                  </Link>
-                </SpotlightCard>
-              </TiltedCard>
+              <SpotlightCard className="h-full rounded-md border border-border/50">
+                <Link 
+                  href="/app/demo-workspace/marketplace?track=business"
+                  className="group block p-8 h-full"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <Bot className="h-5 w-5" />
+                    <span className="text-editorial-tiny">Business</span>
+                  </div>
+                  <h3 className="text-2xl font-semibold mb-2">For teams</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Multi-user workspaces. RBAC. Human-in-the-loop approvals. Audit logs.
+                  </p>
+                  <span className="text-sm font-medium group-hover:underline">
+                    Explore business agents
+                    <ArrowRight className="inline-block ml-1 h-4 w-4" />
+                  </span>
+                </Link>
+              </SpotlightCard>
             </FadeContent>
             
             <FadeContent delay={0.2}>
-              <TiltedCard className="h-full">
-                <SpotlightCard className="h-full rounded-md border-[0.5px] border-muted-foreground/30">
-                  <Link 
-                    href="/app/demo-workspace/marketplace?track=personal"
-                    className="group block p-8 h-full"
-                  >
-                    <div className="flex items-center gap-3 mb-4">
-                      <Users className="h-5 w-5" />
-                      <span className="text-editorial-tiny">Personal</span>
-                    </div>
-                    <h3 className="text-2xl font-semibold mb-2">For individuals</h3>
-                    <p className="text-muted-foreground mb-6">
-                      Personal productivity. Inbox management, file archiving, research, and more. Start free.
-                    </p>
-                    <span className="text-sm font-medium group-hover:underline">
-                      Explore personal agents
-                      <ArrowRight className="inline-block ml-1 h-4 w-4" />
-                    </span>
-                  </Link>
-                </SpotlightCard>
-              </TiltedCard>
+              <SpotlightCard className="h-full rounded-md border border-border/50">
+                <Link 
+                  href="/app/demo-workspace/marketplace?track=personal"
+                  className="group block p-8 h-full"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <Users className="h-5 w-5" />
+                    <span className="text-editorial-tiny">Personal</span>
+                  </div>
+                  <h3 className="text-2xl font-semibold mb-2">For individuals</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Personal productivity. Inbox management, file archiving, research, and more. Start free.
+                  </p>
+                  <span className="text-sm font-medium group-hover:underline">
+                    Explore personal agents
+                    <ArrowRight className="inline-block ml-1 h-4 w-4" />
+                  </span>
+                </Link>
+              </SpotlightCard>
             </FadeContent>
           </div>
         </div>
       </section>
 
       {/* Logo Loop - Integrations */}
-      <section className="pt-16 pb-36 border-t border-border/50 bg-muted/20">
+      <section className="py-16 border-t border-border/50">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
-            <p className="text-editorial-tiny mb-24 text-center">Integrations we connect with</p>
+            <p className="text-editorial-tiny mb-8 text-center">Integrations we connect with</p>
             <LogoLoop items={INTEGRATION_LOGO_LOOP} />
           </FadeContent>
         </div>
       </section>
 
       {/* Featured Agents */}
-      <section className="py-24 border-t border-border/50">
+      <section className="py-24 border-t border-border/50 bg-muted/20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <div className="flex items-end justify-between mb-12">
@@ -282,49 +294,55 @@ export default function HomePage() {
       </section>
 
       {/* Workflows Section */}
-      <section className="py-24 border-t border-border/50 bg-muted/20">
+      <section className="py-24 border-t border-border/50">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
-            <div>
-              <p className="text-editorial-tiny mb-4">n8n Integration</p>
-              <h2 className="text-3xl font-bold tracking-tight mb-6">Pre-built workflows</h2>
-              <p className="text-muted-foreground mb-8">
-                Connect agents to n8n workflows. Trigger on events. Transform data. 
-                Take actions across your stack.
-              </p>
-              
-              <div className="space-y-3">
-                {featuredWorkflows.map((wf) => (
-                  <div 
-                    key={wf.id}
-                    className="flex items-center justify-between p-4 border border-border/50 rounded-md"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Workflow className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{wf.name}</span>
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              <div>
+                <p className="text-editorial-tiny mb-4">n8n Integration</p>
+                <h2 className="text-3xl font-bold tracking-tight mb-6">Pre-built workflows</h2>
+                <p className="text-muted-foreground mb-8">
+                  Connect agents to n8n workflows. Trigger on events. Transform data. 
+                  Take actions across your stack.
+                </p>
+                
+                <div className="space-y-3">
+                  {featuredWorkflows.map((wf) => (
+                    <div 
+                      key={wf.id}
+                      className="flex items-center justify-between p-4 border border-border/50 rounded-md"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Workflow className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">{wf.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{wf.trigger}</span>
+                        <ArrowRight className="h-3 w-3" />
+                        <span>{wf.action}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{wf.trigger}</span>
-                      <ArrowRight className="h-3 w-3" />
-                      <span>{wf.action}</span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                
+                <Link href="/app/demo-workspace/marketplace" className="inline-block mt-8">
+                  <MinimalButton variant="outline">
+                    Browse all workflows
+                    <ArrowRight className="h-4 w-4" />
+                  </MinimalButton>
+                </Link>
               </div>
               
-              <Link href="/app/demo-workspace/marketplace" className="inline-block mt-8">
-                <MinimalButton variant="outline">
-                  Browse all workflows
-                  <ArrowRight className="h-4 w-4" />
-                </MinimalButton>
-              </Link>
+              <div className="hidden lg:block">
+                <HalftoneIllustration type="ai-device" className="w-full max-w-xs mx-auto" opacity={0.10} />
+              </div>
             </div>
           </FadeContent>
         </div>
       </section>
 
       {/* Packs Section */}
-      <section className="py-24 border-t border-border/50">
+      <section className="py-24 border-t border-border/50 bg-muted/20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <div className="text-center mb-16">
@@ -368,42 +386,48 @@ export default function HomePage() {
       </section>
 
       {/* Security Section */}
-      <section className="py-24 border-t border-border/50 bg-muted/20">
+      <section className="py-24 border-t border-border/50">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
-            <div>
-              <p className="text-editorial-tiny mb-4">Enterprise-ready</p>
-              <h2 className="text-3xl font-bold tracking-tight mb-6">Human in the loop</h2>
-              <p className="text-muted-foreground mb-8">
-                Keep humans in control. Approve high-risk actions. Audit everything. 
-                Set policies per agent.
-              </p>
-              
-              <div className="space-y-4">
-                {securityFeatures.map((feature) => (
-                  <div key={feature.title} className="flex items-start gap-3">
-                    <feature.icon className="h-4 w-4 mt-0.5 text-accent" />
-                    <div>
-                      <p className="font-medium text-sm">{feature.title}</p>
-                      <p className="text-xs text-muted-foreground">{feature.description}</p>
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              <div>
+                <p className="text-editorial-tiny mb-4">Enterprise-ready</p>
+                <h2 className="text-3xl font-bold tracking-tight mb-6">Human in the loop</h2>
+                <p className="text-muted-foreground mb-8">
+                  Keep humans in control. Approve high-risk actions. Audit everything. 
+                  Set policies per agent.
+                </p>
+                
+                <div className="space-y-4">
+                  {securityFeatures.map((feature) => (
+                    <div key={feature.title} className="flex items-start gap-3">
+                      <feature.icon className="h-4 w-4 mt-0.5 text-accent" />
+                      <div>
+                        <p className="font-medium text-sm">{feature.title}</p>
+                        <p className="text-xs text-muted-foreground">{feature.description}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                
+                <Link href="/security" className="inline-block mt-8">
+                  <MinimalButton variant="text">
+                    Learn about security
+                    <ArrowRight className="h-4 w-4" />
+                  </MinimalButton>
+                </Link>
               </div>
               
-              <Link href="/security" className="inline-block mt-8">
-                <MinimalButton variant="text">
-                  Learn about security
-                  <ArrowRight className="h-4 w-4" />
-                </MinimalButton>
-              </Link>
+              <div className="hidden lg:flex justify-center">
+                <HalftoneIllustration type="robot-head" className="w-48" opacity={0.08} />
+              </div>
             </div>
           </FadeContent>
         </div>
       </section>
 
       {/* CTA Section */}
-      <HalftoneBackground variant="mintTop" intensity="med" className="py-24 pb-4 border-t border-border/50">
+      <HalftoneBackground variant="mintTop" intensity="med" className="py-32 border-t border-border/50">
         <FadeContent>
           <div className="mx-auto max-w-7xl px-6 lg:px-8 text-center">
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
@@ -413,7 +437,7 @@ export default function HomePage() {
               Create your workspace and install your first agent in minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <StarBorder color="var(--accent)" speed="5s" className="rounded-md">
+              <StarBorder color="hsl(var(--accent))" speed="5s" className="rounded-md">
                 <Link href="/app/demo-workspace/dashboard">
                   <MinimalButton size="xl">
                     Try the demo
@@ -426,9 +450,6 @@ export default function HomePage() {
                   Read the docs
                 </MinimalButton>
               </Link>
-            </div>
-            <div className="mt-12 flex justify-center overflow-visible pointer-events-auto w-full max-w-md mx-auto">
-              <AgentmouBotAnimation className="w-full" />
             </div>
           </div>
         </FadeContent>
