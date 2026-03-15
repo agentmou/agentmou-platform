@@ -35,9 +35,9 @@ import {
   UserCircle,
   PanelLeftClose,
   PanelLeft,
-  Bot,
   Command,
 } from 'lucide-react'
+import { Logo } from '@/components/brand'
 import { CommandPalette } from '@/components/fleetops/command-palette'
 import { useAuthStore } from '@/lib/auth/store'
 import { useDataProvider } from '@/lib/data'
@@ -166,10 +166,9 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
         "flex h-14 items-center border-b border-border/50 px-4",
         collapsed ? "justify-center" : "gap-2.5"
       )}>
-        <div className="flex h-7 w-7 items-center justify-center rounded bg-foreground">
-          <Bot className="h-4 w-4 text-background" />
-        </div>
-        {!collapsed && <span className="text-sm font-semibold tracking-tight">Agentmou</span>}
+        <Link href={`/app/${tenantId}/dashboard`} className="flex items-center min-w-0">
+          <Logo variant={collapsed ? 'sidebarCollapsed' : 'sidebar'} />
+        </Link>
       </div>
       
       {/* Navigation - editorial tiny labels */}
