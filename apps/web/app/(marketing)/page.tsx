@@ -437,7 +437,7 @@ export default function HomePage() {
               Create your workspace and install your first agent in minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <StarBorder color="hsl(var(--accent))" speed="5s" className="rounded-md">
+              <StarBorder color="var(--accent)" speed="5s" className="rounded-md">
                 <Link href="/app/demo-workspace/dashboard">
                   <MinimalButton size="xl">
                     Try the demo
