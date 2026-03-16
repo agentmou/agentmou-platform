@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { ArrowRight, Mail, MessageSquare, TrendingUp, Calendar, Users, Zap, Shield, Bot, Workflow, Lock, Eye, Key } from 'lucide-react'
+import { Grainient } from '@/components/reactbits/grainient'
 import { HalftoneBackground } from '@/components/brand/halftone-background'
 import { HalftoneIllustration } from '@/components/brand/halftone-illustration'
 import { BrandFrame, BrandStrip } from '@/components/brand/brand-frame'
@@ -10,6 +11,7 @@ import { MinimalButton } from '@/components/ui/minimal-button'
 import { FadeContent } from '@/components/reactbits/fade-content'
 import { GradientText } from '@/components/reactbits/gradient-text'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
+import { TiltedCard } from '@/components/reactbits/tilted-card'
 import { StarBorder } from '@/components/reactbits/star-border'
 import { LogoLoop } from '@/components/reactbits/logo-loop'
 import { INTEGRATION_LOGO_LOOP } from '@/lib/integrations-logo-loop'
@@ -105,35 +107,25 @@ export default function HomePage() {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <div className="relative min-h-[90vh] flex items-center overflow-hidden">
-        <HalftoneBackground 
-          variant="mint" 
-          intensity="high" 
+      <div className="relative min-h-[95vh] flex items-center overflow-hidden">
+        <Grainient
           className="absolute inset-0"
-        >
-          <div className="absolute inset-0" />
-        </HalftoneBackground>
-        
-        <HalftoneBackground 
-          variant="charcoalVignette" 
-          intensity="low" 
-          className="absolute inset-0"
-        >
-          <div className="absolute inset-0" />
-        </HalftoneBackground>
-        
-        <FadeContent delay={0.3} direction="right" className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-[45%] max-w-xl hidden lg:block overflow-hidden" style={{ 
-            maskImage: 'linear-gradient(to left, black 60%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to left, black 60%, transparent 100%)',
-          }}>
-          <HalftoneIllustration 
-            type="robot" 
-            className="w-full translate-x-[15%]" 
-            opacity={0.14} 
-          />
-        </FadeContent>
-        
-        <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 py-24 lg:py-32 w-full">
+          colors={[
+            '#0F0F0F',
+            '#1A1A1A',
+            'rgba(0,201,252,0.15)',
+            'rgba(95,223,142,0.12)',
+            '#151515',
+            '#0F0F0F',
+          ]}
+          angle={90}
+          grain={0.55}
+          id="hero-grainient"
+          animated
+          animationDuration={15}
+        />
+
+        <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 pt-24 pb-32 lg:pt-32 lg:pb-40 w-full">
           <div className="max-w-2xl">
             <FadeContent duration={0.5}>
               <p className="text-editorial-tiny mb-6">
@@ -141,9 +133,9 @@ export default function HomePage() {
               </p>
               
               <h1 className="text-editorial-headline">
-                Your business,<br />
-                <span className="text-muted-foreground">running on</span><br />
-                <GradientText className="text-editorial-headline">agents.</GradientText>
+                <GradientText className="block" animationDelay={0}>Your business,</GradientText>
+                <GradientText className="block" animationDelay={2}>running on</GradientText>
+                <GradientText className="block" animationDelay={4}>agents.</GradientText>
               </h1>
               
               <p className="mt-8 text-editorial-subhead max-w-lg">
@@ -181,7 +173,7 @@ export default function HomePage() {
       </div>
 
       {/* Tracks Section */}
-      <section className="py-24 border-t border-border/50">
+      <section className="py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <p className="text-editorial-tiny mb-4">Choose your path</p>
@@ -190,64 +182,68 @@ export default function HomePage() {
           
           <div className="grid md:grid-cols-2 gap-8">
             <FadeContent delay={0.1}>
-              <SpotlightCard className="h-full rounded-md border border-border/50">
-                <Link 
-                  href="/app/demo-workspace/marketplace?track=business"
-                  className="group block p-8 h-full"
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <Bot className="h-5 w-5" />
-                    <span className="text-editorial-tiny">Business</span>
-                  </div>
-                  <h3 className="text-2xl font-semibold mb-2">For teams</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Multi-user workspaces. RBAC. Human-in-the-loop approvals. Audit logs.
-                  </p>
-                  <span className="text-sm font-medium group-hover:underline">
-                    Explore business agents
-                    <ArrowRight className="inline-block ml-1 h-4 w-4" />
-                  </span>
-                </Link>
-              </SpotlightCard>
+              <TiltedCard className="h-full">
+                <SpotlightCard className="h-full rounded-md border-2 border-muted-foreground/70">
+                  <Link 
+                    href="/app/demo-workspace/marketplace?track=business"
+                    className="group block p-8 h-full"
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <Bot className="h-5 w-5" />
+                      <span className="text-editorial-tiny">Business</span>
+                    </div>
+                    <h3 className="text-2xl font-semibold mb-2">For teams</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Multi-user workspaces. RBAC. Human-in-the-loop approvals. Audit logs.
+                    </p>
+                    <span className="text-sm font-medium group-hover:underline">
+                      Explore business agents
+                      <ArrowRight className="inline-block ml-1 h-4 w-4" />
+                    </span>
+                  </Link>
+                </SpotlightCard>
+              </TiltedCard>
             </FadeContent>
             
             <FadeContent delay={0.2}>
-              <SpotlightCard className="h-full rounded-md border border-border/50">
-                <Link 
-                  href="/app/demo-workspace/marketplace?track=personal"
-                  className="group block p-8 h-full"
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <Users className="h-5 w-5" />
-                    <span className="text-editorial-tiny">Personal</span>
-                  </div>
-                  <h3 className="text-2xl font-semibold mb-2">For individuals</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Personal productivity. Inbox management, file archiving, research, and more. Start free.
-                  </p>
-                  <span className="text-sm font-medium group-hover:underline">
-                    Explore personal agents
-                    <ArrowRight className="inline-block ml-1 h-4 w-4" />
-                  </span>
-                </Link>
-              </SpotlightCard>
+              <TiltedCard className="h-full">
+                <SpotlightCard className="h-full rounded-md border-2 border-muted-foreground/70">
+                  <Link 
+                    href="/app/demo-workspace/marketplace?track=personal"
+                    className="group block p-8 h-full"
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <Users className="h-5 w-5" />
+                      <span className="text-editorial-tiny">Personal</span>
+                    </div>
+                    <h3 className="text-2xl font-semibold mb-2">For individuals</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Personal productivity. Inbox management, file archiving, research, and more. Start free.
+                    </p>
+                    <span className="text-sm font-medium group-hover:underline">
+                      Explore personal agents
+                      <ArrowRight className="inline-block ml-1 h-4 w-4" />
+                    </span>
+                  </Link>
+                </SpotlightCard>
+              </TiltedCard>
             </FadeContent>
           </div>
         </div>
       </section>
 
       {/* Logo Loop - Integrations */}
-      <section className="py-16 border-t border-border/50">
+      <section className="pt-16 pb-36 border-t border-border/50 bg-muted/20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
-            <p className="text-editorial-tiny mb-8 text-center">Integrations we connect with</p>
+            <p className="text-editorial-tiny mb-24 text-center">Integrations we connect with</p>
             <LogoLoop items={INTEGRATION_LOGO_LOOP} />
           </FadeContent>
         </div>
       </section>
 
       {/* Featured Agents */}
-      <section className="py-24 border-t border-border/50 bg-muted/20">
+      <section className="py-24 border-t border-border/50">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <div className="flex items-end justify-between mb-12">
@@ -294,7 +290,7 @@ export default function HomePage() {
       </section>
 
       {/* Workflows Section */}
-      <section className="py-24 border-t border-border/50">
+      <section className="py-24 border-t border-border/50 bg-muted/20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -342,7 +338,7 @@ export default function HomePage() {
       </section>
 
       {/* Packs Section */}
-      <section className="py-24 border-t border-border/50 bg-muted/20">
+      <section className="py-24 border-t border-border/50">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <div className="text-center mb-16">
@@ -386,7 +382,7 @@ export default function HomePage() {
       </section>
 
       {/* Security Section */}
-      <section className="py-24 border-t border-border/50">
+      <section className="py-24 border-t border-border/50 bg-muted/20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <div className="grid lg:grid-cols-2 gap-16 items-center">
