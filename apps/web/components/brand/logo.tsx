@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { useTheme } from 'next-themes'
 
 type LogoVariant = 'header' | 'footer' | 'sidebar' | 'sidebarCollapsed'
 
@@ -18,13 +19,18 @@ interface LogoProps {
 
 /**
  * Agentmou brand logo. Use variant to control size across header, footer, and sidebar.
- * Uses imagotipo_agentmou_dark.png (white text + cyan icon) for visibility on all backgrounds.
+ * Switches between imagotipo_agentmou_dark.png (dark mode) and imagotipo_agentmou.svg (light mode).
  */
 export function Logo({ variant = 'header', className }: LogoProps) {
+  const { resolvedTheme } = useTheme()
   const isCollapsed = variant === 'sidebarCollapsed'
+  const isDark = resolvedTheme === 'dark'
+
   const src = isCollapsed
     ? '/isotipo_agentmou_32x32.png'
-    : '/imagotipo_agentmou_dark.png'
+    : isDark
+      ? '/imagotipo_agentmou_dark.png'
+      : '/imagotipo_agentmou.svg'
 
   return (
     <img
