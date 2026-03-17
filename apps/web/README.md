@@ -16,7 +16,7 @@ or workflows itself.
 
 - Render the marketing experience under `app/(marketing)`.
 - Handle login and registration under `app/(auth)`.
-- Protect tenant routes with Next.js middleware and a JWT cookie.
+- Protect tenant routes with Next.js proxy and a JWT cookie.
 - Consume the control-plane API through typed client helpers in `lib/api/`.
 - Serve marketing catalog cards from a real-catalog adapter (`/api/public-catalog`)
   using an API-first source (`/api/v1/catalog/*`) with local filesystem
@@ -64,7 +64,7 @@ pnpm --filter @agentmou/web start
 ### Important Modules
 
 - `app/layout.tsx` mounts theme support, toaster notifications, and analytics.
-- `middleware.ts` redirects unauthenticated traffic away from `/app/*` except
+- `proxy.ts` redirects unauthenticated traffic away from `/app/*` except
   the public `demo-workspace`, and keeps authenticated users out of `/login`
   and `/register`.
 - `lib/api/client.ts` contains typed fetchers for tenants, catalog, runs, approvals, connectors, and installations.
@@ -83,7 +83,7 @@ Required or important environment variables:
 | `NEXT_PUBLIC_API_URL` | Base URL for `services/api`; defaults to `http://localhost:3001` |
 
 The app also expects the auth flow to set the `agentmou-token` cookie used by
-`middleware.ts` and the typed API client.
+`proxy.ts` and the typed API client.
 
 ## Development
 
