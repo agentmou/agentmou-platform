@@ -3,9 +3,8 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { ArrowRight, Mail, MessageSquare, TrendingUp, Calendar, Users, Zap, Shield, Bot, Workflow, Lock, Eye, Key } from 'lucide-react'
-import { Grainient } from '@/components/reactbits/grainient'
+import { Threads } from '@/components/reactbits/threads'
 import { HalftoneBackground } from '@/components/brand/halftone-background'
-import { HalftoneIllustration } from '@/components/brand/halftone-illustration'
 import { BrandFrame, BrandStrip } from '@/components/brand/brand-frame'
 import { MinimalButton } from '@/components/ui/minimal-button'
 import { FadeContent } from '@/components/reactbits/fade-content'
@@ -14,6 +13,7 @@ import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { TiltedCard } from '@/components/reactbits/tilted-card'
 import { StarBorder } from '@/components/reactbits/star-border'
 import { LogoLoop } from '@/components/reactbits/logo-loop'
+import { AgentmouBotAnimation } from '@/components/reactbits/agentmou-bot-animation'
 import { INTEGRATION_LOGO_LOOP } from '@/lib/integrations-logo-loop'
 
 interface MarketingCatalogPayload {
@@ -107,25 +107,17 @@ export default function HomePage() {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <div className="relative min-h-[95vh] flex items-center overflow-hidden">
-        <Grainient
-          className="absolute inset-0"
-          colors={[
-            '#0F0F0F',
-            '#1A1A1A',
-            'rgba(0,201,252,0.15)',
-            'rgba(95,223,142,0.12)',
-            '#151515',
-            '#0F0F0F',
-          ]}
-          angle={90}
-          grain={0.55}
-          id="hero-grainient"
-          animated
-          animationDuration={15}
-        />
+      <div className="relative min-h-[95vh] flex items-center overflow-x-hidden">
+        <div className="absolute inset-0 bg-[#0f0f0f]" aria-hidden>
+          <Threads
+            color={[0, 0.788, 0.988]}
+            distance={0.65}
+            amplitude={0.7}
+            className="absolute inset-0"
+          />
+        </div>
 
-        <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 pt-24 pb-32 lg:pt-32 lg:pb-40 w-full">
+        <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 pt-24 pb-64 lg:pt-32 lg:pb-64 w-full">
           <div className="max-w-2xl">
             <FadeContent duration={0.5}>
               <p className="text-editorial-tiny mb-6">
@@ -173,7 +165,7 @@ export default function HomePage() {
       </div>
 
       {/* Tracks Section */}
-      <section className="py-24">
+      <section className="pt-12 pb-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <p className="text-editorial-tiny mb-4">Choose your path</p>
@@ -183,7 +175,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 gap-8">
             <FadeContent delay={0.1}>
               <TiltedCard className="h-full">
-                <SpotlightCard className="h-full rounded-md border-2 border-muted-foreground/70">
+                <SpotlightCard className="h-full rounded-md border-[0.5px] border-muted-foreground/30">
                   <Link 
                     href="/app/demo-workspace/marketplace?track=business"
                     className="group block p-8 h-full"
@@ -207,7 +199,7 @@ export default function HomePage() {
             
             <FadeContent delay={0.2}>
               <TiltedCard className="h-full">
-                <SpotlightCard className="h-full rounded-md border-2 border-muted-foreground/70">
+                <SpotlightCard className="h-full rounded-md border-[0.5px] border-muted-foreground/30">
                   <Link 
                     href="/app/demo-workspace/marketplace?track=personal"
                     className="group block p-8 h-full"
@@ -293,45 +285,39 @@ export default function HomePage() {
       <section className="py-24 border-t border-border/50 bg-muted/20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <div>
-                <p className="text-editorial-tiny mb-4">n8n Integration</p>
-                <h2 className="text-3xl font-bold tracking-tight mb-6">Pre-built workflows</h2>
-                <p className="text-muted-foreground mb-8">
-                  Connect agents to n8n workflows. Trigger on events. Transform data. 
-                  Take actions across your stack.
-                </p>
-                
-                <div className="space-y-3">
-                  {featuredWorkflows.map((wf) => (
-                    <div 
-                      key={wf.id}
-                      className="flex items-center justify-between p-4 border border-border/50 rounded-md"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Workflow className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{wf.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{wf.trigger}</span>
-                        <ArrowRight className="h-3 w-3" />
-                        <span>{wf.action}</span>
-                      </div>
+            <div>
+              <p className="text-editorial-tiny mb-4">n8n Integration</p>
+              <h2 className="text-3xl font-bold tracking-tight mb-6">Pre-built workflows</h2>
+              <p className="text-muted-foreground mb-8">
+                Connect agents to n8n workflows. Trigger on events. Transform data. 
+                Take actions across your stack.
+              </p>
+              
+              <div className="space-y-3">
+                {featuredWorkflows.map((wf) => (
+                  <div 
+                    key={wf.id}
+                    className="flex items-center justify-between p-4 border border-border/50 rounded-md"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Workflow className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">{wf.name}</span>
                     </div>
-                  ))}
-                </div>
-                
-                <Link href="/app/demo-workspace/marketplace" className="inline-block mt-8">
-                  <MinimalButton variant="outline">
-                    Browse all workflows
-                    <ArrowRight className="h-4 w-4" />
-                  </MinimalButton>
-                </Link>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>{wf.trigger}</span>
+                      <ArrowRight className="h-3 w-3" />
+                      <span>{wf.action}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
               
-              <div className="hidden lg:block">
-                <HalftoneIllustration type="ai-device" className="w-full max-w-xs mx-auto" opacity={0.10} />
-              </div>
+              <Link href="/app/demo-workspace/marketplace" className="inline-block mt-8">
+                <MinimalButton variant="outline">
+                  Browse all workflows
+                  <ArrowRight className="h-4 w-4" />
+                </MinimalButton>
+              </Link>
             </div>
           </FadeContent>
         </div>
@@ -385,45 +371,39 @@ export default function HomePage() {
       <section className="py-24 border-t border-border/50 bg-muted/20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <div>
-                <p className="text-editorial-tiny mb-4">Enterprise-ready</p>
-                <h2 className="text-3xl font-bold tracking-tight mb-6">Human in the loop</h2>
-                <p className="text-muted-foreground mb-8">
-                  Keep humans in control. Approve high-risk actions. Audit everything. 
-                  Set policies per agent.
-                </p>
-                
-                <div className="space-y-4">
-                  {securityFeatures.map((feature) => (
-                    <div key={feature.title} className="flex items-start gap-3">
-                      <feature.icon className="h-4 w-4 mt-0.5 text-accent" />
-                      <div>
-                        <p className="font-medium text-sm">{feature.title}</p>
-                        <p className="text-xs text-muted-foreground">{feature.description}</p>
-                      </div>
+            <div>
+              <p className="text-editorial-tiny mb-4">Enterprise-ready</p>
+              <h2 className="text-3xl font-bold tracking-tight mb-6">Human in the loop</h2>
+              <p className="text-muted-foreground mb-8">
+                Keep humans in control. Approve high-risk actions. Audit everything. 
+                Set policies per agent.
+              </p>
+              
+              <div className="space-y-4">
+                {securityFeatures.map((feature) => (
+                  <div key={feature.title} className="flex items-start gap-3">
+                    <feature.icon className="h-4 w-4 mt-0.5 text-accent" />
+                    <div>
+                      <p className="font-medium text-sm">{feature.title}</p>
+                      <p className="text-xs text-muted-foreground">{feature.description}</p>
                     </div>
-                  ))}
-                </div>
-                
-                <Link href="/security" className="inline-block mt-8">
-                  <MinimalButton variant="text">
-                    Learn about security
-                    <ArrowRight className="h-4 w-4" />
-                  </MinimalButton>
-                </Link>
+                  </div>
+                ))}
               </div>
               
-              <div className="hidden lg:flex justify-center">
-                <HalftoneIllustration type="robot-head" className="w-48" opacity={0.08} />
-              </div>
+              <Link href="/security" className="inline-block mt-8">
+                <MinimalButton variant="text">
+                  Learn about security
+                  <ArrowRight className="h-4 w-4" />
+                </MinimalButton>
+              </Link>
             </div>
           </FadeContent>
         </div>
       </section>
 
       {/* CTA Section */}
-      <HalftoneBackground variant="mintTop" intensity="med" className="py-32 border-t border-border/50">
+      <HalftoneBackground variant="mintTop" intensity="med" className="py-24 pb-4 border-t border-border/50">
         <FadeContent>
           <div className="mx-auto max-w-7xl px-6 lg:px-8 text-center">
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
@@ -446,6 +426,9 @@ export default function HomePage() {
                   Read the docs
                 </MinimalButton>
               </Link>
+            </div>
+            <div className="mt-12 flex justify-center overflow-visible pointer-events-auto w-full max-w-md mx-auto">
+              <AgentmouBotAnimation className="w-full" />
             </div>
           </div>
         </FadeContent>
