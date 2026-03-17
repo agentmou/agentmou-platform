@@ -11,7 +11,6 @@ import { FadeContent } from '@/components/reactbits/fade-content'
 import { GradientText } from '@/components/reactbits/gradient-text'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { TiltedCard } from '@/components/reactbits/tilted-card'
-import { StarBorder } from '@/components/reactbits/star-border'
 import { LogoLoop } from '@/components/reactbits/logo-loop'
 import { AgentmouBotAnimation } from '@/components/reactbits/agentmou-bot-animation'
 import { INTEGRATION_LOGO_LOOP } from '@/lib/integrations-logo-loop'
@@ -107,8 +106,8 @@ export default function HomePage() {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <div className="relative min-h-[95vh] flex items-center overflow-x-hidden">
-        <div className="absolute inset-0 bg-[#0f0f0f]" aria-hidden>
+      <div className="relative min-h-[95vh] flex items-center overflow-x-hidden bg-[var(--marketing-bg-base)]">
+        <div className="absolute inset-0 bg-[var(--marketing-bg-base)]" aria-hidden>
           <Threads
             color={[0, 0.788, 0.988]}
             distance={0.65}
@@ -165,7 +164,7 @@ export default function HomePage() {
       </div>
 
       {/* Tracks Section */}
-      <section className="pt-12 pb-32">
+      <section className="pt-12 pb-32 bg-[var(--marketing-bg-alt)]">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <p className="text-editorial-tiny mb-4">Choose your path</p>
@@ -225,7 +224,7 @@ export default function HomePage() {
       </section>
 
       {/* Logo Loop - Integrations */}
-      <section className="pt-16 pb-36 border-t border-border/50 bg-muted/20">
+      <section className="pt-16 pb-36 border-t border-border/50 bg-[var(--marketing-bg-base)]">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <p className="text-editorial-tiny mb-24 text-center">Integrations we connect with</p>
@@ -235,7 +234,7 @@ export default function HomePage() {
       </section>
 
       {/* Featured Agents */}
-      <section className="py-24 border-t border-border/50">
+      <section className="py-24 border-t border-border/50 bg-[var(--marketing-bg-alt)]">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <div className="flex items-end justify-between mb-12">
@@ -282,7 +281,7 @@ export default function HomePage() {
       </section>
 
       {/* Workflows Section */}
-      <section className="py-24 border-t border-border/50 bg-muted/20">
+      <section className="py-24 border-t border-border/50 bg-[var(--marketing-bg-base)]">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <div>
@@ -324,7 +323,7 @@ export default function HomePage() {
       </section>
 
       {/* Packs Section */}
-      <section className="py-24 border-t border-border/50">
+      <section className="py-24 border-t border-border/50 bg-[var(--marketing-bg-alt)]">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <div className="text-center mb-16">
@@ -368,7 +367,7 @@ export default function HomePage() {
       </section>
 
       {/* Security Section */}
-      <section className="py-24 border-t border-border/50 bg-muted/20">
+      <section className="py-24 border-t border-border/50 bg-[var(--marketing-bg-base)]">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <div>
@@ -413,14 +412,12 @@ export default function HomePage() {
               Create your workspace and install your first agent in minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <StarBorder color="var(--accent)" speed="5s" className="rounded-md">
-                <Link href="/app/demo-workspace/dashboard">
-                  <MinimalButton size="xl">
-                    Try the demo
-                    <ArrowRight className="h-5 w-5" />
-                  </MinimalButton>
-                </Link>
-              </StarBorder>
+              <Link href="/app/demo-workspace/dashboard">
+                <MinimalButton size="xl">
+                  Try the demo
+                  <ArrowRight className="h-5 w-5" />
+                </MinimalButton>
+              </Link>
               <Link href="/docs">
                 <MinimalButton variant="outline" size="xl">
                   Read the docs
