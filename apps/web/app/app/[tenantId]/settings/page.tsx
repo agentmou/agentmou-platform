@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useParams } from 'next/navigation'
+import { useTheme } from 'next-themes'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,6 +24,9 @@ import {
   Check,
   ExternalLink,
   Download,
+  Sun,
+  Moon,
+  Monitor,
 } from 'lucide-react'
 import { formatNumber } from '@/lib/utils'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
@@ -54,6 +58,7 @@ export default function SettingsPage() {
   const [weeklyDigest, setWeeklyDigest] = useState(false)
   const [timezone, setTimezone] = useState('America/New_York')
   const [saved, setSaved] = useState(false)
+  const { theme, setTheme } = useTheme()
   
   const handleSave = () => {
     setSaved(true)
@@ -90,7 +95,6 @@ export default function SettingsPage() {
 
         {/* General Tab */}
         <TabsContent value="general" className="space-y-4">
-          <SpotlightCard>
           <Card>
             <CardHeader>
               <CardTitle>Workspace Settings</CardTitle>
@@ -138,6 +142,36 @@ export default function SettingsPage() {
                 </Select>
               </div>
               
+              <div className="space-y-2">
+                <Label htmlFor="theme">Theme</Label>
+                <Select value={theme ?? 'system'} onValueChange={(v) => setTheme(v)}>
+                  <SelectTrigger className="max-w-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">
+                      <span className="flex items-center gap-2">
+                        <Sun className="h-4 w-4" />
+                        Light
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="dark">
+                      <span className="flex items-center gap-2">
+                        <Moon className="h-4 w-4" />
+                        Dark
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="system">
+                      <span className="flex items-center gap-2">
+                        <Monitor className="h-4 w-4" />
+                        System
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Appearance of the interface</p>
+              </div>
+              
               <Separator />
               
               <div className="space-y-2">
@@ -158,7 +192,6 @@ export default function SettingsPage() {
               <Button onClick={handleSave}>Save Changes</Button>
             </CardFooter>
           </Card>
-          </SpotlightCard>
         </TabsContent>
 
         {/* Notifications Tab */}
