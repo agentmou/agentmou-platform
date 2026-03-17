@@ -9,6 +9,9 @@ Use this file for operational understanding of the repository as it exists
 today. Keep [`whole-initial-context.md`](../../whole-initial-context.md) as the
 historical architecture proposal and original decision baseline.
 
+Execution planning derived from this document lives in
+[`../product/action-plan.md`](../product/action-plan.md).
+
 ## How To Read This Document
 
 - The code and configuration in this repository are the source of truth.

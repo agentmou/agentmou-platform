@@ -136,6 +136,7 @@ pnpm dev
 
 ### Product
 
+- [Program Action Plan](./docs/product/action-plan.md)
 - [Product Roadmap](./docs/product/roadmap.md)
 
 ### Operations
