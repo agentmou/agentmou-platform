@@ -475,18 +475,12 @@ export default function ApprovalsPage() {
         
         {/* List */}
         <ScrollArea className="flex-1 px-6 lg:px-8">
-          <Tabs defaultValue="pending" className="w-full">
-            <TabsList className="w-full justify-start rounded-none border-b border-border/50 bg-transparent p-0 h-auto">
-              <TabsTrigger 
-                value="pending" 
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-4 py-2 text-xs"
-              >
+          <Tabs defaultValue="pending" className="w-full space-y-4">
+            <TabsList className="w-full">
+              <TabsTrigger value="pending" className="flex-1">
                 Pending ({pendingApprovals.length})
               </TabsTrigger>
-              <TabsTrigger 
-                value="resolved" 
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-4 py-2 text-xs"
-              >
+              <TabsTrigger value="resolved" className="flex-1">
                 Resolved ({resolvedApprovals.length})
               </TabsTrigger>
             </TabsList>

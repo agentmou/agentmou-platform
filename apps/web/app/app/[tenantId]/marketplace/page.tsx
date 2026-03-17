@@ -24,6 +24,7 @@ import {
 import { RiskBadge, ChannelBadge, IntegrationChip, SpecLine, AvailabilityBadge, DomainBadge } from '@/components/badges'
 import { FadeContent } from '@/components/reactbits/fade-content'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
+import { TiltedCard } from '@/components/reactbits/tilted-card'
 import { CATEGORY_OPTIONS, normalizeCategory, type Category } from '@/lib/fleetops/category-config'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import type { AgentTemplate, WorkflowTemplate, PackTemplate } from '@agentmou/contracts'
@@ -296,7 +297,8 @@ export default function MarketplacePage() {
           <FadeContent>
           <div className="grid gap-4 md:grid-cols-2">
             {packTemplates.map((pack) => (
-              <SpotlightCard key={pack.id} className="rounded-md border border-border/50 bg-card">
+              <TiltedCard key={pack.id} className="h-full">
+              <SpotlightCard className="h-full rounded-md border border-border/50 bg-card">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex h-10 w-10 items-center justify-center rounded bg-muted/50">
@@ -349,6 +351,7 @@ export default function MarketplacePage() {
                   </div>
                 </CardContent>
               </SpotlightCard>
+              </TiltedCard>
             ))}
           </div>
           </FadeContent>

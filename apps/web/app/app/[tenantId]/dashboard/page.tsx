@@ -176,7 +176,7 @@ export default function DashboardPage() {
 
       {/* Attention Required Panel */}
       {hasAttentionItems && (
-        <div className="app-panel p-5 border border-border/50 rounded-sm space-y-4">
+        <div className="app-panel bg-card p-5 border border-border/50 rounded-sm space-y-4">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-foreground" />
             <h2 className="font-semibold text-sm">Attention Required</h2>
@@ -184,49 +184,50 @@ export default function DashboardPage() {
           
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {pendingApprovals.length > 0 && (
-              <StarBorder color="var(--accent)" speed="4.5s" className="rounded-sm">
-                <Link 
-                  href={`/app/${tenantId}/approvals`}
-                  className="flex items-start gap-3 p-3 hover:bg-muted/30 transition-colors"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded bg-accent/10">
-                    <CheckCircle className="h-4 w-4 text-accent" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">{pendingApprovals.length} Pending</p>
-                    <p className="text-xs text-muted-foreground">HITL approvals</p>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
-                </Link>
+              <StarBorder color="var(--accent)" speed="2.5s" className="w-full rounded-sm">
+              <Link 
+                href={`/app/${tenantId}/approvals`}
+                className="flex items-start gap-3 p-3 hover:bg-muted/30 transition-colors"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded bg-accent/10">
+                  <CheckCircle className="h-4 w-4 text-accent" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">{pendingApprovals.length} Pending</p>
+                  <p className="text-xs text-muted-foreground">HITL approvals</p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
+              </Link>
               </StarBorder>
             )}
             
             {failedRuns.length > 0 && (
-              <StarBorder color="var(--destructive)" speed="4.5s" className="rounded-sm">
-                <Link 
-                  href={`/app/${tenantId}/runs?status=failed`}
-                  className="flex items-start gap-3 p-3 hover:bg-muted/30 transition-colors"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded bg-destructive/10">
-                    <XCircle className="h-4 w-4 text-destructive" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">{failedRuns.length} Failed</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {failedRuns[0]
-                        ? catalogAgents.find((agent) => agent.id === failedRuns[0].agentId)?.name || 'Unknown'
-                        : 'Recent runs'}
-                    </p>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
-                </Link>
+              <StarBorder color="var(--destructive)" speed="4.5s" className="w-full rounded-sm">
+              <Link 
+                href={`/app/${tenantId}/runs?status=failed`}
+                className="flex items-start gap-3 p-3 hover:bg-muted/30 transition-colors"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded bg-destructive/10">
+                  <XCircle className="h-4 w-4 text-destructive" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">{failedRuns.length} Failed</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {failedRuns[0]
+                      ? catalogAgents.find((agent) => agent.id === failedRuns[0].agentId)?.name || 'Unknown'
+                      : 'Recent runs'}
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
+              </Link>
               </StarBorder>
             )}
             
             {disconnectedIntegrations.length > 0 && (
+              <StarBorder color="var(--warning)" speed="2.5s" className="w-full rounded-sm">
               <Link 
                 href={`/app/${tenantId}/security`}
-                className="flex items-start gap-3 p-3 border border-border/30 rounded-sm hover:bg-muted/30 transition-colors"
+                className="flex items-start gap-3 p-3 hover:bg-muted/30 transition-colors"
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded bg-muted">
                   <Activity className="h-4 w-4 text-muted-foreground" />
@@ -239,24 +240,23 @@ export default function DashboardPage() {
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
               </Link>
+              </StarBorder>
             )}
             
             {securityWarnings.length > 0 && (
-              <StarBorder color="var(--destructive)" speed="4.5s" className="rounded-sm">
-                <Link 
-                  href={`/app/${tenantId}/security`}
-                  className="flex items-start gap-3 p-3 hover:bg-muted/30 transition-colors"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded bg-destructive/10">
-                    <AlertTriangle className="h-4 w-4 text-destructive" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">{securityWarnings.length} Warnings</p>
-                    <p className="text-xs text-muted-foreground">Security findings</p>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
-                </Link>
-              </StarBorder>
+              <Link 
+                href={`/app/${tenantId}/security`}
+                className="flex items-start gap-3 p-3 border border-border/30 rounded-sm hover:bg-muted/30 transition-colors"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded bg-destructive/10">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">{securityWarnings.length} Warnings</p>
+                  <p className="text-xs text-muted-foreground">Security findings</p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
+              </Link>
             )}
           </div>
         </div>
@@ -264,7 +264,7 @@ export default function DashboardPage() {
       
       {/* KPI Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <SpotlightCard className="rounded-sm border border-border/50">
+        <SpotlightCard className="rounded-sm border border-border/50 bg-card">
           <div className="p-5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-editorial-tiny">Total Runs</p>
@@ -275,7 +275,7 @@ export default function DashboardPage() {
           </div>
         </SpotlightCard>
         
-        <SpotlightCard className="rounded-sm border border-border/50">
+        <SpotlightCard className="rounded-sm border border-border/50 bg-card">
           <div className="p-5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-editorial-tiny">Success Rate</p>
@@ -288,7 +288,7 @@ export default function DashboardPage() {
           </div>
         </SpotlightCard>
         
-        <SpotlightCard className="rounded-sm border border-border/50">
+        <SpotlightCard className="rounded-sm border border-border/50 bg-card">
           <div className="p-5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-editorial-tiny">Avg Latency</p>
@@ -299,7 +299,7 @@ export default function DashboardPage() {
           </div>
         </SpotlightCard>
         
-        <SpotlightCard className="rounded-sm border border-border/50">
+        <SpotlightCard className="rounded-sm border border-border/50 bg-card">
           <div className="p-5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-editorial-tiny">Est. LLM Cost</p>
@@ -314,14 +314,14 @@ export default function DashboardPage() {
       {/* Charts */}
       <FadeContent>
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="app-panel p-5 border border-border/50 rounded-sm">
+        <div className="app-panel bg-card p-5 border border-border/50 rounded-sm">
           <div className="mb-4">
             <p className="font-semibold text-sm">Runs by Day</p>
             <p className="text-xs text-muted-foreground">Execution activity over the past week</p>
           </div>
           <ChartContainer
             config={{
-              count: { label: 'Runs', color: 'hsl(var(--accent))' },
+              count: { label: 'Runs', color: 'var(--accent)' },
             }}
             className="h-[200px]"
           >
@@ -342,14 +342,14 @@ export default function DashboardPage() {
           </ChartContainer>
         </div>
         
-        <div className="app-panel p-5 border border-border/50 rounded-sm">
+        <div className="app-panel bg-card p-5 border border-border/50 rounded-sm">
           <div className="mb-4">
             <p className="font-semibold text-sm">Cost by Day</p>
             <p className="text-xs text-muted-foreground">Estimated LLM costs over the past week</p>
           </div>
           <ChartContainer
             config={{
-              cost: { label: 'Cost ($)', color: 'hsl(var(--foreground))' },
+              cost: { label: 'Cost ($)', color: 'var(--foreground)' },
             }}
             className="h-[200px]"
           >
@@ -382,7 +382,7 @@ export default function DashboardPage() {
       <FadeContent>
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Installed Agents */}
-        <div className="app-panel p-5 border border-border/50 rounded-sm">
+        <div className="app-panel bg-card p-5 border border-border/50 rounded-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="font-semibold text-sm">Installed Agents</p>
@@ -437,7 +437,7 @@ export default function DashboardPage() {
         </div>
         
         {/* Installed Workflows */}
-        <div className="app-panel p-5 border border-border/50 rounded-sm">
+        <div className="app-panel bg-card p-5 border border-border/50 rounded-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="font-semibold text-sm">Installed Workflows</p>
@@ -503,7 +503,7 @@ export default function DashboardPage() {
       </FadeContent>
       
       {/* Top Errors */}
-      <div className="app-panel p-5 border border-border/50 rounded-sm">
+      <div className="app-panel bg-card p-5 border border-border/50 rounded-sm">
         <div className="mb-4">
           <p className="font-semibold text-sm">Top Errors</p>
           <p className="text-xs text-muted-foreground">Most common error types this week</p>
