@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 const TOKEN_COOKIE = 'agentmou-token';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(TOKEN_COOKIE)?.value;
   const isPublicDemoPath =
