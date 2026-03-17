@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 /* ------------------------------------------------------------------ */
@@ -152,16 +153,12 @@ export function Stepper({
               </button>
             )}
 
-            <button
+            <Button
               type="button"
+              size="sm"
+              className="h-8 text-xs bg-accent text-accent-foreground hover:bg-accent/90"
               onClick={handleNext}
               disabled={!canProceed || isLoading}
-              className={cn(
-                'flex items-center justify-center rounded-full bg-accent px-5 py-2 text-sm font-medium text-accent-foreground transition-all',
-                canProceed && !isLoading
-                  ? 'hover:brightness-110 active:scale-[0.97]'
-                  : 'cursor-not-allowed opacity-50',
-              )}
             >
               {isLoading ? (
                 <LoadingSpinner />
@@ -170,7 +167,7 @@ export function Stepper({
               ) : (
                 nextButtonText
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
