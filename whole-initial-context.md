@@ -1,5 +1,11 @@
 # Resultado
 
+> Status note (March 17, 2026): this file is preserved as the original
+> architecture proposal and historical baseline. For the current,
+> code-verified repository state, use
+> [`docs/architecture/platform-context-v2.md`](./docs/architecture/platform-context-v2.md).
+> The remainder of this document is intentionally left unchanged.
+
 Voy a cruzar tu VPS real, el repo/web actual y la arquitectura objetivo para aterrizar una propuesta que puedas llevar a Cursor sin rehacer todo. Luego te devuelvo una arquitectura cerrada: repo strategy, bounded contexts, runtime y plan por fases.
 
 Ya está bastante claro el cuadro: el frontend actual ya actúa como proto control plane, pero vive sobre catálogo/estado mock, y n8n debe quedar como capability engine, no como producto.
