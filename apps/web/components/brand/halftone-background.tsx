@@ -57,7 +57,7 @@ export function HalftoneBackground({
         <div
           className="pointer-events-none absolute inset-0"
           style={{
-            background: `linear-gradient(to top, var(--background) 0%, transparent ${config.spread})`,
+            background: `linear-gradient(to top, var(--halftone-base) 0%, transparent ${config.spread})`,
           }}
         />
         
@@ -92,7 +92,7 @@ export function HalftoneBackground({
         <div
           className="pointer-events-none absolute inset-0"
           style={{
-            background: `linear-gradient(to top, var(--background) 0%, transparent 85%)`,
+            background: `linear-gradient(to top, var(--halftone-base) 0%, transparent 85%)`,
           }}
         />
         
@@ -124,7 +124,7 @@ export function HalftoneBackground({
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          background: `linear-gradient(to top, var(--background) 0%, transparent 30%)`,
+          background: `linear-gradient(to top, var(--halftone-base) 0%, transparent 30%)`,
         }}
       />
       

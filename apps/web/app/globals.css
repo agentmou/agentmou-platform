@@ -5,57 +5,62 @@
 
 /* Swiss Editorial Design System - Agentmou */
 :root {
-  /* Core palette */
-  --background: #ffffff;
-  --foreground: #111111;
-  --card: #ffffff;
-  --card-foreground: #111111;
-  --popover: #ffffff;
-  --popover-foreground: #111111;
+  /* Core palette — Light mode (3-layer hierarchy, mirrors dark) */
+  --background: #E2E4E8;
+  --foreground: #111827;
+  --surface-content: #F1F3F5;
+  --card: #FFFFFF;
+  --card-hover: #F8FAFC;
+  --card-foreground: #111827;
+  --popover: #FFFFFF;
+  --popover-foreground: #111827;
 
   /* Primary - black text buttons */
-  --primary: #111111;
+  --primary: #111827;
   --primary-foreground: #ffffff;
 
   /* Secondary - subtle grays */
   --secondary: #f5f5f5;
-  --secondary-foreground: #111111;
+  --secondary-foreground: #111827;
 
   /* Muted - editorial grays */
   --muted: #f5f5f5;
-  --muted-foreground: #6b6b6b;
+  --muted-foreground: #6B7280;
   --muted-2: #bdbdbd;
 
   /* Accent - mint highlight (used sparingly) */
   --accent: #5fdf8e;
-  --accent-foreground: #111111;
+  --accent-foreground: #111827;
 
   /* Destructive */
   --destructive: #e53935;
   --destructive-foreground: #ffffff;
 
-  /* Borders - very subtle */
-  --border: #e5e5e5;
-  --input: #e5e5e5;
+  /* Borders - defined for hierarchy */
+  --border: #D1D5DB;
+  --input: #D1D5DB;
   --ring: #5fdf8e;
 
   /* Charts - mint primary, grays for rest */
   --chart-1: #5fdf8e;
-  --chart-2: #6b6b6b;
+  --chart-2: #6B7280;
   --chart-3: #bdbdbd;
-  --chart-4: #e5e5e5;
-  --chart-5: #111111;
+  --chart-4: #D1D5DB;
+  --chart-5: #111827;
 
   --radius: 0.375rem;
 
-  /* Sidebar */
-  --sidebar: #ffffff;
-  --sidebar-foreground: #111111;
-  --sidebar-primary: #111111;
+  /* Halftone/gradient base — overridden in marketing to white */
+  --halftone-base: var(--background);
+
+  /* Sidebar — matches surface (like dark) */
+  --sidebar: #F1F3F5;
+  --sidebar-foreground: #111827;
+  --sidebar-primary: #111827;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f5f5f5;
-  --sidebar-accent-foreground: #111111;
-  --sidebar-border: #e5e5e5;
+  --sidebar-accent: #E5E7EB;
+  --sidebar-accent-foreground: #111827;
+  --sidebar-border: #D1D5DB;
   --sidebar-ring: #5fdf8e;
 
   /* Status colors */
@@ -66,40 +71,42 @@
 }
 
 .dark {
-  --background: #0f0f0f;
-  --surface-content: #212121;
-  --surface-card: #252525;
-  --foreground: #fafafa;
-  --card: #0f0f0f;
-  --card-foreground: #fafafa;
-  --popover: #0f0f0f;
-  --popover-foreground: #fafafa;
-  --primary: #fafafa;
-  --primary-foreground: #0f0f0f;
-  --secondary: #1a1a1a;
-  --secondary-foreground: #fafafa;
-  --muted: #1a1a1a;
-  --muted-foreground: #8a8a8a;
-  --muted-2: #4a4a4a;
+  /* Core palette — Dark mode */
+  --background: #0F1115;
+  --surface-content: #171A20;
+  --surface-card: #1D2128;
+  --foreground: #F3F4F6;
+  --card: #1D2128;
+  --card-hover: #242A33;
+  --card-foreground: #F3F4F6;
+  --popover: #171A20;
+  --popover-foreground: #F3F4F6;
+  --primary: #F3F4F6;
+  --primary-foreground: #0F1115;
+  --secondary: #1D2128;
+  --secondary-foreground: #F3F4F6;
+  --muted: #1D2128;
+  --muted-foreground: #9CA3AF;
+  --muted-2: #6B7280;
   --accent: #4bc870;
-  --accent-foreground: #0f0f0f;
+  --accent-foreground: #0F1115;
   --destructive: #ef5350;
-  --destructive-foreground: #fafafa;
-  --border: #2a2a2a;
-  --input: #2a2a2a;
+  --destructive-foreground: #F3F4F6;
+  --border: #2A2F39;
+  --input: #2A2F39;
   --ring: #4bc870;
   --chart-1: #4bc870;
-  --chart-2: #8a8a8a;
-  --chart-3: #4a4a4a;
-  --chart-4: #2a2a2a;
-  --chart-5: #fafafa;
-  --sidebar: #181818;
-  --sidebar-foreground: #fafafa;
-  --sidebar-primary: #fafafa;
-  --sidebar-primary-foreground: #0f0f0f;
-  --sidebar-accent: #1a1a1a;
-  --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: #2a2a2a;
+  --chart-2: #9CA3AF;
+  --chart-3: #6B7280;
+  --chart-4: #2A2F39;
+  --chart-5: #F3F4F6;
+  --sidebar: #171A20;
+  --sidebar-foreground: #F3F4F6;
+  --sidebar-primary: #F3F4F6;
+  --sidebar-primary-foreground: #0F1115;
+  --sidebar-accent: #242A33;
+  --sidebar-accent-foreground: #F3F4F6;
+  --sidebar-border: #2A2F39;
   --sidebar-ring: #4bc870;
 }
 
@@ -110,6 +117,7 @@
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-card-hover: var(--card-hover);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
@@ -221,9 +229,35 @@
    SURFACE SCOPING - WEB vs APP
    ============================================== */
 
-/* Marketing surface - allows halftone, motion, decorative */
+/* Marketing surface - white base, alternating blocks */
 [data-surface='marketing'] {
-  /* Marketing keeps all existing styles */
+  --marketing-bg-base: #FFFFFF;
+  --marketing-bg-alt: #FAFAFA;
+  --halftone-base: var(--marketing-bg-base);
+}
+
+.dark [data-surface='marketing'] {
+  --marketing-bg-base: #0F1115;
+  --marketing-bg-alt: #171A20;
+  --halftone-base: var(--marketing-bg-base);
+}
+
+[data-surface='marketing'] .footer {
+  background: var(--marketing-bg-base) !important;
+}
+
+[data-surface='marketing'] .footer-brand {
+  color: var(--marketing-bg-base);
+}
+
+[data-surface='marketing'] .footer-gradient {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, var(--marketing-bg-base) 65%, transparent) 35%,
+    var(--marketing-bg-base) 65%,
+    var(--marketing-bg-base) 100%
+  ) !important;
 }
 
 /* App surface - clean, white, minimal */
@@ -232,16 +266,17 @@
   background-color: var(--background) !important;
 }
 
-/* App central content area - slightly lighter in dark mode for contrast */
-.dark [data-surface='app'] main {
+/* App central content area - distinct from sidebar in both themes */
+[data-surface='app'] main {
   background-color: var(--surface-content);
 }
 
-/* App cards/panels - slightly lighter than content for hierarchy (Option A) */
-.dark [data-surface='app'] .card-spotlight,
-.dark [data-surface='app'] [data-slot='card'],
-.dark [data-surface='app'] .app-panel {
-  background-color: var(--surface-card);
+/* App cards/panels - var(--card) for both themes; shadow for elevation */
+[data-surface='app'] .card-spotlight,
+[data-surface='app'] [data-slot='card'],
+[data-surface='app'] .app-panel {
+  background-color: var(--card) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 [data-surface='app'] .halftone-bg,
@@ -302,26 +337,20 @@
   opacity: 0.6;
 }
 
-/* Star Border — animated gradient border */
-@keyframes star-movement-top {
-  0% {
-    transform: translateX(0%);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(100%);
-    opacity: 0;
+/* Star Border — conic gradient orbits full contour (Reactbits style) */
+@keyframes star-rotate {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@keyframes star-movement-bottom {
-  0% {
-    transform: translateX(0%);
-    opacity: 1;
+/* Star Border SVG — constant linear speed along perimeter */
+@keyframes star-dash {
+  from {
+    stroke-dashoffset: 100;
   }
-  100% {
-    transform: translateX(-100%);
-    opacity: 0;
+  to {
+    stroke-dashoffset: 0;
   }
 }
 
@@ -431,7 +460,7 @@
   text-align: center;
   line-height: 1;
   padding: 12px 0 5px;
-  color: #0a0a0a;
+  color: var(--background);
   paint-order: stroke fill;
   -webkit-text-stroke: 2px var(--muted-foreground);
   user-select: none;
