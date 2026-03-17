@@ -22,7 +22,7 @@ const navigationItems: Omit<SearchItem, 'href'>[] = [
   { type: 'navigate', id: 'nav-marketplace', label: 'Marketplace', keywords: ['browse', 'agents', 'workflows', 'packs', 'store'], icon: 'store', description: 'Browse agents and workflows' },
   { type: 'navigate', id: 'nav-installer', label: 'Installer', keywords: ['install', 'new', 'add', 'setup'], icon: 'download', description: 'Install new agents' },
   { type: 'navigate', id: 'nav-fleet', label: 'Fleet', keywords: ['installed', 'my agents', 'my workflows', 'manage'], icon: 'package', description: 'Manage installed agents' },
-  { type: 'navigate', id: 'nav-runs', label: 'Runs', keywords: ['executions', 'logs', 'history', 'activity'], icon: 'eye', description: 'View execution history' },
+  { type: 'navigate', id: 'nav-runs', label: 'Runs', keywords: ['executions', 'logs', 'history', 'activity'], icon: 'activity', description: 'View execution history' },
   { type: 'navigate', id: 'nav-approvals', label: 'Approvals', keywords: ['pending', 'hitl', 'review', 'approve', 'reject'], icon: 'check-circle', description: 'Review pending approvals' },
   { type: 'navigate', id: 'nav-observability', label: 'Observability', keywords: ['metrics', 'monitoring', 'charts', 'analytics'], icon: 'eye', description: 'View metrics and analytics' },
   { type: 'navigate', id: 'nav-security', label: 'Security', keywords: ['secrets', 'keys', 'rbac', 'audit', 'policies'], icon: 'shield', description: 'Manage security settings' },
