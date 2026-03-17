@@ -1,7 +1,12 @@
 # Architecture Overview
 
-This repository follows the architecture defined in
-[`whole-initial-context.md`](../../whole-initial-context.md):
+This repository currently follows the code-verified architecture context in
+[`platform-context-v2.md`](./platform-context-v2.md).
+
+[`whole-initial-context.md`](../../whole-initial-context.md) remains the
+historical baseline for the original proposal and direction.
+
+The high-level architecture still centers on:
 
 - One monorepo.
 - One product.
@@ -63,6 +68,7 @@ flowchart TD
 
 ## Current Architecture Documents
 
+- [Platform Context v2.0](./platform-context-v2.md)
 - [Monorepo Map](./monorepo-map.md)
 - [Current Implementation vs Target Plan](./current-implementation.md)
 - [Web App (`apps/web`) Architecture](./apps-web.md)
@@ -78,17 +84,18 @@ The repository now has:
 - Correct top-level structure aligned with the target plan.
 - `apps/web` consumes domain types from `@agentmou/contracts`.
 - `packages/db` schema covers the full domain model (tenants, memberships,
-  installations, runs, steps, approvals, audit, usage).
+  installations, runs, steps, approvals, audit, schedules, OAuth state).
 - `packages/catalog-sdk` validates actual manifest files correctly.
-- ESLint baseline passes across all workspaces.
-- `pnpm typecheck`, `pnpm build`, and `pnpm lint` all pass.
+- `pnpm typecheck` passes on the March 17, 2026 validation snapshot.
 
 The platform remains in bootstrap stage for backend runtime maturity:
 
-- `services/api` and `services/worker` are structured correctly but many
-  domain services remain placeholder implementations.
-- Several shared packages (agent-engine, connectors, auth) are
-  scaffold-level and need deeper implementation in upcoming phases.
+- `services/api` and `services/worker` now contain a real vertical slice,
+  but several tenant-facing modules are still stubbed or partial.
+- Shared contracts exist, but producer payloads are not yet consistently
+  aligned with them across API, worker, and web.
+- `pnpm test` is not currently green in a clean checkout; see
+  [Platform Context v2.0](./platform-context-v2.md) for the exact failure.
 
 Use the linked documents above as the authoritative map of what is real
 today and what is next.
