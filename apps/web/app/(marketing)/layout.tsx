@@ -64,8 +64,8 @@ export default function MarketingLayout({
       <main className="pt-14">{children}</main>
       
       {/* Footer - minimal editorial */}
-      <footer className="border-t border-border/50 mt-32">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8 py-16">
+      <footer className="border-t border-border/50 mt-8">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8 pt-16 pb-6">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
             <div className="col-span-2 md:col-span-1">
               <Link href="/" className="flex items-center">
@@ -118,6 +118,12 @@ export default function MarketingLayout({
             </p>
           </div>
         </div>
+      </footer>
+
+      {/* Footer brand - Agentmou outline + gradient */}
+      <footer className="footer">
+        <div className="footer-brand">Agentmou</div>
+        <div className="footer-gradient" aria-hidden />
       </footer>
       
       <ChatWidget mode="public" />

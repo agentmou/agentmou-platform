@@ -67,6 +67,8 @@
 
 .dark {
   --background: #0f0f0f;
+  --surface-content: #212121;
+  --surface-card: #252525;
   --foreground: #fafafa;
   --card: #0f0f0f;
   --card-foreground: #fafafa;
@@ -91,7 +93,7 @@
   --chart-3: #4a4a4a;
   --chart-4: #2a2a2a;
   --chart-5: #fafafa;
-  --sidebar: #0f0f0f;
+  --sidebar: #181818;
   --sidebar-foreground: #fafafa;
   --sidebar-primary: #fafafa;
   --sidebar-primary-foreground: #0f0f0f;
@@ -230,6 +232,18 @@
   background-color: var(--background) !important;
 }
 
+/* App central content area - slightly lighter in dark mode for contrast */
+.dark [data-surface='app'] main {
+  background-color: var(--surface-content);
+}
+
+/* App cards/panels - slightly lighter than content for hierarchy (Option A) */
+.dark [data-surface='app'] .card-spotlight,
+.dark [data-surface='app'] [data-slot='card'],
+.dark [data-surface='app'] .app-panel {
+  background-color: var(--surface-card);
+}
+
 [data-surface='app'] .halftone-bg,
 [data-surface='app'] .halftone-dots {
   background-image: none !important;
@@ -341,6 +355,104 @@
 /* Logo loop track — transform driven by JS for smooth hover deceleration */
 .logo-loop-track {
   /* no CSS animation; LogoLoop uses requestAnimationFrame */
+}
+
+/* AgentMou Bot Animation — spring-physics interactive */
+.agentmou-container {
+  perspective: 900px;
+  pointer-events: auto;
+}
+
+.agentmou-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  will-change: transform;
+  transform-style: preserve-3d;
+  transform-origin: center center;
+  cursor: pointer;
+}
+
+.agentmou-wrapper .bot-img,
+.agentmou-wrapper .spot-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  backface-visibility: visible;
+}
+
+.agentmou-wrapper .bot-img {
+  z-index: 1;
+}
+
+.agentmou-wrapper .spot-img {
+  z-index: 2;
+  pointer-events: none;
+  filter: url(#mint-filter);
+  -webkit-mask-image: conic-gradient(
+    from var(--spot, 0deg) at 50% 50%,
+    transparent 0deg,
+    rgba(0, 0, 0, 0.5) 20deg,
+    rgba(0, 0, 0, 1) 45deg,
+    rgba(0, 0, 0, 0.5) 70deg,
+    transparent 90deg,
+    transparent 360deg
+  );
+  mask-image: conic-gradient(
+    from var(--spot, 0deg) at 50% 50%,
+    transparent 0deg,
+    rgba(0, 0, 0, 0.5) 20deg,
+    rgba(0, 0, 0, 1) 45deg,
+    rgba(0, 0, 0, 0.5) 70deg,
+    transparent 90deg,
+    transparent 360deg
+  );
+}
+
+/* Footer - Agentmou brand with outline + gradient */
+.footer {
+  display: block;
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  overflow: hidden;
+  background: var(--background);
+}
+
+.footer-brand {
+  display: block;
+  width: 100%;
+  font-family: 'Inter', var(--font-sans), sans-serif;
+  font-weight: 700;
+  font-size: clamp(80px, 15vw, 260px) !important;
+  text-align: center;
+  line-height: 1;
+  padding: 12px 0 5px;
+  color: #0a0a0a;
+  paint-order: stroke fill;
+  -webkit-text-stroke: 2px var(--muted-foreground);
+  user-select: none;
+  position: relative;
+}
+
+.footer-gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, var(--background) 65%, transparent) 35%,
+    var(--background) 65%,
+    var(--background) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
 }
 
 /* Reduced motion preference */
