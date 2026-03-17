@@ -40,7 +40,7 @@ trigger execution runs with LLM inference and n8n workflow orchestration.
 | `apps/web/lib/auth/` | Auth store, API, cookies (3 files) |
 | `apps/web/lib/data/` | DataProvider interface, mock/api providers, hook (5 files) |
 | `apps/web/app/(auth)/` | Login + register pages + layout (3 files) |
-| `apps/web/middleware.ts` | Route protection |
+| `apps/web/proxy.ts` | Route protection |
 | `docs/adr/007-n8n-workflow-provisioning.md` | ADR for n8n strategy |
 
 ## Breaking Changes
