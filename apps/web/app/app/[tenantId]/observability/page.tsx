@@ -4,6 +4,8 @@ import * as React from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FadeContent } from '@/components/reactbits/fade-content'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -173,12 +175,13 @@ router.push(`/app/${tenantId}/runs?agentId=${agentId}`)
 }
   
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-6 lg:p-8 space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
+          <p className="text-editorial-tiny mb-2">Observability</p>
           <h1 className="text-2xl font-bold tracking-tight">Observability</h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mt-1">
             Monitor execution metrics, costs, and performance.
           </p>
         </div>
@@ -301,6 +304,7 @@ router.push(`/app/${tenantId}/runs?agentId=${agentId}`)
 </TooltipProvider>
       
       {/* Charts */}
+      <FadeContent>
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
@@ -426,6 +430,7 @@ className="cursor-pointer"
           </ChartContainer>
         </CardContent>
       </Card>
+      </FadeContent>
       
 {/* Agent Performance - Drill-down section */}
 {agentPerformance.length > 0 && (

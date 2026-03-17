@@ -60,6 +60,8 @@ import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import { EmptyState } from '@/components/fleetops/empty-state'
+import { FadeContent } from '@/components/reactbits/fade-content'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import type {
   AgentTemplate,
   WorkflowTemplate,
@@ -232,8 +234,9 @@ export default function FleetPage() {
 
   if (rawInstalledAgents.length === 0 && rawInstalledWorkflows.length === 0) {
     return (
-      <div className="p-6 lg:p-8 space-y-6">
+      <div className="p-6 lg:p-8 space-y-8">
         <div>
+          <p className="text-editorial-tiny mb-2">Fleet</p>
           <h1 className="text-2xl font-bold tracking-tight">My Fleet</h1>
           <p className="text-muted-foreground">Manage your installed agents and workflows</p>
         </div>
@@ -249,9 +252,10 @@ export default function FleetPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-6 lg:p-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
+          <p className="text-editorial-tiny mb-2">Fleet</p>
           <h1 className="text-2xl font-bold tracking-tight">My Fleet</h1>
           <p className="text-muted-foreground">Manage your installed agents and workflows</p>
         </div>
@@ -277,7 +281,7 @@ export default function FleetPage() {
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+        <SpotlightCard className="rounded-md border border-border/50 bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
             <Bot className="h-4 w-4 text-muted-foreground" />
@@ -290,8 +294,8 @@ export default function FleetPage() {
               of {installedAgents.length} installed
             </p>
           </CardContent>
-        </Card>
-        <Card>
+        </SpotlightCard>
+        <SpotlightCard className="rounded-md border border-border/50 bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Workflows</CardTitle>
             <Workflow className="h-4 w-4 text-muted-foreground" />
@@ -304,8 +308,8 @@ export default function FleetPage() {
               of {installedWorkflows.length} installed
             </p>
           </CardContent>
-        </Card>
-        <Card>
+        </SpotlightCard>
+        <SpotlightCard className="rounded-md border border-border/50 bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Runs Today</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
@@ -319,8 +323,8 @@ export default function FleetPage() {
               across all agents and workflows
             </p>
           </CardContent>
-        </Card>
-        <Card>
+        </SpotlightCard>
+        <SpotlightCard className="rounded-md border border-border/50 bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
@@ -331,9 +335,10 @@ export default function FleetPage() {
               last 24 hours
             </p>
           </CardContent>
-        </Card>
+        </SpotlightCard>
       </div>
 
+      <FadeContent>
       <Tabs defaultValue="agents" className="space-y-4">
         <TabsList>
           <TabsTrigger value="agents" className="gap-2">
@@ -607,6 +612,7 @@ export default function FleetPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      </FadeContent>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={!!actionState} onOpenChange={(open) => !open && closeAction()}>

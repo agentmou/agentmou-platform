@@ -6,99 +6,101 @@
 /* Swiss Editorial Design System - Agentmou */
 :root {
   /* Core palette */
-  --background: #FFFFFF;
+  --background: #ffffff;
   --foreground: #111111;
-  --card: #FFFFFF;
+  --card: #ffffff;
   --card-foreground: #111111;
-  --popover: #FFFFFF;
+  --popover: #ffffff;
   --popover-foreground: #111111;
-  
+
   /* Primary - black text buttons */
   --primary: #111111;
-  --primary-foreground: #FFFFFF;
-  
+  --primary-foreground: #ffffff;
+
   /* Secondary - subtle grays */
-  --secondary: #F5F5F5;
+  --secondary: #f5f5f5;
   --secondary-foreground: #111111;
-  
+
   /* Muted - editorial grays */
-  --muted: #F5F5F5;
-  --muted-foreground: #6B6B6B;
-  --muted-2: #BDBDBD;
-  
+  --muted: #f5f5f5;
+  --muted-foreground: #6b6b6b;
+  --muted-2: #bdbdbd;
+
   /* Accent - mint highlight (used sparingly) */
-  --accent: #5FDF8E;
+  --accent: #5fdf8e;
   --accent-foreground: #111111;
-  
+
   /* Destructive */
-  --destructive: #E53935;
-  --destructive-foreground: #FFFFFF;
-  
+  --destructive: #e53935;
+  --destructive-foreground: #ffffff;
+
   /* Borders - very subtle */
-  --border: #E5E5E5;
-  --input: #E5E5E5;
-  --ring: #5FDF8E;
-  
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #5fdf8e;
+
   /* Charts - mint primary, grays for rest */
-  --chart-1: #5FDF8E;
-  --chart-2: #6B6B6B;
-  --chart-3: #BDBDBD;
-  --chart-4: #E5E5E5;
+  --chart-1: #5fdf8e;
+  --chart-2: #6b6b6b;
+  --chart-3: #bdbdbd;
+  --chart-4: #e5e5e5;
   --chart-5: #111111;
-  
+
   --radius: 0.375rem;
-  
+
   /* Sidebar */
-  --sidebar: #FFFFFF;
+  --sidebar: #ffffff;
   --sidebar-foreground: #111111;
   --sidebar-primary: #111111;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F5F5F5;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f5f5;
   --sidebar-accent-foreground: #111111;
-  --sidebar-border: #E5E5E5;
-  --sidebar-ring: #5FDF8E;
-  
+  --sidebar-border: #e5e5e5;
+  --sidebar-ring: #5fdf8e;
+
   /* Status colors */
-  --success: #5FDF8E;
+  --success: #5fdf8e;
   --success-foreground: #111111;
-  --warning: #FFB74D;
+  --warning: #ffb74d;
   --warning-foreground: #111111;
 }
 
 .dark {
-  --background: #0F0F0F;
-  --foreground: #FAFAFA;
-  --card: #0F0F0F;
-  --card-foreground: #FAFAFA;
-  --popover: #0F0F0F;
-  --popover-foreground: #FAFAFA;
-  --primary: #FAFAFA;
-  --primary-foreground: #0F0F0F;
-  --secondary: #1A1A1A;
-  --secondary-foreground: #FAFAFA;
-  --muted: #1A1A1A;
-  --muted-foreground: #8A8A8A;
-  --muted-2: #4A4A4A;
-  --accent: #4BC870;
-  --accent-foreground: #0F0F0F;
-  --destructive: #EF5350;
-  --destructive-foreground: #FAFAFA;
-  --border: #2A2A2A;
-  --input: #2A2A2A;
-  --ring: #4BC870;
-  --chart-1: #4BC870;
-  --chart-2: #8A8A8A;
-  --chart-3: #4A4A4A;
-  --chart-4: #2A2A2A;
-  --chart-5: #FAFAFA;
-  --sidebar: #0F0F0F;
-  --sidebar-foreground: #FAFAFA;
-  --sidebar-primary: #FAFAFA;
-  --sidebar-primary-foreground: #0F0F0F;
-  --sidebar-accent: #1A1A1A;
-  --sidebar-accent-foreground: #FAFAFA;
-  --sidebar-border: #2A2A2A;
-  --sidebar-ring: #4BC870;
+  --background: #0f0f0f;
+  --surface-content: #212121;
+  --surface-card: #252525;
+  --foreground: #fafafa;
+  --card: #0f0f0f;
+  --card-foreground: #fafafa;
+  --popover: #0f0f0f;
+  --popover-foreground: #fafafa;
+  --primary: #fafafa;
+  --primary-foreground: #0f0f0f;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #fafafa;
+  --muted: #1a1a1a;
+  --muted-foreground: #8a8a8a;
+  --muted-2: #4a4a4a;
+  --accent: #4bc870;
+  --accent-foreground: #0f0f0f;
+  --destructive: #ef5350;
+  --destructive-foreground: #fafafa;
+  --border: #2a2a2a;
+  --input: #2a2a2a;
+  --ring: #4bc870;
+  --chart-1: #4bc870;
+  --chart-2: #8a8a8a;
+  --chart-3: #4a4a4a;
+  --chart-4: #2a2a2a;
+  --chart-5: #fafafa;
+  --sidebar: #181818;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #fafafa;
+  --sidebar-primary-foreground: #0f0f0f;
+  --sidebar-accent: #1a1a1a;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #2a2a2a;
+  --sidebar-ring: #4bc870;
 }
 
 @theme inline {
@@ -120,6 +122,8 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -149,9 +153,14 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
-  
+
   /* Editorial typography */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply tracking-tight;
   }
 }
@@ -161,43 +170,47 @@
   .text-editorial-headline {
     @apply text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight leading-[0.95];
   }
-  
+
   .text-editorial-subhead {
     @apply text-lg sm:text-xl text-muted-foreground leading-relaxed;
   }
-  
+
   .text-editorial-tiny {
     @apply text-[11px] uppercase tracking-[0.1em] text-muted-foreground;
   }
-  
+
   .text-editorial-label {
     @apply text-xs uppercase tracking-[0.05em] text-muted-foreground;
   }
-  
+
   /* Halftone dot pattern background */
   .halftone-bg {
-    background-image: 
+    background-image:
       radial-gradient(circle at 50% 100%, rgba(95, 223, 142, 0.15) 0%, transparent 50%),
-      radial-gradient(circle, #5FDF8E 1px, transparent 1px);
-    background-size: 100% 100%, 16px 16px;
-    background-position: center bottom, 0 0;
+      radial-gradient(circle, #5fdf8e 1px, transparent 1px);
+    background-size:
+      100% 100%,
+      16px 16px;
+    background-position:
+      center bottom,
+      0 0;
   }
-  
+
   .halftone-dots {
     background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
     background-size: 8px 8px;
   }
-  
+
   /* Divider lines - editorial thin */
   .divider-editorial {
     @apply border-t border-border/50;
   }
-  
+
   /* Card minimal style */
   .card-editorial {
     @apply bg-card border border-border/50 rounded-md;
   }
-  
+
   /* Focus ring - mint subtle */
   .focus-ring-editorial {
     @apply focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent/50 focus-visible:ring-offset-1;
@@ -209,39 +222,237 @@
    ============================================== */
 
 /* Marketing surface - allows halftone, motion, decorative */
-[data-surface="marketing"] {
+[data-surface='marketing'] {
   /* Marketing keeps all existing styles */
 }
 
 /* App surface - clean, white, minimal */
-[data-surface="app"] {
+[data-surface='app'] {
   /* Override any halftone backgrounds */
   background-color: var(--background) !important;
 }
 
-[data-surface="app"] .halftone-bg,
-[data-surface="app"] .halftone-dots {
+/* App central content area - slightly lighter in dark mode for contrast */
+.dark [data-surface='app'] main {
+  background-color: var(--surface-content);
+}
+
+/* App cards/panels - slightly lighter than content for hierarchy (Option A) */
+.dark [data-surface='app'] .card-spotlight,
+.dark [data-surface='app'] [data-slot='card'],
+.dark [data-surface='app'] .app-panel {
+  background-color: var(--surface-card);
+}
+
+[data-surface='app'] .halftone-bg,
+[data-surface='app'] .halftone-dots {
   background-image: none !important;
 }
 
 /* App surface typography scale */
-[data-surface="app"] .page-title {
+[data-surface='app'] .page-title {
   @apply text-3xl lg:text-4xl font-bold tracking-tight;
 }
 
-[data-surface="app"] .section-title {
+[data-surface='app'] .section-title {
   @apply text-lg lg:text-xl font-semibold tracking-tight;
 }
 
-[data-surface="app"] .table-header,
-[data-surface="app"] .nav-label,
-[data-surface="app"] .micro-label {
+[data-surface='app'] .table-header,
+[data-surface='app'] .nav-label,
+[data-surface='app'] .micro-label {
   @apply text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium;
 }
 
 /* App surface - mint is indicator, not fill */
-[data-surface="app"] .accent-indicator {
+[data-surface='app'] .accent-indicator {
   @apply border-accent/40 text-foreground;
+}
+
+/* ==============================================
+   REACTBITS COMPONENT STYLES
+   ============================================== */
+
+/* Spotlight Card — mouse-following halo */
+.card-spotlight {
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  --spotlight-color: rgba(95, 223, 142, 0.05);
+}
+
+.card-spotlight::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at var(--mouse-x) var(--mouse-y),
+    var(--spotlight-color),
+    transparent 80%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.card-spotlight:hover::before,
+.card-spotlight:focus-within::before {
+  opacity: 0.6;
+}
+
+/* Star Border — animated gradient border */
+@keyframes star-movement-top {
+  0% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes star-movement-bottom {
+  0% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+/* Gradient Text — color shift */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Grainient — animated gradient flow (linear mode) */
+@keyframes grainient-flow {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Logo Loop — infinite scroll */
+.logo-loop-container {
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+/* Logo loop track — transform driven by JS for smooth hover deceleration */
+.logo-loop-track {
+  /* no CSS animation; LogoLoop uses requestAnimationFrame */
+}
+
+/* AgentMou Bot Animation — spring-physics interactive */
+.agentmou-container {
+  perspective: 900px;
+  pointer-events: auto;
+}
+
+.agentmou-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  will-change: transform;
+  transform-style: preserve-3d;
+  transform-origin: center center;
+  cursor: pointer;
+}
+
+.agentmou-wrapper .bot-img,
+.agentmou-wrapper .spot-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  backface-visibility: visible;
+}
+
+.agentmou-wrapper .bot-img {
+  z-index: 1;
+}
+
+.agentmou-wrapper .spot-img {
+  z-index: 2;
+  pointer-events: none;
+  filter: url(#mint-filter);
+  -webkit-mask-image: conic-gradient(
+    from var(--spot, 0deg) at 50% 50%,
+    transparent 0deg,
+    rgba(0, 0, 0, 0.5) 20deg,
+    rgba(0, 0, 0, 1) 45deg,
+    rgba(0, 0, 0, 0.5) 70deg,
+    transparent 90deg,
+    transparent 360deg
+  );
+  mask-image: conic-gradient(
+    from var(--spot, 0deg) at 50% 50%,
+    transparent 0deg,
+    rgba(0, 0, 0, 0.5) 20deg,
+    rgba(0, 0, 0, 1) 45deg,
+    rgba(0, 0, 0, 0.5) 70deg,
+    transparent 90deg,
+    transparent 360deg
+  );
+}
+
+/* Footer - Agentmou brand with outline + gradient */
+.footer {
+  display: block;
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  overflow: hidden;
+  background: var(--background);
+}
+
+.footer-brand {
+  display: block;
+  width: 100%;
+  font-family: 'Inter', var(--font-sans), sans-serif;
+  font-weight: 700;
+  font-size: clamp(80px, 15vw, 260px) !important;
+  text-align: center;
+  line-height: 1;
+  padding: 12px 0 5px;
+  color: #0a0a0a;
+  paint-order: stroke fill;
+  -webkit-text-stroke: 2px var(--muted-foreground);
+  user-select: none;
+  position: relative;
+}
+
+.footer-gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, var(--background) 65%, transparent) 35%,
+    var(--background) 65%,
+    var(--background) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
 }
 
 /* Reduced motion preference */

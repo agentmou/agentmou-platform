@@ -9,15 +9,21 @@ interface HalftoneBackgroundProps {
   children?: React.ReactNode
 }
 
+/** SVG data URI for a fine 4-pointed star — isolated, crisp edges */
+function starPatternDataUri(r: number, g: number, b: number, a: number): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14" shape-rendering="crispEdges"><path fill="rgba(${r},${g},${b},${a})" d="M7 1 L8 6 L12 7 L8 8 L7 13 L6 8 L2 7 L6 6 Z"/></svg>`
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
+}
+
 /**
- * HalftoneBackground - Brand signature dot gradient
- * 
+ * HalftoneBackground - Brand signature star pattern with gradient
+ *
  * Variants:
- * - mint: Mint dots concentrated at bottom, fading upward
- * - mintTop: Mint dots at top, fading downward
+ * - mint: Mint stars concentrated at bottom, fading upward
+ * - mintTop: Mint stars at top, fading downward
  * - charcoalVignette: Soft gray vignette at bottom
- * 
- * Intensity controls dot size, opacity, and gradient spread
+ *
+ * Intensity controls pattern size, opacity, and gradient spread
  */
 export function HalftoneBackground({
   className,
@@ -38,14 +44,20 @@ export function HalftoneBackground({
   if (variant === 'mint') {
     return (
       <div className={cn('relative overflow-hidden', className)}>
-        {/* Dot pattern - mint, concentrated at bottom */}
+        {/* Star pattern - mint, concentrated at bottom (no mask = sharp) */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
-            backgroundImage: `radial-gradient(circle, rgba(95, 223, 142, ${config.dotOpacity}) 1.5px, transparent 1.5px)`,
+            backgroundImage: starPatternDataUri(95, 223, 142, config.dotOpacity),
             backgroundSize: `${config.dotSize}px ${config.dotSize}px`,
-            maskImage: `linear-gradient(to top, black 0%, black 15%, transparent ${config.spread})`,
-            WebkitMaskImage: `linear-gradient(to top, black 0%, black 15%, transparent ${config.spread})`,
+            imageRendering: 'crisp-edges',
+          }}
+        />
+        {/* Gradient overlay — fades stars without blurring them */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: `linear-gradient(to top, var(--background) 0%, transparent ${config.spread})`,
           }}
         />
         
@@ -67,13 +79,20 @@ export function HalftoneBackground({
   if (variant === 'mintTop') {
     return (
       <div className={cn('relative overflow-hidden', className)}>
+        {/* Star pattern - mintTop (no mask = sharp) */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
-            backgroundImage: `radial-gradient(circle, rgba(95, 223, 142, ${config.dotOpacity}) 1.5px, transparent 1.5px)`,
+            backgroundImage: starPatternDataUri(95, 223, 142, config.dotOpacity),
             backgroundSize: `${config.dotSize}px ${config.dotSize}px`,
-            maskImage: `linear-gradient(to bottom, black 0%, black 10%, transparent ${config.spread})`,
-            WebkitMaskImage: `linear-gradient(to bottom, black 0%, black 10%, transparent ${config.spread})`,
+            imageRendering: 'crisp-edges',
+          }}
+        />
+        {/* Gradient overlay at bottom — fades stars downward; extends further up */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: `linear-gradient(to top, var(--background) 0%, transparent 85%)`,
           }}
         />
         
@@ -92,14 +111,20 @@ export function HalftoneBackground({
   // Charcoal vignette (bottom)
   return (
     <div className={cn('relative overflow-hidden', className)}>
-      {/* Charcoal dot pattern - gray, fading up */}
+      {/* Charcoal star pattern (no mask = sharp) */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          backgroundImage: `radial-gradient(circle, rgba(17, 17, 17, ${config.dotOpacity * 0.6}) 1px, transparent 1px)`,
+          backgroundImage: starPatternDataUri(17, 17, 17, config.dotOpacity * 0.6),
           backgroundSize: `${config.dotSize}px ${config.dotSize}px`,
-          maskImage: `linear-gradient(to top, black 0%, transparent 30%)`,
-          WebkitMaskImage: `linear-gradient(to top, black 0%, transparent 30%)`,
+          imageRendering: 'crisp-edges',
+        }}
+      />
+      {/* Gradient overlay — fades stars without blurring them */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `linear-gradient(to top, var(--background) 0%, transparent 30%)`,
         }}
       />
       

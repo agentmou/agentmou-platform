@@ -5,7 +5,8 @@ import { Check, ArrowRight } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { MinimalButton } from '@/components/ui/minimal-button'
 import { HalftoneBackground } from '@/components/brand/halftone-background'
-import { motion } from 'framer-motion'
+import { FadeContent } from '@/components/reactbits/fade-content'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 
 const plans = [
   {
@@ -104,148 +105,144 @@ const faqs = [
 export default function PricingPage() {
   return (
     <div>
-      {/* Header with halftone */}
       <HalftoneBackground variant="mint" intensity="med" className="pt-24 pb-16">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <motion.div 
-            className="text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <p className="text-editorial-tiny mb-4">Pricing</p>
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
-              Simple, transparent
-            </h1>
-            <p className="mt-6 text-muted-foreground max-w-lg mx-auto">
-              Choose the plan that fits your needs. All plans include a 14-day free trial.
-            </p>
-          </motion.div>
+          <FadeContent>
+            <div className="text-center">
+              <p className="text-editorial-tiny mb-4">Pricing</p>
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
+                Simple, transparent
+              </h1>
+              <p className="mt-6 text-muted-foreground max-w-lg mx-auto">
+                Choose the plan that fits your needs. All plans include a 14-day free trial.
+              </p>
+            </div>
+          </FadeContent>
         </div>
       </HalftoneBackground>
 
       <div className="mx-auto max-w-7xl px-6 lg:px-8 pb-24">
 
-        {/* Pricing cards */}
         <div className="mt-20 grid gap-8 lg:grid-cols-3">
           {plans.map((plan, i) => (
-            <motion.div
-              key={plan.name}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: i * 0.1 }}
-              className={`relative p-8 border rounded-md ${
-                plan.highlight 
-                  ? 'border-foreground' 
-                  : 'border-border/50'
-              }`}
-            >
-              {plan.highlight && (
-                <div className="absolute -top-3 left-6">
-                  <span className="bg-foreground text-background px-3 py-1 text-[10px] uppercase tracking-wide font-medium">
-                    Most popular
-                  </span>
+            <FadeContent key={plan.name} delay={i * 0.1}>
+              <SpotlightCard
+                className={`relative h-full rounded-md border ${
+                  plan.highlight ? 'border-foreground' : 'border-border/50'
+                }`}
+              >
+                <div className="p-8">
+                  {plan.highlight && (
+                    <div className="absolute -top-3 left-6">
+                      <span className="bg-foreground text-background px-3 py-1 text-[10px] uppercase tracking-wide font-medium">
+                        Most popular
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold">{plan.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
+                  </div>
+                  
+                  <div className="mb-8">
+                    <span className="text-4xl font-bold tracking-tight">{plan.price}</span>
+                    {plan.price !== 'Custom' && (
+                      <span className="text-muted-foreground text-sm">/month</span>
+                    )}
+                  </div>
+                  
+                  <ul className="space-y-3 mb-8">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-3">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  
+                  <Link href="/app/demo-workspace/dashboard" className="block">
+                    <MinimalButton
+                      className="w-full"
+                      variant={plan.highlight ? 'default' : 'outline'}
+                    >
+                      {plan.cta}
+                    </MinimalButton>
+                  </Link>
                 </div>
-              )}
-              
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold">{plan.name}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
-              </div>
-              
-              <div className="mb-8">
-                <span className="text-4xl font-bold tracking-tight">{plan.price}</span>
-                {plan.price !== 'Custom' && (
-                  <span className="text-muted-foreground text-sm">/month</span>
-                )}
-              </div>
-              
-              <ul className="space-y-3 mb-8">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                    <span className="text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              <Link href="/app/demo-workspace/dashboard" className="block">
-                <MinimalButton
-                  className="w-full"
-                  variant={plan.highlight ? 'default' : 'outline'}
-                >
-                  {plan.cta}
-                </MinimalButton>
-              </Link>
-            </motion.div>
+              </SpotlightCard>
+            </FadeContent>
           ))}
         </div>
 
-        {/* Comparison table */}
-        <div className="mt-32">
-          <h2 className="text-center text-2xl font-bold tracking-tight mb-12">Compare plans</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px]">
-              <thead>
-                <tr className="border-b border-border/50">
-                  <th className="py-4 text-left text-editorial-tiny">Feature</th>
-                  <th className="py-4 text-center text-editorial-tiny">Starter</th>
-                  <th className="py-4 text-center text-editorial-tiny">Pro</th>
-                  <th className="py-4 text-center text-editorial-tiny">Scale</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparisonFeatures.map((row) => (
-                  <tr key={row.feature} className="border-b border-border/30">
-                    <td className="py-4 text-sm font-medium">{row.feature}</td>
-                    <td className="py-4 text-center text-sm text-muted-foreground">
-                      {row.starter}
-                    </td>
-                    <td className="py-4 text-center text-sm text-muted-foreground">
-                      {row.pro}
-                    </td>
-                    <td className="py-4 text-center text-sm text-muted-foreground">
-                      {row.scale}
-                    </td>
+        <FadeContent>
+          <div className="mt-32">
+            <h2 className="text-center text-2xl font-bold tracking-tight mb-12">Compare plans</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-border/50">
+                    <th className="py-4 text-left text-editorial-tiny">Feature</th>
+                    <th className="py-4 text-center text-editorial-tiny">Starter</th>
+                    <th className="py-4 text-center text-editorial-tiny">Pro</th>
+                    <th className="py-4 text-center text-editorial-tiny">Scale</th>
                   </tr>
+                </thead>
+                <tbody>
+                  {comparisonFeatures.map((row) => (
+                    <tr key={row.feature} className="border-b border-border/30">
+                      <td className="py-4 text-sm font-medium">{row.feature}</td>
+                      <td className="py-4 text-center text-sm text-muted-foreground">
+                        {row.starter}
+                      </td>
+                      <td className="py-4 text-center text-sm text-muted-foreground">
+                        {row.pro}
+                      </td>
+                      <td className="py-4 text-center text-sm text-muted-foreground">
+                        {row.scale}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </FadeContent>
+
+        <FadeContent>
+          <div className="mt-32">
+            <h2 className="text-center text-2xl font-bold tracking-tight mb-12">Questions</h2>
+            <div className="mx-auto max-w-2xl">
+              <Accordion type="single" collapsible className="w-full">
+                {faqs.map((faq, index) => (
+                  <AccordionItem key={index} value={`item-${index}`} className="border-border/50">
+                    <AccordionTrigger className="text-left text-sm font-medium hover:no-underline">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-sm text-muted-foreground">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
                 ))}
-              </tbody>
-            </table>
+              </Accordion>
+            </div>
           </div>
-        </div>
+        </FadeContent>
 
-        {/* FAQs */}
-        <div className="mt-32">
-          <h2 className="text-center text-2xl font-bold tracking-tight mb-12">Questions</h2>
-          <div className="mx-auto max-w-2xl">
-            <Accordion type="single" collapsible className="w-full">
-              {faqs.map((faq, index) => (
-                <AccordionItem key={index} value={`item-${index}`} className="border-border/50">
-                  <AccordionTrigger className="text-left text-sm font-medium hover:no-underline">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-sm text-muted-foreground">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+        <FadeContent>
+          <div className="mt-32 text-center">
+            <h2 className="text-3xl font-bold tracking-tight mb-4">Ready to get started?</h2>
+            <p className="text-muted-foreground mb-8">
+              Start your 14-day free trial today. No credit card required.
+            </p>
+            <Link href="/app/demo-workspace/dashboard">
+              <MinimalButton size="lg">
+                Try the demo
+                <ArrowRight className="h-4 w-4" />
+              </MinimalButton>
+            </Link>
           </div>
-        </div>
-
-        {/* CTA */}
-        <div className="mt-32 text-center">
-          <h2 className="text-3xl font-bold tracking-tight mb-4">Ready to get started?</h2>
-          <p className="text-muted-foreground mb-8">
-            Start your 14-day free trial today. No credit card required.
-          </p>
-          <Link href="/app/demo-workspace/dashboard">
-            <MinimalButton size="lg">
-              Try the demo
-              <ArrowRight className="h-4 w-4" />
-            </MinimalButton>
-          </Link>
-        </div>
+        </FadeContent>
       </div>
     </div>
   )

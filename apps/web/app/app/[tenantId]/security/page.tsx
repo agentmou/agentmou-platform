@@ -25,6 +25,7 @@ import {
   Download,
   FileQuestion,
 } from 'lucide-react'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { formatDate } from '@/lib/utils'
 import { StatusPill, IntegrationChip } from '@/components/badges'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
@@ -98,39 +99,32 @@ export default function SecurityPage() {
     : auditEvents.filter(e => e.category === auditFilter)
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-6 lg:p-8 space-y-8">
       <div>
-        <h1 className="page-title text-3xl lg:text-4xl font-bold tracking-tight">Security</h1>
+        <p className="text-editorial-tiny mb-2">Security</p>
+        <h1 className="text-2xl font-bold tracking-tight">Security</h1>
         <p className="text-sm text-muted-foreground mt-1">Manage secrets, access controls, and audit logs</p>
       </div>
 
-      <Tabs defaultValue="secrets" className="space-y-6">
-        <TabsList className="bg-transparent border-b border-border/50 rounded-none p-0 h-auto gap-6">
-          <TabsTrigger 
-            value="secrets" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs uppercase tracking-wide"
-          >
-            <Key className="h-3.5 w-3.5 mr-1.5" />
+      <Tabs defaultValue="secrets" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="secrets" className="gap-2">
+            <Key className="h-4 w-4" />
             Secrets
           </TabsTrigger>
-          <TabsTrigger 
-            value="rbac" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs uppercase tracking-wide"
-          >
-            <Users className="h-3.5 w-3.5 mr-1.5" />
+          <TabsTrigger value="rbac" className="gap-2">
+            <Users className="h-4 w-4" />
             Team & RBAC
           </TabsTrigger>
-          <TabsTrigger 
-            value="audit" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs uppercase tracking-wide"
-          >
-            <Shield className="h-3.5 w-3.5 mr-1.5" />
+          <TabsTrigger value="audit" className="gap-2">
+            <Shield className="h-4 w-4" />
             Audit Log
           </TabsTrigger>
         </TabsList>
 
         {/* Secrets Tab */}
-        <TabsContent value="secrets" className="space-y-4 mt-6">
+        <TabsContent value="secrets" className="space-y-4">
+          <SpotlightCard>
           <Card className="border-border/50">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -266,10 +260,12 @@ export default function SecurityPage() {
               </Table>
             </CardContent>
           </Card>
+          </SpotlightCard>
         </TabsContent>
 
         {/* RBAC Tab */}
-        <TabsContent value="rbac" className="space-y-4 mt-6">
+        <TabsContent value="rbac" className="space-y-4">
+          <SpotlightCard>
           <Card className="border-border/50">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -339,7 +335,9 @@ export default function SecurityPage() {
               </Table>
             </CardContent>
           </Card>
+          </SpotlightCard>
 
+          <SpotlightCard>
           <Card className="border-border/50">
             <CardHeader>
               <CardTitle className="text-sm font-medium">Permission Matrix</CardTitle>
@@ -386,10 +384,12 @@ export default function SecurityPage() {
               </Table>
             </CardContent>
           </Card>
+          </SpotlightCard>
         </TabsContent>
 
         {/* Audit Log Tab */}
-        <TabsContent value="audit" className="space-y-4 mt-6">
+        <TabsContent value="audit" className="space-y-4">
+          <SpotlightCard>
           <Card className="border-border/50">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -446,6 +446,7 @@ export default function SecurityPage() {
               </Table>
             </CardContent>
           </Card>
+          </SpotlightCard>
         </TabsContent>
       </Tabs>
     </div>

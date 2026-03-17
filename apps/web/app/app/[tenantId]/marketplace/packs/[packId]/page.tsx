@@ -20,6 +20,8 @@ import {
   Shield,
 } from 'lucide-react'
 import { RiskBadge, IntegrationChip, AvailabilityBadge } from '@/components/badges'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
+import { FadeContent } from '@/components/reactbits/fade-content'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import type { AgentTemplate, WorkflowTemplate, PackTemplate, Integration } from '@agentmou/contracts'
 
@@ -141,6 +143,7 @@ export default function PackDetailPage() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* KPIs */}
+          <SpotlightCard className="rounded-lg">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -162,8 +165,10 @@ export default function PackDetailPage() {
               </ul>
             </CardContent>
           </Card>
+          </SpotlightCard>
           
           {/* Included Agents */}
+          <SpotlightCard className="rounded-lg">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -198,8 +203,10 @@ export default function PackDetailPage() {
               </div>
             </CardContent>
           </Card>
+          </SpotlightCard>
           
           {/* Included Workflows */}
+          <SpotlightCard className="rounded-lg">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -234,11 +241,13 @@ export default function PackDetailPage() {
               </div>
             </CardContent>
           </Card>
+          </SpotlightCard>
         </div>
         
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Quick Info */}
+          <SpotlightCard className="rounded-lg">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Quick Info</CardTitle>
@@ -267,8 +276,10 @@ export default function PackDetailPage() {
               </div>
             </CardContent>
           </Card>
+          </SpotlightCard>
           
           {/* Required Integrations */}
+          <SpotlightCard className="rounded-lg">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Required Integrations ({requiredIntegrationDetails.length})</CardTitle>
@@ -302,8 +313,10 @@ export default function PackDetailPage() {
               )}
             </CardContent>
           </Card>
+          </SpotlightCard>
           
           {/* All Integrations Summary */}
+          <SpotlightCard className="rounded-lg">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Integration Summary</CardTitle>
@@ -316,6 +329,7 @@ export default function PackDetailPage() {
               </div>
             </CardContent>
           </Card>
+          </SpotlightCard>
         </div>
       </div>
     </div>

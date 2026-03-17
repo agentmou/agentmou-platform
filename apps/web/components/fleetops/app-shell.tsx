@@ -42,16 +42,33 @@ import { CommandPalette } from '@/components/fleetops/command-palette'
 import { useAuthStore } from '@/lib/auth/store'
 import { useDataProvider } from '@/lib/data'
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/marketplace', label: 'Marketplace', icon: Store },
-  { href: '/installer/new', label: 'Installer', icon: Download },
-  { href: '/fleet', label: 'Fleet', icon: Package },
-  { href: '/runs', label: 'Runs', icon: Eye },
-  { href: '/approvals', label: 'Approvals', icon: CheckCircle, badge: true },
-  { href: '/observability', label: 'Observability', icon: Eye },
-  { href: '/security', label: 'Security', icon: Shield },
-  { href: '/settings', label: 'Settings', icon: Settings },
+const navSections = [
+  {
+    label: 'Overview',
+    items: [
+      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/approvals', label: 'Approvals', icon: CheckCircle, badge: true },
+    ],
+  },
+  {
+    label: 'Agents',
+    items: [
+      { href: '/marketplace', label: 'Marketplace', icon: Store },
+      { href: '/installer/new', label: 'Installer', icon: Download },
+      { href: '/fleet', label: 'Fleet', icon: Package },
+    ],
+  },
+  {
+    label: 'Operations',
+    items: [
+      { href: '/runs', label: 'Runs', icon: Eye },
+      { href: '/observability', label: 'Observability', icon: Eye },
+    ],
+  },
+  {
+    label: 'Security',
+    items: [{ href: '/security', label: 'Security', icon: Shield }],
+  },
 ]
 
 interface AgentmouShellProps {
@@ -160,79 +177,132 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
   }
   
   const SidebarContent = () => (
-    <div className="flex h-full flex-col bg-background">
-      {/* Logo - minimal editorial */}
-      <div className={cn(
-        "flex h-14 items-center border-b border-border/50 px-4",
-        collapsed ? "justify-center" : "gap-2.5"
-      )}>
-        <Link href={`/app/${tenantId}/dashboard`} className="flex items-center min-w-0">
-          <Logo variant={collapsed ? 'sidebarCollapsed' : 'sidebar'} />
+    <div className="flex h-full flex-col bg-sidebar">
+      {/* Logo + Collapse toggle (desktop) - minimal editorial */}
+      <div
+        role={collapsed ? "button" : undefined}
+        tabIndex={collapsed ? 0 : undefined}
+        aria-label={collapsed ? "Expand sidebar" : undefined}
+        className={cn(
+          "flex h-14 items-center border-b border-border/50 relative",
+          collapsed
+            ? "justify-center group cursor-pointer hover:bg-muted/30 transition-colors"
+            : "justify-between gap-2 px-4"
+        )}
+        onClick={collapsed ? () => setCollapsed(false) : undefined}
+        onKeyDown={
+          collapsed
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  setCollapsed(false)
+                }
+              }
+            : undefined
+        }
+      >
+        <Link
+          href={`/app/${tenantId}/dashboard`}
+          className={cn("flex items-center min-w-0 shrink-0", collapsed && "pointer-events-none")}
+        >
+          <Logo variant={collapsed ? "sidebarCollapsed" : "sidebar"} />
         </Link>
+        {!collapsed && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden h-8 w-8 shrink-0 lg:flex"
+            onClick={(e) => {
+              e.stopPropagation()
+              setCollapsed(true)
+            }}
+            aria-label="Collapse sidebar"
+          >
+            <PanelLeftClose className="h-4 w-4" />
+          </Button>
+        )}
+        {collapsed && (
+          <PanelLeft
+            className="h-4 w-4 absolute opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+            aria-hidden
+          />
+        )}
       </div>
       
-      {/* Navigation - editorial tiny labels */}
+      {/* Navigation - grouped by sections */}
       <ScrollArea className="flex-1 px-3 py-6">
-        <nav className="flex flex-col gap-0.5">
-          {navItems.map((item) => {
-            const active = isActive(item.href)
-            return (
-              <Link
-                key={item.href}
-                href={`/app/${tenantId}${item.href}`}
-                className={cn(
-                  "group flex items-center gap-3 rounded-sm px-3 py-2 text-[11px] uppercase tracking-[0.05em] font-medium transition-colors",
-                  active
-                    ? "bg-accent/10 text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                  collapsed && "justify-center px-2"
-                )}
-                onClick={() => setMobileOpen(false)}
-              >
-                <item.icon className={cn(
-                  "h-4 w-4 shrink-0 transition-colors",
-                  active ? "text-accent" : "text-muted-foreground group-hover:text-foreground"
-                )} />
-                {!collapsed && (
-                  <>
-                    <span className="flex-1">{item.label}</span>
-                    {item.badge && pendingApprovals > 0 && (
-                      <span className="flex h-4 min-w-4 items-center justify-center rounded-sm bg-accent px-1 text-[10px] font-bold text-accent-foreground">
-                        {pendingApprovals}
-                      </span>
+        <nav className="flex flex-col gap-6">
+          {navSections.map((section) => (
+            <div key={section.label} className="flex flex-col gap-0.5">
+              {!collapsed && (
+                <p className="text-editorial-tiny text-muted-foreground px-3 mb-1 uppercase tracking-[0.05em]">
+                  {section.label}
+                </p>
+              )}
+              {section.items.map((item) => {
+                const active = isActive(item.href)
+                return (
+                  <Link
+                    key={item.href}
+                    href={`/app/${tenantId}${item.href}`}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-sm px-3 py-2 text-[11px] uppercase tracking-[0.05em] font-medium transition-colors",
+                      active
+                        ? "bg-accent/10 text-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                      collapsed && "justify-center px-2"
                     )}
-                  </>
-                )}
-              </Link>
-            )
-          })}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <item.icon
+                      className={cn(
+                        "h-4 w-4 shrink-0 transition-colors",
+                        active
+                          ? "text-accent"
+                          : "text-muted-foreground group-hover:text-foreground"
+                      )}
+                    />
+                    {!collapsed && (
+                      <>
+                        <span className="flex-1">{item.label}</span>
+                        {item.badge && pendingApprovals > 0 && (
+                          <span className="flex h-4 min-w-4 items-center justify-center rounded-sm bg-accent px-1 text-[10px] font-bold text-accent-foreground">
+                            {pendingApprovals}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </Link>
+                )
+              })}
+            </div>
+          ))}
         </nav>
       </ScrollArea>
       
-      {/* Collapse toggle (desktop only) */}
-      <div className="hidden lg:block border-t border-border/50 p-3">
-        <button
-          className="flex w-full items-center gap-2 px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-muted-foreground hover:text-foreground transition-colors"
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          {collapsed ? (
-            <PanelLeft className="h-4 w-4" />
-          ) : (
-            <>
-              <PanelLeftClose className="h-4 w-4" />
-              <span>Collapse</span>
-            </>
-          )}
-        </button>
+      {/* Settings - outlined button at bottom (SaaS style) */}
+      <div className="border-t border-border/50 p-3">
+        <Link href={`/app/${tenantId}/settings`} onClick={() => setMobileOpen(false)}>
+          <Button
+            variant="outline"
+            className={cn(
+              "w-full justify-start gap-2 text-[11px] uppercase tracking-[0.05em] font-medium",
+              collapsed && "justify-center px-0"
+            )}
+          >
+            <Settings className="h-4 w-4 shrink-0" />
+            {!collapsed && <span>Settings</span>}
+          </Button>
+        </Link>
       </div>
     </div>
   )
   
   return (
     <div data-surface="app" className="surface-app flex min-h-screen bg-background">
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar - fixed so it stays visible on scroll */}
       <aside className={cn(
-        "hidden lg:flex flex-col border-r border-border/50 bg-background transition-all duration-300",
+        "fixed inset-y-0 left-0 z-40 hidden lg:flex flex-col border-r border-border/50 bg-sidebar transition-all duration-300",
         collapsed ? "w-16" : "w-56"
       )}>
         <SidebarContent />
@@ -240,15 +310,18 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
       
       {/* Mobile Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-56 p-0 bg-background">
+        <SheetContent side="left" className="w-56 p-0 bg-sidebar">
           <SidebarContent />
         </SheetContent>
       </Sheet>
       
-      {/* Main Content */}
-      <div className="flex flex-1 flex-col">
+      {/* Main Content - margin-left to avoid overlap with fixed sidebar */}
+      <div className={cn(
+        "flex flex-1 flex-col min-w-0",
+        collapsed ? "lg:ml-16" : "lg:ml-56"
+      )}>
         {/* Top Bar - minimal editorial */}
-        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border/50 bg-background/95 backdrop-blur-sm px-4 lg:px-6">
+        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border/50 bg-sidebar/95 backdrop-blur-sm px-4 lg:px-6">
           {/* Mobile menu button */}
           <Button
             variant="ghost"

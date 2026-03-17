@@ -392,10 +392,11 @@ export default function ApprovalsPage() {
   
   if (approvalsData.length === 0) {
     return (
-      <div className="p-6 lg:p-8 space-y-6">
+      <div className="p-6 lg:p-8 space-y-8">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Approvals</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Review and manage human-in-the-loop approval requests.</p>
+          <p className="text-editorial-tiny mb-2">Approvals</p>
+          <h1 className="text-2xl font-bold tracking-tight">Approvals</h1>
+          <p className="text-sm text-muted-foreground mt-1">Review and manage human-in-the-loop approval requests.</p>
         </div>
         <EmptyState
           icon={CheckCircle}
@@ -413,10 +414,11 @@ export default function ApprovalsPage() {
       {/* Left Panel - List */}
       <div className="w-full md:w-[400px] lg:w-[450px] border-r border-border/50 flex flex-col">
         {/* Header */}
-        <div className="p-4 border-b border-border/50 space-y-4">
+        <div className="p-6 lg:p-8 border-b border-border/50 space-y-4">
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Approvals</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-editorial-tiny mb-2">Approvals</p>
+            <h1 className="text-2xl font-bold tracking-tight">Approvals</h1>
+            <p className="text-sm text-muted-foreground mt-1">
               Review and approve HITL actions
             </p>
           </div>
@@ -472,7 +474,7 @@ export default function ApprovalsPage() {
         </div>
         
         {/* List */}
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 px-6 lg:px-8">
           <Tabs defaultValue="pending" className="w-full">
             <TabsList className="w-full justify-start rounded-none border-b border-border/50 bg-transparent p-0 h-auto">
               <TabsTrigger 

@@ -22,7 +22,8 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import { RiskBadge, ChannelBadge, IntegrationChip, SpecLine, AvailabilityBadge, DomainBadge } from '@/components/badges'
-import { BrandStrip } from '@/components/brand/brand-frame'
+import { FadeContent } from '@/components/reactbits/fade-content'
+import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { CATEGORY_OPTIONS, normalizeCategory, type Category } from '@/lib/fleetops/category-config'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import type { AgentTemplate, WorkflowTemplate, PackTemplate } from '@agentmou/contracts'
@@ -97,18 +98,17 @@ export default function MarketplacePage() {
   }, [filteredAgents, search, riskFilter, availabilityFilter])
   
   return (
-    <div className="space-y-6">
-      {/* Header with brand strip */}
-      <BrandStrip className="relative -mx-6 lg:-mx-8 -mt-6 lg:-mt-8 px-6 lg:px-8 pt-6 lg:pt-8 pb-4">
-        <div>
-          <h1 className="page-title text-3xl lg:text-4xl font-bold tracking-tight">Marketplace</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Browse and install agents, workflows, and packs to automate your operations.
-          </p>
-        </div>
-      </BrandStrip>
+    <div className="p-6 lg:p-8 space-y-8">
+      {/* Header — aligned with Dashboard */}
+      <div>
+        <p className="text-editorial-tiny mb-2">Marketplace</p>
+        <h1 className="text-2xl font-bold tracking-tight">Marketplace</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Browse and install agents, workflows, and packs to automate your operations.
+        </p>
+      </div>
       
-      <div className="px-6 lg:px-8 space-y-6">
+      <div className="space-y-6">
       
       {/* Filters */}
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -164,36 +164,28 @@ export default function MarketplacePage() {
         </Select>
       </div>
       
-      <Tabs defaultValue="agents" className="space-y-6">
-        <TabsList className="bg-transparent border-b border-border/50 rounded-none p-0 h-auto gap-6">
-          <TabsTrigger 
-            value="agents" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs uppercase tracking-wide"
-          >
-            <Bot className="h-3.5 w-3.5 mr-1.5" />
+      <Tabs defaultValue="agents" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="agents" className="gap-2">
+            <Bot className="h-4 w-4" />
             Agents ({filteredAgents.length})
           </TabsTrigger>
-          <TabsTrigger 
-            value="workflows" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs uppercase tracking-wide"
-          >
-            <Workflow className="h-3.5 w-3.5 mr-1.5" />
+          <TabsTrigger value="workflows" className="gap-2">
+            <Workflow className="h-4 w-4" />
             Workflows ({filteredWorkflows.length})
           </TabsTrigger>
-          <TabsTrigger 
-            value="packs" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 text-xs uppercase tracking-wide"
-          >
-            <Package className="h-3.5 w-3.5 mr-1.5" />
+          <TabsTrigger value="packs" className="gap-2">
+            <Package className="h-4 w-4" />
             Packs ({packTemplates.length})
           </TabsTrigger>
         </TabsList>
         
         {/* Agents Tab */}
-        <TabsContent value="agents" className="space-y-4 mt-6">
+        <TabsContent value="agents" className="space-y-4">
+          <FadeContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredAgents.map((agent) => (
-              <Card key={agent.id} className="flex flex-col border-border/50 hover:border-border transition-colors">
+              <SpotlightCard key={agent.id} className="flex flex-col rounded-md border border-border/50 bg-card">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex h-9 w-9 items-center justify-center rounded bg-muted/50">
@@ -240,16 +232,18 @@ export default function MarketplacePage() {
                     </Link>
                   </div>
                 </CardContent>
-              </Card>
+              </SpotlightCard>
             ))}
           </div>
+          </FadeContent>
         </TabsContent>
         
         {/* Workflows Tab */}
-        <TabsContent value="workflows" className="space-y-4 mt-6">
+        <TabsContent value="workflows" className="space-y-4">
+          <FadeContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredWorkflows.map((workflow) => (
-              <Card key={workflow.id} className="flex flex-col border-border/50 hover:border-border transition-colors">
+              <SpotlightCard key={workflow.id} className="flex flex-col rounded-md border border-border/50 bg-card">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex h-9 w-9 items-center justify-center rounded bg-muted/50">
@@ -291,16 +285,18 @@ export default function MarketplacePage() {
                     </Link>
                   </div>
                 </CardContent>
-              </Card>
+              </SpotlightCard>
             ))}
           </div>
+          </FadeContent>
         </TabsContent>
         
         {/* Packs Tab */}
-        <TabsContent value="packs" className="space-y-4 mt-6">
+        <TabsContent value="packs" className="space-y-4">
+          <FadeContent>
           <div className="grid gap-4 md:grid-cols-2">
             {packTemplates.map((pack) => (
-              <Card key={pack.id} className="border-border/50 hover:border-border transition-colors">
+              <SpotlightCard key={pack.id} className="rounded-md border border-border/50 bg-card">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex h-10 w-10 items-center justify-center rounded bg-muted/50">
@@ -352,9 +348,10 @@ export default function MarketplacePage() {
                     </Link>
                   </div>
                 </CardContent>
-              </Card>
+              </SpotlightCard>
             ))}
           </div>
+          </FadeContent>
         </TabsContent>
       </Tabs>
       </div>

@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { HalftoneBackground } from '@/components/brand/halftone-background'
+import { FadeContent } from '@/components/reactbits/fade-content'
 import { 
   BookOpen, 
   Bot, 
@@ -441,10 +442,7 @@ export default function DocsPage() {
   const currentContent = content[activeItem] || content.introduction
 
   return (
-    <div className="min-h-[calc(100vh-4rem)]">
-      {/* Docs header strip with halftone */}
-      <HalftoneBackground variant="mint" intensity="low" className="h-24" />
-      
+    <HalftoneBackground variant="mintTop" intensity="med" className="min-h-[calc(100vh-4rem)] border-t border-border/50">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
           {/* Sidebar */}
@@ -486,18 +484,20 @@ export default function DocsPage() {
 
           {/* Content */}
           <main>
-            <Card>
-              <CardContent className="p-8">
-                <article className="prose prose-neutral max-w-none dark:prose-invert">
-                  <div className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
-                    {currentContent.content}
-                  </div>
-                </article>
-              </CardContent>
-            </Card>
+            <FadeContent key={activeItem} duration={0.3}>
+              <Card>
+                <CardContent className="p-8">
+                  <article className="prose prose-neutral max-w-none dark:prose-invert">
+                    <div className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
+                      {currentContent.content}
+                    </div>
+                  </article>
+                </CardContent>
+              </Card>
+            </FadeContent>
           </main>
         </div>
       </div>
-    </div>
+    </HalftoneBackground>
   )
 }

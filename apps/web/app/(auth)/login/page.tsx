@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { FadeContent } from '@/components/reactbits/fade-content'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Bot } from 'lucide-react'
@@ -47,6 +48,7 @@ function LoginForm() {
   }
 
   return (
+    <FadeContent>
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-foreground">
@@ -98,6 +100,7 @@ function LoginForm() {
         </CardFooter>
       </form>
     </Card>
+    </FadeContent>
   )
 }
 
