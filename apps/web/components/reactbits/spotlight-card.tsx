@@ -29,7 +29,7 @@ export function SpotlightCard({
     <div
       ref={divRef}
       onMouseMove={handleMouseMove}
-      className={cn('card-spotlight relative overflow-hidden', className)}
+      className={cn('card-spotlight relative overflow-hidden bg-card transition-colors hover:bg-card-hover', className)}
     >
       {children}
     </div>
