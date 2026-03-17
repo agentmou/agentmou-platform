@@ -18,10 +18,13 @@ interface LogoProps {
 
 /**
  * Agentmou brand logo. Use variant to control size across header, footer, and sidebar.
+ * Uses imagotipo_agentmou_dark.png (white text + cyan icon) for visibility on all backgrounds.
  */
 export function Logo({ variant = 'header', className }: LogoProps) {
   const isCollapsed = variant === 'sidebarCollapsed'
-  const src = isCollapsed ? '/isotipo_agentmou_32x32.png' : '/imagotipo_agentmou.svg'
+  const src = isCollapsed
+    ? '/isotipo_agentmou_32x32.png'
+    : '/imagotipo_agentmou_dark.png'
 
   return (
     <img
