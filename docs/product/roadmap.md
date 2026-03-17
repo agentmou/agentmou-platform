@@ -1,9 +1,21 @@
 # Product Roadmap (Execution-Oriented)
 
 This roadmap reflects the current repository state and the architecture
-direction in `whole-initial-context.md`.
+direction in
+[`platform-context-v2.md`](../architecture/platform-context-v2.md).
+
+Near-term execution planning now lives in:
+
+- [`action-plan.md`](./action-plan.md) for program tracks and dependency order
+- [`epic-template.md`](./epic-template.md) for new epic creation
+- the initial epic portfolio linked from `action-plan.md`
 
 ## Completed
+
+The completed phase summaries below are historical milestone notes. They are
+not the canonical live-state verification source. Use
+[`platform-context-v2.md`](../architecture/platform-context-v2.md) for the
+current, code-verified repository truth.
 
 ### Phase 0: Monorepo Bootstrap
 
@@ -76,25 +88,54 @@ direction in `whole-initial-context.md`.
 
 ## Next (Phase 3: Production Hardening)
 
-### 1) Deploy Phase 2.5 to VPS
+The next phase is no longer feature-first. It is baseline-first.
 
-- Rebuild containers, run migrations, add new env vars.
-- Smoke test full stack end-to-end on production.
+### Track 0: Baseline Confidence
 
-### 2) Multi-Tenant Marketplace
+- Fix the current `pnpm test` breakage.
+- Align core payloads with `@agentmou/contracts`.
+- Add runtime validation in the web API client.
 
-- Public agent/workflow publishing.
-- Tenant-scoped connector and secret isolation.
-- RBAC with role-based permissions per tenant.
+### Track 1: Honest Product Surfaces
+
+- Label or limit tenant surfaces that are still stub-backed,
+  empty-default backed, or synthetic.
+- Prefer honest `Preview`, `Read-only`, or `Not yet available` states over
+  misleading production-like screens.
+
+### Track 2: Production Truth
+
+- Verify the live VPS state with the documented deployment and smoke-test
+  workflow.
+- Reconcile roadmap, runbooks, and implementation docs to one verified
+  production statement.
+
+### Track 3: Catalog Convergence
+
+- Keep the demo catalog for marketing and `demo-workspace`.
+- Ensure real tenant behavior depends only on manifest-backed assets and API
+  data.
+
+### Track 4: Controlled Expansion
+
+Start only after Tracks 0-3 are credibly closed.
+
+Recommended order:
+
+1. Multi-tenant marketplace and RBAC
+2. Usage metering and billing
+3. Memory / RAG
+4. Additional connectors
+5. Enterprise hardening
 
 ## Later (Phase 3+)
 
-- Dynamic catalog from manifests with versioning.
-- Usage metering and billing events.
-- Knowledge/memory with pgvector.
-- Enterprise hardening: SSO/SAML, audit export, retention controls.
-- Additional connector providers (Slack, Drive, Salesforce, etc.).
-- Extract shared UI into `packages/ui` when needed.
+- Dynamic catalog growth from manifests with clearer installability semantics
+- Real usage metering and billing events
+- Knowledge and memory with pgvector
+- Additional connector providers (Slack, Drive, Salesforce, etc.)
+- Enterprise hardening: SSO/SAML, audit export, retention controls
+- Shared UI extraction only when cross-app reuse justifies it
 
 ## Risks
 
@@ -105,4 +146,4 @@ direction in `whole-initial-context.md`.
 - Gmail API rate limits (250 quota units/user/sec).
 - Reintroducing a second web domain model (legacy drift).
 - Treating n8n as control-plane source of truth.
-- Scope creep into enterprise features before vertical slice is proven.
+- Scope creep into expansion work before the baseline repair tracks are closed.
