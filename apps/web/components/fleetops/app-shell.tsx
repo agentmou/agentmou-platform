@@ -177,7 +177,7 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
   }
   
   const SidebarContent = () => (
-    <div className="flex h-full flex-col bg-background">
+    <div className="flex h-full flex-col bg-sidebar">
       {/* Logo + Collapse toggle (desktop) - minimal editorial */}
       <div
         role={collapsed ? "button" : undefined}
@@ -302,7 +302,7 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
     <div data-surface="app" className="surface-app flex min-h-screen bg-background">
       {/* Desktop Sidebar - fixed so it stays visible on scroll */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 hidden lg:flex flex-col border-r border-border/50 bg-background transition-all duration-300",
+        "fixed inset-y-0 left-0 z-40 hidden lg:flex flex-col border-r border-border/50 bg-sidebar transition-all duration-300",
         collapsed ? "w-16" : "w-56"
       )}>
         <SidebarContent />
@@ -310,7 +310,7 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
       
       {/* Mobile Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-56 p-0 bg-background">
+        <SheetContent side="left" className="w-56 p-0 bg-sidebar">
           <SidebarContent />
         </SheetContent>
       </Sheet>
@@ -321,7 +321,7 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
         collapsed ? "lg:ml-16" : "lg:ml-56"
       )}>
         {/* Top Bar - minimal editorial */}
-        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border/50 bg-background/95 backdrop-blur-sm px-4 lg:px-6">
+        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border/50 bg-sidebar/95 backdrop-blur-sm px-4 lg:px-6">
           {/* Mobile menu button */}
           <Button
             variant="ghost"

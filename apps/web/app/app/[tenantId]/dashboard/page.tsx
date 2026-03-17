@@ -176,7 +176,7 @@ export default function DashboardPage() {
 
       {/* Attention Required Panel */}
       {hasAttentionItems && (
-        <div className="p-5 border border-border/50 rounded-sm space-y-4">
+        <div className="app-panel p-5 border border-border/50 rounded-sm space-y-4">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-foreground" />
             <h2 className="font-semibold text-sm">Attention Required</h2>
@@ -314,7 +314,7 @@ export default function DashboardPage() {
       {/* Charts */}
       <FadeContent>
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="p-5 border border-border/50 rounded-sm">
+        <div className="app-panel p-5 border border-border/50 rounded-sm">
           <div className="mb-4">
             <p className="font-semibold text-sm">Runs by Day</p>
             <p className="text-xs text-muted-foreground">Execution activity over the past week</p>
@@ -342,7 +342,7 @@ export default function DashboardPage() {
           </ChartContainer>
         </div>
         
-        <div className="p-5 border border-border/50 rounded-sm">
+        <div className="app-panel p-5 border border-border/50 rounded-sm">
           <div className="mb-4">
             <p className="font-semibold text-sm">Cost by Day</p>
             <p className="text-xs text-muted-foreground">Estimated LLM costs over the past week</p>
@@ -382,7 +382,7 @@ export default function DashboardPage() {
       <FadeContent>
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Installed Agents */}
-        <div className="p-5 border border-border/50 rounded-sm">
+        <div className="app-panel p-5 border border-border/50 rounded-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="font-semibold text-sm">Installed Agents</p>
@@ -437,7 +437,7 @@ export default function DashboardPage() {
         </div>
         
         {/* Installed Workflows */}
-        <div className="p-5 border border-border/50 rounded-sm">
+        <div className="app-panel p-5 border border-border/50 rounded-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="font-semibold text-sm">Installed Workflows</p>
@@ -503,7 +503,7 @@ export default function DashboardPage() {
       </FadeContent>
       
       {/* Top Errors */}
-      <div className="p-5 border border-border/50 rounded-sm">
+      <div className="app-panel p-5 border border-border/50 rounded-sm">
         <div className="mb-4">
           <p className="font-semibold text-sm">Top Errors</p>
           <p className="text-xs text-muted-foreground">Most common error types this week</p>
