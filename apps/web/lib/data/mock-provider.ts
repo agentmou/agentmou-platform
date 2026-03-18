@@ -35,6 +35,7 @@ import {
 } from '@/lib/fleetops/read-model';
 
 export const mockProvider: DataProvider = {
+  providerMode: 'mock',
   // Catalog
   listCatalogAgentTemplates: async () => _listCatalogAgentTemplates(),
   listMarketplaceAgentTemplates: async () => _listMarketplaceAgentTemplates(),

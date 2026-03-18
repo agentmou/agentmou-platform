@@ -27,6 +27,8 @@ import type {
   DashboardMetrics,
 } from '@agentmou/contracts';
 
+export type DataProviderMode = 'api' | 'demo' | 'mock';
+
 export interface FleetSecret {
   id: string;
   key: string;
@@ -167,12 +169,17 @@ export interface ConnectorMethods {
   getTenantN8nConnection(tenantId: string): Promise<N8nConnection | null>;
 }
 
+export interface ProviderMetadata {
+  providerMode: DataProviderMode;
+}
+
 // ---------------------------------------------------------------------------
 // Composite DataProvider
 // ---------------------------------------------------------------------------
 
 export interface DataProvider
-  extends CatalogMethods,
+  extends ProviderMetadata,
+    CatalogMethods,
     TenancyMethods,
     InstallationMethods,
     ExecutionMethods,

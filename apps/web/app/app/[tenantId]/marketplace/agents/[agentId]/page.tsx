@@ -1,6 +1,5 @@
 'use client'
 
-import * as React from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,9 +20,11 @@ import {
   Info,
 } from 'lucide-react'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
-import { FadeContent } from '@/components/reactbits/fade-content'
 import { AvailabilityBadge, AudienceBadge, DomainBadge } from '@/components/badges'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
+import { useDataProvider } from '@/lib/data'
+import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
+import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 import type { AgentTemplate, WorkflowTemplate, Integration } from '@agentmou/contracts'
 
 const riskColors = {
@@ -43,6 +44,15 @@ export default function AgentDetailPage() {
   const router = useRouter()
   const tenantId = params.tenantId as string
   const agentId = params.agentId as string
+  const provider = useDataProvider()
+  const installState = resolveHonestSurfaceState('marketplace-install-cta', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
+  const connectState = resolveHonestSurfaceState('marketplace-connect-cta', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
   const { data: agent, isLoading: loadingAgent } = useProviderQuery<AgentTemplate | null>(
     (p) => p.getAgentTemplate(agentId), null, [agentId],
   )
@@ -78,7 +88,6 @@ export default function AgentDetailPage() {
   
   const linkedWorkflows = workflowTemplates.filter(w => agent.workflows.includes(w.id))
   const requiredIntegrations = integrations.filter(i => agent.requiredIntegrations.includes(i.id))
-  const connectedIntegrations = requiredIntegrations.filter(i => i.status === 'connected')
   const missingIntegrations = requiredIntegrations.filter(i => i.status !== 'connected')
   
   return (
@@ -119,12 +128,23 @@ export default function AgentDetailPage() {
             {agent.monthlyPrice ? `$${agent.monthlyPrice}/mo` : 'Free'}
           </div>
           {(agent.availability || 'available') === 'available' ? (
-            <Link href={`/app/${tenantId}/installer/new?agent=${agent.id}`}>
-              <Button size="lg">
-                Install Agent
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+            installState.tone === 'demo' ? (
+              <Link href={`/app/${tenantId}/installer/new?agent=${agent.id}`}>
+                <Button size="lg">
+                  Open Demo Setup
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            ) : (
+              <div className="flex flex-col gap-2 items-end">
+                <Button size="lg" disabled>
+                  Install Preview
+                </Button>
+                <p className="text-xs text-muted-foreground max-w-[220px] text-right">
+                  {installState.description}
+                </p>
+              </div>
+            )
           ) : (
             <div className="flex flex-col gap-2 items-end">
               <Button size="lg" variant="outline" disabled>
@@ -291,9 +311,13 @@ export default function AgentDetailPage() {
           <SpotlightCard className="rounded-lg">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Required Integrations</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-base">Required Integrations</CardTitle>
+                  <HonestSurfaceBadge state={connectState} />
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
+              <HonestSurfaceNotice state={connectState} />
               {requiredIntegrations.map((integration) => {
                 const isConnected = integration.status === 'connected'
                 return (
@@ -302,23 +326,29 @@ export default function AgentDetailPage() {
                     {isConnected ? (
                       <Badge variant="outline" className="text-green-600">
                         <CheckCircle className="h-3 w-3 mr-1" />
-                        Connected
+                        {connectState.tone === 'demo' ? 'Demo ready' : 'Listed as ready'}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-yellow-600">
                         <AlertTriangle className="h-3 w-3 mr-1" />
-                        Required
+                        {connectState.tone === 'demo' ? 'Needs demo setup' : 'Needs setup'}
                       </Badge>
                     )}
                   </div>
                 )
               })}
               {missingIntegrations.length > 0 && (
-                <Link href={`/app/${tenantId}/security`}>
-                  <Button variant="outline" size="sm" className="w-full mt-2">
-                    Connect Integrations
+                connectState.tone === 'demo' ? (
+                  <Link href={`/app/${tenantId}/security`}>
+                    <Button variant="outline" size="sm" className="w-full mt-2">
+                      Open Demo Integrations
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button variant="outline" size="sm" className="w-full mt-2" disabled>
+                    Connections Not Yet Available
                   </Button>
-                </Link>
+                )
               )}
               </CardContent>
             </Card>

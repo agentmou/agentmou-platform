@@ -1,6 +1,5 @@
 'use client'
 
-import * as React from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,8 +17,10 @@ import {
 } from 'lucide-react'
 import { AvailabilityBadge } from '@/components/badges'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
-import { FadeContent } from '@/components/reactbits/fade-content'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
+import { useDataProvider } from '@/lib/data'
+import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
+import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 import type { WorkflowTemplate, Integration } from '@agentmou/contracts'
 
 const riskColors = {
@@ -42,6 +43,15 @@ export default function WorkflowDetailPage() {
   const router = useRouter()
   const tenantId = params.tenantId as string
   const workflowId = params.workflowId as string
+  const provider = useDataProvider()
+  const installState = resolveHonestSurfaceState('marketplace-install-cta', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
+  const connectState = resolveHonestSurfaceState('marketplace-connect-cta', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
   const { data: workflow, isLoading: loadingWorkflow } = useProviderQuery<WorkflowTemplate | null>(
     (p) => p.getWorkflowTemplate(workflowId), null, [workflowId],
   )
@@ -103,18 +113,32 @@ export default function WorkflowDetailPage() {
         </div>
         <div className="flex gap-2">
           {(workflow.availability || 'available') === 'available' ? (
-            <>
-              <Button variant="outline">
+            <div className="flex flex-col gap-2 items-end">
+              <div className="flex gap-2">
+              <Button variant="outline" disabled>
                 <Play className="h-4 w-4 mr-2" />
-                Run Test
+                Testing Not Available
               </Button>
-              <Link href={`/app/${tenantId}/installer/new?workflow=${workflow.id}`}>
-                <Button>
-                  Install Workflow
+              {installState.tone === 'demo' ? (
+                <Link href={`/app/${tenantId}/installer/new?workflow=${workflow.id}`}>
+                  <Button>
+                    Open Demo Setup
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              ) : (
+                <Button disabled>
+                  Install Preview
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-              </Link>
-            </>
+              )}
+              </div>
+              {installState.tone !== 'demo' && (
+                <p className="text-xs text-muted-foreground max-w-[220px] text-right">
+                  {installState.description}
+                </p>
+              )}
+            </div>
           ) : (
             <div className="flex flex-col gap-1 items-end">
               <Button variant="outline" disabled>
@@ -244,14 +268,24 @@ export default function WorkflowDetailPage() {
           <SpotlightCard className="rounded-lg">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Integrations</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-base">Integrations</CardTitle>
+                <HonestSurfaceBadge state={connectState} />
+              </div>
             </CardHeader>
             <CardContent className="space-y-2">
+              <HonestSurfaceNotice state={connectState} />
               {workflowIntegrations.map((integration) => (
                 <div key={integration.id} className="flex items-center justify-between">
                   <span className="text-sm">{integration.name}</span>
                   <Badge variant={integration.status === 'connected' ? 'default' : 'outline'}>
-                    {integration.status}
+                    {integration.status === 'connected'
+                      ? connectState.tone === 'demo'
+                        ? 'Demo ready'
+                        : 'Listed as ready'
+                      : connectState.tone === 'demo'
+                        ? 'Needs demo setup'
+                        : 'Needs setup'}
                   </Badge>
                 </div>
               ))}

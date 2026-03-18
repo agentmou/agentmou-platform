@@ -2,6 +2,7 @@
 
 import { normalizeCategory } from '@/lib/fleetops/category-config'
 import type { DataProvider } from '@/lib/data/provider'
+import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 
 export type SearchItemType = 'navigate' | 'agent' | 'workflow' | 'pack' | 'run' | 'action'
 
@@ -20,21 +21,13 @@ export interface SearchItem {
 const navigationItems: Omit<SearchItem, 'href'>[] = [
   { type: 'navigate', id: 'nav-dashboard', label: 'Dashboard', keywords: ['home', 'overview', 'stats'], icon: 'layout-dashboard', description: 'View workspace overview' },
   { type: 'navigate', id: 'nav-marketplace', label: 'Marketplace', keywords: ['browse', 'agents', 'workflows', 'packs', 'store'], icon: 'store', description: 'Browse agents and workflows' },
-  { type: 'navigate', id: 'nav-installer', label: 'Installer', keywords: ['install', 'new', 'add', 'setup'], icon: 'download', description: 'Install new agents' },
+  { type: 'navigate', id: 'nav-installer', label: 'Installer', keywords: ['install', 'new', 'add', 'setup'], icon: 'download', description: 'Review the installer preview' },
   { type: 'navigate', id: 'nav-fleet', label: 'Fleet', keywords: ['installed', 'my agents', 'my workflows', 'manage'], icon: 'package', description: 'Manage installed agents' },
   { type: 'navigate', id: 'nav-runs', label: 'Runs', keywords: ['executions', 'logs', 'history', 'activity'], icon: 'activity', description: 'View execution history' },
   { type: 'navigate', id: 'nav-approvals', label: 'Approvals', keywords: ['pending', 'hitl', 'review', 'approve', 'reject'], icon: 'check-circle', description: 'Review pending approvals' },
-  { type: 'navigate', id: 'nav-observability', label: 'Observability', keywords: ['metrics', 'monitoring', 'charts', 'analytics'], icon: 'eye', description: 'View metrics and analytics' },
-  { type: 'navigate', id: 'nav-security', label: 'Security', keywords: ['secrets', 'keys', 'rbac', 'audit', 'policies'], icon: 'shield', description: 'Manage security settings' },
+  { type: 'navigate', id: 'nav-observability', label: 'Observability', keywords: ['metrics', 'monitoring', 'charts', 'analytics'], icon: 'eye', description: 'Review recent runs and preview analytics' },
+  { type: 'navigate', id: 'nav-security', label: 'Security', keywords: ['secrets', 'keys', 'rbac', 'audit', 'policies'], icon: 'shield', description: 'Review security access and preview states' },
   { type: 'navigate', id: 'nav-settings', label: 'Settings', keywords: ['config', 'preferences', 'workspace', 'billing'], icon: 'settings', description: 'Workspace settings' },
-]
-
-// Quick actions - mock operations
-const quickActions: Omit<SearchItem, 'href'>[] = [
-  { type: 'action', id: 'action-installer', label: 'Start Installer', keywords: ['install', 'new agent', 'setup'], icon: 'plus', description: 'Begin installing a new agent' },
-  { type: 'action', id: 'action-retry', label: 'Retry Last Failed Run', keywords: ['retry', 'failed', 'rerun'], icon: 'refresh-cw', description: 'Retry the most recent failed execution' },
-  { type: 'action', id: 'action-approve', label: 'Approve Next Request', keywords: ['approve', 'hitl', 'accept'], icon: 'check', description: 'Approve the next pending request' },
-  { type: 'action', id: 'action-test', label: 'Run Workflow Smoke Test', keywords: ['test', 'smoke', 'validate'], icon: 'play', description: 'Run a quick test on workflows' },
 ]
 
 export async function buildSearchIndex(tenantId: string, provider: DataProvider): Promise<SearchItem[]> {
@@ -42,6 +35,13 @@ export async function buildSearchIndex(tenantId: string, provider: DataProvider)
   const marketplaceAgents = await provider.listMarketplaceAgentTemplates()
   const marketplaceWorkflows = await provider.listMarketplaceWorkflowTemplates()
   const packTemplates = await provider.listPackTemplates()
+  const quickActionState = resolveHonestSurfaceState(
+    'command-palette-quick-actions',
+    {
+      providerMode: provider.providerMode,
+      tenantId,
+    },
+  )
   
   // Navigation items with tenant-specific hrefs
   for (const navItem of navigationItems) {
@@ -143,19 +143,59 @@ export async function buildSearchIndex(tenantId: string, provider: DataProvider)
     })
   }
   
-  // Quick actions with tenant-specific hrefs
-  for (const action of quickActions) {
-    let href = `/app/${tenantId}/dashboard`
-    if (action.id === 'action-installer') href = `/app/${tenantId}/installer/new`
-    else if (action.id === 'action-retry') href = `/app/${tenantId}/runs?action=retry-last`
-    else if (action.id === 'action-approve') href = `/app/${tenantId}/approvals?action=approve-next`
-    else if (action.id === 'action-test') href = `/app/${tenantId}/runs?action=smoke-test`
-    
-    items.push({
-      ...action,
-      href,
-    })
-  }
+  const quickActions: SearchItem[] = [
+    {
+      type: 'action',
+      id: 'action-installer',
+      label:
+        quickActionState.tone === 'demo'
+          ? 'Open Demo Installer'
+          : 'Open Installer Preview',
+      keywords: ['installer', 'setup', 'preview', 'demo'],
+      href: `/app/${tenantId}/installer/new`,
+      icon: 'plus',
+      description:
+        quickActionState.tone === 'demo'
+          ? 'Review the guided setup flow in demo mode.'
+          : 'Review the tenant installer without triggering a live install.',
+      category: quickActionState.label,
+    },
+    {
+      type: 'action',
+      id: 'action-approvals',
+      label: 'Review Pending Approvals',
+      keywords: ['approvals', 'review', 'pending', 'hitl'],
+      href: `/app/${tenantId}/approvals`,
+      icon: 'check',
+      description: 'Open the approvals queue for review-only follow-up.',
+      category: quickActionState.label,
+    },
+    {
+      type: 'action',
+      id: 'action-runs',
+      label: 'Inspect Recent Runs',
+      keywords: ['runs', 'errors', 'history', 'review'],
+      href: `/app/${tenantId}/runs`,
+      icon: 'refresh-cw',
+      description: 'Open recent executions instead of retrying anything from here.',
+      category: quickActionState.label,
+    },
+    {
+      type: 'action',
+      id: 'action-security',
+      label: 'Review Security Surface',
+      keywords: ['security', 'secrets', 'audit', 'rbac'],
+      href: `/app/${tenantId}/security`,
+      icon: 'shield',
+      description:
+        quickActionState.tone === 'demo'
+          ? 'Inspect the demo security surface and read-only examples.'
+          : 'Inspect read-only and preview security states for this tenant.',
+      category: quickActionState.label,
+    },
+  ]
+
+  items.push(...quickActions)
   
   return items
 }
@@ -185,7 +225,7 @@ export function groupSearchItems(items: SearchItem[]): Record<string, SearchItem
     'Workflows': [],
     'Packs': [],
     'Runs': [],
-    'Quick Actions': [],
+    'Shortcuts': [],
   }
   
   for (const item of items) {
@@ -206,7 +246,7 @@ export function groupSearchItems(items: SearchItem[]): Record<string, SearchItem
         groups['Runs'].push(item)
         break
       case 'action':
-        groups['Quick Actions'].push(item)
+        groups['Shortcuts'].push(item)
         break
     }
   }

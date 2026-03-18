@@ -19,6 +19,7 @@ function markComingSoonList<T extends { availability?: 'available' | 'planned'; 
 
 export const demoProvider: DataProvider = {
   ...mockProvider,
+  providerMode: 'demo',
   listCatalogAgentTemplates: async () => {
     const agents = await mockProvider.listCatalogAgentTemplates();
     return markComingSoonList(agents);

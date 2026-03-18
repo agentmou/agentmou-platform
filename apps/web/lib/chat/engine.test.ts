@@ -1,0 +1,81 @@
+import { describe, expect, it } from 'vitest'
+
+import { generateResponse } from './engine'
+import type { WorkspaceContextSnapshot } from './types'
+
+const readyContext: WorkspaceContextSnapshot = {
+  workspaceId: 'tenant-acme',
+  workspaceName: 'Acme',
+  workspaceStatus: 'GO_LIVE_READY',
+  workspaceReasons: [],
+  checklistProgress: 4,
+  checklistTotal: 4,
+  pendingTasks: [],
+  installedAgents: [],
+  integrations: [
+    { id: 'slack', name: 'Slack', status: 'connected', missingScopes: [] },
+  ],
+  pendingApprovalsCount: 0,
+  recentErrors: [],
+}
+
+const blockedContext: WorkspaceContextSnapshot = {
+  ...readyContext,
+  workspaceStatus: 'BLOCKED',
+  pendingTasks: [
+    {
+      label: 'Review integrations',
+      description: 'Slack still needs connection details before this setup can move forward.',
+      completed: false,
+    },
+  ],
+  integrations: [
+    { id: 'slack', name: 'Slack', status: 'disconnected', missingScopes: [] },
+  ],
+}
+
+describe('generateResponse', () => {
+  it('keeps public security answers free of unsupported security claims', () => {
+    const response = generateResponse({
+      mode: 'public',
+      userMessage: 'Tell me about your security posture',
+    })
+
+    expect(response.content).toContain('security surfaces today')
+    expect(response.content).not.toContain('SOC 2 Type II')
+    expect(response.content).not.toContain('End-to-end encryption')
+    expect(response.content).not.toContain('automatic rotation')
+  })
+
+  it('treats go-live requests as preview-only in copilot mode', () => {
+    const response = generateResponse({
+      mode: 'copilot',
+      userMessage: 'Can you help me go live?',
+      context: readyContext,
+    })
+
+    expect(response.content).toContain('cannot activate production from chat')
+    expect(response.actions?.some((action) => action.label.includes('Go Live'))).toBe(
+      false,
+    )
+    expect(response.actions?.some((action) => action.label === 'Review Fleet')).toBe(
+      true,
+    )
+  })
+
+  it('points blocked integration issues to review surfaces instead of fake fixes', () => {
+    const response = generateResponse({
+      mode: 'copilot',
+      userMessage: 'Why is this workspace still blocked?',
+      context: blockedContext,
+    })
+
+    expect(response.content).toContain('cannot connect them for you')
+    expect(response.actions).toEqual([
+      {
+        label: 'Review Security Surface',
+        href: '/app/tenant-acme/security',
+      },
+    ])
+  })
+})

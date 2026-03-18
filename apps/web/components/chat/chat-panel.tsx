@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useState, useCallback } from 'react'
-import { Bot, RotateCcw, X, Sparkles, Zap, ArrowLeft } from 'lucide-react'
+import { Bot, RotateCcw, X, Sparkles, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useChatStore } from '@/lib/chat/store'
@@ -9,7 +9,10 @@ import { generateResponseStream } from '@/lib/chat/engine'
 import type { ChatMode, WorkspaceContextSnapshot } from '@/lib/chat/types'
 import { ChatMessageBubble } from './chat-message-bubble'
 import { ChatComposer } from './chat-composer'
+import { ChatQuickPrompts } from './chat-quick-prompts'
 import { ChatTypingIndicator } from './chat-typing-indicator'
+import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
+import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 
 interface ChatPanelProps {
   mode: ChatMode
@@ -22,7 +25,10 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
   const scrollRef = useRef<HTMLDivElement>(null)
   const { messages, isLoading, setIsLoading, addMessage, updateLastAssistantMessage, resetConversation } = useChatStore(mode, workspaceId)
   const [isStreaming, setIsStreaming] = useState(false)
-  const [showChatHistory, setShowChatHistory] = useState(false)
+  const assistantState = resolveHonestSurfaceState('chat-assistant', {
+    providerMode: mode === 'public' ? 'demo' : 'api',
+    tenantId: workspaceId,
+  })
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -55,7 +61,9 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
       }
     } catch (error) {
       console.error('Chat error:', error)
-      updateLastAssistantMessage('Sorry, I encountered an error. Please try again.')
+      updateLastAssistantMessage(
+        'The assistant preview hit an error. Please try again in a moment.',
+      )
     } finally {
       setIsLoading(false)
       setIsStreaming(false)
@@ -80,20 +88,18 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/20">
               <Bot className="h-5 w-5 text-white" />
             </div>
-            {/* Online indicator */}
-            <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-background" />
-            </span>
           </div>
           
           <div>
-            <div className="flex items-center gap-1.5">
-              <h3 className="text-sm font-semibold">Agentmou AI</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold">Agentmou Assistant</h3>
+              <HonestSurfaceBadge state={assistantState} />
               <Sparkles className="h-3 w-3 text-emerald-500" />
             </div>
             <p className="text-xs text-muted-foreground">
-              Ask me anything
+              {mode === 'public'
+                ? 'Demo guidance about the product'
+                : 'Preview guidance for this workspace'}
             </p>
           </div>
         </div>
@@ -103,17 +109,8 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
             variant="ghost"
             size="icon"
             className="h-8 w-8 rounded-lg hover:bg-muted"
-            onClick={() => setShowChatHistory(!showChatHistory)}
-            title="Chat history"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-lg hover:bg-muted"
             onClick={resetConversation}
-            title="New chat"
+            title="Reset preview chat"
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
@@ -143,13 +140,21 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
               </div>
               
               <h4 className="text-base font-semibold mb-1">
-                {mode === 'public' ? 'Welcome to Agentmou' : 'Hey there!'}
+                {mode === 'public'
+                  ? 'Explore the demo assistant'
+                  : 'Review this workspace with the assistant preview'}
               </h4>
               <p className="text-sm text-muted-foreground text-center max-w-[280px]">
                 {mode === 'public'
-                  ? "I'm here to help you discover how AI agents can transform your workflows."
-                  : "I can help you set up agents, troubleshoot issues, or navigate your workspace."}
+                  ? "I can explain the product, show which surfaces are still partial, and point you into the demo workspace."
+                  : "I can summarize blockers, readiness, and available surfaces, but I will not change tenant state from chat."}
               </p>
+              <div className="mt-4 w-full max-w-[320px]">
+                <HonestSurfaceNotice state={assistantState} />
+              </div>
+              <div className="mt-4 w-full max-w-[320px]">
+                <ChatQuickPrompts mode={mode} onSelect={handleQuickPrompt} />
+              </div>
             </div>
           ) : (
             messages.map((message) => (
@@ -163,7 +168,16 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
       </ScrollArea>
 
       {/* Composer */}
-      <ChatComposer onSend={handleSend} disabled={isLoading} />
+      <ChatComposer
+        onSend={handleSend}
+        disabled={isLoading}
+        placeholder={
+          mode === 'public'
+            ? 'Ask about the demo, pricing, or preview surfaces...'
+            : 'Ask about blockers, readiness, or preview surfaces...'
+        }
+        footerHint="Preview replies only. Press Enter to send, Shift+Enter for new line."
+      />
     </div>
   )
 }

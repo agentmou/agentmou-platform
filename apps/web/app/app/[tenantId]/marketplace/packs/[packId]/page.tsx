@@ -1,6 +1,5 @@
 'use client'
 
-import * as React from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,8 +21,10 @@ import {
 import { RiskBadge, IntegrationChip, AvailabilityBadge } from '@/components/badges'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { TiltedCard } from '@/components/reactbits/tilted-card'
-import { FadeContent } from '@/components/reactbits/fade-content'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
+import { useDataProvider } from '@/lib/data'
+import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
+import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 import type { AgentTemplate, WorkflowTemplate, PackTemplate, Integration } from '@agentmou/contracts'
 
 export default function PackDetailPage() {
@@ -31,6 +32,15 @@ export default function PackDetailPage() {
   const router = useRouter()
   const tenantId = params.tenantId as string
   const packId = params.packId as string
+  const provider = useDataProvider()
+  const installState = resolveHonestSurfaceState('marketplace-install-cta', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
+  const connectState = resolveHonestSurfaceState('marketplace-connect-cta', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
   const { data: pack, isLoading: loadingPack } = useProviderQuery<PackTemplate | null>(
     (p) => p.getPackTemplate(packId), null, [packId],
   )
@@ -85,7 +95,6 @@ export default function PackDetailPage() {
   includedWorkflowDetails.forEach(w => w.integrations.forEach(i => allRequiredIntegrations.add(i)))
   
   const requiredIntegrationDetails = integrations.filter(i => allRequiredIntegrations.has(i.id))
-  const connectedIntegrations = requiredIntegrationDetails.filter(i => i.status === 'connected')
   const missingIntegrations = requiredIntegrationDetails.filter(i => i.status !== 'connected')
   
   // Check if any agents/workflows are planned (not available)
@@ -124,12 +133,23 @@ export default function PackDetailPage() {
           <div className="text-2xl font-bold">
             {pack.monthlyPrice ? `$${pack.monthlyPrice}/mo` : 'Free'}
           </div>
-          <Link href={`/app/${tenantId}/installer/new?pack=${pack.slug}`}>
-            <Button size="lg">
-              Install Pack
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+          {installState.tone === 'demo' ? (
+            <Link href={`/app/${tenantId}/installer/new?pack=${pack.slug}`}>
+              <Button size="lg">
+                Open Demo Setup
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          ) : (
+            <div className="flex flex-col gap-2 items-end">
+              <Button size="lg" disabled>
+                Install Preview
+              </Button>
+              <p className="text-xs text-muted-foreground max-w-[220px] text-right">
+                {installState.description}
+              </p>
+            </div>
+          )}
           {hasPlannedItems && (
             <p className="text-xs text-muted-foreground max-w-[200px] text-right">
               Some items in this pack are coming soon
@@ -292,9 +312,13 @@ export default function PackDetailPage() {
           <SpotlightCard className="rounded-lg h-full">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Required Integrations ({requiredIntegrationDetails.length})</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-base">Required Integrations ({requiredIntegrationDetails.length})</CardTitle>
+                <HonestSurfaceBadge state={connectState} />
+              </div>
             </CardHeader>
             <CardContent className="space-y-3">
+              <HonestSurfaceNotice state={connectState} />
               {requiredIntegrationDetails.map((integration) => {
                 const isConnected = integration.status === 'connected'
                 return (
@@ -303,23 +327,29 @@ export default function PackDetailPage() {
                     {isConnected ? (
                       <Badge variant="outline" className="text-green-600">
                         <CheckCircle className="h-3 w-3 mr-1" />
-                        Connected
+                        {connectState.tone === 'demo' ? 'Demo ready' : 'Listed as ready'}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-yellow-600">
                         <AlertTriangle className="h-3 w-3 mr-1" />
-                        Required
+                        {connectState.tone === 'demo' ? 'Needs demo setup' : 'Needs setup'}
                       </Badge>
                     )}
                   </div>
                 )
               })}
               {missingIntegrations.length > 0 && (
-                <Link href={`/app/${tenantId}/security`}>
-                  <Button variant="outline" size="sm" className="w-full mt-2">
-                    Connect Integrations
+                connectState.tone === 'demo' ? (
+                  <Link href={`/app/${tenantId}/security`}>
+                    <Button variant="outline" size="sm" className="w-full mt-2">
+                      Open Demo Integrations
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button variant="outline" size="sm" className="w-full mt-2" disabled>
+                    Connections Not Yet Available
                   </Button>
-                </Link>
+                )
               )}
             </CardContent>
           </Card>
