@@ -24,6 +24,8 @@ or workflows itself.
 - Switch between `apiProvider` and `demoProvider` so real tenants use backend
   data while `demo-workspace` stays read-only and can show `planned` as
   `Coming soon`.
+- Apply honest product labels for tenant surfaces that are still preview,
+  read-only, demo, or not yet available.
 
 ## How It Fits Into The System
 
@@ -70,6 +72,8 @@ pnpm --filter @agentmou/web start
 - `lib/api/client.ts` contains typed fetchers for tenants, catalog, runs, approvals, connectors, and installations.
 - `lib/data/api-provider.ts` adapts the real API to the `DataProvider` interface.
 - `lib/data/demo-provider.ts` powers `demo-workspace` with read-only demo data.
+- `lib/honest-ui/audit.ts` is the authoritative audit map for placeholder,
+  preview, and demo tenant surfaces.
 - `lib/marketing/public-catalog.ts` loads real public catalog assets for
   marketing pages using API-first loading with resilient fallback.
 - `lib/auth/store.ts` owns login, registration, cookie hydration, and active-tenant selection.
@@ -100,4 +104,5 @@ other workspaces.
 
 - [Web App Architecture](../../docs/architecture/apps-web.md)
 - [Current Implementation vs Target Plan](../../docs/architecture/current-implementation.md)
+- [Honest UI Audit — March 2026](../../docs/architecture/honest-ui-audit-2026-03.md)
 - [Monorepo Map](../../docs/architecture/monorepo-map.md)
