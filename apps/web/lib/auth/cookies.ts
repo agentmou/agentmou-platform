@@ -15,5 +15,5 @@ export function removeTokenCookie() {
   document.cookie = `${TOKEN_KEY}=; path=/; max-age=0`;
 }
 
-/** Name used by Next.js middleware to read the cookie on the edge. */
+/** Name used by Next.js proxy to read the cookie on the edge. */
 export const TOKEN_COOKIE_NAME = TOKEN_KEY;

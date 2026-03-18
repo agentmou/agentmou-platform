@@ -72,7 +72,7 @@ export function ChatWidget({ mode, workspaceId, contextSnapshot }: ChatWidgetPro
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className={cn(
-            "relative flex h-16 w-16 items-center justify-center rounded-full transition-all duration-300",
+            "relative flex h-14 w-14 items-center justify-center rounded-full transition-all duration-300",
             "shadow-lg hover:shadow-xl",
             isOpen
               ? "bg-muted text-muted-foreground"
@@ -91,11 +91,11 @@ export function ChatWidget({ mode, workspaceId, contextSnapshot }: ChatWidgetPro
             transition={{ duration: 0.2 }}
           >
             {isOpen ? (
-              <X className="h-7 w-7" />
+              <X className="h-6 w-6" />
             ) : (
               <div className="relative">
-                <MessageCircle className="h-7 w-7" />
-                <Sparkles className="absolute -right-1 -bottom-1 h-3 w-3 text-yellow-300" />
+                <MessageCircle className="h-6 w-6" />
+                <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-2.5 w-2.5 text-yellow-300" />
               </div>
             )}
           </motion.div>

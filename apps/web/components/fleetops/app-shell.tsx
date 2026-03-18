@@ -13,10 +13,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Kbd } from '@/components/ui/kbd'
 import {
+  Activity,
   LayoutDashboard,
   Store,
   Download,
@@ -61,7 +68,7 @@ const navSections = [
   {
     label: 'Operations',
     items: [
-      { href: '/runs', label: 'Runs', icon: Eye },
+      { href: '/runs', label: 'Runs', icon: Activity },
       { href: '/observability', label: 'Observability', icon: Eye },
     ],
   },
@@ -280,8 +287,8 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
         </nav>
       </ScrollArea>
       
-      {/* Settings - outlined button at bottom (SaaS style) */}
-      <div className="border-t border-border/50 p-3">
+      {/* Settings - bottom of sidebar */}
+      <div className="border-t border-border/50 p-3 flex flex-col gap-2">
         <Link href={`/app/${tenantId}/settings`} onClick={() => setMobileOpen(false)}>
           <Button
             variant="outline"
@@ -311,6 +318,10 @@ export function FleetOpsShell({ children }: AgentmouShellProps) {
       {/* Mobile Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="w-56 p-0 bg-sidebar">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Navigation menu</SheetTitle>
+            <SheetDescription>Main navigation sidebar.</SheetDescription>
+          </SheetHeader>
           <SidebarContent />
         </SheetContent>
       </Sheet>

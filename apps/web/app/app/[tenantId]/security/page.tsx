@@ -124,7 +124,6 @@ export default function SecurityPage() {
 
         {/* Secrets Tab */}
         <TabsContent value="secrets" className="space-y-4">
-          <SpotlightCard>
           <Card className="border-border/50">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -260,7 +259,6 @@ export default function SecurityPage() {
               </Table>
             </CardContent>
           </Card>
-          </SpotlightCard>
         </TabsContent>
 
         {/* RBAC Tab */}

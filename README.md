@@ -4,23 +4,26 @@ AgentMou is a monorepo for an AI agents platform with a tenant control
 plane, workflow orchestration via n8n, and runtime execution
 infrastructure.
 
-The architecture direction is defined in
-[`whole-initial-context.md`](./whole-initial-context.md).
+The current, code-verified architecture context is documented in
+[`docs/architecture/platform-context-v2.md`](./docs/architecture/platform-context-v2.md).
+
+[`whole-initial-context.md`](./whole-initial-context.md) is preserved as the
+historical baseline that shaped the original direction.
 
 ## Current Status
 
-**Phase 1 complete.** The platform has a real control plane with database
-persistence:
+**Early vertical slice with mixed maturity.**
 
-- `services/api`: 8 modules with real Drizzle ORM persistence (tenants,
-  memberships, catalog, installations, connectors, secrets, runs,
-  approvals).
-- `services/worker`: BullMQ workers initialized, install-pack job works
-  end-to-end.
-- `packages/auth`: JWT + password hashing, register/login/me endpoints.
-- `apps/web`: typed API client ready; pages still use mock data
-  (migration in progress).
-- Testing: 25 tests across 3 packages.
+- `implemented`: monorepo structure, real auth and tenancy persistence,
+  manifest-backed catalog loading, BullMQ worker queues, Gmail OAuth,
+  first runtime slice, and n8n workflow provisioning paths.
+- `partial`: authenticated web app routes use the real API, but demo/mock
+  inventory and empty-default fallback paths still exist in the web layer.
+- `stub` or `planned`: billing, usage, security, parts of observability,
+  richer memory/RAG, and enterprise hardening.
+- Validation on March 17, 2026: `pnpm typecheck` passes; `pnpm test`
+  currently fails in `@agentmou/api` because Vitest resolves a missing
+  `services/api/node_modules/vitest/vitest.mjs`.
 
 ## Monorepo Structure
 
@@ -38,16 +41,16 @@ agentmou-platform/
 │  ├─ queue/              # BullMQ queue names + typed job payloads
 │  ├─ auth/               # JWT + password hashing
 │  ├─ catalog-sdk/        # Manifest loader/validator
-│  ├─ agent-engine/       # Agent runtime engine (scaffold)
-│  ├─ connectors/         # Connector abstractions (scaffold)
-│  ├─ n8n-client/         # n8n REST API adapter (scaffold)
+│  ├─ agent-engine/       # Agent runtime engine (first real vertical slice)
+│  ├─ connectors/         # Connector abstractions + Gmail implementation
+│  ├─ n8n-client/         # n8n REST API adapter
 │  ├─ observability/      # Structured logging (Pino) + tracing
 │  └─ ui/                 # Shared UI (placeholder)
 ├─ catalog/               # Versioned agent and pack manifests
 ├─ workflows/             # Versioned workflow assets (public/planned)
 ├─ infra/                 # Docker Compose, Traefik, scripts, backups
 ├─ docs/                  # Architecture, ADRs, roadmap, runbooks
-└─ whole-initial-context.md  # Architecture source of truth
+└─ whole-initial-context.md  # Historical architecture baseline
 ```
 
 ## Prerequisites
@@ -69,7 +72,8 @@ docker compose -f infra/compose/docker-compose.local.yml up -d
 pnpm db:migrate
 pnpm db:seed
 
-# Verify the codebase
+# Run the main repository checks
+# See the validation snapshot above for the currently verified status.
 pnpm typecheck
 pnpm build
 pnpm lint
@@ -87,7 +91,7 @@ pnpm dev
 | `pnpm build` | Build all packages/apps |
 | `pnpm typecheck` | TypeScript checks (13 packages) |
 | `pnpm lint` | ESLint (12 packages) |
-| `pnpm test` | Vitest (6 packages, 25 tests) |
+| `pnpm test` | Run package test scripts via Turbo |
 | `pnpm format` | Prettier formatting |
 | `pnpm db:generate` | Generate Drizzle migrations |
 | `pnpm db:migrate` | Apply migrations |
@@ -108,6 +112,7 @@ pnpm dev
 
 ### Architecture
 
+- [Platform Context v2.0](./docs/architecture/platform-context-v2.md)
 - [Architecture Overview](./docs/architecture/overview.md)
 - [Monorepo Map](./docs/architecture/monorepo-map.md)
 - [Current Implementation vs Target Plan](./docs/architecture/current-implementation.md)
@@ -131,6 +136,7 @@ pnpm dev
 
 ### Product
 
+- [Program Action Plan](./docs/product/action-plan.md)
 - [Product Roadmap](./docs/product/roadmap.md)
 
 ### Operations
@@ -140,7 +146,9 @@ pnpm dev
 
 ## Development Guidance
 
-- Keep `whole-initial-context.md` as the architecture source of truth.
+- Use `docs/architecture/platform-context-v2.md` as the operational
+  architecture source of truth.
+- Keep `whole-initial-context.md` as the historical baseline.
 - Define shared domain types in `@agentmou/contracts` first.
 - API services import `db` from `@agentmou/db` — no mock data in services.
 - Use `@agentmou/queue` for job definitions shared between API and worker.

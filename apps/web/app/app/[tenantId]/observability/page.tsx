@@ -314,7 +314,7 @@ router.push(`/app/${tenantId}/runs?agentId=${agentId}`)
           <CardContent>
             <ChartContainer
               config={{
-                count: { label: 'Runs', color: 'hsl(var(--chart-1))' },
+                count: { label: 'Runs', color: 'var(--chart-1)' },
               }}
               className="h-[250px]"
             >
@@ -405,7 +405,7 @@ className="cursor-pointer"
         <CardContent>
           <ChartContainer
             config={{
-              cost: { label: 'Cost ($)', color: 'hsl(var(--chart-2))' },
+              cost: { label: 'Cost ($)', color: 'var(--chart-2)' },
             }}
             className="h-[200px]"
           >

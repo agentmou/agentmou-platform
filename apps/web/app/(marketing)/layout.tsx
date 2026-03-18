@@ -5,6 +5,7 @@ import { ChatWidget } from '@/components/chat'
 import { MinimalButton } from '@/components/ui/minimal-button'
 import { ArrowRight } from 'lucide-react'
 import { Logo } from '@/components/brand'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { DataProviderContext, mockProvider } from '@/lib/data'
 
 export default function MarketingLayout({
@@ -14,9 +15,9 @@ export default function MarketingLayout({
 }) {
   return (
     <DataProviderContext.Provider value={mockProvider}>
-    <div data-surface="marketing" className="surface-marketing min-h-screen bg-background">
+    <div data-surface="marketing" className="surface-marketing min-h-screen bg-[var(--marketing-bg-base)]">
       {/* Header - minimal editorial */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[var(--marketing-bg-base)]/95 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6 lg:px-8">
           <Link href="/" className="flex items-center group transition-transform group-hover:scale-[1.02]">
             <Logo variant="header" />
@@ -44,6 +45,7 @@ export default function MarketingLayout({
           </nav>
           
           <div className="flex items-center gap-4">
+            <ThemeToggle variant="icon" className="size-8" />
             <Link href="/login">
               <MinimalButton variant="text" size="sm" className="text-editorial-tiny">
                 Sign in
@@ -64,7 +66,7 @@ export default function MarketingLayout({
       <main className="pt-14">{children}</main>
       
       {/* Footer - minimal editorial */}
-      <footer className="border-t border-border/50 mt-8">
+      <footer className="border-t border-border/50 mt-8 bg-[var(--marketing-bg-base)]">
         <div className="mx-auto max-w-7xl px-6 lg:px-8 pt-16 pb-6">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
             <div className="col-span-2 md:col-span-1">
@@ -121,7 +123,7 @@ export default function MarketingLayout({
       </footer>
 
       {/* Footer brand - Agentmou outline + gradient */}
-      <footer className="footer">
+      <footer className="footer bg-[var(--marketing-bg-base)]">
         <div className="footer-brand">Agentmou</div>
         <div className="footer-gradient" aria-hidden />
       </footer>

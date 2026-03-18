@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { useTheme } from 'next-themes'
 
 type LogoVariant = 'header' | 'footer' | 'sidebar' | 'sidebarCollapsed'
 
@@ -18,13 +20,26 @@ interface LogoProps {
 
 /**
  * Agentmou brand logo. Use variant to control size across header, footer, and sidebar.
- * Uses imagotipo_agentmou_dark.png (white text + cyan icon) for visibility on all backgrounds.
+ * Switches between imagotipo_agentmou_dark.png (dark mode) and imagotipo_agentmou.svg (light mode).
+ * Uses mounted state to avoid hydration mismatch (resolvedTheme differs between server and client).
  */
 export function Logo({ variant = 'header', className }: LogoProps) {
+  const [mounted, setMounted] = useState(false)
+  const { resolvedTheme } = useTheme()
   const isCollapsed = variant === 'sidebarCollapsed'
+  const isDark = resolvedTheme === 'dark'
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const src = isCollapsed
     ? '/isotipo_agentmou_32x32.png'
-    : '/imagotipo_agentmou_dark.png'
+    : !mounted
+      ? '/imagotipo_agentmou.svg'
+      : isDark
+        ? '/imagotipo_agentmou_dark.png'
+        : '/imagotipo_agentmou.svg'
 
   return (
     <img
