@@ -50,7 +50,15 @@ export type {
   InstallRun,
 } from './installations';
 
-export type { ExecutionStatus, ExecutionStep, ExecutionRun } from './execution';
+export type {
+  ExecutionStatus,
+  ExecutionStepType,
+  ExecutionStep,
+  ExecutionRun,
+  ExecutionRunsResponse,
+  ExecutionRunResponse,
+  ExecutionRunLogsResponse,
+} from './execution';
 
 export type {
   ApprovalActionType,

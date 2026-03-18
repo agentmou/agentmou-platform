@@ -57,6 +57,9 @@ export {
   ExecutionStepSchema,
   TriggerTypeSchema,
   ExecutionRunSchema,
+  ExecutionRunsResponseSchema,
+  ExecutionRunResponseSchema,
+  ExecutionRunLogsResponseSchema,
 } from './execution';
 
 export {

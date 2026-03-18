@@ -43,7 +43,7 @@ export async function processRunWorkflow(job: Job<RunWorkflowPayload>) {
 
     await db.insert(executionSteps).values({
       runId,
-      type: 'n8n-execution',
+      type: 'n8n_execution',
       name: `Execute workflow ${installation.templateId}`,
       status: 'running',
       input: input || {},
@@ -63,7 +63,7 @@ export async function processRunWorkflow(job: Job<RunWorkflowPayload>) {
     await db
       .update(executionSteps)
       .set({
-        status: result.finished ? 'completed' : 'running',
+        status: result.finished ? 'success' : 'running',
         output: result.data || {},
         durationMs,
         completedAt: result.finished ? completedAt : undefined,

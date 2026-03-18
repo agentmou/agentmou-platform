@@ -5,7 +5,11 @@ import {
   TenantsResponseSchema,
   TenantMembersResponseSchema,
   InstallationsResponseSchema,
+  ExecutionStepSchema,
   ExecutionRunSchema,
+  ExecutionRunsResponseSchema,
+  ExecutionRunResponseSchema,
+  ExecutionRunLogsResponseSchema,
   ApprovalRequestSchema,
   ApprovalRequestsResponseSchema,
   ConnectorsResponseSchema,
@@ -110,6 +114,7 @@ describe('ExecutionRunSchema', () => {
   const validRun = {
     id: 'run-1',
     tenantId: 'tenant-1',
+    agentId: 'agent-inbox-triage',
     status: 'success',
     startedAt: '2024-01-01T00:00:00Z',
     durationMs: 1200,
@@ -130,6 +135,55 @@ describe('ExecutionRunSchema', () => {
     expect(() =>
       ExecutionRunSchema.parse({ ...validRun, status: 'unknown' }),
     ).toThrow();
+  });
+
+  it('normalizes legacy execution values', () => {
+    const result = ExecutionRunSchema.parse({
+      ...validRun,
+      status: 'completed',
+      timeline: [
+        {
+          id: 'step-1',
+          type: 'n8n-execution',
+          name: 'Execute workflow',
+          status: 'completed',
+          startedAt: '2024-01-01T00:00:00Z',
+        },
+      ],
+    });
+
+    expect(result.status).toBe('success');
+    expect(result.timeline[0]).toMatchObject({
+      type: 'n8n_execution',
+      status: 'success',
+    });
+  });
+
+  it('parses execution response envelopes', () => {
+    expect(
+      ExecutionRunsResponseSchema.parse({ runs: [validRun] }).runs,
+    ).toHaveLength(1);
+    expect(
+      ExecutionRunResponseSchema.parse({ run: validRun }).run.id,
+    ).toBe('run-1');
+    expect(
+      ExecutionRunLogsResponseSchema.parse({ logs: ['log-1'] }).logs,
+    ).toEqual(['log-1']);
+  });
+});
+
+describe('ExecutionStepSchema', () => {
+  it('accepts canonical execution step types', () => {
+    const result = ExecutionStepSchema.parse({
+      id: 'step-1',
+      type: 'agent_invoke',
+      name: 'Generate answer',
+      status: 'success',
+      startedAt: '2024-01-01T00:00:00Z',
+      output: { subject: 'hello' },
+    });
+
+    expect(result.type).toBe('agent_invoke');
   });
 });
 

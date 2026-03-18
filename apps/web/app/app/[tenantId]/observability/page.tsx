@@ -60,6 +60,7 @@ const statusColors = {
   pending_approval: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
   rejected: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
   timeout: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+  skipped: 'bg-gray-100 text-gray-600 dark:bg-gray-900 dark:text-gray-300',
 }
 
 const statusIcons = {
@@ -70,6 +71,7 @@ const statusIcons = {
   pending_approval: Clock,
   rejected: XCircle,
   timeout: Clock,
+  skipped: Clock,
 }
 
 const COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#eab308']

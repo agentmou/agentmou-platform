@@ -184,7 +184,7 @@ export class AgentEngine {
         }
       }
 
-      await this.logger.completeRun(runId, 'completed', {
+      await this.logger.completeRun(runId, 'success', {
         tokensUsed: totalTokens,
         costEstimate: totalCost,
       });
