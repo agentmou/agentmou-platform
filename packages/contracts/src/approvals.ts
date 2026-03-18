@@ -24,10 +24,10 @@ export type ApprovalActionType = z.infer<typeof ApprovalActionTypeSchema>;
 export const ApprovalStatusSchema = z.enum(['pending', 'approved', 'rejected']);
 
 export const ApprovalContextSchema = z.object({
-  inputs: z.record(z.unknown()),
-  sources: z.array(z.string()),
+  inputs: z.record(z.string(), z.unknown()).optional(),
+  sources: z.array(z.string()).optional(),
   previousMessages: z.array(z.string()).optional(),
-});
+}).catchall(z.unknown());
 
 export const ApprovalRequestSchema = z.object({
   id: z.string(),
@@ -37,8 +37,8 @@ export const ApprovalRequestSchema = z.object({
   actionType: ApprovalActionTypeSchema,
   riskLevel: RiskLevelSchema,
   title: z.string(),
-  description: z.string(),
-  payloadPreview: z.record(z.unknown()),
+  description: z.string().default(''),
+  payloadPreview: z.unknown(),
   context: ApprovalContextSchema,
   status: ApprovalStatusSchema,
   requestedAt: z.string(),
@@ -48,3 +48,17 @@ export const ApprovalRequestSchema = z.object({
 });
 
 export type ApprovalRequest = z.infer<typeof ApprovalRequestSchema>;
+
+export const ApprovalRequestsResponseSchema = z.object({
+  approvals: z.array(ApprovalRequestSchema),
+});
+
+export type ApprovalRequestsResponse = z.infer<
+  typeof ApprovalRequestsResponseSchema
+>;
+
+export const ApprovalResponseSchema = z.object({
+  approval: ApprovalRequestSchema,
+});
+
+export type ApprovalResponse = z.infer<typeof ApprovalResponseSchema>;

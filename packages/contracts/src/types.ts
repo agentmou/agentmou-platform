@@ -38,7 +38,12 @@ export type {
 
 export type { ExecutionStatus, ExecutionStep, ExecutionRun } from './execution';
 
-export type { ApprovalActionType, ApprovalRequest } from './approvals';
+export type {
+  ApprovalActionType,
+  ApprovalRequest,
+  ApprovalRequestsResponse,
+  ApprovalResponse,
+} from './approvals';
 
 export type { IntegrationStatus, Integration, N8nConnection } from './connectors';
 

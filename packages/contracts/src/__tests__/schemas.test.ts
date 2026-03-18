@@ -7,6 +7,7 @@ import {
   InstalledAgentSchema,
   ExecutionRunSchema,
   ApprovalRequestSchema,
+  ApprovalRequestsResponseSchema,
   SecurityFindingSchema,
   InvoiceSchema,
   CategorySchema,
@@ -141,6 +142,51 @@ describe('ApprovalRequestSchema', () => {
       requestedAt: '2024-01-01T00:00:00Z',
     });
     expect(result.status).toBe('pending');
+  });
+
+  it('normalizes optional approval fields without widening the contract', () => {
+    const result = ApprovalRequestSchema.parse({
+      id: 'appr-2',
+      tenantId: 'tenant-1',
+      runId: 'run-1',
+      agentId: 'inbox-triage',
+      actionType: 'create_ticket',
+      riskLevel: 'low',
+      title: 'Create support ticket',
+      payloadPreview: ['case-1'],
+      context: {
+        sources: ['crm'],
+        traceId: 'trace-1',
+      },
+      status: 'pending',
+      requestedAt: '2024-01-01T00:00:00Z',
+    });
+
+    expect(result.description).toBe('');
+    expect(result.payloadPreview).toEqual(['case-1']);
+    expect(result.context.traceId).toBe('trace-1');
+  });
+
+  it('parses approval response envelopes', () => {
+    const result = ApprovalRequestsResponseSchema.parse({
+      approvals: [
+        {
+          id: 'appr-3',
+          tenantId: 'tenant-1',
+          runId: 'run-1',
+          agentId: 'inbox-triage',
+          actionType: 'send_email',
+          riskLevel: 'medium',
+          title: 'Send campaign',
+          payloadPreview: { to: 'ops@example.com' },
+          context: {},
+          status: 'pending',
+          requestedAt: '2024-01-01T00:00:00Z',
+        },
+      ],
+    });
+
+    expect(result.approvals).toHaveLength(1);
   });
 });
 

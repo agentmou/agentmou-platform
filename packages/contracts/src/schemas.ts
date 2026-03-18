@@ -57,6 +57,8 @@ export {
   ApprovalStatusSchema,
   ApprovalContextSchema,
   ApprovalRequestSchema,
+  ApprovalRequestsResponseSchema,
+  ApprovalResponseSchema,
 } from './approvals';
 
 export {
