@@ -6,8 +6,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { MinimalButton } from '@/components/ui/minimal-button'
 import { HalftoneBackground } from '@/components/brand/halftone-background'
 import { FadeContent } from '@/components/reactbits/fade-content'
-import { SpotlightCard } from '@/components/reactbits/spotlight-card'
-
+import { TiltedCard } from '@/components/reactbits/tilted-card'
 const plans = [
   {
     name: 'Starter',
@@ -126,8 +125,9 @@ export default function PricingPage() {
         <div className="mt-20 grid gap-8 lg:grid-cols-3">
           {plans.map((plan, i) => (
             <FadeContent key={plan.name} delay={i * 0.1}>
-              <SpotlightCard
-                className={`relative h-full rounded-md border ${
+              <TiltedCard className="h-full">
+              <div
+                className={`relative h-full rounded-md border bg-card ${
                   plan.highlight ? 'border-foreground' : 'border-border/50'
                 }`}
               >
@@ -170,7 +170,8 @@ export default function PricingPage() {
                     </MinimalButton>
                   </Link>
                 </div>
-              </SpotlightCard>
+              </div>
+              </TiltedCard>
             </FadeContent>
           ))}
         </div>

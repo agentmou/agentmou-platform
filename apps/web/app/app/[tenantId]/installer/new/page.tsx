@@ -183,17 +183,12 @@ export default function InstallerWizardPage() {
 
   return (
     <div className="p-6 lg:p-8 space-y-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between max-w-4xl">
-        <div>
-          <p className="text-editorial-tiny mb-2">Installer</p>
-          <h1 className="text-2xl font-bold tracking-tight">Install New</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Set up agents and workflows in a few simple steps.
-          </p>
-        </div>
-        <Button variant="ghost" onClick={() => router.back()}>
-          Cancel
-        </Button>
+      <div>
+        <p className="text-editorial-tiny mb-2">Installer</p>
+        <h1 className="text-2xl font-bold tracking-tight">Install New</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Set up agents and workflows in a few simple steps.
+        </p>
       </div>
 
       <div className="max-w-4xl space-y-6">

@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { HalftoneBackground } from '@/components/brand/halftone-background'
 import { FadeContent } from '@/components/reactbits/fade-content'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
+import { TiltedCard } from '@/components/reactbits/tilted-card'
 import { 
   Shield, 
   Lock, 
@@ -131,6 +132,7 @@ export default function SecurityPage() {
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {capabilities.map((capability, i) => (
                 <FadeContent key={capability.title} delay={i * 0.05}>
+                  <TiltedCard className="h-full">
                   <SpotlightCard className="h-full rounded-md border border-border/50 bg-card">
                     <Card className="border-0 shadow-none bg-transparent">
                       <CardHeader className="pb-2">
@@ -160,6 +162,7 @@ export default function SecurityPage() {
                       </CardContent>
                     </Card>
                   </SpotlightCard>
+                  </TiltedCard>
                 </FadeContent>
               ))}
             </div>

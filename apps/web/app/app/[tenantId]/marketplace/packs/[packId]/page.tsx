@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { RiskBadge, IntegrationChip, AvailabilityBadge } from '@/components/badges'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
+import { TiltedCard } from '@/components/reactbits/tilted-card'
 import { FadeContent } from '@/components/reactbits/fade-content'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import type { AgentTemplate, WorkflowTemplate, PackTemplate, Integration } from '@agentmou/contracts'
@@ -143,7 +144,8 @@ export default function PackDetailPage() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* KPIs */}
-          <SpotlightCard className="rounded-lg">
+          <TiltedCard className="h-full">
+          <SpotlightCard className="rounded-lg h-full">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -166,9 +168,11 @@ export default function PackDetailPage() {
             </CardContent>
           </Card>
           </SpotlightCard>
+          </TiltedCard>
           
           {/* Included Agents */}
-          <SpotlightCard className="rounded-lg">
+          <TiltedCard className="h-full">
+          <SpotlightCard className="rounded-lg h-full">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -204,9 +208,11 @@ export default function PackDetailPage() {
             </CardContent>
           </Card>
           </SpotlightCard>
+          </TiltedCard>
           
           {/* Included Workflows */}
-          <SpotlightCard className="rounded-lg">
+          <TiltedCard className="h-full">
+          <SpotlightCard className="rounded-lg h-full">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -242,12 +248,14 @@ export default function PackDetailPage() {
             </CardContent>
           </Card>
           </SpotlightCard>
+          </TiltedCard>
         </div>
         
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Quick Info */}
-          <SpotlightCard className="rounded-lg">
+          <TiltedCard className="h-full">
+          <SpotlightCard className="rounded-lg h-full">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Quick Info</CardTitle>
@@ -277,9 +285,11 @@ export default function PackDetailPage() {
             </CardContent>
           </Card>
           </SpotlightCard>
+          </TiltedCard>
           
           {/* Required Integrations */}
-          <SpotlightCard className="rounded-lg">
+          <TiltedCard className="h-full">
+          <SpotlightCard className="rounded-lg h-full">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Required Integrations ({requiredIntegrationDetails.length})</CardTitle>
@@ -314,9 +324,11 @@ export default function PackDetailPage() {
             </CardContent>
           </Card>
           </SpotlightCard>
+          </TiltedCard>
           
           {/* All Integrations Summary */}
-          <SpotlightCard className="rounded-lg">
+          <TiltedCard className="h-full">
+          <SpotlightCard className="rounded-lg h-full">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Integration Summary</CardTitle>
@@ -330,6 +342,7 @@ export default function PackDetailPage() {
             </CardContent>
           </Card>
           </SpotlightCard>
+          </TiltedCard>
         </div>
       </div>
     </div>

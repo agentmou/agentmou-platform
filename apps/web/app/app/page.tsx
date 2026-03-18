@@ -6,7 +6,7 @@ import { useAuthStore } from '@/lib/auth/store'
 
 /**
  * /app entry point — redirects authenticated users to their first tenant dashboard.
- * Falls back to demo-workspace for unauthenticated visits (middleware will redirect
+ * Falls back to demo-workspace for unauthenticated visits (proxy will redirect
  * to /login if there's no token cookie, so this only runs for logged-in users).
  */
 export default function AppPage() {
