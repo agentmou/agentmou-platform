@@ -117,7 +117,7 @@ export default function WorkflowDetailPage() {
               <div className="flex gap-2">
               <Button variant="outline" disabled>
                 <Play className="h-4 w-4 mr-2" />
-                Run Test
+                Testing Not Available
               </Button>
               {installState.tone === 'demo' ? (
                 <Link href={`/app/${tenantId}/installer/new?workflow=${workflow.id}`}>
@@ -128,7 +128,7 @@ export default function WorkflowDetailPage() {
                 </Link>
               ) : (
                 <Button disabled>
-                  Install Workflow
+                  Install Preview
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
@@ -279,7 +279,13 @@ export default function WorkflowDetailPage() {
                 <div key={integration.id} className="flex items-center justify-between">
                   <span className="text-sm">{integration.name}</span>
                   <Badge variant={integration.status === 'connected' ? 'default' : 'outline'}>
-                    {integration.status}
+                    {integration.status === 'connected'
+                      ? connectState.tone === 'demo'
+                        ? 'Demo ready'
+                        : 'Listed as ready'
+                      : connectState.tone === 'demo'
+                        ? 'Needs demo setup'
+                        : 'Needs setup'}
                   </Badge>
                 </div>
               ))}

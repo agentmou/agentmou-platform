@@ -1,7 +1,11 @@
 // Mock Chat Engine for AgentMou Assistant
 // This file is designed to be easily replaced with OpenAI integration
 
-import type { ChatMessage, ChatMode, WorkspaceContextSnapshot, ActionSuggestion } from './types'
+import type {
+  ActionSuggestion,
+  ChatMode,
+  WorkspaceContextSnapshot,
+} from './types'
 
 interface EngineInput {
   mode: ChatMode
@@ -21,9 +25,16 @@ function workspaceHref(workspaceId: string | undefined, path: string): string {
   return `/app/${tenantId}${path}`
 }
 
-// Intent detection patterns
+function formatWorkspaceStatus(status: string): string {
+  return status
+    .toLowerCase()
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
 const INTENT_PATTERNS = {
-  nextSteps: /\b(next|what.*do|after|start|begin|get.*started|help.*setup)\b/i,
+  nextSteps: /\b(next|what.*do|after|start|begin|get.*started|help.*setup|readiness|status|progress)\b/i,
   whyBlocked: /\b(why|blocked|not.*activ|can't|cannot|error|issue|problem|stuck)\b/i,
   recommendAgents: /\b(recommend|suggest|agents?|which.*agent|best.*for)\b/i,
   recommendWorkflows: /\b(workflow|automat|connect|sequence)\b/i,
@@ -31,8 +42,8 @@ const INTENT_PATTERNS = {
   approvals: /\b(approv|pending|review|manual)\b/i,
   integrations: /\b(integrat|connect|slack|hubspot|google|notion|stripe)\b/i,
   pricing: /\b(pric|cost|plan|tier|pay|billing|subscription)\b/i,
-  security: /\b(secur|safe|data|privacy|encrypt|compliance)\b/i,
-  howItWorks: /\b(how.*work|what.*is|explain|overview)\b/i,
+  security: /\b(secur\w*|safe|data|privacy|encrypt|compliance)\b/i,
+  howItWorks: /\b(how.*work|what.*is|explain|overview|tour|preview)\b/i,
 }
 
 function detectIntent(message: string): keyof typeof INTENT_PATTERNS | 'unknown' {
@@ -44,7 +55,6 @@ function detectIntent(message: string): keyof typeof INTENT_PATTERNS | 'unknown'
   return 'unknown'
 }
 
-// Public mode responses
 function generatePublicResponse(userMessage: string): EngineOutput {
   const intent = detectIntent(userMessage)
 
@@ -52,39 +62,39 @@ function generatePublicResponse(userMessage: string): EngineOutput {
     case 'nextSteps':
     case 'howItWorks':
       return {
-        content: `**Getting started with AgentMou is easy:**
+        content: `**How to explore AgentMou today:**
 
-1. **Create a workspace** - Sign up and name your workspace
-2. **Connect integrations** - Link your CRM, Slack, email, and other tools
-3. **Install agents** - Browse our marketplace and install agents for sales, support, finance, or ops
-4. **Configure & test** - Set up each agent and run tests
-5. **Go live** - Enable your agents in production
+1. **Open the demo workspace** to inspect the product safely
+2. **Browse the marketplace** to review agents, workflows, and packs
+3. **Use the installer preview** to understand setup requirements
+4. **Check labels like Preview, Read-only, and Not yet available** to see which tenant surfaces are still partial
+5. **Talk with the team before relying on live rollout behavior** that is not wired in the current UI
 
-Would you like to create a workspace now?`,
+Would you like to open the demo workspace or compare plans?`,
         actions: [
-          { label: 'Get Started', href: workspaceHref(undefined, '/dashboard') },
+          { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
           { label: 'View Pricing', href: '/pricing' },
         ],
       }
 
     case 'pricing':
       return {
-        content: `**AgentMou Pricing Plans:**
+        content: `**AgentMou pricing today:**
 
-- **Starter** ($49/mo) - 3 agents, 1,000 runs/mo, basic integrations
-- **Pro** ($149/mo) - 10 agents, 10,000 runs/mo, all integrations, workflows
-- **Scale** (Custom) - Unlimited agents & runs, dedicated support, SLA
+- **Starter** ($29/mo) - 3 agents, 1,000 runs/mo, 5 integrations
+- **Pro** ($99/mo) - 10 agents, 10,000 runs/mo, unlimited integrations
+- **Scale** (Custom) - Unlimited agents and enterprise support
 
-All plans include a 14-day free trial. No credit card required to start.`,
+The pricing page is part of the live marketing site, while billing inside tenant settings is still labeled separately when it is not yet wired.`,
         actions: [
           { label: 'Compare Plans', href: '/pricing' },
-          { label: 'Start Free Trial', href: workspaceHref(undefined, '/dashboard') },
+          { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
         ],
       }
 
     case 'recommendAgents':
       return {
-        content: `**Popular agents by use case:**
+        content: `**Popular catalog items to review in the demo workspace:**
 
 **For Sales:**
 - Lead Qualifier - Score and route inbound leads
@@ -98,151 +108,179 @@ All plans include a 14-day free trial. No credit card required to start.`,
 - Invoice Processor - Extract and validate invoice data
 - Expense Categorizer - Automate expense approvals
 
-Create a workspace to explore the full catalog!`,
+The marketplace is the best place to compare them side by side.`,
         actions: [
           { label: 'Browse Agents', href: workspaceHref(undefined, '/marketplace') },
-          { label: 'Get Started', href: workspaceHref(undefined, '/dashboard') },
+          { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
         ],
       }
 
     case 'integrations':
       return {
-        content: `**Supported integrations:**
+        content: `**Integrations shown in the current product demo:**
 
 - **CRM:** HubSpot, Salesforce (coming soon)
-- **Communication:** Slack, email via Google Workspace
+- **Communication:** Slack, Google Workspace
 - **Productivity:** Notion, Google Drive
 - **Payments:** Stripe
-- **More coming soon!**
+- **More catalog entries are marked coming soon**
 
-All integrations use OAuth for secure authentication. You control exactly what data agents can access.`,
+The catalog and demo show what the product aims to support, while tenant-facing connection management is still preview or read-only in parts of the app.`,
         actions: [
-          { label: 'View All Integrations', href: workspaceHref(undefined, '/security') },
+          { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
+          { label: 'View Security Page', href: '/security' },
         ],
       }
 
     case 'security':
       return {
-        content: `**AgentMou Security:**
+        content: `**AgentMou security surfaces today:**
 
-- **SOC 2 Type II** compliant
-- **End-to-end encryption** for all data
-- **Role-based access control** (RBAC)
-- **Audit logs** for all actions
-- **Human-in-the-loop** controls for critical actions
-- **Secrets management** with automatic rotation
+- **Role-based access patterns** are visible in the product
+- **Human-in-the-loop approvals** are part of the operating model
+- **Tenant security pages are mixed preview, read-only, or not yet available**
+- **Marketing security claims should be read together with their explicit status labels**
 
-Your data never leaves your control. Agents only access what you explicitly permit.`,
+I can point you to the marketing security page or the demo workspace if you want to inspect the current messaging.`,
         actions: [
           { label: 'Security Details', href: '/security' },
+          { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
+        ],
+      }
+
+    case 'goLive':
+      return {
+        content: `**This assistant does not activate production workspaces.**
+
+I can help you explore the demo, review pricing, and explain which tenant surfaces are still labeled Preview, Read-only, or Not yet available.`,
+        actions: [
+          { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
+          { label: 'View Docs', href: '/docs' },
         ],
       }
 
     default:
       return {
-        content: `I can help you learn about AgentMou! Here are some things I can answer:
+        content: `I can help you explore AgentMou without pretending the demo is live. Here are a few good starting points:
 
-- How AgentMou works
-- Pricing and plans
-- Available integrations
-- Security and compliance
-- Agent recommendations
+- What the demo workspace shows today
+- Which tenant surfaces are preview-only
+- Pricing and plan structure
+- Integrations shown in the catalog
+- Security messaging and current limitations
 
 What would you like to know?`,
         actions: [
-          { label: 'Get Started', href: workspaceHref(undefined, '/dashboard') },
+          { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
           { label: 'View Docs', href: '/docs' },
         ],
       }
   }
 }
 
-// Copilot mode responses with workspace context
-function generateCopilotResponse(userMessage: string, context: WorkspaceContextSnapshot): EngineOutput {
+function generateCopilotResponse(
+  userMessage: string,
+  context: WorkspaceContextSnapshot,
+): EngineOutput {
   const intent = detectIntent(userMessage)
-
-  // Check for blocking issues first
-  const blockedAgents = context.installedAgents.filter(a => a.reasons.length > 0)
-  const missingIntegrations = context.integrations.filter(i => i.status === 'disconnected')
-  const incompleteIntegrations = context.integrations.filter(i => i.missingScopes.length > 0)
-  const incompleteTasks = context.pendingTasks.filter(t => !t.completed)
+  const readinessStatus = formatWorkspaceStatus(context.workspaceStatus)
+  const blockedAgents = context.installedAgents.filter((agent) => agent.reasons.length > 0)
+  const missingIntegrations = context.integrations.filter(
+    (integration) => integration.status === 'disconnected',
+  )
+  const incompleteIntegrations = context.integrations.filter(
+    (integration) => integration.missingScopes.length > 0,
+  )
+  const incompleteTasks = context.pendingTasks.filter((task) => !task.completed)
 
   switch (intent) {
     case 'nextSteps':
       if (incompleteTasks.length > 0) {
         const nextTask = incompleteTasks[0]
         return {
-          content: `**Your next step: ${nextTask.label}**
+          content: `**Next review step: ${nextTask.label}**
 
 ${nextTask.description}
 
-You've completed ${context.checklistProgress} of ${context.checklistTotal} activation steps. Keep going!`,
+You've reviewed ${context.checklistProgress} of ${context.checklistTotal} checklist items in this preview.`,
           actions: getActionsForTask(nextTask.label, context.workspaceId),
         }
       }
       if (context.workspaceStatus === 'GO_LIVE_READY') {
         return {
-          content: `**You're ready to go live!**
+          content: `**Readiness preview looks complete.**
 
-All your agents are configured, integrations connected, and tests passed. Click the button below to activate your workspace in production.`,
+This snapshot does not show remaining blockers, but the assistant cannot activate a workspace or confirm production rollout from chat.`,
           actions: [
-            { label: 'Go Live Now', href: workspaceHref(context.workspaceId, '/fleet') },
+            { label: 'Review Fleet', href: workspaceHref(context.workspaceId, '/fleet') },
+            { label: 'Open Runs', href: workspaceHref(context.workspaceId, '/runs') },
           ],
         }
       }
       return {
-        content: `**Current status: ${context.workspaceStatus}**
+        content: `**Current readiness status: ${readinessStatus}**
 
-Your workspace is ${context.checklistProgress}/${context.checklistTotal} complete. Check the Activation Center for detailed progress.`,
+Your checklist is ${context.checklistProgress}/${context.checklistTotal} complete. I can point you to the relevant preview surfaces, but I will not change tenant state from chat.`,
         actions: [
-          { label: 'Open Installer', href: workspaceHref(context.workspaceId, '/installer/new') },
+          {
+            label: 'Open Installer Preview',
+            href: workspaceHref(context.workspaceId, '/installer/new'),
+          },
         ],
       }
 
     case 'whyBlocked':
       if (blockedAgents.length > 0) {
-        const agentIssues = blockedAgents.map(a => {
-          const reasons = a.reasons.map(r => formatReason(r)).join(', ')
-          return `- **${a.name}**: ${reasons}`
-        }).join('\n')
+        const agentIssues = blockedAgents
+          .map((agent) => {
+            const reasons = agent.reasons.map((reason) => formatReason(reason)).join(', ')
+            return `- **${agent.name}**: ${reasons}`
+          })
+          .join('\n')
 
         return {
-          content: `**${blockedAgents.length} agent(s) need attention:**
+          content: `**${blockedAgents.length} agent(s) need follow-up in this snapshot:**
 
 ${agentIssues}
 
-Let me help you resolve these issues.`,
+I can point you to the surfaces that describe the missing pieces.`,
           actions: getActionsForReasons(blockedAgents[0].reasons, context.workspaceId),
         }
       }
       if (missingIntegrations.length > 0) {
         return {
-          content: `**Missing integrations:**
+          content: `**Missing integrations in the current snapshot:**
 
-${missingIntegrations.map(i => `- ${i.name} is not connected`).join('\n')}
+${missingIntegrations.map((integration) => `- ${integration.name} is not connected`).join('\n')}
 
-Connect these integrations to unblock your agents.`,
+This assistant cannot connect them for you, but it can point you to the relevant review surface.`,
           actions: [
-            { label: 'Connect Integrations', href: workspaceHref(context.workspaceId, '/security') },
+            {
+              label: 'Review Security Surface',
+              href: workspaceHref(context.workspaceId, '/security'),
+            },
           ],
         }
       }
       if (incompleteIntegrations.length > 0) {
         return {
-          content: `**Integrations need additional permissions:**
+          content: `**Some integrations need more permissions in this snapshot:**
 
-${incompleteIntegrations.map(i => `- ${i.name}: missing scopes (${i.missingScopes.join(', ')})`).join('\n')}
+${incompleteIntegrations.map((integration) => `- ${integration.name}: missing scopes (${integration.missingScopes.join(', ')})`).join('\n')}
 
-Re-authorize these integrations to grant the required permissions.`,
+Re-authorize these integrations from the connection surface when that workflow is available.`,
           actions: [
-            { label: 'Fix Integrations', href: workspaceHref(context.workspaceId, '/security') },
+            {
+              label: 'Review Security Surface',
+              href: workspaceHref(context.workspaceId, '/security'),
+            },
           ],
         }
       }
       return {
-        content: `Everything looks good! Your workspace status is **${context.workspaceStatus}**.
+        content: `This preview snapshot does not show an active blocker right now.
 
-If you're experiencing a specific issue, please describe it in more detail.`,
+If you want, I can point you to dashboard, runs, or security for a more specific review path.`,
         actions: [
           { label: 'View Dashboard', href: workspaceHref(context.workspaceId, '/dashboard') },
         ],
@@ -250,15 +288,15 @@ If you're experiencing a specific issue, please describe it in more detail.`,
 
     case 'recommendAgents':
       return {
-        content: `**Recommended agents for your workspace:**
+        content: `**Recommended catalog items to review for this workspace:**
 
-Based on your setup, consider adding:
+Based on the current snapshot, consider:
 
-- **Lead Qualifier** - Automatically qualify inbound leads (Sales)
-- **Support Triage** - Categorize and route tickets (Support)
-- **FAQ Bot** - Answer customer questions instantly (Support)
+- **Lead Qualifier** - Automatically qualify inbound leads
+- **Support Triage** - Categorize and route tickets
+- **FAQ Bot** - Answer customer questions instantly
 
-You currently have ${context.installedAgents.length} agent(s) installed.`,
+You currently have ${context.installedAgents.length} installed agent(s) in the snapshot.`,
         actions: [
           { label: 'Browse All Agents', href: workspaceHref(context.workspaceId, '/marketplace') },
         ],
@@ -267,81 +305,129 @@ You currently have ${context.installedAgents.length} agent(s) installed.`,
     case 'goLive':
       if (context.workspaceStatus === 'GO_LIVE_READY') {
         return {
-          content: `**Ready to go live!**
+          content: `**This workspace looks ready for handoff in the preview snapshot.**
 
-All prerequisites are met. Your agents will start processing real data once you activate.`,
+I cannot activate production from chat, but I can point you to the surfaces you would review before a real rollout.`,
           actions: [
-            { label: 'Go Live', href: workspaceHref(context.workspaceId, '/fleet') },
+            { label: 'Review Fleet', href: workspaceHref(context.workspaceId, '/fleet') },
+            { label: 'Open Runs', href: workspaceHref(context.workspaceId, '/runs') },
           ],
         }
       }
       if (incompleteTasks.length > 0) {
         return {
-          content: `**Before going live, you need to complete ${incompleteTasks.length} task(s):**
+          content: `**Readiness blockers remain: ${incompleteTasks.length} item(s) still need review.**
 
-${incompleteTasks.slice(0, 3).map(t => `- ${t.label}`).join('\n')}${incompleteTasks.length > 3 ? `\n- ...and ${incompleteTasks.length - 3} more` : ''}
+${incompleteTasks.slice(0, 3).map((task) => `- ${task.label}`).join('\n')}${incompleteTasks.length > 3 ? `\n- ...and ${incompleteTasks.length - 3} more` : ''}
 
-Complete these in the Activation Center.`,
+Complete these review steps before treating the workspace as production-ready.`,
           actions: [
-            { label: 'Open Installer', href: workspaceHref(context.workspaceId, '/installer/new') },
+            {
+              label: 'Open Installer Preview',
+              href: workspaceHref(context.workspaceId, '/installer/new'),
+            },
           ],
         }
       }
       return {
-        content: `Your current status is **${context.workspaceStatus}**. Visit the Activation Center to see what's needed to go live.`,
+        content: `I can summarize readiness, but I cannot activate a workspace from this assistant. Current status: **${readinessStatus}**.`,
         actions: [
-          { label: 'Open Installer', href: workspaceHref(context.workspaceId, '/installer/new') },
+          {
+            label: 'Open Installer Preview',
+            href: workspaceHref(context.workspaceId, '/installer/new'),
+          },
         ],
       }
 
     case 'approvals':
       if (context.pendingApprovalsCount > 0) {
         return {
-          content: `**You have ${context.pendingApprovalsCount} pending approval(s)**
+          content: `**You have ${context.pendingApprovalsCount} pending approval(s) in this snapshot**
 
-Agent runs that require human review are waiting for your action. Review and approve or reject them in the Runs page.`,
+Agent runs that require human review are waiting for your action. Review them from the approvals surface.`,
           actions: [
-            { label: 'Review Approvals', href: workspaceHref(context.workspaceId, '/approvals?status=pending') },
+            {
+              label: 'Review Approvals',
+              href: workspaceHref(context.workspaceId, '/approvals?status=pending'),
+            },
           ],
         }
       }
       return {
-        content: `No pending approvals right now.
+        content: `No pending approvals appear in this snapshot.
 
-Human-in-the-loop approvals can be configured per-agent in the Policies section. This is useful for critical actions like sending campaigns or processing payments.`,
+Human-in-the-loop controls are part of the workflow model, but related policy surfaces are still partially preview-only in the UI.`,
         actions: [
-          { label: 'Configure Policies', href: workspaceHref(context.workspaceId, '/security') },
+          {
+            label: 'Review Security Surface',
+            href: workspaceHref(context.workspaceId, '/security'),
+          },
         ],
       }
 
     case 'integrations': {
-      const connected = context.integrations.filter(i => i.status === 'connected').length
+      const connected = context.integrations.filter(
+        (integration) => integration.status === 'connected',
+      ).length
       const total = context.integrations.length
-      return {
-        content: `**Integration status: ${connected}/${total} connected**
 
-${context.integrations.map(i => `- ${i.name}: ${i.status === 'connected' ? 'Connected' : 'Not connected'}${i.missingScopes.length > 0 ? ' (missing scopes)' : ''}`).join('\n')}`,
+      return {
+        content: `**Integration snapshot: ${connected}/${total} marked connected**
+
+${context.integrations.map((integration) => `- ${integration.name}: ${integration.status === 'connected' ? 'Connected in snapshot' : 'Needs connection'}${integration.missingScopes.length > 0 ? ' (missing scopes)' : ''}`).join('\n')}
+
+This assistant cannot create or repair those connections from chat.`,
         actions: [
-          { label: 'Manage Integrations', href: workspaceHref(context.workspaceId, '/security') },
+          {
+            label: 'Review Security Surface',
+            href: workspaceHref(context.workspaceId, '/security'),
+          },
         ],
       }
     }
 
+    case 'pricing':
+      return {
+        content: `**Billing in the tenant workspace is still a partial surface.**
+
+You can review the current plan label from Settings, but spend, payment methods, and invoice actions are still preview or not yet available depending on the workspace.`,
+        actions: [
+          { label: 'Open Settings', href: workspaceHref(context.workspaceId, '/settings') },
+        ],
+      }
+
+    case 'security':
+      return {
+        content: `**Security in this tenant UI is intentionally partial right now.**
+
+- Team membership is visible as read-only
+- Secrets management is not yet available from the tenant screen
+- Audit export and other actions stay disabled until backend wiring exists
+
+I can point you to the current surface, but not execute security changes from chat.`,
+        actions: [
+          { label: 'Open Security', href: workspaceHref(context.workspaceId, '/security') },
+        ],
+      }
+
     default:
       return {
-        content: `I'm your AgentMou Copilot! I can help you with:
+        content: `I'm the AgentMou assistant preview for this workspace. I can help you with:
 
-- **Next steps** - What to do next in your activation
-- **Troubleshooting** - Why something isn't working
-- **Recommendations** - Which agents to install
-- **Going live** - How to activate your workspace
+- **Next review steps** in the current checklist
+- **Troubleshooting context** for blockers shown in the snapshot
+- **Catalog recommendations** for agents and workflows
+- **Readiness summaries** without changing workspace state
 
-Your current status: **${context.workspaceStatus}** (${context.checklistProgress}/${context.checklistTotal} complete)
+Current readiness status: **${readinessStatus}** (${context.checklistProgress}/${context.checklistTotal} complete)
 
 What would you like help with?`,
         actions: [
           { label: 'View Dashboard', href: workspaceHref(context.workspaceId, '/dashboard') },
-          { label: 'Open Installer', href: workspaceHref(context.workspaceId, '/installer/new') },
+          {
+            label: 'Open Installer Preview',
+            href: workspaceHref(context.workspaceId, '/installer/new'),
+          },
         ],
       }
   }
@@ -366,15 +452,52 @@ function formatReason(reason: { type: string; [key: string]: unknown }): string 
   }
 }
 
-function getActionsForTask(taskLabel: string, workspaceId: string): ActionSuggestion[] {
+function getActionsForTask(
+  taskLabel: string,
+  workspaceId: string,
+): ActionSuggestion[] {
   const lower = taskLabel.toLowerCase()
-  if (lower.includes('integration')) return [{ label: 'Go to Security', href: workspaceHref(workspaceId, '/security') }]
-  if (lower.includes('agent') || lower.includes('install')) return [{ label: 'Open Marketplace', href: workspaceHref(workspaceId, '/marketplace') }]
-  if (lower.includes('config')) return [{ label: 'Configure Fleet', href: workspaceHref(workspaceId, '/fleet') }]
-  if (lower.includes('polic')) return [{ label: 'Set Policies', href: workspaceHref(workspaceId, '/security') }]
-  if (lower.includes('test')) return [{ label: 'Open Runs', href: workspaceHref(workspaceId, '/runs') }]
-  if (lower.includes('secret')) return [{ label: 'Manage Secrets', href: workspaceHref(workspaceId, '/security') }]
-  return [{ label: 'Open Installer', href: workspaceHref(workspaceId, '/installer/new') }]
+
+  if (lower.includes('integration')) {
+    return [
+      {
+        label: 'Review Security Surface',
+        href: workspaceHref(workspaceId, '/security'),
+      },
+    ]
+  }
+  if (lower.includes('agent') || lower.includes('install')) {
+    return [{ label: 'Open Marketplace', href: workspaceHref(workspaceId, '/marketplace') }]
+  }
+  if (lower.includes('config')) {
+    return [{ label: 'Review Fleet', href: workspaceHref(workspaceId, '/fleet') }]
+  }
+  if (lower.includes('polic')) {
+    return [
+      {
+        label: 'Review Security Surface',
+        href: workspaceHref(workspaceId, '/security'),
+      },
+    ]
+  }
+  if (lower.includes('test')) {
+    return [{ label: 'Open Runs', href: workspaceHref(workspaceId, '/runs') }]
+  }
+  if (lower.includes('secret')) {
+    return [
+      {
+        label: 'Review Security Surface',
+        href: workspaceHref(workspaceId, '/security'),
+      },
+    ]
+  }
+
+  return [
+    {
+      label: 'Open Installer Preview',
+      href: workspaceHref(workspaceId, '/installer/new'),
+    },
+  ]
 }
 
 function getActionsForReasons(
@@ -382,23 +505,37 @@ function getActionsForReasons(
   workspaceId: string,
 ): ActionSuggestion[] {
   const actions: ActionSuggestion[] = []
+
   for (const reason of reasons) {
     if (reason.type === 'missing_integrations' || reason.type === 'missing_scopes') {
-      actions.push({ label: 'Fix Integrations', href: workspaceHref(workspaceId, '/security') })
+      actions.push({
+        label: 'Review Security Surface',
+        href: workspaceHref(workspaceId, '/security'),
+      })
     } else if (reason.type === 'missing_secrets') {
-      actions.push({ label: 'Add Secrets', href: workspaceHref(workspaceId, '/security') })
+      actions.push({
+        label: 'Review Security Surface',
+        href: workspaceHref(workspaceId, '/security'),
+      })
     } else if (reason.type === 'missing_fields') {
-      actions.push({ label: 'Configure Agent', href: workspaceHref(workspaceId, '/fleet') })
+      actions.push({
+        label: 'Review Fleet',
+        href: workspaceHref(workspaceId, '/fleet'),
+      })
     } else if (reason.type === 'blocked_by_policy') {
-      actions.push({ label: 'Update Policies', href: workspaceHref(workspaceId, '/security') })
+      actions.push({
+        label: 'Review Security Surface',
+        href: workspaceHref(workspaceId, '/security'),
+      })
     }
   }
-  // Dedupe and limit to 3
-  const unique = actions.filter((a, i, arr) => arr.findIndex(b => b.href === a.href) === i)
+
+  const unique = actions.filter(
+    (action, index, all) => all.findIndex((candidate) => candidate.href === action.href) === index,
+  )
   return unique.slice(0, 3)
 }
 
-// Main export
 export function generateResponse(input: EngineInput): EngineOutput {
   const { mode, userMessage, context } = input
 
@@ -410,26 +547,26 @@ export function generateResponse(input: EngineInput): EngineOutput {
     return generateCopilotResponse(userMessage, context)
   }
 
-  // Fallback
   return {
-    content: 'I\'m not sure how to help with that. Could you try rephrasing your question?',
+    content: "I'm not sure how to help with that. Could you try rephrasing your question?",
     actions: [],
   }
 }
 
-// Simulate streaming by returning chunks
-export async function* generateResponseStream(input: EngineInput): AsyncGenerator<{ content: string; done: boolean; actions?: ActionSuggestion[] }> {
+export async function* generateResponseStream(
+  input: EngineInput,
+): AsyncGenerator<{ content: string; done: boolean; actions?: ActionSuggestion[] }> {
   const response = generateResponse(input)
   const words = response.content.split(' ')
-  
+
   let accumulated = ''
-  for (let i = 0; i < words.length; i++) {
-    accumulated += (i === 0 ? '' : ' ') + words[i]
-    await new Promise(resolve => setTimeout(resolve, 20 + Math.random() * 30))
-    yield { 
-      content: accumulated, 
-      done: i === words.length - 1,
-      actions: i === words.length - 1 ? response.actions : undefined
+  for (let index = 0; index < words.length; index += 1) {
+    accumulated += (index === 0 ? '' : ' ') + words[index]
+    await new Promise((resolve) => setTimeout(resolve, 20 + Math.random() * 30))
+    yield {
+      content: accumulated,
+      done: index === words.length - 1,
+      actions: index === words.length - 1 ? response.actions : undefined,
     }
   }
 }

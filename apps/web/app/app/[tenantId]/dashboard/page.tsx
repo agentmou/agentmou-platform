@@ -165,7 +165,7 @@ export default function DashboardPage() {
           </Link>
           <Link href={`/app/${tenantId}/installer/new`}>
             <MinimalButton size="sm">
-              Install New
+              Open Installer
             </MinimalButton>
           </Link>
         </div>

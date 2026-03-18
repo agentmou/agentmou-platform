@@ -12,6 +12,7 @@ import {
   CommandSeparator,
 } from '@/components/ui/command'
 import {
+  Activity,
   LayoutDashboard,
   Store,
   Download,
@@ -31,9 +32,9 @@ import {
 } from 'lucide-react'
 import { buildSearchIndex, searchItems, groupSearchItems, type SearchItem } from '@/lib/search-index'
 import { useDataProvider } from '@/lib/data'
-import { toast } from 'sonner'
 
 const iconMap: Record<string, React.ElementType> = {
+  'activity': Activity,
   'layout-dashboard': LayoutDashboard,
   'store': Store,
   'download': Download,
@@ -85,37 +86,8 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const handleSelect = React.useCallback((item: SearchItem) => {
     onOpenChange(false)
     setQuery('')
-    
-    // Handle quick actions with mock behavior
-    if (item.type === 'action') {
-      switch (item.id) {
-        case 'action-installer':
-          router.push(`/app/${tenantId}/installer/new`)
-          return
-        case 'action-retry':
-          toast.success('Retrying last failed run...', {
-            description: 'A new run has been queued.',
-          })
-          router.push(`/app/${tenantId}/runs`)
-          return
-        case 'action-approve':
-          toast.success('Navigating to approvals...', {
-            description: 'Opening the next pending approval.',
-          })
-          router.push(`/app/${tenantId}/approvals`)
-          return
-        case 'action-test':
-          toast.success('Running smoke test...', {
-            description: 'Test execution started.',
-          })
-          router.push(`/app/${tenantId}/runs`)
-          return
-      }
-    }
-    
-    // Navigate to item href
     router.push(item.href)
-  }, [router, tenantId, onOpenChange])
+  }, [router, onOpenChange])
   
   // Keyboard shortcut to focus search when "/" is pressed
   React.useEffect(() => {
@@ -141,15 +113,15 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       open={open} 
       onOpenChange={onOpenChange}
       title="Command Palette"
-      description="Search for pages, agents, workflows, or run quick actions"
+      description="Search for pages, agents, workflows, and preview shortcuts"
     >
       <CommandInput 
-        placeholder="Search pages, agents, workflows..." 
+        placeholder="Search pages, agents, workflows, or shortcuts..."
         value={query}
         onValueChange={setQuery}
       />
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandEmpty>No matching pages or previews found.</CommandEmpty>
         
         {Object.entries(groupedItems).map(([groupName, items], index) => (
           <React.Fragment key={groupName}>

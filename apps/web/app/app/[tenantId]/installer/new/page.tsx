@@ -174,11 +174,21 @@ export default function InstallerWizardPage() {
   const handleInstall = async () => {
     setIsInstalling(true)
     await new Promise(resolve => setTimeout(resolve, 3000))
+    setIsInstalling(false)
+
+    if (installerState.tone !== 'demo') {
+      toast({
+        title: 'Installer preview only',
+        description: 'Live tenant installation is not available from this flow yet.',
+      })
+      return
+    }
+
     toast({
-      title: 'Installation complete!',
-      description: `Successfully installed ${selectedAgents.length} agents and ${selectedWorkflows.length} workflows.`,
+      title: 'Demo review complete',
+      description: `No live installation was performed. You reviewed ${selectedAgents.length} agents and ${selectedWorkflows.length} workflows in demo mode.`,
     })
-    router.push(`/app/${tenantId}/fleet`)
+    router.push(`/app/${tenantId}/marketplace`)
   }
 
   const handleTestConnection = async (integrationId: string) => {
@@ -186,9 +196,12 @@ export default function InstallerWizardPage() {
     await new Promise(resolve => setTimeout(resolve, 1500))
     setConnectedIntegrations(prev => ({ ...prev, [integrationId]: true }))
     setIsLoading(false)
+    const integrationName =
+      integrations.find((integration) => integration.id === integrationId)?.name ||
+      integrationId
     toast({
-      title: 'Connection successful',
-      description: `${integrationId} is now connected.`,
+      title: 'Demo connection updated',
+      description: `${integrationName} is marked ready only inside this preview.`,
     })
   }
 
@@ -196,7 +209,7 @@ export default function InstallerWizardPage() {
     <div className="p-6 lg:p-8 space-y-8">
       <div>
         <p className="text-editorial-tiny mb-2">Installer</p>
-        <h1 className="text-2xl font-bold tracking-tight">Install New</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Installer Preview</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Review the setup flow for agents and workflows before live tenant wiring is available.
         </p>
@@ -217,7 +230,7 @@ export default function InstallerWizardPage() {
           }
           isLoading={isInstalling}
           completeButtonText={
-            installerState.tone === 'demo' ? 'Finish Demo Setup' : 'Install Preview'
+            installerState.tone === 'demo' ? 'Finish Demo Review' : 'Preview Only'
           }
         >
           {/* Step 1: Choose Outcome */}
@@ -330,17 +343,19 @@ export default function InstallerWizardPage() {
             <div className="space-y-6">
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold">Connect integrations</h2>
+                  <h2 className="text-lg font-semibold">Review integration requirements</h2>
                   <HonestSurfaceBadge state={installerState} />
                 </div>
-                <p className="text-sm text-muted-foreground">These integrations are required for your selected agents and workflows.</p>
+                <p className="text-sm text-muted-foreground">
+                  These integrations are referenced by the selected agents and workflows. Demo mode can simulate readiness without creating real connections.
+                </p>
               </div>
 
               <div className="space-y-3">
                 {requiredIntegrations.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-600" />
-                    <p>No additional integrations required!</p>
+                    <p>No integration requirements listed for this selection.</p>
                   </div>
                 ) : (
                   requiredIntegrations.map((integrationId) => {
@@ -353,14 +368,14 @@ export default function InstallerWizardPage() {
                           <div>
                             <p className="font-medium">{integration?.name || integrationId}</p>
                             <p className="text-xs text-muted-foreground">
-                              {isConnected ? 'Connected' : 'Not connected'}
+                              {isConnected ? 'Ready in this preview' : 'Needs connection details'}
                             </p>
                           </div>
                         </div>
                         {isConnected ? (
                           <Badge className="bg-green-100 text-green-800">
                             <CheckCircle className="h-3 w-3 mr-1" />
-                            Connected
+                            Ready
                           </Badge>
                         ) : (
                           <Button
@@ -385,7 +400,11 @@ export default function InstallerWizardPage() {
               {missingIntegrations.length > 0 && (
                 <div className="flex items-center gap-2 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200">
                   <AlertTriangle className="h-4 w-4" />
-                  <p className="text-sm">{missingIntegrations.length} integration(s) still need to be connected.</p>
+                  <p className="text-sm">
+                    {installerState.tone === 'demo'
+                      ? `${missingIntegrations.length} integration(s) can still be simulated before this demo review is complete.`
+                      : `${missingIntegrations.length} integration(s) still need connection details before this flow can move beyond preview.`}
+                  </p>
                 </div>
               )}
             </div>
@@ -395,8 +414,8 @@ export default function InstallerWizardPage() {
           <Step>
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold">Configure variables</h2>
-                <p className="text-sm text-muted-foreground">Set up parameters for your agents and workflows.</p>
+                <h2 className="text-lg font-semibold">Draft variables</h2>
+                <p className="text-sm text-muted-foreground">Capture the values you would want in a future live setup.</p>
               </div>
 
               <div className="space-y-4">
@@ -436,7 +455,7 @@ export default function InstallerWizardPage() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-lg font-semibold">Risk & Approval Settings</h2>
-                <p className="text-sm text-muted-foreground">Configure human-in-the-loop approvals for sensitive actions.</p>
+                <p className="text-sm text-muted-foreground">Review human-in-the-loop defaults for a future live setup.</p>
               </div>
 
               <div className="space-y-4">
@@ -471,18 +490,18 @@ export default function InstallerWizardPage() {
 
               <div className="p-4 rounded-lg bg-muted/50">
                 <p className="text-sm text-muted-foreground">
-                  When HITL is enabled, sensitive actions will be sent to your Approvals inbox before execution.
+                  These approval settings stay inside this preview until a live install flow exists.
                 </p>
               </div>
             </div>
           </Step>
 
-          {/* Step 6: Review & Install */}
+          {/* Step 6: Review Setup */}
           <Step>
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold">Review & Install</h2>
-                <p className="text-sm text-muted-foreground">Review your configuration before installing.</p>
+                <h2 className="text-lg font-semibold">Review Setup</h2>
+                <p className="text-sm text-muted-foreground">Review this setup summary before leaving the preview.</p>
               </div>
 
               <div className="space-y-4">
@@ -517,14 +536,14 @@ export default function InstallerWizardPage() {
                 </div>
 
                 <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-                  <h3 className="font-medium mb-2">Estimated Monthly Cost</h3>
+                  <h3 className="font-medium mb-2">Estimated Monthly Cost Preview</h3>
                   <p className="text-2xl font-bold">
                     ${selectedAgents.reduce((sum, id) => {
                       const agent = agentTemplates.find(a => a.id === id)
                       return sum + (agent?.monthlyPrice || 0)
                     }, 0)}/mo
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">+ usage-based LLM costs</p>
+                  <p className="text-xs text-muted-foreground mt-1">Illustrative only, plus estimated LLM usage.</p>
                 </div>
               </div>
             </div>

@@ -9,9 +9,16 @@ import { cn } from '@/lib/utils'
 interface ChatComposerProps {
   onSend: (content: string) => void
   disabled?: boolean
+  footerHint?: string
+  placeholder?: string
 }
 
-export function ChatComposer({ onSend, disabled }: ChatComposerProps) {
+export function ChatComposer({
+  onSend,
+  disabled,
+  footerHint = 'Press Enter to send, Shift+Enter for new line',
+  placeholder = 'Type your message...',
+}: ChatComposerProps) {
   const [value, setValue] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -55,7 +62,7 @@ export function ChatComposer({ onSend, disabled }: ChatComposerProps) {
           onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          placeholder="Type your message..."
+          placeholder={placeholder}
           disabled={disabled}
           className="min-h-[40px] max-h-[120px] resize-none border-0 bg-transparent px-3 py-2.5 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
           rows={1}
@@ -96,7 +103,7 @@ export function ChatComposer({ onSend, disabled }: ChatComposerProps) {
       
       {/* Keyboard hint */}
       <p className="mt-2 text-center text-[10px] text-muted-foreground/50">
-        Press Enter to send, Shift+Enter for new line
+        {footerHint}
       </p>
     </div>
   )

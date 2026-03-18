@@ -53,15 +53,15 @@ export interface ChatResponse {
 // Quick prompts by mode
 export const QUICK_PROMPTS: Record<ChatMode, string[]> = {
   public: [
-    'What can AgentMou do for my business?',
+    'Show me the product tour',
+    'What is real today vs preview?',
     'How does pricing work?',
-    'What integrations do you support?',
-    'How do I get started?',
+    'Which integrations are shown in the demo?',
   ],
   copilot: [
-    'What should I do next?',
-    'Why is my agent not activating?',
-    'Recommend agents for my use case',
-    'Help me go live',
+    "What's next for this workspace?",
+    'Why is this workspace still blocked?',
+    'Recommend agents for this use case',
+    'What is my readiness status?',
   ],
 }

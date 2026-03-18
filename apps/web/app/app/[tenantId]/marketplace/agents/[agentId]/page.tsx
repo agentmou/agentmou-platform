@@ -138,7 +138,7 @@ export default function AgentDetailPage() {
             ) : (
               <div className="flex flex-col gap-2 items-end">
                 <Button size="lg" disabled>
-                  Install Agent
+                  Install Preview
                 </Button>
                 <p className="text-xs text-muted-foreground max-w-[220px] text-right">
                   {installState.description}
@@ -326,12 +326,12 @@ export default function AgentDetailPage() {
                     {isConnected ? (
                       <Badge variant="outline" className="text-green-600">
                         <CheckCircle className="h-3 w-3 mr-1" />
-                        Connected
+                        {connectState.tone === 'demo' ? 'Demo ready' : 'Listed as ready'}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-yellow-600">
                         <AlertTriangle className="h-3 w-3 mr-1" />
-                        Required
+                        {connectState.tone === 'demo' ? 'Needs demo setup' : 'Needs setup'}
                       </Badge>
                     )}
                   </div>

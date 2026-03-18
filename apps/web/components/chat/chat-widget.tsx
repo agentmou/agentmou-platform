@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { MessageCircle, X, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ChatPanel } from './chat-panel'
@@ -15,15 +15,9 @@ interface ChatWidgetProps {
 
 export function ChatWidget({ mode, workspaceId, contextSnapshot }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [hasNewMessage, setHasNewMessage] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-
-  // Reset new message indicator when opened
-  useEffect(() => {
-    if (isOpen) {
-      setHasNewMessage(false)
-    }
-  }, [isOpen])
+  const hoverLabel =
+    mode === 'public' ? 'Open demo assistant' : 'Open assistant preview'
 
   return (
     <>
@@ -58,7 +52,7 @@ export function ChatWidget({ mode, workspaceId, contextSnapshot }: ChatWidgetPro
               className="absolute right-full mr-3 top-1/2 -translate-y-1/2 whitespace-nowrap"
             >
               <div className="rounded-lg bg-foreground px-3 py-1.5 text-sm font-medium text-background shadow-lg">
-                Chat with AI
+                {hoverLabel}
               </div>
             </motion.div>
           )}
@@ -79,9 +73,8 @@ export function ChatWidget({ mode, workspaceId, contextSnapshot }: ChatWidgetPro
               : "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white"
           )}
         >
-          {/* Animated glow ring */}
           {!isOpen && (
-            <span className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" />
+            <span className="absolute inset-0 rounded-full bg-emerald-500/15" />
           )}
           
           {/* Icon with transition */}
@@ -99,17 +92,6 @@ export function ChatWidget({ mode, workspaceId, contextSnapshot }: ChatWidgetPro
               </div>
             )}
           </motion.div>
-          
-          {/* New message indicator */}
-          {hasNewMessage && !isOpen && (
-            <motion.span
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
-            >
-              1
-            </motion.span>
-          )}
         </motion.button>
       </div>
     </>
