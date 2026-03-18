@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import {
   AgentTemplateSchema,
-  WorkflowTemplateSchema,
-  PackTemplateSchema,
   TenantSchema,
-  InstalledAgentSchema,
+  TenantsResponseSchema,
+  TenantMembersResponseSchema,
+  InstallationsResponseSchema,
   ExecutionRunSchema,
   ApprovalRequestSchema,
   ApprovalRequestsResponseSchema,
-  SecurityFindingSchema,
+  ConnectorsResponseSchema,
   InvoiceSchema,
   CategorySchema,
 } from '../index';
@@ -50,6 +50,14 @@ describe('TenantSchema', () => {
 
   it('rejects missing required fields', () => {
     expect(() => TenantSchema.parse({ id: 'x' })).toThrow();
+  });
+
+  it('parses tenant envelopes with fully normalized settings', () => {
+    const result = TenantsResponseSchema.parse({
+      tenants: [validTenant],
+    });
+
+    expect(result.tenants[0].settings.timezone).toBe('UTC');
   });
 });
 
@@ -125,6 +133,32 @@ describe('ExecutionRunSchema', () => {
   });
 });
 
+describe('InstallationsResponseSchema', () => {
+  it('fills empty kpiValues when installations omit them', () => {
+    const result = InstallationsResponseSchema.parse({
+      installations: {
+        agents: [
+          {
+            id: 'install-1',
+            tenantId: 'tenant-1',
+            templateId: 'inbox-triage',
+            status: 'active',
+            installedAt: '2024-01-01T00:00:00Z',
+            config: {},
+            hitlEnabled: true,
+            lastRunAt: null,
+            runsTotal: 10,
+            runsSuccess: 8,
+          },
+        ],
+        workflows: [],
+      },
+    });
+
+    expect(result.installations.agents[0].kpiValues).toEqual({});
+  });
+});
+
 describe('ApprovalRequestSchema', () => {
   it('parses a valid approval request', () => {
     const result = ApprovalRequestSchema.parse({
@@ -187,6 +221,47 @@ describe('ApprovalRequestSchema', () => {
     });
 
     expect(result.approvals).toHaveLength(1);
+  });
+});
+
+describe('ConnectorsResponseSchema', () => {
+  it('parses connector envelopes', () => {
+    const result = ConnectorsResponseSchema.parse({
+      connectors: [
+        {
+          id: 'gmail',
+          name: 'Gmail',
+          icon: 'mail',
+          category: 'communication',
+          status: 'connected',
+          scopes: ['gmail.readonly'],
+          requiredScopes: ['gmail.readonly'],
+          lastTestAt: '2024-01-01T00:00:00Z',
+        },
+      ],
+    });
+
+    expect(result.connectors[0].id).toBe('gmail');
+  });
+});
+
+describe('TenantMembersResponseSchema', () => {
+  it('parses flattened tenant members', () => {
+    const result = TenantMembersResponseSchema.parse({
+      members: [
+        {
+          id: 'member-1',
+          tenantId: 'tenant-1',
+          email: 'ops@example.com',
+          name: 'Ops User',
+          role: 'operator',
+          joinedAt: '2024-01-01T00:00:00Z',
+          lastActiveAt: '2024-01-02T00:00:00Z',
+        },
+      ],
+    });
+
+    expect(result.members[0].role).toBe('operator');
   });
 });
 

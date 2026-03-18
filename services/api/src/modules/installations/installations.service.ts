@@ -3,6 +3,10 @@ import { eq, and } from 'drizzle-orm';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { N8nService } from '../n8n/n8n.service';
+import {
+  mapAgentInstallation,
+  mapWorkflowInstallation,
+} from './installations.mapper.js';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../../../../..');
 const WORKFLOWS_PUBLIC_DIR = path.join(REPO_ROOT, 'workflows', 'public');
@@ -10,17 +14,21 @@ const TEMPLATE_ID_PATTERN = /^[a-zA-Z0-9-_]+$/;
 
 export class InstallationsService {
   async listAgentInstallations(tenantId: string) {
-    return db
+    const installations = await db
       .select()
       .from(agentInstallations)
       .where(eq(agentInstallations.tenantId, tenantId));
+
+    return installations.map(mapAgentInstallation);
   }
 
   async listWorkflowInstallations(tenantId: string) {
-    return db
+    const installations = await db
       .select()
       .from(workflowInstallations)
       .where(eq(workflowInstallations.tenantId, tenantId));
+
+    return installations.map(mapWorkflowInstallation);
   }
 
   async installAgent(
@@ -37,7 +45,7 @@ export class InstallationsService {
         config: config || {},
       })
       .returning();
-    return installation;
+    return mapAgentInstallation(installation);
   }
 
   /**
@@ -79,7 +87,11 @@ export class InstallationsService {
         .update(workflowInstallations)
         .set({ n8nWorkflowId: created.id, status: 'active' })
         .where(eq(workflowInstallations.id, installation.id));
-      return { ...installation, status: 'active', n8nWorkflowId: created.id };
+      return mapWorkflowInstallation({
+        ...installation,
+        status: 'active',
+        n8nWorkflowId: created.id,
+      });
     } catch (error) {
       await db
         .update(workflowInstallations)

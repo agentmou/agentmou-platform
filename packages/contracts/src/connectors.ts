@@ -15,6 +15,7 @@ export const IntegrationCategorySchema = z.enum([
   'payment',
   'dev',
 ]);
+export type IntegrationCategory = z.infer<typeof IntegrationCategorySchema>;
 
 export const IntegrationSchema = z.object({
   id: z.string(),
@@ -29,6 +30,18 @@ export const IntegrationSchema = z.object({
 });
 
 export type Integration = z.infer<typeof IntegrationSchema>;
+
+export const ConnectorsResponseSchema = z.object({
+  connectors: z.array(IntegrationSchema),
+});
+
+export type ConnectorsResponse = z.infer<typeof ConnectorsResponseSchema>;
+
+export const ConnectorResponseSchema = z.object({
+  connector: IntegrationSchema,
+});
+
+export type ConnectorResponse = z.infer<typeof ConnectorResponseSchema>;
 
 // ---------------------------------------------------------------------------
 // n8n Connection

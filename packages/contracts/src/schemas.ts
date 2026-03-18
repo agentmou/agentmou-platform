@@ -33,12 +33,19 @@ export {
   TenantSchema,
   UserRoleSchema,
   TenantMemberSchema,
+  TenantsResponseSchema,
+  TenantResponseSchema,
+  TenantSettingsResponseSchema,
+  TenantMembersResponseSchema,
+  TenantMemberResponseSchema,
 } from './tenancy';
 
 export {
   InstalledStatusSchema,
   InstalledAgentSchema,
   InstalledWorkflowSchema,
+  InstallationCollectionSchema,
+  InstallationsResponseSchema,
   InstallStepStatusSchema,
   InstallStepSchema,
   InstallRunSchema,
@@ -65,6 +72,8 @@ export {
   IntegrationStatusSchema,
   IntegrationCategorySchema,
   IntegrationSchema,
+  ConnectorsResponseSchema,
+  ConnectorResponseSchema,
   N8nConnectionStatusSchema,
   N8nConnectionSchema,
 } from './connectors';

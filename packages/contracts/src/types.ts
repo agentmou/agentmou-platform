@@ -25,12 +25,26 @@ export type {
   PackVertical,
 } from './catalog';
 
-export type { TenantType, TenantPlan, Tenant, UserRole, TenantMember } from './tenancy';
+export type {
+  TenantType,
+  TenantPlan,
+  TenantSettings,
+  Tenant,
+  UserRole,
+  TenantMember,
+  TenantsResponse,
+  TenantResponse,
+  TenantSettingsResponse,
+  TenantMembersResponse,
+  TenantMemberResponse,
+} from './tenancy';
 
 export type {
   InstalledStatus,
   InstalledAgent,
   InstalledWorkflow,
+  InstallationCollection,
+  InstallationsResponse,
   InstallStepStatus,
   InstallStep,
   InstallRun,
@@ -45,7 +59,14 @@ export type {
   ApprovalResponse,
 } from './approvals';
 
-export type { IntegrationStatus, Integration, N8nConnection } from './connectors';
+export type {
+  IntegrationStatus,
+  IntegrationCategory,
+  Integration,
+  ConnectorsResponse,
+  ConnectorResponse,
+  N8nConnection,
+} from './connectors';
 
 export type {
   FindingSeverity,

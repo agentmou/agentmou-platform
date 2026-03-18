@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { InstallationsResponseSchema } from '@agentmou/contracts';
 import { InstallationsService } from './installations.service.js';
 import { getQueue, QUEUE_NAMES, type InstallPackPayload } from '@agentmou/queue';
 
@@ -11,7 +12,11 @@ export async function installationRoutes(fastify: FastifyInstance) {
       service.listAgentInstallations(tenantId),
       service.listWorkflowInstallations(tenantId),
     ]);
-    return reply.send({ installations: { agents, workflows } });
+    return reply.send(
+      InstallationsResponseSchema.parse({
+        installations: { agents, workflows },
+      }),
+    );
   });
 
   fastify.get('/tenants/:tenantId/installations/:installationId', async (request: FastifyRequest, reply: FastifyReply) => {
