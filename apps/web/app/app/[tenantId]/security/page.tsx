@@ -1,27 +1,19 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { 
   Shield, 
   Key, 
   Users, 
-  Eye, 
-  EyeOff, 
   Plus, 
-  RefreshCw, 
-  Trash2, 
   CheckCircle2,
   Lock,
-  Copy,
   Download,
   FileQuestion,
 } from 'lucide-react'
@@ -29,12 +21,28 @@ import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { formatDate } from '@/lib/utils'
 import { StatusPill, IntegrationChip } from '@/components/badges'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
+import { useDataProvider } from '@/lib/data'
+import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
+import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 import type { FleetSecret, FleetAuditEvent } from '@/lib/data/provider'
 import type { TenantMember } from '@agentmou/contracts'
 
 export default function SecurityPage() {
   const params = useParams()
   const tenantId = params.tenantId as string
+  const provider = useDataProvider()
+  const secretsState = resolveHonestSurfaceState('security-secrets', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
+  const teamState = resolveHonestSurfaceState('security-team', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
+  const auditState = resolveHonestSurfaceState('security-audit', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
 
   const { data: auditEvents } = useProviderQuery<FleetAuditEvent[]>(
     (p) => p.listTenantAuditEvents(tenantId),
@@ -51,48 +59,7 @@ export default function SecurityPage() {
     [],
     [tenantId],
   )
-  const [secrets, setSecrets] = useState<FleetSecret[]>([])
-  const [showSecretValues, setShowSecretValues] = useState<Record<string, boolean>>({})
   const [auditFilter, setAuditFilter] = useState('all')
-  const [newSecretOpen, setNewSecretOpen] = useState(false)
-  const [newSecretKey, setNewSecretKey] = useState('')
-  const [newSecretValue, setNewSecretValue] = useState('')
-
-  useEffect(() => {
-    setSecrets(serverSecrets)
-  }, [serverSecrets])
-  
-  const toggleSecretVisibility = (secretId: string) => {
-    setShowSecretValues(prev => ({ ...prev, [secretId]: !prev[secretId] }))
-  }
-  
-  const rotateSecret = (secretId: string) => {
-    setSecrets(prev => prev.map(s => 
-      s.id === secretId 
-        ? { ...s, lastRotated: new Date().toISOString() }
-        : s
-    ))
-  }
-  
-  const deleteSecret = (secretId: string) => {
-    setSecrets(prev => prev.filter(s => s.id !== secretId))
-  }
-  
-  const addSecret = () => {
-    if (!newSecretKey.trim()) return
-    const newSecret = {
-      id: `secret-${Date.now()}`,
-      key: newSecretKey.toUpperCase().replace(/\s+/g, '_'),
-      value: newSecretValue,
-      createdAt: new Date().toISOString(),
-      lastRotated: new Date().toISOString(),
-      usedBy: [],
-    }
-    setSecrets(prev => [...prev, newSecret])
-    setNewSecretKey('')
-    setNewSecretValue('')
-    setNewSecretOpen(false)
-  }
   
   const filteredAuditEvents = auditFilter === 'all' 
     ? auditEvents 
@@ -127,54 +94,21 @@ export default function SecurityPage() {
           <Card className="border-border/50">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-sm font-medium">Secrets Manager</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-sm font-medium">Secrets Manager</CardTitle>
+                  <HonestSurfaceBadge state={secretsState} />
+                </div>
                 <CardDescription className="text-xs">API keys, tokens, and credentials used by your agents</CardDescription>
               </div>
-              <Dialog open={newSecretOpen} onOpenChange={setNewSecretOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="h-8 text-xs">
-                    <Plus className="mr-1.5 h-3 w-3" />
-                    Add Secret
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle className="text-sm font-medium">Add New Secret</DialogTitle>
-                    <DialogDescription className="text-xs">
-                      Store a new secret for use by your agents and workflows.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="key" className="text-xs">Secret Key</Label>
-                      <Input 
-                        id="key" 
-                        placeholder="e.g., STRIPE_API_KEY"
-                        value={newSecretKey}
-                        onChange={e => setNewSecretKey(e.target.value)}
-                        className="h-9 text-sm border-border/50"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="value" className="text-xs">Secret Value</Label>
-                      <Input 
-                        id="value" 
-                        type="password"
-                        placeholder="Enter secret value"
-                        value={newSecretValue}
-                        onChange={e => setNewSecretValue(e.target.value)}
-                        className="h-9 text-sm border-border/50"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => setNewSecretOpen(false)}>Cancel</Button>
-                    <Button size="sm" className="text-xs" onClick={addSecret}>Add Secret</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <Button size="sm" className="h-8 text-xs" disabled>
+                <Plus className="mr-1.5 h-3 w-3" />
+                Add Secret
+              </Button>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="space-y-4 p-0">
+              <div className="px-6 pt-6">
+                <HonestSurfaceNotice state={secretsState} />
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow className="border-b border-border/50 hover:bg-transparent">
@@ -182,48 +116,30 @@ export default function SecurityPage() {
                     <TableHead className="h-11 text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium bg-muted/30">Value</TableHead>
                     <TableHead className="h-11 text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium bg-muted/30">Last Rotated</TableHead>
                     <TableHead className="h-11 text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium bg-muted/30">Used By</TableHead>
-                    <TableHead className="h-11 text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium bg-muted/30 text-right">Actions</TableHead>
+                    <TableHead className="h-11 text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium bg-muted/30 text-right">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {secrets.length === 0 ? (
+                  {serverSecrets.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="py-16">
                         <div className="flex flex-col items-center justify-center text-center">
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
                             <FileQuestion className="h-6 w-6 text-muted-foreground" />
                           </div>
-                          <p className="text-sm font-medium text-foreground mb-1">No secrets</p>
-                          <p className="text-xs text-muted-foreground">Add your first secret to get started.</p>
+                          <p className="text-sm font-medium text-foreground mb-1">No secrets to display</p>
+                          <p className="text-xs text-muted-foreground">{secretsState.description}</p>
                         </div>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    secrets.map(secret => (
+                    serverSecrets.map(secret => (
                       <TableRow key={secret.id} className="border-b border-border/30 h-[52px] hover:bg-muted/20">
                         <TableCell className="font-mono text-xs">{secret.key}</TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            <code className="rounded bg-muted/50 px-2 py-1 text-[10px] font-mono">
-                              {showSecretValues[secret.id] ? secret.value : '••••••••••••'}
-                            </code>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-6 w-6"
-                              onClick={() => toggleSecretVisibility(secret.id)}
-                            >
-                              {showSecretValues[secret.id] ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-6 w-6"
-                              onClick={() => navigator.clipboard.writeText(secret.value)}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </div>
+                          <code className="rounded bg-muted/50 px-2 py-1 text-[10px] font-mono">
+                            ••••••••••••
+                          </code>
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
                           {new Date(secret.lastRotated).toLocaleDateString()}
@@ -243,14 +159,7 @@ export default function SecurityPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => rotateSecret(secret.id)}>
-                              <RefreshCw className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteSecret(secret.id)}>
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
+                          <HonestSurfaceBadge state={secretsState} />
                         </TableCell>
                       </TableRow>
                     ))
@@ -263,6 +172,7 @@ export default function SecurityPage() {
 
         {/* RBAC Tab */}
         <TabsContent value="rbac" className="space-y-4">
+          <HonestSurfaceNotice state={teamState} />
           <SpotlightCard>
           <Card className="border-border/50">
             <CardHeader className="flex flex-row items-center justify-between">
@@ -270,7 +180,7 @@ export default function SecurityPage() {
                 <CardTitle className="text-sm font-medium">Team Members</CardTitle>
                 <CardDescription className="text-xs">Manage who has access to your workspace</CardDescription>
               </div>
-              <Button size="sm" className="h-8 text-xs">
+              <Button size="sm" className="h-8 text-xs" disabled>
                 <Plus className="mr-1.5 h-3 w-3" />
                 Invite Member
               </Button>
@@ -301,7 +211,7 @@ export default function SecurityPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Select defaultValue={member.role}>
+                        <Select value={member.role} disabled>
                           <SelectTrigger className="w-28 h-7 text-xs border-border/50">
                             <SelectValue />
                           </SelectTrigger>
@@ -323,7 +233,7 @@ export default function SecurityPage() {
                         {new Date(member.lastActiveAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={member.role === 'owner'}>
+                        <Button variant="ghost" size="sm" className="h-7 text-xs" disabled>
                           Remove
                         </Button>
                       </TableCell>
@@ -387,6 +297,7 @@ export default function SecurityPage() {
 
         {/* Audit Log Tab */}
         <TabsContent value="audit" className="space-y-4">
+          <HonestSurfaceNotice state={auditState} />
           <SpotlightCard>
           <Card className="border-border/50">
             <CardHeader className="flex flex-row items-center justify-between">
@@ -395,7 +306,7 @@ export default function SecurityPage() {
                 <CardDescription className="text-xs">Complete history of actions in your workspace</CardDescription>
               </div>
               <div className="flex gap-2">
-                <Select value={auditFilter} onValueChange={setAuditFilter}>
+                <Select value={auditFilter} onValueChange={setAuditFilter} disabled={auditState.disabled}>
                   <SelectTrigger className="w-36 h-8 text-xs border-border/50">
                     <SelectValue placeholder="Filter by type" />
                   </SelectTrigger>
@@ -407,7 +318,7 @@ export default function SecurityPage() {
                     <SelectItem value="billing" className="text-xs">Billing Events</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="ghost" size="sm" className="h-8 text-xs">
+                <Button variant="ghost" size="sm" className="h-8 text-xs" disabled>
                   <Download className="mr-1.5 h-3 w-3" />
                   Export
                 </Button>
@@ -425,21 +336,29 @@ export default function SecurityPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredAuditEvents.map(event => (
-                    <TableRow key={event.id} className="border-b border-border/30 h-[52px] hover:bg-muted/20">
-                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                        {formatDate(event.timestamp)}
-                      </TableCell>
-                      <TableCell className="text-sm font-medium">{event.action}</TableCell>
-                      <TableCell className="text-sm">{event.actor}</TableCell>
-                      <TableCell>
-                        <IntegrationChip name={event.category} />
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground max-w-xs truncate">
-                        {event.details}
+                  {filteredAuditEvents.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="py-12 text-center text-sm text-muted-foreground">
+                        {auditState.description}
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    filteredAuditEvents.map(event => (
+                      <TableRow key={event.id} className="border-b border-border/30 h-[52px] hover:bg-muted/20">
+                        <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                          {formatDate(event.timestamp)}
+                        </TableCell>
+                        <TableCell className="text-sm font-medium">{event.action}</TableCell>
+                        <TableCell className="text-sm">{event.actor}</TableCell>
+                        <TableCell>
+                          <IntegrationChip name={event.category} />
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground max-w-xs truncate">
+                          {event.details}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

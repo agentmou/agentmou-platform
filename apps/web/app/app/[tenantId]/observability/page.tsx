@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { FadeContent } from '@/components/reactbits/fade-content'
-import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -31,8 +30,6 @@ CheckCircle,
 XCircle,
 Clock,
 DollarSign,
-TrendingUp,
-TrendingDown,
 ArrowRight,
 Bot,
 Workflow,
@@ -40,9 +37,8 @@ Loader2,
 RefreshCw,
 ExternalLink,
 AlertTriangle,
-Zap,
 } from 'lucide-react'
-import { formatNumber, formatDate } from '@/lib/utils'
+import { formatNumber } from '@/lib/utils'
 import {
   ChartContainer,
   ChartTooltip,
@@ -50,6 +46,9 @@ import {
 } from '@/components/ui/chart'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
+import { useDataProvider } from '@/lib/data'
+import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
+import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 import type { AgentTemplate, WorkflowTemplate, ExecutionRun, DashboardMetrics } from '@agentmou/contracts'
 
 const statusColors = {
@@ -74,12 +73,15 @@ const statusIcons = {
   skipped: Clock,
 }
 
-const COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#eab308']
-
 export default function ObservabilityPage() {
 const params = useParams()
 const router = useRouter()
 const tenantId = params.tenantId as string
+const provider = useDataProvider()
+const analyticsState = resolveHonestSurfaceState('observability-analytics', {
+  providerMode: provider.providerMode,
+  tenantId,
+})
 
 const [period, setPeriod] = React.useState('week')
 const [statusFilter, setStatusFilter] = React.useState('all')
@@ -188,7 +190,11 @@ router.push(`/app/${tenantId}/runs?agentId=${agentId}`)
           </p>
         </div>
         <div className="flex gap-2">
-          <Select value={period} onValueChange={setPeriod}>
+          <Select
+            value={period}
+            onValueChange={setPeriod}
+            disabled={analyticsState.disabled}
+          >
             <SelectTrigger className="w-[130px]">
               <SelectValue />
             </SelectTrigger>
@@ -198,11 +204,13 @@ router.push(`/app/${tenantId}/runs?agentId=${agentId}`)
               <SelectItem value="month">Last 30 days</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="icon">
+          <Button variant="outline" size="icon" disabled={analyticsState.disabled}>
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
       </div>
+
+      <HonestSurfaceNotice state={analyticsState} />
       
 {/* KPI Cards - Clickable for drill-down */}
 <TooltipProvider>
@@ -210,78 +218,88 @@ router.push(`/app/${tenantId}/runs?agentId=${agentId}`)
 <Tooltip>
   <TooltipTrigger asChild>
     <Card 
-      className="cursor-pointer transition-all hover:border-primary/50 hover:shadow-md"
-      onClick={() => navigateToRuns({})}
+      className={analyticsState.disabled
+        ? 'cursor-default'
+        : 'cursor-pointer transition-all hover:border-primary/50 hover:shadow-md'}
+      onClick={analyticsState.disabled ? undefined : () => navigateToRuns({})}
     >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">Total Runs</CardTitle>
-        <Activity className="h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center gap-2">
+          <HonestSurfaceBadge state={analyticsState} />
+          <Activity className="h-4 w-4 text-muted-foreground" />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{formatNumber(metrics.runsTotal)}</div>
-        <div className="flex items-center gap-1 text-xs">
-          <TrendingUp className="h-3 w-3 text-green-600" />
-          <span className="text-green-600">+12%</span>
-          <span className="text-muted-foreground">vs last {period}</span>
-        </div>
+        <p className="text-xs text-muted-foreground">Preview metric</p>
       </CardContent>
     </Card>
   </TooltipTrigger>
   <TooltipContent>
-    <p>Click to view all runs</p>
+    <p>{analyticsState.description}</p>
   </TooltipContent>
 </Tooltip>
 
 <Tooltip>
   <TooltipTrigger asChild>
     <Card 
-      className="cursor-pointer transition-all hover:border-primary/50 hover:shadow-md"
-      onClick={() => navigateToRuns({ status: 'success' })}
+      className={analyticsState.disabled
+        ? 'cursor-default'
+        : 'cursor-pointer transition-all hover:border-primary/50 hover:shadow-md'}
+      onClick={
+        analyticsState.disabled
+          ? undefined
+          : () => navigateToRuns({ status: 'success' })
+      }
     >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-        <CheckCircle className="h-4 w-4 text-green-600" />
+        <div className="flex items-center gap-2">
+          <HonestSurfaceBadge state={analyticsState} />
+          <CheckCircle className="h-4 w-4 text-green-600" />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{successRate}%</div>
         <p className="text-xs text-muted-foreground">
-          {formatNumber(metrics.runsSuccess)} successful runs
+          Preview metric
         </p>
       </CardContent>
     </Card>
   </TooltipTrigger>
   <TooltipContent>
-    <p>Click to view successful runs</p>
+    <p>{analyticsState.description}</p>
   </TooltipContent>
 </Tooltip>
 
 <Tooltip>
   <TooltipTrigger asChild>
     <Card 
-      className="cursor-pointer transition-all hover:border-primary/50 hover:shadow-md"
-      onClick={() => navigateToRuns({ status: 'failed' })}
+      className={analyticsState.disabled
+        ? 'cursor-default'
+        : 'cursor-pointer transition-all hover:border-primary/50 hover:shadow-md'}
+      onClick={
+        analyticsState.disabled
+          ? undefined
+          : () => navigateToRuns({ status: 'failed' })
+      }
     >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">Failed Runs</CardTitle>
-        <AlertTriangle className="h-4 w-4 text-red-500" />
+        <div className="flex items-center gap-2">
+          <HonestSurfaceBadge state={analyticsState} />
+          <AlertTriangle className="h-4 w-4 text-red-500" />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold text-red-600">{metrics.runsFailed}</div>
-        <div className="flex items-center gap-1 text-xs">
-          {metrics.runsFailed > 0 ? (
-            <>
-              <TrendingDown className="h-3 w-3 text-red-600" />
-              <span className="text-red-600">Needs attention</span>
-            </>
-          ) : (
-            <span className="text-muted-foreground">All systems operational</span>
-          )}
-        </div>
+        <p className="text-xs text-muted-foreground">Preview metric</p>
       </CardContent>
     </Card>
   </TooltipTrigger>
   <TooltipContent>
-    <p>Click to view failed runs</p>
+    <p>{analyticsState.description}</p>
   </TooltipContent>
 </Tooltip>
 
@@ -290,16 +308,19 @@ router.push(`/app/${tenantId}/runs?agentId=${agentId}`)
     <Card className="cursor-default">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
-        <DollarSign className="h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center gap-2">
+          <HonestSurfaceBadge state={analyticsState} />
+          <DollarSign className="h-4 w-4 text-muted-foreground" />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">${metrics.totalCost.toFixed(2)}</div>
-        <p className="text-xs text-muted-foreground">Estimated LLM costs</p>
+        <p className="text-xs text-muted-foreground">Preview metric</p>
       </CardContent>
     </Card>
   </TooltipTrigger>
   <TooltipContent>
-    <p>Cost breakdown coming soon</p>
+    <p>{analyticsState.description}</p>
   </TooltipContent>
 </Tooltip>
 </div>
@@ -310,8 +331,13 @@ router.push(`/app/${tenantId}/runs?agentId=${agentId}`)
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Runs Over Time</CardTitle>
-            <CardDescription>Execution count by day</CardDescription>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <CardTitle>Runs Over Time</CardTitle>
+                <CardDescription>Preview execution count by day</CardDescription>
+              </div>
+              <HonestSurfaceBadge state={analyticsState} />
+            </div>
           </CardHeader>
           <CardContent>
             <ChartContainer
@@ -338,8 +364,13 @@ router.push(`/app/${tenantId}/runs?agentId=${agentId}`)
         
 <Card>
 <CardHeader>
-<CardTitle>Status Distribution</CardTitle>
-<CardDescription>Click a status to view filtered runs</CardDescription>
+<div className="flex items-start justify-between gap-4">
+  <div>
+    <CardTitle>Status Distribution</CardTitle>
+    <CardDescription>Preview status distribution for this workspace</CardDescription>
+  </div>
+  <HonestSurfaceBadge state={analyticsState} />
+</div>
 </CardHeader>
 <CardContent>
 <div className="h-[200px]">
@@ -352,14 +383,22 @@ cy="50%"
 innerRadius={50}
 outerRadius={80}
 dataKey="value"
-onClick={(data) => navigateToRuns({ status: data.status })}
-className="cursor-pointer"
+onClick={
+  analyticsState.disabled
+    ? undefined
+    : (data) => navigateToRuns({ status: data.status })
+}
+className={analyticsState.disabled ? 'cursor-default' : 'cursor-pointer'}
 >
 {statusDistribution.map((entry, index) => (
 <Cell 
   key={`cell-${index}`} 
   fill={entry.color}
-  className="cursor-pointer hover:opacity-80 transition-opacity"
+  className={
+    analyticsState.disabled
+      ? ''
+      : 'cursor-pointer hover:opacity-80 transition-opacity'
+  }
 />
 ))}
 </Pie>
@@ -385,12 +424,21 @@ className="cursor-pointer"
 {statusDistribution.filter(d => d.value > 0).map((item) => (
 <button
   key={item.name} 
-  className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted transition-colors cursor-pointer"
-  onClick={() => navigateToRuns({ status: item.status })}
+  className={analyticsState.disabled
+    ? 'flex items-center gap-1.5 px-2 py-1 rounded-md text-muted-foreground'
+    : 'flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted transition-colors cursor-pointer'}
+  onClick={
+    analyticsState.disabled
+      ? undefined
+      : () => navigateToRuns({ status: item.status })
+  }
+  disabled={analyticsState.disabled}
 >
   <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
   <span className="text-xs text-muted-foreground">{item.name}: {item.value}</span>
-  <ExternalLink className="h-2.5 w-2.5 text-muted-foreground" />
+  {!analyticsState.disabled && (
+    <ExternalLink className="h-2.5 w-2.5 text-muted-foreground" />
+  )}
 </button>
 ))}
 </div>
@@ -401,8 +449,13 @@ className="cursor-pointer"
       {/* Cost Breakdown */}
       <Card>
         <CardHeader>
-          <CardTitle>Cost by Day</CardTitle>
-          <CardDescription>LLM cost trends</CardDescription>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CardTitle>Cost by Day</CardTitle>
+              <CardDescription>Preview LLM cost trends</CardDescription>
+            </div>
+            <HonestSurfaceBadge state={analyticsState} />
+          </div>
         </CardHeader>
         <CardContent>
           <ChartContainer

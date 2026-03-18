@@ -46,6 +46,7 @@ function emptyMetrics(tenantId: string, period: DashboardMetrics['period'] = 'we
 }
 
 export const apiProvider: DataProvider = {
+  providerMode: 'api',
   // Catalog
   listCatalogAgentTemplates: () => fetchCatalogAgents(),
   listMarketplaceAgentTemplates: () => fetchCatalogAgents(),

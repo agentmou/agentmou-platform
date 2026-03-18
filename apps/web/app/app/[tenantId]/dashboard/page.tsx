@@ -26,6 +26,9 @@ import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { StarBorder } from '@/components/reactbits/star-border'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line } from 'recharts'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
+import { useDataProvider } from '@/lib/data'
+import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
+import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 import { EmptyState } from '@/components/fleetops/empty-state'
 import { Store } from 'lucide-react'
 import type {
@@ -58,6 +61,11 @@ const emptyMetrics: DashboardMetrics = {
 export default function DashboardPage() {
   const params = useParams()
   const tenantId = params.tenantId as string
+  const provider = useDataProvider()
+  const metricsState = resolveHonestSurfaceState('dashboard-metrics', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
 
   const { data: metrics } = useProviderQuery<DashboardMetrics>(
     (p) => p.getTenantDashboardMetrics(tenantId, 'week'),
@@ -168,7 +176,7 @@ export default function DashboardPage() {
         <EmptyState
           icon={Store}
           title="Welcome to your workspace"
-          description="Get started by browsing the marketplace and installing your first agent pack. Your dashboard will come alive with real-time metrics once agents are running."
+          description="Get started by browsing the marketplace and reviewing available packs. Real runs and approvals appear here when your workspace is active, while KPI metrics stay labeled as preview until tenant metrics are wired."
           actionLabel="Browse Marketplace"
           actionHref={`/app/${tenantId}/marketplace`}
         />
@@ -263,15 +271,19 @@ export default function DashboardPage() {
       )}
       
       {/* KPI Cards */}
+      <HonestSurfaceNotice state={metricsState} />
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <SpotlightCard className="rounded-sm border border-border/50 bg-card">
           <div className="p-5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-editorial-tiny">Total Runs</p>
-              <Activity className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <HonestSurfaceBadge state={metricsState} />
+                <Activity className="h-4 w-4 text-muted-foreground" />
+              </div>
             </div>
             <p className="text-3xl font-bold tracking-tight">{formatNumber(metrics.runsTotal)}</p>
-            <p className="text-xs text-muted-foreground mt-1">This week</p>
+            <p className="text-xs text-muted-foreground mt-1">Preview metric</p>
           </div>
         </SpotlightCard>
         
@@ -279,12 +291,13 @@ export default function DashboardPage() {
           <div className="p-5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-editorial-tiny">Success Rate</p>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <HonestSurfaceBadge state={metricsState} />
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </div>
             </div>
             <p className="text-3xl font-bold tracking-tight">{successRate}%</p>
-            <p className="text-xs text-accent mt-1">
-              +2.5% <span className="text-muted-foreground">from last week</span>
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">Preview metric</p>
           </div>
         </SpotlightCard>
         
@@ -292,10 +305,13 @@ export default function DashboardPage() {
           <div className="p-5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-editorial-tiny">Avg Latency</p>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <HonestSurfaceBadge state={metricsState} />
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </div>
             </div>
             <p className="text-3xl font-bold tracking-tight">{(metrics.avgLatencyMs / 1000).toFixed(1)}s</p>
-            <p className="text-xs text-muted-foreground mt-1">Per execution</p>
+            <p className="text-xs text-muted-foreground mt-1">Preview metric</p>
           </div>
         </SpotlightCard>
         
@@ -303,10 +319,13 @@ export default function DashboardPage() {
           <div className="p-5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-editorial-tiny">Est. LLM Cost</p>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <HonestSurfaceBadge state={metricsState} />
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </div>
             </div>
             <p className="text-3xl font-bold tracking-tight">${metrics.totalCost.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground mt-1">This week</p>
+            <p className="text-xs text-muted-foreground mt-1">Preview metric</p>
           </div>
         </SpotlightCard>
       </div>
@@ -315,9 +334,12 @@ export default function DashboardPage() {
       <FadeContent>
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="app-panel bg-card p-5 border border-border/50 rounded-sm">
-          <div className="mb-4">
-            <p className="font-semibold text-sm">Runs by Day</p>
-            <p className="text-xs text-muted-foreground">Execution activity over the past week</p>
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="font-semibold text-sm">Runs by Day</p>
+              <p className="text-xs text-muted-foreground">Execution activity preview over the past week</p>
+            </div>
+            <HonestSurfaceBadge state={metricsState} />
           </div>
           <ChartContainer
             config={{
@@ -343,9 +365,12 @@ export default function DashboardPage() {
         </div>
         
         <div className="app-panel bg-card p-5 border border-border/50 rounded-sm">
-          <div className="mb-4">
-            <p className="font-semibold text-sm">Cost by Day</p>
-            <p className="text-xs text-muted-foreground">Estimated LLM costs over the past week</p>
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="font-semibold text-sm">Cost by Day</p>
+              <p className="text-xs text-muted-foreground">Estimated LLM cost preview over the past week</p>
+            </div>
+            <HonestSurfaceBadge state={metricsState} />
           </div>
           <ChartContainer
             config={{
@@ -504,9 +529,12 @@ export default function DashboardPage() {
       
       {/* Top Errors */}
       <div className="app-panel bg-card p-5 border border-border/50 rounded-sm">
-        <div className="mb-4">
-          <p className="font-semibold text-sm">Top Errors</p>
-          <p className="text-xs text-muted-foreground">Most common error types this week</p>
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <p className="font-semibold text-sm">Top Errors</p>
+            <p className="text-xs text-muted-foreground">Placeholder summary of common error types this week</p>
+          </div>
+          <HonestSurfaceBadge state={metricsState} />
         </div>
         <div className="space-y-3">
           {metrics.errorsByType.map((error, index) => (

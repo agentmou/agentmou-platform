@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import Link from 'next/link'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,22 +13,27 @@ import { Switch } from '@/components/ui/switch'
 import { Stepper, Step } from '@/components/reactbits/stepper'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { useToast } from '@/hooks/use-toast'
+import { useDataProvider } from '@/lib/data'
+import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
+import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 import {
   Bot,
   Workflow,
   Package,
   Plug,
-  Settings2,
-  Shield,
-  Rocket,
-  Target,
   CheckCircle,
   AlertTriangle,
   Loader2,
 } from 'lucide-react'
 import { normalizeCategory } from '@/lib/fleetops/category-config'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
-import type { AgentTemplate, WorkflowTemplate, PackTemplate, Integration } from '@agentmou/contracts'
+import type {
+  AgentTemplate,
+  Category,
+  Integration,
+  PackTemplate,
+  WorkflowTemplate,
+} from '@agentmou/contracts'
 
 const stepLabels = [
   { id: 1, name: 'Outcome' },
@@ -57,6 +61,11 @@ export default function InstallerWizardPage() {
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const tenantId = params.tenantId as string
+  const provider = useDataProvider()
+  const installerState = resolveHonestSurfaceState('installer-flow', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
 
   const { data: agentTemplates } = useProviderQuery<AgentTemplate[]>(
     (p) => p.listCatalogAgentTemplates(),
@@ -123,7 +132,7 @@ export default function InstallerWizardPage() {
       connected[i.id] = i.status === 'connected'
     })
     setConnectedIntegrations(connected)
-  }, [searchParams])
+  }, [agentTemplates, integrations, packTemplates, searchParams])
 
   const filteredAgents = agentTemplates.filter(a => {
     if ((a.availability || 'available') !== 'available') return false
@@ -133,7 +142,9 @@ export default function InstallerWizardPage() {
   })
 
   const filteredPacks = packTemplates.filter(p =>
-    !selectedOutcome || p.vertical === selectedOutcome || p.includedCategories.includes(selectedOutcome as any)
+    !selectedOutcome ||
+    p.vertical === selectedOutcome ||
+    p.includedCategories.includes(selectedOutcome as Category)
   )
 
   const requiredIntegrations = React.useMemo(() => {
@@ -187,9 +198,11 @@ export default function InstallerWizardPage() {
         <p className="text-editorial-tiny mb-2">Installer</p>
         <h1 className="text-2xl font-bold tracking-tight">Install New</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Set up agents and workflows in a few simple steps.
+          Review the setup flow for agents and workflows before live tenant wiring is available.
         </p>
       </div>
+
+      <HonestSurfaceNotice state={installerState} />
 
       <div className="max-w-4xl space-y-6">
         <Stepper
@@ -197,9 +210,15 @@ export default function InstallerWizardPage() {
           currentStep={currentStep}
           onStepChange={setCurrentStep}
           onComplete={handleInstall}
-          canProceed={canProceed}
+          canProceed={
+            currentStep === stepLabels.length && installerState.tone !== 'demo'
+              ? false
+              : canProceed
+          }
           isLoading={isInstalling}
-          completeButtonText="Install Now"
+          completeButtonText={
+            installerState.tone === 'demo' ? 'Finish Demo Setup' : 'Install Preview'
+          }
         >
           {/* Step 1: Choose Outcome */}
           <Step>
@@ -310,7 +329,10 @@ export default function InstallerWizardPage() {
           <Step>
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold">Connect integrations</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-semibold">Connect integrations</h2>
+                  <HonestSurfaceBadge state={installerState} />
+                </div>
                 <p className="text-sm text-muted-foreground">These integrations are required for your selected agents and workflows.</p>
               </div>
 
@@ -345,9 +367,13 @@ export default function InstallerWizardPage() {
                             size="sm"
                             variant="outline"
                             onClick={() => handleTestConnection(integrationId)}
-                            disabled={isLoading}
+                            disabled={isLoading || installerState.tone !== 'demo'}
                           >
-                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Connect'}
+                            {isLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              'Simulate Connection'
+                            )}
                           </Button>
                         )}
                       </div>

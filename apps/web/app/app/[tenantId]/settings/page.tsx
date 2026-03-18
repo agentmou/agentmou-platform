@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
@@ -15,13 +15,11 @@ import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { 
-  Settings, 
   Building2, 
   Bell, 
   CreditCard, 
   Trash2,
   AlertTriangle,
-  Check,
   ExternalLink,
   Download,
   Sun,
@@ -30,12 +28,44 @@ import {
 } from 'lucide-react'
 import { formatNumber } from '@/lib/utils'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
+import { useDataProvider } from '@/lib/data'
+import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
+import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 import type { FleetBillingInfo } from '@/lib/data/provider'
-import type { Tenant } from '@agentmou/contracts'
+import type { Invoice, N8nConnection, Tenant } from '@agentmou/contracts'
+
+function formatInvoiceMonth(date: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${date}T00:00:00Z`))
+}
 
 export default function SettingsPage() {
   const params = useParams()
   const tenantId = params.tenantId as string
+  const provider = useDataProvider()
+  const generalState = resolveHonestSurfaceState('settings-general', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
+  const notificationsState = resolveHonestSurfaceState('settings-notifications', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
+  const billingState = resolveHonestSurfaceState('settings-billing', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
+  const dangerZoneState = resolveHonestSurfaceState('settings-danger-zone', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
+  const n8nState = resolveHonestSurfaceState('n8n-connection', {
+    providerMode: provider.providerMode,
+    tenantId,
+  })
 
   const tenantFallback = { id: tenantId, name: '', type: 'business' as const, plan: 'starter' as const, createdAt: '', ownerId: '', settings: { timezone: 'America/New_York', defaultHITL: false, logRetentionDays: 30, memoryRetentionDays: 7 } } as Tenant
   const { data: tenantData } = useProviderQuery<Tenant | null>(
@@ -49,6 +79,16 @@ export default function SettingsPage() {
     { plan: 'starter', monthlySpend: 0, agentsInstalled: 0, runsThisMonth: 0 },
     [tenantId],
   )
+  const { data: invoices } = useProviderQuery<Invoice[]>(
+    (p) => p.listTenantInvoices(tenantId),
+    [],
+    [tenantId],
+  )
+  const { data: n8nConnection } = useProviderQuery<N8nConnection | null>(
+    (p) => p.getTenantN8nConnection(tenantId),
+    null,
+    [tenantId],
+  )
 
   const [workspaceName, setWorkspaceName] = useState(tenant.name)
   const [emailNotifications, setEmailNotifications] = useState(true)
@@ -57,13 +97,12 @@ export default function SettingsPage() {
   const [approvalAlerts, setApprovalAlerts] = useState(true)
   const [weeklyDigest, setWeeklyDigest] = useState(false)
   const [timezone, setTimezone] = useState('America/New_York')
-  const [saved, setSaved] = useState(false)
   const { theme, setTheme } = useTheme()
-  
-  const handleSave = () => {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }
+
+  useEffect(() => {
+    setWorkspaceName(tenant.name)
+    setTimezone(tenant.settings.timezone)
+  }, [tenant.name, tenant.settings.timezone])
 
   return (
     <div className="p-6 lg:p-8 space-y-8">
@@ -95,9 +134,13 @@ export default function SettingsPage() {
 
         {/* General Tab */}
         <TabsContent value="general" className="space-y-4">
+          <HonestSurfaceNotice state={generalState} />
           <Card>
             <CardHeader>
-              <CardTitle>Workspace Settings</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle>Workspace Settings</CardTitle>
+                <HonestSurfaceBadge state={generalState} />
+              </div>
               <CardDescription>Basic configuration for your workspace</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -107,6 +150,7 @@ export default function SettingsPage() {
                   id="name" 
                   value={workspaceName}
                   onChange={e => setWorkspaceName(e.target.value)}
+                  disabled
                 />
               </div>
               
@@ -126,7 +170,7 @@ export default function SettingsPage() {
               
               <div className="space-y-2">
                 <Label htmlFor="timezone">Timezone</Label>
-                <Select value={timezone} onValueChange={setTimezone}>
+                <Select value={timezone} onValueChange={setTimezone} disabled>
                   <SelectTrigger className="max-w-xs">
                     <SelectValue />
                   </SelectTrigger>
@@ -180,26 +224,59 @@ export default function SettingsPage() {
                 <p className="text-xs text-muted-foreground">Use this ID for API integrations</p>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <div>
-                {saved && (
-                  <span className="flex items-center gap-2 text-sm text-chart-3">
-                    <Check className="h-4 w-4" />
-                    Settings saved
-                  </span>
-                )}
-              </div>
-              <Button onClick={handleSave}>Save Changes</Button>
+            <CardFooter className="justify-end">
+              <Button disabled>Save Changes</Button>
             </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <CardTitle>Workflow Engine</CardTitle>
+                <HonestSurfaceBadge state={n8nState} />
+              </div>
+              <CardDescription>
+                Status of the internal workflow engine that powers installed workflows.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <HonestSurfaceNotice state={n8nState} />
+              {n8nConnection ? (
+                <div className="rounded-lg border border-border/50 p-4 text-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-muted-foreground">Base URL</span>
+                    <span className="font-medium">{n8nConnection.baseUrl}</span>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <span className="text-muted-foreground">API key</span>
+                    <span className="font-medium">
+                      {n8nConnection.apiKeySet ? 'Configured' : 'Not set'}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <span className="text-muted-foreground">Executions</span>
+                    <span className="font-medium">{formatNumber(n8nConnection.executionCount)}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-border/60 p-4 text-sm text-muted-foreground">
+                  Agentmou manages the workflow engine internally for authenticated workspaces today.
+                </div>
+              )}
+            </CardContent>
           </Card>
         </TabsContent>
 
         {/* Notifications Tab */}
         <TabsContent value="notifications" className="space-y-4">
+          <HonestSurfaceNotice state={notificationsState} />
           <SpotlightCard>
           <Card>
             <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle>Notification Preferences</CardTitle>
+                <HonestSurfaceBadge state={notificationsState} />
+              </div>
               <CardDescription>Control how and when you receive notifications</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -210,14 +287,14 @@ export default function SettingsPage() {
                     <p className="font-medium">Email Notifications</p>
                     <p className="text-sm text-muted-foreground">Receive notifications via email</p>
                   </div>
-                  <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
+                  <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} disabled />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Slack Notifications</p>
                     <p className="text-sm text-muted-foreground">Receive notifications in Slack</p>
                   </div>
-                  <Switch checked={slackNotifications} onCheckedChange={setSlackNotifications} />
+                  <Switch checked={slackNotifications} onCheckedChange={setSlackNotifications} disabled />
                 </div>
               </div>
               
@@ -230,26 +307,26 @@ export default function SettingsPage() {
                     <p className="font-medium">Run Failures</p>
                     <p className="text-sm text-muted-foreground">Get notified when agent runs fail</p>
                   </div>
-                  <Switch checked={runAlerts} onCheckedChange={setRunAlerts} />
+                  <Switch checked={runAlerts} onCheckedChange={setRunAlerts} disabled />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Approval Requests</p>
                     <p className="text-sm text-muted-foreground">Get notified when actions need approval</p>
                   </div>
-                  <Switch checked={approvalAlerts} onCheckedChange={setApprovalAlerts} />
+                  <Switch checked={approvalAlerts} onCheckedChange={setApprovalAlerts} disabled />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Weekly Digest</p>
                     <p className="text-sm text-muted-foreground">Receive a weekly summary of activity</p>
                   </div>
-                  <Switch checked={weeklyDigest} onCheckedChange={setWeeklyDigest} />
+                  <Switch checked={weeklyDigest} onCheckedChange={setWeeklyDigest} disabled />
                 </div>
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleSave}>Save Preferences</Button>
+              <Button disabled>Save Preferences</Button>
             </CardFooter>
           </Card>
           </SpotlightCard>
@@ -257,41 +334,53 @@ export default function SettingsPage() {
 
         {/* Billing Tab */}
         <TabsContent value="billing" className="space-y-4">
+          <HonestSurfaceNotice state={billingState} />
           <div className="grid gap-4 md:grid-cols-2">
             <SpotlightCard>
             <Card>
               <CardHeader>
-                <CardTitle>Current Plan</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle>Current Plan</CardTitle>
+                  <HonestSurfaceBadge state={billingState} />
+                </div>
                 <CardDescription>Your subscription details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-2xl font-bold capitalize">{billing.plan}</p>
+                    <p className="text-2xl font-bold capitalize">{tenant.plan}</p>
                     <p className="text-muted-foreground">
-                      ${billing.monthlySpend.toFixed(2)}/month
+                      {billingState.tone === 'demo'
+                        ? `$${billing.monthlySpend.toFixed(2)}/month`
+                        : 'Spend data not yet available'}
                     </p>
                   </div>
-                  <Badge variant="default">Active</Badge>
+                  <HonestSurfaceBadge state={billingState} />
                 </div>
                 <Separator />
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Agents installed</span>
-                    <span>{billing.agentsInstalled} / {billing.plan === 'starter' ? '3' : billing.plan === 'growth' ? '10' : 'Unlimited'}</span>
+                {billingState.tone === 'demo' ? (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Agents installed</span>
+                      <span>{billing.agentsInstalled}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Runs this month</span>
+                      <span>{formatNumber(billing.runsThisMonth)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Billing period</span>
+                      <span>Monthly</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Runs this month</span>
-                    <span>{formatNumber(billing.runsThisMonth)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Billing period</span>
-                    <span>Monthly</span>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Billing limits, spend, and invoice totals remain hidden until the billing surface is wired to real tenant data.
+                  </p>
+                )}
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" disabled>
                   Upgrade Plan
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
@@ -302,22 +391,21 @@ export default function SettingsPage() {
             <SpotlightCard>
             <Card>
               <CardHeader>
-                <CardTitle>Payment Method</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle>Payment Method</CardTitle>
+                  <HonestSurfaceBadge state={billingState} />
+                </div>
                 <CardDescription>Your billing information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-16 items-center justify-center rounded-md border bg-card">
-                    <CreditCard className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Visa ending in 4242</p>
-                    <p className="text-sm text-muted-foreground">Expires 12/2027</p>
-                  </div>
+                <div className="rounded-lg border border-dashed border-border/60 p-4 text-sm text-muted-foreground">
+                  {billingState.tone === 'demo'
+                    ? 'Demo billing details stay read-only in the sample workspace.'
+                    : 'Payment methods are not exposed in authenticated workspaces yet.'}
                 </div>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full">Update Payment Method</Button>
+                <Button variant="outline" className="w-full" disabled>Update Payment Method</Button>
               </CardFooter>
             </Card>
             </SpotlightCard>
@@ -326,30 +414,39 @@ export default function SettingsPage() {
           <SpotlightCard>
           <Card>
             <CardHeader>
-              <CardTitle>Invoices</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle>Invoices</CardTitle>
+                <HonestSurfaceBadge state={billingState} />
+              </div>
               <CardDescription>Download your past invoices</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {[
-                  { date: 'Feb 2026', amount: 149.00, status: 'paid' },
-                  { date: 'Jan 2026', amount: 149.00, status: 'paid' },
-                  { date: 'Dec 2025', amount: 149.00, status: 'paid' },
-                ].map((invoice, i) => (
-                  <div key={i} className="flex items-center justify-between rounded-lg border p-3">
+              {invoices.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-border/60 p-4 text-sm text-muted-foreground">
+                  {billingState.description}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                {invoices.map((invoice) => (
+                  <div key={invoice.id} className="flex items-center justify-between rounded-lg border p-3">
                     <div className="flex items-center gap-4">
-                      <span className="font-medium">{invoice.date}</span>
+                      <span className="font-medium">
+                        {formatInvoiceMonth(invoice.date)}
+                      </span>
                       <Badge variant="secondary">{invoice.status}</Badge>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-muted-foreground">${invoice.amount.toFixed(2)}</span>
-                      <Button variant="ghost" size="sm">
+                      <span className="text-muted-foreground">
+                        ${invoice.amount.toFixed(2)}
+                      </span>
+                      <Button variant="ghost" size="sm" disabled>
                         <Download className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                 ))}
-              </div>
+                </div>
+              )}
             </CardContent>
           </Card>
           </SpotlightCard>
@@ -357,6 +454,7 @@ export default function SettingsPage() {
 
         {/* Danger Zone Tab */}
         <TabsContent value="danger" className="space-y-4">
+          <HonestSurfaceNotice state={dangerZoneState} />
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
@@ -367,7 +465,10 @@ export default function SettingsPage() {
           <SpotlightCard>
           <Card className="border-destructive">
             <CardHeader>
-              <CardTitle>Delete Workspace</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle>Delete Workspace</CardTitle>
+                <HonestSurfaceBadge state={dangerZoneState} />
+              </div>
               <CardDescription>
                 Permanently delete this workspace and all its data, including agents, workflows, runs, and configurations.
               </CardDescription>
@@ -376,7 +477,7 @@ export default function SettingsPage() {
               <p className="text-sm text-muted-foreground mb-4">
                 This action cannot be undone. All team members will lose access, and all data will be permanently deleted.
               </p>
-              <Button variant="destructive">
+              <Button variant="destructive" disabled>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete Workspace
               </Button>
@@ -387,13 +488,16 @@ export default function SettingsPage() {
           <SpotlightCard>
           <Card className="border-destructive">
             <CardHeader>
-              <CardTitle>Export Data</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle>Export Data</CardTitle>
+                <HonestSurfaceBadge state={dangerZoneState} />
+              </div>
               <CardDescription>
                 Download all your workspace data before deletion.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline">
+              <Button variant="outline" disabled>
                 <Download className="mr-2 h-4 w-4" />
                 Export All Data
               </Button>
