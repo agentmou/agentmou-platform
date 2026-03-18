@@ -86,7 +86,8 @@ The repository now has:
 - `packages/db` schema covers the full domain model (tenants, memberships,
   installations, runs, steps, approvals, audit, schedules, OAuth state).
 - `packages/catalog-sdk` validates actual manifest files correctly.
-- `pnpm typecheck` passes on the March 17, 2026 validation snapshot.
+- `pnpm typecheck`, `pnpm test`, and `pnpm lint` all pass on the March 18,
+  2026 validation snapshot.
 
 The platform remains in bootstrap stage for backend runtime maturity:
 
@@ -94,8 +95,9 @@ The platform remains in bootstrap stage for backend runtime maturity:
   but several tenant-facing modules are still stubbed or partial.
 - Shared contracts exist, but producer payloads are not yet consistently
   aligned with them across API, worker, and web.
-- `pnpm test` is not currently green in a clean checkout; see
-  [Platform Context v2.0](./platform-context-v2.md) for the exact failure.
+- The local validation baseline is green again; `pnpm lint` still emits
+  non-blocking warnings. See
+  [Platform Context v2.0](./platform-context-v2.md) for the exact snapshot.
 
 Use the linked documents above as the authoritative map of what is real
 today and what is next.

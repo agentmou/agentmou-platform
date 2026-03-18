@@ -1,6 +1,6 @@
 # Platform Context v2.0
 
-**Validated on**: March 17, 2026
+**Validated on**: March 18, 2026
 
 This document is the current, code-verified successor to
 [`whole-initial-context.md`](../../whole-initial-context.md).
@@ -44,16 +44,16 @@ payloads.
 | Data plane | `partial` | Worker queues and runtime path are real, but breadth and contract maturity are still limited |
 | Catalog and workflow assets | `partial` | Real installable assets exist, but demo inventory is much larger than the real catalog |
 | Infrastructure model | `partial` | Production compose and deploy scripts are present; actual live VPS state cannot be proven from repo contents alone |
-| Validation baseline | `partial` | `pnpm typecheck` passes; `pnpm test` is not currently green in a clean checkout |
+| Validation baseline | `implemented` | `pnpm typecheck`, `pnpm test`, and `pnpm lint` all pass from the repo root; `pnpm lint` still reports non-blocking warnings |
 
-### Validation Commands Observed On March 17, 2026
+### Validation Commands Observed On March 18, 2026
 
 - `pnpm typecheck`: passes
-- `pnpm test`: fails in `@agentmou/api` because Vitest resolves a missing
-  `services/api/node_modules/vitest/vitest.mjs`
+- `pnpm test`: passes
+- `pnpm lint`: passes with warnings only (0 errors)
 
-Do not describe the repository as having a green test baseline until that exact
-failure is revalidated as fixed.
+The March 17 Vitest resolution failure no longer reproduces in the current repo
+state.
 
 ## Current Architecture
 
@@ -299,19 +299,20 @@ clear.
   `demo-workspace`.
 - Do not let tenant-scoped business logic depend on demo inventory again.
 
-### 4. Treat The Validation Baseline As Yellow, Not Green
+### 4. Keep The Validation Baseline Verified, Not Assumed
 
 **Why this matters**
 
-Some repository docs still present the platform as fully green from a testing
-and deployment perspective. The current repo does not support that statement.
+The local validation baseline is green again, but those claims only stay useful
+if they continue to reflect freshly re-run commands instead of inherited
+assumptions.
 
 **Conservative correction**
 
-- Update top-level docs to report the March 17, 2026 validation snapshot
+- Update top-level docs to report the March 18, 2026 validation snapshot
   exactly.
-- Fix the current test-runner failure before describing the repository as fully
-  validated.
+- Re-run `pnpm typecheck`, `pnpm test`, and `pnpm lint` before changing the
+  repository's validation claims again.
 
 ### 5. Stop Letting Documentation Drift Create Product Drift
 

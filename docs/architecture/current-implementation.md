@@ -130,8 +130,8 @@ Phase 2 additions:
 
 ### Testing
 
-- Vitest configured with 61+ tests across 7 packages/services.
-- `pnpm test` runs as part of the Turbo task graph.
+- Vitest currently runs 67 tests across 6 packages/services.
+- `pnpm test` runs green as part of the Turbo task graph.
 
 ### Agents Service (services/agents)
 
@@ -177,7 +177,8 @@ details.
 
 ## Validation Snapshot
 
-- `pnpm typecheck`: 13/13 pass.
+- `pnpm typecheck`: 13/13 pass on March 18, 2026.
 - `pnpm build`: 3/3 pass.
-- `pnpm lint`: 12/12 pass (0 errors).
-- `pnpm test`: 61+ tests across 7 packages/services.
+- `pnpm lint`: 12/12 pass on March 18, 2026 (warnings only; 0 errors).
+- `pnpm test`: 6/6 pass on March 18, 2026 (67 tests across 6
+  packages/services).
