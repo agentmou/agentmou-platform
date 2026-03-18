@@ -247,9 +247,6 @@ importers:
       typescript:
         specifier: ^5.7.0
         version: 5.7.3
-      vitest:
-        specifier: ^3.0.0
-        version: 3.2.4(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.10(@types/node@22.19.15)(typescript@5.7.3))(tsx@4.21.0)(yaml@2.8.2)
 
   packages/auth:
     dependencies:
@@ -473,9 +470,6 @@ importers:
       typescript:
         specifier: ^5.7.0
         version: 5.7.3
-      vitest:
-        specifier: ^3.0.0
-        version: 3.2.4(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.10(@types/node@22.19.15)(typescript@5.7.3))(tsx@4.21.0)(yaml@2.8.2)
 
   services/worker:
     dependencies:
@@ -522,9 +516,6 @@ importers:
       typescript:
         specifier: ^5.7.0
         version: 5.7.3
-      vitest:
-        specifier: ^3.0.0
-        version: 3.2.4(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.10(@types/node@22.19.15)(typescript@5.7.3))(tsx@4.21.0)(yaml@2.8.2)
 
 packages:
 
