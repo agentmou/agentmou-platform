@@ -1,20 +1,32 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import {
+  TenantsResponseSchema,
+  TenantResponseSchema,
+  TenantSettingsResponseSchema,
+} from '@agentmou/contracts';
 import { TenantsService } from './tenants.service.js';
-import { createTenantSchema, updateTenantSchema } from './tenants.schema.js';
+import {
+  createTenantSchema,
+  tenantSettingsSchema,
+  updateTenantSchema,
+  type CreateTenantInput,
+  type TenantSettingsInput,
+  type UpdateTenantInput,
+} from './tenants.schema.js';
 
 export async function tenantRoutes(fastify: FastifyInstance) {
   const tenantsService = new TenantsService();
 
   fastify.get('/', async (_request: FastifyRequest, reply: FastifyReply) => {
     const tenants = await tenantsService.listTenants();
-    return reply.send({ tenants });
+    return reply.send(TenantsResponseSchema.parse({ tenants }));
   });
 
   fastify.post('/', {
     schema: { body: createTenantSchema },
     async handler(request: FastifyRequest, reply: FastifyReply) {
-      const tenant = await tenantsService.createTenant(request.body as any);
-      return reply.send({ tenant });
+      const tenant = await tenantsService.createTenant(request.body as CreateTenantInput);
+      return reply.send(TenantResponseSchema.parse({ tenant }));
     },
   });
 
@@ -24,18 +36,18 @@ export async function tenantRoutes(fastify: FastifyInstance) {
     if (!tenant) {
       return reply.status(404).send({ error: 'Tenant not found' });
     }
-    return reply.send({ tenant });
+    return reply.send(TenantResponseSchema.parse({ tenant }));
   });
 
   fastify.put('/:id', {
     schema: { body: updateTenantSchema },
     async handler(request: FastifyRequest, reply: FastifyReply) {
       const { id } = request.params as { id: string };
-      const tenant = await tenantsService.updateTenant(id, request.body as any);
+      const tenant = await tenantsService.updateTenant(id, request.body as UpdateTenantInput);
       if (!tenant) {
         return reply.status(404).send({ error: 'Tenant not found' });
       }
-      return reply.send({ tenant });
+      return reply.send(TenantResponseSchema.parse({ tenant }));
     },
   });
 
@@ -51,15 +63,24 @@ export async function tenantRoutes(fastify: FastifyInstance) {
     if (settings === null) {
       return reply.status(404).send({ error: 'Tenant not found' });
     }
-    return reply.send({ settings });
+    return reply.send(TenantSettingsResponseSchema.parse({ settings }));
   });
 
-  fastify.put('/:id/settings', async (request: FastifyRequest, reply: FastifyReply) => {
-    const { id } = request.params as { id: string };
-    const settings = await tenantsService.updateTenantSettings(id, request.body as any);
-    if (settings === null) {
-      return reply.status(404).send({ error: 'Tenant not found' });
-    }
-    return reply.send({ settings });
-  });
+  fastify.put(
+    '/:id/settings',
+    {
+      schema: { body: tenantSettingsSchema },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { id } = request.params as { id: string };
+      const settings = await tenantsService.updateTenantSettings(
+        id,
+        request.body as TenantSettingsInput,
+      );
+      if (settings === null) {
+        return reply.status(404).send({ error: 'Tenant not found' });
+      }
+      return reply.send(TenantSettingsResponseSchema.parse({ settings }));
+    },
+  );
 }

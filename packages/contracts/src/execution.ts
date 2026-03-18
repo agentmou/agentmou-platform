@@ -12,34 +12,54 @@ export const ExecutionStatusSchema = z.enum([
   'rejected',
   'timeout',
   'error',
+  'skipped',
 ]);
 
 export type ExecutionStatus = z.infer<typeof ExecutionStatusSchema>;
+
+const LegacyExecutionStatusSchema = z.enum(['completed']);
+
+const RawExecutionStatusSchema = z.union([
+  ExecutionStatusSchema,
+  LegacyExecutionStatusSchema,
+]);
 
 // ---------------------------------------------------------------------------
 // Execution step
 // ---------------------------------------------------------------------------
 
 export const ExecutionStepTypeSchema = z.enum([
-  'trigger',
-  'transform',
-  'llm',
-  'action',
-  'output',
+  'tool_call',
+  'agent_invoke',
+  'condition',
+  'loop',
   'approval',
-  'fetch',
-  'extract',
+  'n8n_execution',
+]);
+
+export type ExecutionStepType = z.infer<typeof ExecutionStepTypeSchema>;
+
+const LegacyExecutionStepTypeSchema = z.enum(['n8n-execution']);
+
+const RawExecutionStepTypeSchema = z.union([
+  ExecutionStepTypeSchema,
+  LegacyExecutionStepTypeSchema,
 ]);
 
 export const ExecutionStepSchema = z.object({
   id: z.string(),
-  type: ExecutionStepTypeSchema,
+  type: RawExecutionStepTypeSchema.transform((type) =>
+    type === 'n8n-execution' ? 'n8n_execution' : type,
+  ),
   name: z.string(),
-  status: ExecutionStatusSchema,
+  status: RawExecutionStatusSchema.transform((status) =>
+    status === 'completed' ? 'success' : status,
+  ),
   startedAt: z.string(),
+  completedAt: z.string().optional(),
   durationMs: z.number().optional(),
-  input: z.record(z.unknown()).optional(),
-  output: z.record(z.unknown()).optional(),
+  input: z.unknown().optional(),
+  output: z.unknown().optional(),
   error: z.string().optional(),
   tokenUsage: z.number().optional(),
   cost: z.number().optional(),
@@ -58,10 +78,12 @@ export const ExecutionRunSchema = z.object({
   tenantId: z.string(),
   agentId: z.string().optional(),
   workflowId: z.string().optional(),
-  status: ExecutionStatusSchema,
+  status: RawExecutionStatusSchema.transform((status) =>
+    status === 'completed' ? 'success' : status,
+  ),
   startedAt: z.string(),
   completedAt: z.string().optional(),
-  durationMs: z.number(),
+  durationMs: z.number().optional(),
   costEstimate: z.number(),
   tokensUsed: z.number(),
   logs: z.array(z.string()),
@@ -71,3 +93,23 @@ export const ExecutionRunSchema = z.object({
 });
 
 export type ExecutionRun = z.infer<typeof ExecutionRunSchema>;
+
+export const ExecutionRunsResponseSchema = z.object({
+  runs: z.array(ExecutionRunSchema),
+});
+
+export type ExecutionRunsResponse = z.infer<typeof ExecutionRunsResponseSchema>;
+
+export const ExecutionRunResponseSchema = z.object({
+  run: ExecutionRunSchema,
+});
+
+export type ExecutionRunResponse = z.infer<typeof ExecutionRunResponseSchema>;
+
+export const ExecutionRunLogsResponseSchema = z.object({
+  logs: z.array(z.string()),
+});
+
+export type ExecutionRunLogsResponse = z.infer<
+  typeof ExecutionRunLogsResponseSchema
+>;

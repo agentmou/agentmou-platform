@@ -22,7 +22,7 @@ export const InstalledAgentSchema = z.object({
   lastRunAt: z.string().nullable(),
   runsTotal: z.number(),
   runsSuccess: z.number(),
-  kpiValues: z.record(z.number()),
+  kpiValues: z.record(z.number()).default({}),
 });
 
 export type InstalledAgent = z.infer<typeof InstalledAgentSchema>;
@@ -44,6 +44,19 @@ export const InstalledWorkflowSchema = z.object({
 });
 
 export type InstalledWorkflow = z.infer<typeof InstalledWorkflowSchema>;
+
+export const InstallationCollectionSchema = z.object({
+  agents: z.array(InstalledAgentSchema),
+  workflows: z.array(InstalledWorkflowSchema),
+});
+
+export type InstallationCollection = z.infer<typeof InstallationCollectionSchema>;
+
+export const InstallationsResponseSchema = z.object({
+  installations: InstallationCollectionSchema,
+});
+
+export type InstallationsResponse = z.infer<typeof InstallationsResponseSchema>;
 
 // ---------------------------------------------------------------------------
 // Installation process

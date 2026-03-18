@@ -1,5 +1,10 @@
-import { db, approvalRequests } from '@agentmou/db';
-import { eq, and, desc } from 'drizzle-orm';
+import { db, approvalRequests, agentInstallations } from '@agentmou/db';
+import { eq, and, desc, inArray } from 'drizzle-orm';
+import { mapApproval } from './approvals.mapper.js';
+import type {
+  ApprovalDecisionBody,
+  CreateApprovalBody,
+} from './approvals.schema.js';
 
 export class ApprovalsService {
   async listApprovals(tenantId: string, filters?: { status?: string }) {
@@ -9,8 +14,8 @@ export class ApprovalsService {
       .where(eq(approvalRequests.tenantId, tenantId))
       .orderBy(desc(approvalRequests.requestedAt));
 
-    if (filters?.status) {
-      return db
+    const approvals = filters?.status
+      ? await db
         .select()
         .from(approvalRequests)
         .where(
@@ -19,10 +24,18 @@ export class ApprovalsService {
             eq(approvalRequests.status, filters.status)
           )
         )
-        .orderBy(desc(approvalRequests.requestedAt));
-    }
+        .orderBy(desc(approvalRequests.requestedAt))
+      : await query;
 
-    return query;
+    const agentIds = await resolveAgentTemplateIds(approvals);
+    return approvals.map((approval) =>
+      mapApproval(
+        approval,
+        approval.agentInstallationId
+          ? agentIds.get(approval.agentInstallationId)
+          : undefined,
+      ),
+    );
   }
 
   async getApproval(tenantId: string, approvalId: string) {
@@ -35,10 +48,25 @@ export class ApprovalsService {
           eq(approvalRequests.id, approvalId)
         )
       );
-    return approval ?? null;
+    if (!approval) {
+      return null;
+    }
+
+    const agentIds = await resolveAgentTemplateIds([approval]);
+    return mapApproval(
+      approval,
+      approval.agentInstallationId
+        ? agentIds.get(approval.agentInstallationId)
+        : undefined,
+    );
   }
 
-  async approve(tenantId: string, approvalId: string, decidedBy: string, reason?: string) {
+  async approve(
+    tenantId: string,
+    approvalId: string,
+    decidedBy: string,
+    reason?: ApprovalDecisionBody['reason'],
+  ) {
     const [updated] = await db
       .update(approvalRequests)
       .set({
@@ -54,10 +82,25 @@ export class ApprovalsService {
         )
       )
       .returning();
-    return updated ?? null;
+    if (!updated) {
+      return null;
+    }
+
+    const agentIds = await resolveAgentTemplateIds([updated]);
+    return mapApproval(
+      updated,
+      updated.agentInstallationId
+        ? agentIds.get(updated.agentInstallationId)
+        : undefined,
+    );
   }
 
-  async reject(tenantId: string, approvalId: string, decidedBy: string, reason?: string) {
+  async reject(
+    tenantId: string,
+    approvalId: string,
+    decidedBy: string,
+    reason?: ApprovalDecisionBody['reason'],
+  ) {
     const [updated] = await db
       .update(approvalRequests)
       .set({
@@ -73,21 +116,22 @@ export class ApprovalsService {
         )
       )
       .returning();
-    return updated ?? null;
+    if (!updated) {
+      return null;
+    }
+
+    const agentIds = await resolveAgentTemplateIds([updated]);
+    return mapApproval(
+      updated,
+      updated.agentInstallationId
+        ? agentIds.get(updated.agentInstallationId)
+        : undefined,
+    );
   }
 
   async requestApproval(
     tenantId: string,
-    data: {
-      runId: string;
-      agentInstallationId?: string;
-      actionType: string;
-      riskLevel: string;
-      title: string;
-      description?: string;
-      payloadPreview?: Record<string, unknown>;
-      context?: Record<string, unknown>;
-    }
+    data: CreateApprovalBody,
   ) {
     const [approval] = await db
       .insert(approvalRequests)
@@ -104,6 +148,40 @@ export class ApprovalsService {
         status: 'pending',
       })
       .returning();
-    return approval;
+    const agentIds = await resolveAgentTemplateIds([approval]);
+    return mapApproval(
+      approval,
+      approval.agentInstallationId
+        ? agentIds.get(approval.agentInstallationId)
+        : undefined,
+    );
   }
+}
+
+async function resolveAgentTemplateIds(
+  approvals: Array<typeof approvalRequests.$inferSelect>,
+) {
+  const installationIds = [
+    ...new Set(
+      approvals
+        .map((approval) => approval.agentInstallationId)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+
+  if (installationIds.length === 0) {
+    return new Map<string, string>();
+  }
+
+  const installations = await db
+    .select({
+      id: agentInstallations.id,
+      templateId: agentInstallations.templateId,
+    })
+    .from(agentInstallations)
+    .where(inArray(agentInstallations.id, installationIds));
+
+  return new Map(
+    installations.map((installation) => [installation.id, installation.templateId]),
+  );
 }

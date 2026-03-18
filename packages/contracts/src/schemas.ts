@@ -33,12 +33,19 @@ export {
   TenantSchema,
   UserRoleSchema,
   TenantMemberSchema,
+  TenantsResponseSchema,
+  TenantResponseSchema,
+  TenantSettingsResponseSchema,
+  TenantMembersResponseSchema,
+  TenantMemberResponseSchema,
 } from './tenancy';
 
 export {
   InstalledStatusSchema,
   InstalledAgentSchema,
   InstalledWorkflowSchema,
+  InstallationCollectionSchema,
+  InstallationsResponseSchema,
   InstallStepStatusSchema,
   InstallStepSchema,
   InstallRunSchema,
@@ -50,6 +57,9 @@ export {
   ExecutionStepSchema,
   TriggerTypeSchema,
   ExecutionRunSchema,
+  ExecutionRunsResponseSchema,
+  ExecutionRunResponseSchema,
+  ExecutionRunLogsResponseSchema,
 } from './execution';
 
 export {
@@ -57,12 +67,16 @@ export {
   ApprovalStatusSchema,
   ApprovalContextSchema,
   ApprovalRequestSchema,
+  ApprovalRequestsResponseSchema,
+  ApprovalResponseSchema,
 } from './approvals';
 
 export {
   IntegrationStatusSchema,
   IntegrationCategorySchema,
   IntegrationSchema,
+  ConnectorsResponseSchema,
+  ConnectorResponseSchema,
   N8nConnectionStatusSchema,
   N8nConnectionSchema,
 } from './connectors';

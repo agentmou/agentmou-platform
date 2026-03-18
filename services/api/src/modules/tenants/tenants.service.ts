@@ -1,18 +1,23 @@
 import { db, tenants } from '@agentmou/db';
 import { eq } from 'drizzle-orm';
+import {
+  mapTenant,
+  mergeTenantSettings,
+  normalizeTenantSettings,
+} from './tenants.mapper.js';
+import type {
+  CreateTenantInput,
+  TenantSettingsInput,
+  UpdateTenantInput,
+} from './tenants.schema.js';
 
 export class TenantsService {
   async listTenants() {
-    return db.select().from(tenants);
+    const tenantRows = await db.select().from(tenants);
+    return tenantRows.map(mapTenant);
   }
 
-  async createTenant(data: {
-    name: string;
-    type: string;
-    plan: string;
-    ownerId: string;
-    settings?: Record<string, unknown>;
-  }) {
+  async createTenant(data: CreateTenantInput) {
     const [tenant] = await db
       .insert(tenants)
       .values({
@@ -20,10 +25,10 @@ export class TenantsService {
         type: data.type,
         plan: data.plan,
         ownerId: data.ownerId,
-        settings: data.settings ?? {},
+        settings: normalizeTenantSettings(data.settings),
       })
       .returning();
-    return tenant;
+    return mapTenant(tenant);
   }
 
   async getTenant(id: string) {
@@ -31,19 +36,19 @@ export class TenantsService {
       .select()
       .from(tenants)
       .where(eq(tenants.id, id));
-    return tenant ?? null;
+    return tenant ? mapTenant(tenant) : null;
   }
 
   async updateTenant(
     id: string,
-    updates: { name?: string; type?: string; plan?: string },
+    updates: UpdateTenantInput,
   ) {
     const [tenant] = await db
       .update(tenants)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(tenants.id, id))
       .returning();
-    return tenant ?? null;
+    return tenant ? mapTenant(tenant) : null;
   }
 
   async deleteTenant(id: string) {
@@ -56,18 +61,38 @@ export class TenantsService {
 
   async getTenantSettings(id: string) {
     const [tenant] = await db
-      .select({ settings: tenants.settings })
+      .select({ id: tenants.id, settings: tenants.settings })
       .from(tenants)
       .where(eq(tenants.id, id));
-    return tenant?.settings ?? null;
+
+    if (!tenant) {
+      return null;
+    }
+
+    return normalizeTenantSettings(tenant.settings);
   }
 
-  async updateTenantSettings(id: string, settings: Record<string, unknown>) {
+  async updateTenantSettings(id: string, settings: TenantSettingsInput) {
+    const [existingTenant] = await db
+      .select({ id: tenants.id, settings: tenants.settings })
+      .from(tenants)
+      .where(eq(tenants.id, id));
+
+    if (!existingTenant) {
+      return null;
+    }
+
+    const normalizedSettings = mergeTenantSettings(existingTenant.settings, settings);
     const [tenant] = await db
       .update(tenants)
-      .set({ settings, updatedAt: new Date() })
+      .set({ settings: normalizedSettings, updatedAt: new Date() })
       .where(eq(tenants.id, id))
       .returning({ settings: tenants.settings });
-    return tenant?.settings ?? null;
+
+    if (!tenant) {
+      return null;
+    }
+
+    return normalizeTenantSettings(tenant.settings);
   }
 }

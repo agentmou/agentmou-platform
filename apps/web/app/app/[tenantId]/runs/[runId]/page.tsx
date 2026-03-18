@@ -16,8 +16,8 @@ import {
   Bot,
   Workflow,
   Zap,
-  Brain,
   Play,
+  RefreshCw,
   Terminal,
 } from 'lucide-react'
 import { formatNumber } from '@/lib/utils'
@@ -33,17 +33,16 @@ const statusColors = {
   pending_approval: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
   rejected: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
   timeout: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+  skipped: 'bg-gray-100 text-gray-600 dark:bg-gray-900 dark:text-gray-300',
 }
 
 const stepTypeIcons = {
-  trigger: Zap,
-  transform: Play,
-  llm: Brain,
-  action: Play,
-  fetch: Workflow,
-  extract: Workflow,
-  output: CheckCircle,
+  tool_call: Play,
+  agent_invoke: Bot,
+  condition: Workflow,
+  loop: RefreshCw,
   approval: Clock,
+  n8n_execution: Zap,
 }
 
 export default function RunDetailPage() {
@@ -208,7 +207,9 @@ export default function RunDetailPage() {
                           <div>
                             <p className="font-medium">{step.name}</p>
                             <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="outline" className="text-xs capitalize">{step.type}</Badge>
+                              <Badge variant="outline" className="text-xs capitalize">
+                                {step.type.replace('_', ' ')}
+                              </Badge>
                               {step.durationMs && (
                                 <span className="text-xs text-muted-foreground">{step.durationMs}ms</span>
                               )}

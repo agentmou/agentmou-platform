@@ -1,25 +1,30 @@
 import { db, memberships, users } from '@agentmou/db';
 import { eq, and } from 'drizzle-orm';
+import { mapMembership } from './memberships.mapper.js';
+
+const membershipSelection = {
+  id: memberships.id,
+  tenantId: memberships.tenantId,
+  userId: memberships.userId,
+  role: memberships.role,
+  joinedAt: memberships.joinedAt,
+  lastActiveAt: memberships.lastActiveAt,
+  user: {
+    id: users.id,
+    email: users.email,
+    name: users.name,
+  },
+};
 
 export class MembershipsService {
   async listMembers(tenantId: string) {
-    return db
-      .select({
-        id: memberships.id,
-        tenantId: memberships.tenantId,
-        userId: memberships.userId,
-        role: memberships.role,
-        joinedAt: memberships.joinedAt,
-        lastActiveAt: memberships.lastActiveAt,
-        user: {
-          id: users.id,
-          email: users.email,
-          name: users.name,
-        },
-      })
+    const members = await db
+      .select(membershipSelection)
       .from(memberships)
       .leftJoin(users, eq(memberships.userId, users.id))
       .where(eq(memberships.tenantId, tenantId));
+
+    return members.map(mapMembership);
   }
 
   async addMember(tenantId: string, data: { userId: string; role: string }) {
@@ -31,30 +36,24 @@ export class MembershipsService {
         role: data.role,
       })
       .returning();
-    return membership;
+
+    const createdMember = await this.getMember(tenantId, membership.id);
+    if (!createdMember) {
+      throw new Error(`Created membership ${membership.id} could not be loaded`);
+    }
+
+    return createdMember;
   }
 
   async getMember(tenantId: string, memberId: string) {
     const [membership] = await db
-      .select({
-        id: memberships.id,
-        tenantId: memberships.tenantId,
-        userId: memberships.userId,
-        role: memberships.role,
-        joinedAt: memberships.joinedAt,
-        lastActiveAt: memberships.lastActiveAt,
-        user: {
-          id: users.id,
-          email: users.email,
-          name: users.name,
-        },
-      })
+      .select(membershipSelection)
       .from(memberships)
       .leftJoin(users, eq(memberships.userId, users.id))
       .where(
         and(eq(memberships.id, memberId), eq(memberships.tenantId, tenantId)),
       );
-    return membership ?? null;
+    return membership ? mapMembership(membership) : null;
   }
 
   async updateMemberRole(tenantId: string, memberId: string, role: string) {
@@ -65,7 +64,12 @@ export class MembershipsService {
         and(eq(memberships.id, memberId), eq(memberships.tenantId, tenantId)),
       )
       .returning();
-    return membership ?? null;
+
+    if (!membership) {
+      return null;
+    }
+
+    return this.getMember(tenantId, membership.id);
   }
 
   async removeMember(tenantId: string, memberId: string) {

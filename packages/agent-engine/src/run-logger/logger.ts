@@ -20,7 +20,7 @@ export interface RunMetrics {
   runId: string;
   startTime: Date;
   endTime?: Date;
-  status: 'running' | 'completed' | 'failed' | 'cancelled';
+  status: 'running' | 'success' | 'failed';
   steps: RunStep[];
   totalDuration?: number;
   cost?: number;
@@ -34,7 +34,7 @@ export interface RunStep {
   id: string;
   name: string;
   type: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
+  status: 'pending' | 'running' | 'success' | 'failed' | 'skipped';
   startedAt?: Date;
   completedAt?: Date;
   duration?: number;
@@ -113,7 +113,7 @@ export class RunLogger {
     if (!step) return;
 
     const now = new Date();
-    step.status = 'completed';
+    step.status = 'success';
     step.completedAt = now;
     step.duration = now.getTime() - (step.startedAt?.getTime() ?? now.getTime());
     step.output = output;
@@ -123,7 +123,7 @@ export class RunLogger {
     await db
       .update(executionSteps)
       .set({
-        status: 'completed',
+        status: 'success',
         output: output as Record<string, unknown>,
         durationMs: step.duration,
         tokenUsage: tokenUsage ?? null,
@@ -171,7 +171,7 @@ export class RunLogger {
    */
   async completeRun(
     runId: string,
-    status: 'completed' | 'failed' | 'cancelled',
+    status: 'success' | 'failed',
     metrics?: {
       tokensUsed?: number;
       costEstimate?: number;

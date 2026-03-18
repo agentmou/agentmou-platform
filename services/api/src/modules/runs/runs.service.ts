@@ -1,6 +1,13 @@
-import { db, executionRuns, executionSteps } from '@agentmou/db';
-import { eq, and, desc } from 'drizzle-orm';
+import {
+  db,
+  executionRuns,
+  executionSteps,
+  agentInstallations,
+  workflowInstallations,
+} from '@agentmou/db';
+import { eq, and, desc, asc, inArray } from 'drizzle-orm';
 import { getQueue, QUEUE_NAMES, type RunAgentPayload, type RunWorkflowPayload } from '@agentmou/queue';
+import { buildExecutionLogs, mapExecutionRun, mapExecutionStep } from './runs.mapper.js';
 
 export class RunsService {
   /**
@@ -49,15 +56,40 @@ export class RunsService {
       } satisfies RunWorkflowPayload);
     }
 
-    return run;
+    const templates = await resolveInstallationTemplates([run]);
+    return mapExecutionRun(run, {
+      agentId: run.agentInstallationId
+        ? templates.agentTemplateIds.get(run.agentInstallationId)
+        : undefined,
+      workflowId: run.workflowInstallationId
+        ? templates.workflowTemplateIds.get(run.workflowInstallationId)
+        : undefined,
+      steps: [],
+      logs: [],
+    });
   }
 
   async listRuns(tenantId: string) {
-    return db
+    const runs = await db
       .select()
       .from(executionRuns)
       .where(eq(executionRuns.tenantId, tenantId))
       .orderBy(desc(executionRuns.startedAt));
+
+    const templates = await resolveInstallationTemplates(runs);
+
+    return runs.map((run) =>
+      mapExecutionRun(run, {
+        agentId: run.agentInstallationId
+          ? templates.agentTemplateIds.get(run.agentInstallationId)
+          : undefined,
+        workflowId: run.workflowInstallationId
+          ? templates.workflowTemplateIds.get(run.workflowInstallationId)
+          : undefined,
+        steps: [],
+        logs: [],
+      }),
+    );
   }
 
   async getRun(tenantId: string, runId: string) {
@@ -76,9 +108,19 @@ export class RunsService {
       .select()
       .from(executionSteps)
       .where(eq(executionSteps.runId, runId))
-      .orderBy(desc(executionSteps.startedAt));
+      .orderBy(asc(executionSteps.startedAt));
 
-    return { ...run, steps };
+    const templates = await resolveInstallationTemplates([run]);
+
+    return mapExecutionRun(run, {
+      agentId: run.agentInstallationId
+        ? templates.agentTemplateIds.get(run.agentInstallationId)
+        : undefined,
+      workflowId: run.workflowInstallationId
+        ? templates.workflowTemplateIds.get(run.workflowInstallationId)
+        : undefined,
+      steps,
+    });
   }
 
   async getRunLogs(tenantId: string, runId: string) {
@@ -97,6 +139,52 @@ export class RunsService {
       .select()
       .from(executionSteps)
       .where(eq(executionSteps.runId, runId))
-      .orderBy(desc(executionSteps.startedAt));
+      .orderBy(asc(executionSteps.startedAt))
+      .then((steps) => buildExecutionLogs(steps.map(mapExecutionStep)));
   }
+}
+
+async function resolveInstallationTemplates(
+  runs: Array<typeof executionRuns.$inferSelect>,
+) {
+  const agentInstallationIds = [...new Set(
+    runs
+      .map((run) => run.agentInstallationId)
+      .filter((id): id is string => Boolean(id)),
+  )];
+  const workflowInstallationIds = [...new Set(
+    runs
+      .map((run) => run.workflowInstallationId)
+      .filter((id): id is string => Boolean(id)),
+  )];
+
+  const [agents, workflows] = await Promise.all([
+    agentInstallationIds.length > 0
+      ? db
+          .select({
+            id: agentInstallations.id,
+            templateId: agentInstallations.templateId,
+          })
+          .from(agentInstallations)
+          .where(inArray(agentInstallations.id, agentInstallationIds))
+      : Promise.resolve([]),
+    workflowInstallationIds.length > 0
+      ? db
+          .select({
+            id: workflowInstallations.id,
+            templateId: workflowInstallations.templateId,
+          })
+          .from(workflowInstallations)
+          .where(inArray(workflowInstallations.id, workflowInstallationIds))
+      : Promise.resolve([]),
+  ]);
+
+  return {
+    agentTemplateIds: new Map(
+      agents.map((installation) => [installation.id, installation.templateId]),
+    ),
+    workflowTemplateIds: new Map(
+      workflows.map((installation) => [installation.id, installation.templateId]),
+    ),
+  };
 }
