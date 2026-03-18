@@ -108,8 +108,8 @@ export class AgentEngine {
   async execute(options: ExecuteOptions): Promise<AgentExecutionResult> {
     const { runId, tenantId, systemPrompt, input, connectors, policyConfig, userId } = options;
     const startTime = Date.now();
-    let totalTokens = 0;
-    let totalCost = 0;
+    const totalTokens = 0;
+    const totalCost = 0;
     let stepsCompleted = 0;
 
     try {
