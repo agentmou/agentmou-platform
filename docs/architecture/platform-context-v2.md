@@ -43,7 +43,7 @@ payloads.
 | Web app | `partial` | Authenticated routes use the API provider, but marketing/demo and some tenant surfaces still rely on demo or empty-default paths |
 | Data plane | `partial` | Worker queues and runtime path are real, but breadth and contract maturity are still limited |
 | Catalog and workflow assets | `partial` | Real installable assets exist, but demo inventory is much larger than the real catalog |
-| Infrastructure model | `partial` | Production compose and deploy scripts are present, and March 19, 2026 VPS inspection plus scripted redeploy verified live API, worker, edge, and catalog content; root-level backup automation still needs sudo-based cleanup because `/etc/cron.d/stack-backup` remains on the host |
+| Infrastructure model | `partial` | Production compose and deploy scripts are present, and the March 19, 2026 VPS inspection plus same-day residual-risk cleanup verified live API, worker, edge, backup cron, protected public routes, and Gmail OAuth. Provider-backed secret rotation and one connector-delete bug still remain follow-up work |
 | Validation baseline | `implemented` | `pnpm typecheck`, `pnpm test`, and `pnpm lint` all pass from the repo root as of March 19, 2026; `pnpm lint` still reports non-blocking warnings |
 
 ### Validation Commands Observed On March 19, 2026
@@ -66,28 +66,35 @@ truth that was actually verified during this epic.
 | Hardened `bash infra/scripts/smoke-test.sh` before remediation | `failed` | Re-run against the VPS before any redeploy; `2 passed, 1 failed` because `/api/v1/catalog/agents` returned `{"agents":[]}` instead of containing `inbox-triage` |
 | First `infra/scripts/deploy-phase25.sh` after `1572f669` | `failed` | Redeploy rebuilt the images, but the hardened smoke test still failed because the compiled services resolved `REPO_ROOT` one level too high and kept serving an empty catalog |
 | Second `infra/scripts/deploy-phase25.sh` after `f2a73bad` | `passed` | Redeploy from `main` rebuilt API and worker, local edge health returned `200`, and the hardened public smoke test passed `3 passed, 0 failed` |
-| VPS checkout drift | `clean` | Known untracked artifacts (`infra/backups/backup.sh`, `infra/backups/stack-backup.lock`, and `infra/compose/.env.bak.*`) were removed; `git status --short --branch` returned only `## main...origin/main` before and after the final redeploy |
-| Local edge health via `curl --resolve ... 127.0.0.1` | `passed` | Executed on the VPS host; `https://api.agentmou.io/health` returned `200` through local Traefik routing |
+| VPS checkout drift | `clean` | Known untracked artifacts (`infra/backups/backup.sh`, `infra/backups/stack-backup.lock`, and `infra/compose/.env.bak.*`) were removed; `git status --short --branch` returned only `## main...origin/main` before and after the final redeploy and after the residual-risk cleanup |
+| Root backup cron replacement | `passed` | `/etc/cron.d/stack-backup` was removed, `/etc/cron.d/agentmou-backup` was installed, `/srv/stack` was confirmed absent, and the tracked backup script ran to `/var/backups/agentmou` without reintroducing git drift |
+| Local edge health via `curl --resolve ... 127.0.0.1` | `passed` | Executed on the VPS host; `https://api.agentmou.io/health` returned `200` through local Traefik routing before and after the residual-risk cleanup |
 | API health | `live-verified` | Local edge check returned `200`; public smoke test returned `200`; API logs showed live requests to `/health` and `/api/v1/auth/login` on March 19, 2026 |
 | Catalog reachability | `live-verified` | Public smoke test returned `200` for `/api/v1/catalog/agents`; API logs showed repeated successful catalog requests |
 | Catalog content | `live-verified` | After the follow-up `REPO_ROOT` fix, `curl -sk https://api.agentmou.io/api/v1/catalog/agents` returned the `inbox-triage` manifest payload from production |
 | Minimal auth validation | `live-verified` | Public smoke test returned `400` for invalid `POST /api/v1/auth/login`, matching expected schema-validation behavior |
 | Worker live status | `live-verified` | `docker compose ps` showed `worker` `Up`; worker logs showed all 5 active queues listening: `install-pack`, `run-agent`, `run-workflow`, `schedule-trigger`, and `approval-timeout` |
 | Edge status | `live-verified` | `docker compose ps` showed Traefik `Up` on ports `80` and `443`; the local Traefik health gate returned `200`; recent Traefik logs showed active certificate-renew checks on March 19, 2026 |
-| Tracked backup script outside the checkout | `passed` | Manual run with `BACKUP_DIR=/tmp/agentmou-backup LOCK_FILE=/tmp/agentmou-backup.lock` produced PostgreSQL, Redis, n8n, and file backups and left `git status` clean |
-| Legacy root cron `/etc/cron.d/stack-backup` | `blocked` | The file still exists and points at `/srv/stack`; the deploy user had no passwordless sudo, so replacement with `/etc/cron.d/agentmou-backup` could not be completed during Epic D |
+| Protected public routes | `live-verified` | `https://agents.agentmou.io/health` returned `401` without BasicAuth and `200` with the rotated BasicAuth credential; `https://uptime.agentmou.io/` returned `401` without auth and `302 /dashboard` with it; `https://n8n.agentmou.io/` returned `200` |
+| VPS-local secret rotation | `passed` | `JWT_SECRET`, `AGENTS_API_KEY`, and `BASIC_AUTH_USERS` were rotated in `infra/compose/.env`; only `api`, `worker`, `agents`, and `traefik` were recreated; the hardened public smoke test still passed `3 passed, 0 failed` afterward |
+| Tracked backup script outside the checkout | `passed` | Manual runs with `BACKUP_DIR=/tmp/agentmou-backup LOCK_FILE=/tmp/agentmou-backup.lock` and later `BACKUP_DIR=/var/backups/agentmou LOCK_FILE=/var/lock/agentmou/backup.lock` produced PostgreSQL, Redis, n8n, and file backups and left `git status` clean |
+| Gmail OAuth end-to-end | `live-verified` | A first live attempt expired the 10-minute state TTL; a second authorize URL completed within the window, `/api/v1/oauth/callback` returned `302` without an OAuth error log, and the connectors API showed `gmail` `connected` for the temporary tenant used for validation |
+| Connector cleanup after OAuth test | `partial` | The temporary Gmail connector was removed directly from PostgreSQL after validation. The public `DELETE /api/v1/tenants/:tenantId/connectors/:connectorId` path returned `500` when called with provider slug `gmail`, exposing a UUID-cast bug that still needs a code fix |
 
 The canonical live statement supported by current evidence is:
 
 > As of March 19, 2026, the VPS host `vps-n8n-agents` is actively running the
 > AgentMou production stack from `/srv/agentmou-platform`. `api`, `worker`,
-> and the edge were directly re-verified via `docker compose ps`, the local
-> Traefik health gate, `deploy-phase25.sh`, the hardened public smoke test,
-> direct catalog reads, and recent worker logs. Production catalog data is now
-> live-verified: `/api/v1/catalog/agents` returns the `inbox-triage` manifest
-> payload. The VPS checkout itself is clean. The remaining operational gap is
-> outside git: a root-owned legacy cron file at `/etc/cron.d/stack-backup`
-> still points at `/srv/stack` and could not be replaced without sudo access.
+> the edge, the root backup cron, protected public routes, and Gmail OAuth were
+> directly re-verified via `docker compose ps`, the local Traefik health gate,
+> the hardened public smoke test, direct catalog reads, a manual backup run to
+> `/var/backups/agentmou`, BasicAuth route checks, API logs, and a live OAuth
+> callback that completed successfully on the second in-window attempt.
+> Production catalog data remains live-verified: `/api/v1/catalog/agents`
+> returns the `inbox-triage` manifest payload. The VPS checkout itself is
+> clean. The remaining operational gaps are provider-backed secret rotation and
+> a connector-delete bug triggered when the public delete route is called with
+> provider aliases such as `gmail`.
 
 ## Current Architecture
 
@@ -120,7 +127,7 @@ The API has 14 module directories under `services/api/src/modules`.
 | `memberships` | `implemented` | Tenant membership listing and management |
 | `catalog` | `implemented` | Loads manifests from `catalog/` and `workflows/` through `@agentmou/catalog-sdk` |
 | `installations` | `partial` | Real installs and queued pack installs; uninstall exists; no broader lifecycle management yet |
-| `connectors` | `partial` | Real DB-backed connectors plus Gmail OAuth, but response shapes are not aligned with shared contracts |
+| `connectors` | `partial` | Real DB-backed connectors plus live-validated Gmail OAuth, but response shapes are not aligned with shared contracts and the delete path still fails when called with a provider alias instead of a row UUID |
 | `secrets` | `partial` | Real persistence exists, but broader governance and UI integration are limited |
 | `approvals` | `partial` | Real CRUD/decision flow, but payload shape drifts from shared contracts |
 | `runs` | `partial` | Real run creation and DB-backed retrieval, but contract shape is not yet stable |

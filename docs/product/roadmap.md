@@ -93,9 +93,12 @@ revalidates the live state explicitly.
 - E2E test script: `scripts/test-e2e-triage.ts`.
 - March 19, 2026 production verification: the live VPS stack was redeployed
   from `main`, the hardened smoke test passed `3/3`, and the public catalog
-  now returns the live `inbox-triage` manifest. The remaining production-truth
-  follow-up is root-level cleanup of the legacy `/etc/cron.d/stack-backup`
-  file once sudo access is available.
+  now returns the live `inbox-triage` manifest. Later the same day, the
+  residual-risk cleanup replaced the legacy root cron, rotated the approved
+  VPS-local secrets, revalidated the protected public routes, and completed a
+  live Gmail OAuth callback. The remaining production-truth follow-up is now
+  provider-backed secret rotation plus a fix for the connector delete path
+  when it is called with provider aliases such as `gmail`.
 
 ## Next (Phase 3: Production Hardening)
 
@@ -116,11 +119,10 @@ The next phase is no longer feature-first. It is baseline-first.
 
 ### Track 2: VPS Operations Cleanup
 
-- Replace the root-owned legacy `/etc/cron.d/stack-backup` file with the
-  documented `/etc/cron.d/agentmou-backup` entry once sudo access is
-  available.
 - Rotate any provider-backed secrets that were exposed by historical `.env`
   backups through their source systems.
+- Fix the connector delete path so provider aliases such as `gmail` do not
+  trigger UUID-cast failures during post-OAuth cleanup.
 
 ### Track 3: Catalog Convergence
 
