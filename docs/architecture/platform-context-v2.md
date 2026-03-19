@@ -1,6 +1,6 @@
 # Platform Context v2.0
 
-**Validated on**: March 18, 2026
+**Validated on**: March 19, 2026
 
 This document is the current, code-verified successor to
 [`whole-initial-context.md`](../../whole-initial-context.md).
@@ -43,10 +43,10 @@ payloads.
 | Web app | `partial` | Authenticated routes use the API provider, but marketing/demo and some tenant surfaces still rely on demo or empty-default paths |
 | Data plane | `partial` | Worker queues and runtime path are real, but breadth and contract maturity are still limited |
 | Catalog and workflow assets | `partial` | Real installable assets exist, but demo inventory is much larger than the real catalog |
-| Infrastructure model | `partial` | Production compose and deploy scripts are present; actual live VPS state cannot be proven from repo contents alone |
-| Validation baseline | `implemented` | `pnpm typecheck`, `pnpm test`, and `pnpm lint` all pass from the repo root; `pnpm lint` still reports non-blocking warnings |
+| Infrastructure model | `partial` | Production compose and deploy scripts are present, and March 19, 2026 VPS inspection verified live API, worker, and edge health; the live catalog path is still degraded because the running API container does not expose `catalog/` or `workflows/` assets |
+| Validation baseline | `implemented` | `pnpm typecheck`, `pnpm test`, and `pnpm lint` all pass from the repo root as of March 19, 2026; `pnpm lint` still reports non-blocking warnings |
 
-### Validation Commands Observed On March 18, 2026
+### Validation Commands Observed On March 19, 2026
 
 - `pnpm typecheck`: passes
 - `pnpm test`: passes
@@ -54,6 +54,37 @@ payloads.
 
 The March 17 Vitest resolution failure no longer reproduces in the current repo
 state.
+
+### Operational Verification Snapshot On March 19, 2026
+
+This snapshot separates repository deployment intent from the live production
+truth that was actually verified during this epic.
+
+| Check | Result | Evidence / limits |
+| --- | --- | --- |
+| VPS copy of `bash infra/scripts/smoke-test.sh` | `passed` | Executed on the VPS from `/srv/agentmou-platform`; `3 passed, 0 failed` for API health `200`, catalog `200`, and invalid-login auth `400` |
+| Hardened `bash infra/scripts/smoke-test.sh` from this branch | `failed` | Re-run against the VPS without mutating the remote checkout; `2 passed, 1 failed` because `/api/v1/catalog/agents` returned `{"agents":[]}` instead of containing `inbox-triage` |
+| `infra/scripts/deploy-phase25.sh` | `not executed` | The live stack was already healthy, and the VPS checkout was dirty (`infra/compose/docker-compose.prod.yml` modified plus untracked backup artifacts), so a scripted pull/rebuild was intentionally skipped to avoid mutating production during verification |
+| Local edge health via `curl --resolve ... 127.0.0.1` | `passed` | Executed on the VPS host; `https://api.agentmou.io/health` returned `200` through local Traefik routing |
+| API health | `live-verified` | Local edge check returned `200`; public smoke test returned `200`; API logs showed live requests to `/health` and `/api/v1/auth/login` on March 19, 2026 |
+| Catalog reachability | `live-verified` | Public smoke test returned `200` for `/api/v1/catalog/agents`; API logs showed repeated successful catalog requests |
+| Catalog content | `degraded` | The live API returned `{"agents":[]}` even though `/srv/agentmou-platform/catalog/agents/inbox-triage/manifest.yaml` exists on the host |
+| Minimal auth validation | `live-verified` | Public smoke test returned `400` for invalid `POST /api/v1/auth/login`, matching expected schema-validation behavior |
+| Worker live status | `live-verified` | `docker compose ps` showed `worker` `Up`; worker logs showed all 5 active queues listening: `install-pack`, `run-agent`, `run-workflow`, `schedule-trigger`, and `approval-timeout` |
+| Edge status | `live-verified` | `docker compose ps` showed Traefik `Up` on ports `80` and `443`; the local Traefik health gate returned `200`; recent Traefik logs showed active certificate-renew checks on March 19, 2026 |
+
+The canonical live statement supported by current evidence is:
+
+> As of March 19, 2026, the VPS host `vps-n8n-agents` is actively running the
+> AgentMou production stack from `/srv/agentmou-platform`. `api`, `worker`,
+> and the edge were directly verified via `docker compose ps`, the local
+> Traefik health gate, the public smoke test, and recent container logs.
+> Production catalog data is still degraded: `/api/v1/catalog/agents`
+> currently returns an empty `agents` array because the running API container
+> exposes `/prod/api` but not `/prod/catalog` or `/prod/workflows`.
+> `deploy-phase25.sh` was not executed during Epic D because the live host was
+> already healthy and the checkout contained local operational drift that
+> should be reviewed before any scripted redeploy.
 
 ## Current Architecture
 
@@ -199,7 +230,8 @@ of domain ambiguity in the repository.
 
 #### Conservatively Resolving the Deployment Contradiction
 
-Current repository documents disagree:
+Before the March 19, 2026 documentation reconciliation, repository documents
+disagreed:
 
 - some docs say API and worker are active on the VPS
 - some docs still say Node services are not yet active in production
@@ -207,14 +239,25 @@ Current repository documents disagree:
 The repository itself proves that:
 
 - the production compose file includes API and worker as first-class services
+- only the web app is behind a compose profile
 - the Phase 2.5 deploy script rebuilds and restarts them
 - the runbook documents them as public or internal services
 
-The repository does **not** prove that the live VPS is currently running those
-services. The safest current statement is:
+The March 19, 2026 VPS verification additionally proved that:
 
-> The repository is prepared to run API and worker in production, but the live
-> deployment state must be confirmed via smoke tests or VPS inspection.
+- the live checkout path is `/srv/agentmou-platform`
+- `docker compose ps` showed `api`, `worker`, `agents`, `n8n`, `postgres`,
+  `redis`, `uptime-kuma`, and Traefik all `Up`
+- the local edge gate returned `200` for `https://api.agentmou.io/health`
+- the public smoke test returned `3 passed, 0 failed`
+- worker startup logs confirmed 5 active queues listening
+
+The safest current statement is:
+
+> The repository is prepared to run API and worker in production, and the live
+> VPS state was directly verified on March 19, 2026. Future production claims
+> should still be backed by fresh smoke tests or VPS inspection rather than
+> inferred from compose or docs alone.
 
 ## Delta Versus The Initial Context
 

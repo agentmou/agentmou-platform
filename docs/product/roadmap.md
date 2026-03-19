@@ -15,7 +15,10 @@ Near-term execution planning now lives in:
 The completed phase summaries below are historical milestone notes. They are
 not the canonical live-state verification source. Use
 [`platform-context-v2.md`](../architecture/platform-context-v2.md) for the
-current, code-verified repository truth.
+current, code-verified repository truth. When a historical phase note mentions
+production activation, treat it as implementation history unless the
+[operational verification snapshot](../architecture/platform-context-v2.md#operational-verification-snapshot-on-march-19-2026)
+revalidates the live state explicitly.
 
 ### Phase 0: Monorepo Bootstrap
 
@@ -48,7 +51,10 @@ current, code-verified repository truth.
 
 ### Phase 2: First Runtime Vertical Slice
 
-- VPS production stack activated: API + worker running behind Traefik.
+- Phase 2 introduced the VPS compose and deploy path intended to run API +
+  worker behind Traefik; use the March 19, 2026 operational snapshot in
+  [`platform-context-v2.md`](../architecture/platform-context-v2.md#operational-verification-snapshot-on-march-19-2026)
+  for the current live verification result.
 - Auth: register creates user + tenant + membership in transaction;
   JWT middleware + tenant access guard on all tenant routes.
 - Web: real login/register pages, DataProvider abstraction (mock for

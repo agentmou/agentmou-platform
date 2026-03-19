@@ -173,6 +173,11 @@ fi
 echo ""
 docker compose -f "$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
 
+echo ""
+echo "  Running public smoke test..."
+DOMAIN="$API_DOMAIN" bash "$REPO_ROOT/infra/scripts/smoke-test.sh"
+ok "Public smoke test passed"
+
 # ===========================================================================
 # Done
 # ===========================================================================
@@ -184,6 +189,5 @@ echo ""
 echo "Next steps:"
 echo "  1. Verify all containers are healthy above"
 echo "  2. Test OAuth flow: open ${WEB_ORIGIN} and connect Gmail"
-echo "  3. Run public smoke test: DOMAIN=$API_DOMAIN bash infra/scripts/smoke-test.sh"
-echo "  4. Run full E2E test: API_URL=https://${API_HOST} tsx scripts/test-e2e-triage.ts"
+echo "  3. Run full E2E test: API_URL=https://${API_HOST} tsx scripts/test-e2e-triage.ts"
 echo ""

@@ -140,19 +140,22 @@ Phase 2 additions:
 - `POST /analyze-email`: classifies emails using GPT-4o-mini with
   structured JSON output (priority, category, action, labels, summary).
 - `POST /health/deep`: verifies OpenAI API connectivity.
-- Runs on the VPS behind Traefik, protected by `x-api-key` header.
+- Production compose places this service behind Traefik, and non-health
+  endpoints are protected by the `x-api-key` header. See the
+  [Platform Context v2 operational verification snapshot](../architecture/platform-context-v2.md#operational-verification-snapshot-on-march-19-2026)
+  for the live-status evidence that was actually revalidated.
 
 ### Infrastructure (VPS)
 
-The production stack runs on a single VPS
+The repository defines a single-VPS production stack
 ([ADR-006](../adr/006-vps-stack-alignment.md)):
 
 - **Compose**: `infra/compose/docker-compose.prod.yml` is the source of
-  truth for the VPS stack (project name: `agentmou-stack`).
-- **Services**: Traefik, Postgres 16, Redis 7, n8n, agents (Python),
-  Uptime Kuma.
-- **Node services** (api, worker, web): available via `--profile node`
-  but not yet active in production.
+  truth for the intended VPS stack (project name: `agentmou-stack`).
+- **Compose-defined services**: Traefik, Postgres 16, Redis 7, n8n, agents
+  (Python), API, worker, migrate, and optional web.
+- **Node services**: `api` and `worker` are first-class services in
+  production compose; only `web` is behind `--profile web`.
 - **Networks**: `web` (external, Traefik-facing) and `internal` (isolated,
   DB-only).
 - **Data**: bind mounts to repo-relative directories (postgres/data,
@@ -161,14 +164,28 @@ The production stack runs on a single VPS
 - **Middlewares**: BasicAuth, HSTS/secure-headers, rate-limit, noindex.
 - **Backups**: daily PostgreSQL dump + Redis snapshot + n8n workflow
   export with 14-day rotation.
-- **Monitoring**: Uptime Kuma at `uptime.DOMAIN`.
+- **Live verification**: on March 19, 2026, the VPS host
+  `vps-n8n-agents` was inspected directly at `/srv/agentmou-platform`.
+  `docker compose ps` showed Traefik, Postgres, Redis, n8n, agents, API,
+  worker, and Uptime Kuma all `Up`; the local Traefik health gate returned
+  `200`; the VPS copy of `smoke-test.sh` passed `3/3`; a hardened
+  catalog-content check failed because `/api/v1/catalog/agents` returned
+  `{"agents":[]}`; and worker logs showed all 5 active queues listening.
+- **Monitoring**: Uptime Kuma at `uptime.DOMAIN` when the VPS stack is up.
 
 See [VPS Operations](../runbooks/vps-operations.md) for operational
 details.
 
 ## What Is Still Incomplete
 
-- VPS deploy of Phase 2.5 changes (PR 9 — operational).
+- `deploy-phase25.sh` was not re-executed during Epic D because the live VPS
+  checkout was already healthy and had local operational drift
+  (`infra/compose/docker-compose.prod.yml` modified plus untracked backup
+  artifacts) that should be reviewed before a scripted redeploy.
+- Live catalog data is degraded in production: the API container serves from
+  `/prod/api` but does not include `/prod/catalog` or `/prod/workflows`, so
+  `/api/v1/catalog/agents` returns an empty inventory even though manifests
+  exist on the VPS checkout.
 - Usage metering and billing (stubs exist, not blocking).
 - Knowledge/memory with pgvector.
 - RBAC and multi-tenant isolation hardening.
@@ -177,8 +194,18 @@ details.
 
 ## Validation Snapshot
 
-- `pnpm typecheck`: 13/13 pass on March 18, 2026.
-- `pnpm build`: 3/3 pass.
-- `pnpm lint`: 12/12 pass on March 18, 2026 (warnings only; 0 errors).
-- `pnpm test`: 6/6 pass on March 18, 2026 (67 tests across 6
+- `pnpm typecheck`: 13/13 pass on March 19, 2026.
+- `pnpm build`: last documented green snapshot remains March 18, 2026; it was
+  not re-run during Epic D.
+- `pnpm lint`: 12/12 pass on March 19, 2026 (warnings only; 0 errors).
+- `pnpm test`: 6/6 pass on March 19, 2026 (67 tests across 6
   packages/services).
+- VPS `docker compose ps`: `api`, `worker`, `agents`, `n8n`, `postgres`,
+  `redis`, `uptime-kuma`, and Traefik all `Up` on March 19, 2026.
+- VPS local edge check: `curl -sk --resolve api.agentmou.io:443:127.0.0.1 https://api.agentmou.io/health`
+  returned `200` on March 19, 2026.
+- VPS copy of `bash infra/scripts/smoke-test.sh`: passes `3 passed, 0 failed`
+  on March 19, 2026.
+- Hardened `bash infra/scripts/smoke-test.sh` from this branch: fails
+  `2 passed, 1 failed` on March 19, 2026 because the live catalog response was
+  `{"agents":[]}` instead of exposing `inbox-triage`.

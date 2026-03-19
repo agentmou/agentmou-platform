@@ -27,6 +27,8 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 api
 
 COPY --from=builder --chown=api:nodejs /prod/api ./
+COPY --from=builder --chown=api:nodejs /app/catalog /prod/catalog
+COPY --from=builder --chown=api:nodejs /app/workflows /prod/workflows
 
 USER api
 

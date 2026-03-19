@@ -50,15 +50,19 @@ pnpm dev
 ## Production Deployment (VPS)
 
 The production stack runs on a single VPS. See
-[VPS Operations](./vps-operations.md) for full operational details.
+[VPS Operations](./vps-operations.md) for full operational details. This
+runbook describes the intended deployment procedure; it is not the canonical
+record of the latest verified live state. Use the
+[Platform Context v2 operational verification snapshot](../architecture/platform-context-v2.md#operational-verification-snapshot-on-march-19-2026)
+before making production-state claims.
 
 ### First-time setup
 
 ```bash
 ssh deploy@<vps-ip>
 cd /srv
-git clone <repo-url> agentmou-stack
-cd agentmou-stack
+git clone <repo-url> agentmou-platform
+cd agentmou-platform
 bash infra/scripts/setup.sh
 nano infra/compose/.env              # Fill in real secrets
 docker compose -f infra/compose/docker-compose.prod.yml up -d
@@ -68,14 +72,14 @@ docker compose -f infra/compose/docker-compose.prod.yml up -d
 
 ```bash
 ssh deploy@<vps-ip>
-cd /srv/agentmou-stack
+cd /srv/agentmou-platform
 bash infra/scripts/deploy.sh
 ```
 
 ### Deploy only a specific service
 
 ```bash
-cd /srv/agentmou-stack
+cd /srv/agentmou-platform
 git pull origin main
 docker compose -f infra/compose/docker-compose.prod.yml build agents
 docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents
@@ -91,12 +95,24 @@ docker compose --profile ops -f infra/compose/docker-compose.prod.yml run --rm m
 
 ### Active services
 
-The `api` and `worker` services start automatically with the stack. The
-`web` service is behind a profile (`--profile web`) because the web app
-is deployed on Vercel instead (`https://agentmou.io`, with `www` redirecting
-to apex).
+In compose, the `api` and `worker` services start automatically with the
+stack. The `web` service is behind a profile (`--profile web`) because the web
+app is deployed on Vercel instead (`https://agentmou.io`, with `www`
+redirecting to apex). Verify the live VPS state with the checks below rather
+than inferring it from this runbook alone.
+
+On March 19, 2026, these checks were revalidated from the live VPS checkout at
+`/srv/agentmou-platform`: local Traefik health returned `200`, and
+`bash infra/scripts/smoke-test.sh` passed `3/3`.
 
 ## Health Verification
+
+Run these checks from the VPS checkout with a real `infra/compose/.env`. If
+you cannot do that, record the checks as not executed rather than inferred.
+The smoke test now treats an empty catalog response as a failure by requiring
+the live catalog payload to include `inbox-triage`.
+Before running `deploy.sh` or `deploy-phase25.sh`, inspect `git status --short`
+on the VPS checkout and resolve any unexpected local drift.
 
 ```bash
 # Local deploy gate (through Traefik on the VPS host)
@@ -111,7 +127,7 @@ bash infra/scripts/smoke-test.sh
 ## Rollback
 
 ```bash
-cd /srv/agentmou-stack
+cd /srv/agentmou-platform
 git log --oneline -10
 git checkout <good-commit>
 docker compose -f infra/compose/docker-compose.prod.yml build

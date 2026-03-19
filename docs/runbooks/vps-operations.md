@@ -1,6 +1,12 @@
 # VPS Operations
 
-This runbook documents the production VPS that runs the AgentMou stack.
+This runbook documents the single-VPS production layout defined in the
+repository. Pair it with the
+[Platform Context v2 operational verification snapshot](../architecture/platform-context-v2.md#operational-verification-snapshot-on-march-19-2026)
+before making claims about the live state that is currently verified.
+
+The March 19, 2026 live verification used the current VPS checkout at
+`/srv/agentmou-platform`.
 
 ## Server Specs
 
@@ -42,7 +48,9 @@ reach Postgres and Redis.
 ## Subdomains and Routing
 
 All traffic enters through Traefik on ports 80/443. HTTP redirects to
-HTTPS automatically.
+HTTPS automatically. The routing table below describes the compose and Traefik
+intent from the repository; live reachability still needs separate
+verification.
 
 Public web traffic is served by Vercel:
 
@@ -75,7 +83,7 @@ Defined as labels on the Traefik service in the compose file:
 After cloning the repo on the VPS:
 
 ```
-/srv/agentmou-stack/              # Git clone of agentmou-platform
+/srv/agentmou-platform/           # Git clone of agentmou-platform
 ├── infra/
 │   ├── compose/
 │   │   ├── docker-compose.prod.yml
@@ -84,6 +92,7 @@ After cloning the repo on the VPS:
 │   │   └── .env                  # Real secrets — NOT in git
 │   └── scripts/
 │       ├── backup.sh
+│       ├── deploy-phase25.sh
 │       ├── setup.sh
 │       └── deploy.sh
 ├── services/agents/              # Python FastAPI source
@@ -100,8 +109,8 @@ After cloning the repo on the VPS:
 ```bash
 ssh deploy@<vps-ip>
 cd /srv
-git clone <repo-url> agentmou-stack
-cd agentmou-stack
+git clone <repo-url> agentmou-platform
+cd agentmou-platform
 bash infra/scripts/setup.sh
 # Edit .env:
 nano infra/compose/.env
@@ -113,7 +122,7 @@ docker compose -f infra/compose/docker-compose.prod.yml up -d
 
 ```bash
 ssh deploy@<vps-ip>
-cd /srv/agentmou-stack
+cd /srv/agentmou-platform
 bash infra/scripts/deploy.sh
 ```
 
@@ -129,11 +138,15 @@ For Phase 2.5 deploys, use `infra/scripts/deploy-phase25.sh`:
 - includes migrations via `migrate` profile service
 - gates success on local edge health (`--resolve ... 127.0.0.1`)
 - keeps public DNS/TLS checks separate in `infra/scripts/smoke-test.sh`
+- requires a VPS checkout with `infra/compose/.env` populated
+- should be run only from an intentionally clean or reviewed worktree; on
+  March 19, 2026 the live checkout was healthy but dirty, so Epic D verified
+  the stack directly instead of triggering a redeploy
 
 ### Deploy a specific service only
 
 ```bash
-cd /srv/agentmou-stack
+cd /srv/agentmou-platform
 git pull origin main
 docker compose -f infra/compose/docker-compose.prod.yml build agents
 docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents
@@ -142,7 +155,7 @@ docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents
 ## Rollback
 
 ```bash
-cd /srv/agentmou-stack
+cd /srv/agentmou-platform
 git log --oneline -10              # Find the good commit
 git checkout <commit-sha>
 docker compose -f infra/compose/docker-compose.prod.yml build
@@ -178,7 +191,7 @@ automatically deleted.
 
 ```bash
 # crontab -e
-30 4 * * * cd /srv/agentmou-stack && bash infra/scripts/backup.sh >> /var/log/agentmou-backup.log 2>&1
+30 4 * * * cd /srv/agentmou-platform && bash infra/scripts/backup.sh >> /var/log/agentmou-backup.log 2>&1
 ```
 
 ### Restore PostgreSQL
@@ -227,7 +240,7 @@ docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U ag
 docker compose -f infra/compose/docker-compose.prod.yml exec n8n sh
 
 # Disk usage
-sudo du -h --max-depth=2 /srv/agentmou-stack | sort -h | tail -20
+sudo du -h --max-depth=2 /srv/agentmou-platform | sort -h | tail -20
 
 # Check resources
 free -h && uptime && df -h /
@@ -249,8 +262,8 @@ If migrating from the old `/srv/stack/` layout:
 ```bash
 # 1. Clone repo
 cd /srv
-git clone <repo-url> agentmou-stack
-cd agentmou-stack
+git clone <repo-url> agentmou-platform
+cd agentmou-platform
 bash infra/scripts/setup.sh
 
 # 2. Copy .env (adapt variable names if needed)
@@ -267,7 +280,7 @@ ln -sf /srv/stack/uptime-kuma/data    uptime-kuma/data
 cd /srv/stack && docker compose down
 
 # 5. Start new stack
-cd /srv/agentmou-stack
+cd /srv/agentmou-platform
 docker compose -f infra/compose/docker-compose.prod.yml up -d
 
 # 6. Verify everything works, then clean up
