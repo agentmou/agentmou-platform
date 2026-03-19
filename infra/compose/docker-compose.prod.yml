@@ -242,6 +242,8 @@ services:
       - REDIS_URL=redis://redis:6379
       - AGENTS_API_KEY=${AGENTS_API_KEY}
       - AGENTS_API_URL=http://agents:8000
+      - N8N_API_URL=${N8N_API_URL:-http://n8n:5678/api/v1}
+      - N8N_API_KEY=${N8N_API_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - CONNECTOR_ENCRYPTION_KEY=${CONNECTOR_ENCRYPTION_KEY}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
