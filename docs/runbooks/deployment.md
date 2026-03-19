@@ -102,8 +102,10 @@ redirecting to apex). Verify the live VPS state with the checks below rather
 than inferring it from this runbook alone.
 
 On March 19, 2026, these checks were revalidated from the live VPS checkout at
-`/srv/agentmou-platform`: local Traefik health returned `200`, and
-`bash infra/scripts/smoke-test.sh` passed `3/3`.
+`/srv/agentmou-platform`: `git status --short --branch` was clean before the
+final redeploy, local Traefik health returned `200`, `bash infra/scripts/deploy-phase25.sh`
+completed successfully, and the hardened public smoke test passed `3/3` with
+the live catalog payload exposing `inbox-triage`.
 
 ## Health Verification
 
@@ -137,9 +139,13 @@ docker compose -f infra/compose/docker-compose.prod.yml up -d
 ## Backup
 
 ```bash
+BACKUP_DIR=/var/backups/agentmou \
+LOCK_FILE=/var/lock/agentmou/backup.lock \
 bash infra/scripts/backup.sh
 ```
 
-Backups are stored in `backups/out/` with 14-day automatic rotation.
-See [VPS Operations](./vps-operations.md) for restore procedures and
-cron setup.
+Production backups should live outside the git checkout. The recommended VPS
+targets are `/var/backups/agentmou` for backup output and
+`/var/lock/agentmou/backup.lock` for the non-overlapping run lock.
+See [VPS Operations](./vps-operations.md) for the root-owned cron setup and
+restore procedures.

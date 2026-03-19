@@ -168,9 +168,11 @@ The repository defines a single-VPS production stack
   `vps-n8n-agents` was inspected directly at `/srv/agentmou-platform`.
   `docker compose ps` showed Traefik, Postgres, Redis, n8n, agents, API,
   worker, and Uptime Kuma all `Up`; the local Traefik health gate returned
-  `200`; the VPS copy of `smoke-test.sh` passed `3/3`; a hardened
-  catalog-content check failed because `/api/v1/catalog/agents` returned
-  `{"agents":[]}`; and worker logs showed all 5 active queues listening.
+  `200`; an initial hardened catalog-content check failed and led to a
+  follow-up `REPO_ROOT` fix; the final `deploy-phase25.sh` rerun passed the
+  hardened public smoke test `3/3`; `/api/v1/catalog/agents` returned the
+  live `inbox-triage` manifest; and worker logs showed all 5 active queues
+  listening.
 - **Monitoring**: Uptime Kuma at `uptime.DOMAIN` when the VPS stack is up.
 
 See [VPS Operations](../runbooks/vps-operations.md) for operational
@@ -178,14 +180,13 @@ details.
 
 ## What Is Still Incomplete
 
-- `deploy-phase25.sh` was not re-executed during Epic D because the live VPS
-  checkout was already healthy and had local operational drift
-  (`infra/compose/docker-compose.prod.yml` modified plus untracked backup
-  artifacts) that should be reviewed before a scripted redeploy.
-- Live catalog data is degraded in production: the API container serves from
-  `/prod/api` but does not include `/prod/catalog` or `/prod/workflows`, so
-  `/api/v1/catalog/agents` returns an empty inventory even though manifests
-  exist on the VPS checkout.
+- The root-owned legacy cron file `/etc/cron.d/stack-backup` still points at
+  `/srv/stack`. The tracked backup script was proven to work outside the repo
+  checkout, but replacing the cron job with `/etc/cron.d/agentmou-backup`
+  remains blocked until an operator with sudo access performs that root-level
+  change.
+- The stale `.env.bak` copy inside the VPS checkout was removed, but broader
+  provider-backed secret rotation still needs explicit operator follow-up.
 - Usage metering and billing (stubs exist, not blocking).
 - Knowledge/memory with pgvector.
 - RBAC and multi-tenant isolation hardening.
@@ -198,14 +199,19 @@ details.
 - `pnpm build`: last documented green snapshot remains March 18, 2026; it was
   not re-run during Epic D.
 - `pnpm lint`: 12/12 pass on March 19, 2026 (warnings only; 0 errors).
-- `pnpm test`: 6/6 pass on March 19, 2026 (67 tests across 6
+- `pnpm test`: 7/7 pass on March 19, 2026 (70 tests across 7
   packages/services).
 - VPS `docker compose ps`: `api`, `worker`, `agents`, `n8n`, `postgres`,
   `redis`, `uptime-kuma`, and Traefik all `Up` on March 19, 2026.
 - VPS local edge check: `curl -sk --resolve api.agentmou.io:443:127.0.0.1 https://api.agentmou.io/health`
   returned `200` on March 19, 2026.
-- VPS copy of `bash infra/scripts/smoke-test.sh`: passes `3 passed, 0 failed`
-  on March 19, 2026.
-- Hardened `bash infra/scripts/smoke-test.sh` from this branch: fails
-  `2 passed, 1 failed` on March 19, 2026 because the live catalog response was
-  `{"agents":[]}` instead of exposing `inbox-triage`.
+- VPS `bash infra/scripts/deploy-phase25.sh`: final rerun passed on March 19,
+  2026 and executed the hardened public smoke test internally.
+- Hardened `bash infra/scripts/smoke-test.sh`: initially failed `2 passed,
+  1 failed` after the packaging-only redeploy, then passed `3 passed, 0
+  failed` after the `REPO_ROOT` follow-up fix on March 19, 2026.
+- VPS public catalog check: `curl -sk https://api.agentmou.io/api/v1/catalog/agents`
+  returned the live `inbox-triage` manifest payload on March 19, 2026.
+- VPS tracked backup script: manual run with
+  `BACKUP_DIR=/tmp/agentmou-backup LOCK_FILE=/tmp/agentmou-backup.lock`
+  completed successfully on March 19, 2026 and left `git status` clean.

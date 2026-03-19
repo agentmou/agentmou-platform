@@ -101,7 +101,10 @@ After cloning the repo on the VPS:
 ├── n8n/data/                     # Bind mount — NOT in git
 ├── traefik/letsencrypt/          # Bind mount — NOT in git
 ├── uptime-kuma/data/             # Bind mount — NOT in git
-└── backups/out/                  # Backup output — NOT in git
+└── (no production backups in git checkout)
+
+/var/backups/agentmou/            # Backup output
+/var/lock/agentmou/backup.lock    # Backup lock file
 ```
 
 ## First-Time Setup
@@ -137,11 +140,11 @@ For Phase 2.5 deploys, use `infra/scripts/deploy-phase25.sh`:
 
 - includes migrations via `migrate` profile service
 - gates success on local edge health (`--resolve ... 127.0.0.1`)
-- keeps public DNS/TLS checks separate in `infra/scripts/smoke-test.sh`
+- also runs the hardened public smoke test in `infra/scripts/smoke-test.sh`
 - requires a VPS checkout with `infra/compose/.env` populated
 - should be run only from an intentionally clean or reviewed worktree; on
-  March 19, 2026 the live checkout was healthy but dirty, so Epic D verified
-  the stack directly instead of triggering a redeploy
+  March 19, 2026 Epic D first cleaned the known untracked drift, then reran
+  `deploy-phase25.sh` from `main` until the hardened smoke test passed
 
 ### Deploy a specific service only
 
@@ -171,9 +174,11 @@ docker compose -f infra/compose/docker-compose.prod.yml up -d
 
 ## Backups
 
-Run manually or via cron:
+Run manually with an external output path:
 
 ```bash
+BACKUP_DIR=/var/backups/agentmou \
+LOCK_FILE=/var/lock/agentmou/backup.lock \
 bash infra/scripts/backup.sh
 ```
 
@@ -184,20 +189,34 @@ The script backs up:
 - **n8n workflows**: exported via `n8n export:workflow --all`.
 - **Files**: tar.gz of n8n data, Traefik certs, uptime-kuma data.
 
-Output goes to `backups/out/`. Backups older than 14 days are
-automatically deleted.
+Production output should go to `/var/backups/agentmou`, not into the repo
+checkout. Backups older than 14 days are automatically deleted.
 
 ### Cron example (daily at 04:30)
 
 ```bash
-# crontab -e
-30 4 * * * cd /srv/agentmou-platform && bash infra/scripts/backup.sh >> /var/log/agentmou-backup.log 2>&1
+sudo install -d -o deploy -g deploy -m 750 /var/backups/agentmou /var/lock/agentmou
+
+sudo tee /etc/cron.d/agentmou-backup >/dev/null <<'EOF'
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+30 4 * * * deploy BACKUP_DIR=/var/backups/agentmou LOCK_FILE=/var/lock/agentmou/backup.lock /bin/bash /srv/agentmou-platform/infra/scripts/backup.sh >> /var/backups/agentmou/backup.log 2>&1
+EOF
+
+sudo rm -f /etc/cron.d/stack-backup
 ```
+
+On March 19, 2026, Epic D confirmed that the tracked backup script runs cleanly
+outside the checkout by writing to `/tmp/agentmou-backup`, but the live VPS
+still retained `/etc/cron.d/stack-backup` because the `deploy` user did not
+have passwordless sudo. Treat the cron replacement above as still pending
+until an operator completes it.
 
 ### Restore PostgreSQL
 
 ```bash
-gunzip -c backups/out/agentmou-stack_postgres_2026-03-08_043001.sql.gz | \
+gunzip -c /var/backups/agentmou/agentmou-stack_postgres_2026-03-08_043001.sql.gz | \
   docker compose -f infra/compose/docker-compose.prod.yml exec -T postgres \
   psql -U "$POSTGRES_USER"
 ```
@@ -205,7 +224,7 @@ gunzip -c backups/out/agentmou-stack_postgres_2026-03-08_043001.sql.gz | \
 ### Restore n8n workflows
 
 ```bash
-docker cp backups/out/agentmou-stack_n8n-workflows_2026-03-08.json \
+docker cp /var/backups/agentmou/agentmou-stack_n8n-workflows_2026-03-08.json \
   $(docker compose -f infra/compose/docker-compose.prod.yml ps -q n8n):/tmp/import.json
 docker compose -f infra/compose/docker-compose.prod.yml exec n8n \
   n8n import:workflow --input=/tmp/import.json
