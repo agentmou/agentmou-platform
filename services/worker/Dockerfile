@@ -27,6 +27,8 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 worker
 
 COPY --from=builder --chown=worker:nodejs /prod/worker ./
+COPY --from=builder --chown=worker:nodejs /app/catalog /prod/catalog
+COPY --from=builder --chown=worker:nodejs /app/workflows /prod/workflows
 
 USER worker
 
