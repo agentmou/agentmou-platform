@@ -84,6 +84,7 @@ export function sanitizeWorkflowForCreate(
 ): Record<string, unknown> {
   const {
     id: _id,
+    active: _active,
     createdAt: _createdAt,
     updatedAt: _updatedAt,
     versionId: _versionId,
