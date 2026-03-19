@@ -2,13 +2,16 @@ import { db, agentInstallations, workflowInstallations } from '@agentmou/db';
 import { eq, and } from 'drizzle-orm';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
+import { resolveRepoRoot } from '@agentmou/catalog-sdk';
 import { N8nService } from '../n8n/n8n.service';
 import {
   mapAgentInstallation,
   mapWorkflowInstallation,
 } from './installations.mapper.js';
 
-const REPO_ROOT = path.resolve(import.meta.dirname, '../../../../..');
+const REPO_ROOT = resolveRepoRoot(import.meta.dirname, [
+  'workflows/public',
+]);
 const WORKFLOWS_PUBLIC_DIR = path.join(REPO_ROOT, 'workflows', 'public');
 const TEMPLATE_ID_PATTERN = /^[a-zA-Z0-9-_]+$/;
 

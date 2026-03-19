@@ -11,12 +11,15 @@ import * as path from 'node:path';
 import type { Job } from 'bullmq';
 import type { InstallPackPayload } from '@agentmou/queue';
 import { getQueue, QUEUE_NAMES } from '@agentmou/queue';
-import { CatalogSDK } from '@agentmou/catalog-sdk';
+import { CatalogSDK, resolveRepoRoot } from '@agentmou/catalog-sdk';
 import { N8nClient } from '@agentmou/n8n-client';
 import { db, agentInstallations, workflowInstallations, schedules } from '@agentmou/db';
 import { eq } from 'drizzle-orm';
 
-const REPO_ROOT = path.resolve(import.meta.dirname, '../../../../..');
+const REPO_ROOT = resolveRepoRoot(import.meta.dirname, [
+  'catalog/agents',
+  'workflows/public',
+]);
 const CATALOG_DIR = path.join(REPO_ROOT, 'catalog');
 const WORKFLOWS_PUBLIC_DIR = path.join(REPO_ROOT, 'workflows', 'public');
 const N8N_API_URL = process.env.N8N_API_URL || 'http://n8n:5678/api/v1';
