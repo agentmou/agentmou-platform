@@ -164,10 +164,12 @@ The repository defines a single-VPS production stack
 - **Middlewares**: BasicAuth, HSTS/secure-headers, rate-limit, noindex.
 - **Backups**: daily PostgreSQL dump + Redis snapshot + n8n workflow
   export with 14-day rotation.
-- **Live verification**: the March 19, 2026 public smoke test against
-  `agentmou.io` failed at DNS resolution for `api.agentmou.io`, and no VPS
-  shell or `infra/compose/.env` file was available in this workspace to run
-  `deploy-phase25.sh`, the local Traefik health gate, or `docker compose ps`.
+- **Live verification**: on March 19, 2026, the VPS host
+  `vps-n8n-agents` was inspected directly at `/srv/agentmou-platform`.
+  `docker compose ps` showed Traefik, Postgres, Redis, n8n, agents, API,
+  worker, and Uptime Kuma all `Up`; the local Traefik health gate returned
+  `200`; the public smoke test passed `3/3`; and worker logs showed all 5
+  active queues listening.
 - **Monitoring**: Uptime Kuma at `uptime.DOMAIN` when the VPS stack is up.
 
 See [VPS Operations](../runbooks/vps-operations.md) for operational
@@ -175,8 +177,10 @@ details.
 
 ## What Is Still Incomplete
 
-- Live VPS verification of the Phase 2.5 deployment remains incomplete from
-  this workspace.
+- `deploy-phase25.sh` was not re-executed during Epic D because the live VPS
+  checkout was already healthy and had local operational drift
+  (`infra/compose/docker-compose.prod.yml` modified plus untracked backup
+  artifacts) that should be reviewed before a scripted redeploy.
 - Usage metering and billing (stubs exist, not blocking).
 - Knowledge/memory with pgvector.
 - RBAC and multi-tenant isolation hardening.
@@ -191,5 +195,9 @@ details.
 - `pnpm lint`: 12/12 pass on March 19, 2026 (warnings only; 0 errors).
 - `pnpm test`: 6/6 pass on March 19, 2026 (67 tests across 6
   packages/services).
-- `bash infra/scripts/smoke-test.sh`: fails `0 passed, 3 failed` on March 19,
-  2026 because `api.agentmou.io` did not resolve from this environment.
+- VPS `docker compose ps`: `api`, `worker`, `agents`, `n8n`, `postgres`,
+  `redis`, `uptime-kuma`, and Traefik all `Up` on March 19, 2026.
+- VPS local edge check: `curl -sk --resolve api.agentmou.io:443:127.0.0.1 https://api.agentmou.io/health`
+  returned `200` on March 19, 2026.
+- VPS `bash infra/scripts/smoke-test.sh`: passes `3 passed, 0 failed` on
+  March 19, 2026.

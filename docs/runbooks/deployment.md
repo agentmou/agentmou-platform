@@ -61,8 +61,8 @@ before making production-state claims.
 ```bash
 ssh deploy@<vps-ip>
 cd /srv
-git clone <repo-url> agentmou-stack
-cd agentmou-stack
+git clone <repo-url> agentmou-platform
+cd agentmou-platform
 bash infra/scripts/setup.sh
 nano infra/compose/.env              # Fill in real secrets
 docker compose -f infra/compose/docker-compose.prod.yml up -d
@@ -72,14 +72,14 @@ docker compose -f infra/compose/docker-compose.prod.yml up -d
 
 ```bash
 ssh deploy@<vps-ip>
-cd /srv/agentmou-stack
+cd /srv/agentmou-platform
 bash infra/scripts/deploy.sh
 ```
 
 ### Deploy only a specific service
 
 ```bash
-cd /srv/agentmou-stack
+cd /srv/agentmou-platform
 git pull origin main
 docker compose -f infra/compose/docker-compose.prod.yml build agents
 docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents
@@ -101,10 +101,16 @@ app is deployed on Vercel instead (`https://agentmou.io`, with `www`
 redirecting to apex). Verify the live VPS state with the checks below rather
 than inferring it from this runbook alone.
 
+On March 19, 2026, these checks were revalidated from the live VPS checkout at
+`/srv/agentmou-platform`: local Traefik health returned `200`, and
+`bash infra/scripts/smoke-test.sh` passed `3/3`.
+
 ## Health Verification
 
 Run these checks from the VPS checkout with a real `infra/compose/.env`. If
 you cannot do that, record the checks as not executed rather than inferred.
+Before running `deploy.sh` or `deploy-phase25.sh`, inspect `git status --short`
+on the VPS checkout and resolve any unexpected local drift.
 
 ```bash
 # Local deploy gate (through Traefik on the VPS host)
@@ -119,7 +125,7 @@ bash infra/scripts/smoke-test.sh
 ## Rollback
 
 ```bash
-cd /srv/agentmou-stack
+cd /srv/agentmou-platform
 git log --oneline -10
 git checkout <good-commit>
 docker compose -f infra/compose/docker-compose.prod.yml build
