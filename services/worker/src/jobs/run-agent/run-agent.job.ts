@@ -16,13 +16,17 @@ import { eq } from 'drizzle-orm';
 import { AgentEngine, type AgentPolicyConfig } from '@agentmou/agent-engine';
 import { loadTenantConnectors } from '@agentmou/connectors';
 
+import { logJobMessage } from '../shared/job-log.js';
+import { recordRunUsage } from '../shared/metering.js';
+
 const REPO_ROOT = path.resolve(import.meta.dirname, '../../../../..');
 const CATALOG_DIR = path.join(REPO_ROOT, 'catalog');
 
 export async function processRunAgent(job: Job<RunAgentPayload>) {
   const { tenantId, agentInstallationId, runId, input } = job.data;
 
-  console.log(
+  await logJobMessage(
+    job,
     `[run-agent] Running agent ${agentInstallationId} for tenant ${tenantId} [${runId}]`
   );
 
@@ -82,6 +86,26 @@ export async function processRunAgent(job: Job<RunAgentPayload>) {
     policyConfig: policyConfig ?? undefined,
   });
 
+  const completedAt = new Date();
+  await db
+    .update(agentInstallations)
+    .set({
+      lastRunAt: completedAt,
+      runsTotal: (installation.runsTotal || 0) + 1,
+      runsSuccess: (installation.runsSuccess || 0) + (result.success ? 1 : 0),
+    })
+    .where(eq(agentInstallations.id, installation.id));
+
+  await recordRunUsage({
+    tenantId,
+    runId,
+    status: result.success ? 'success' : 'failed',
+    source: 'agent_run',
+    tokensUsed: result.tokensUsed?.total,
+    costEstimate: result.cost,
+    recordedAt: completedAt,
+  });
+
   await job.updateProgress(100);
 
   if (!result.success) {
@@ -89,7 +113,8 @@ export async function processRunAgent(job: Job<RunAgentPayload>) {
     throw new Error(result.error ?? 'Agent execution failed');
   }
 
-  console.log(
+  await logJobMessage(
+    job,
     `[run-agent] Completed run ${runId} in ${result.duration}ms (${result.stepsCompleted} steps)`
   );
 }

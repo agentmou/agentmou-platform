@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // ---------------------------------------------------------------------------
 // Mock @agentmou/db
 // ---------------------------------------------------------------------------
-const mockSelect = vi.fn();
+const mockInsert = vi.fn();
+const mockInsertValues = vi.fn();
 const mockUpdate = vi.fn();
 
 vi.mock('@agentmou/db', () => ({
@@ -21,12 +22,18 @@ vi.mock('@agentmou/db', () => ({
         ]),
       }),
     }),
+    insert: (table: unknown) => {
+      mockInsert(table);
+      return { values: mockInsertValues };
+    },
     update: (table: unknown) => {
       mockUpdate(table);
       return { set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }) };
     },
   },
   agentInstallations: {},
+  usageEvents: {},
+  billableUsageLedger: {},
   eq: vi.fn(),
 }));
 
@@ -82,6 +89,7 @@ function createMockJob(data: Record<string, unknown>) {
 describe('processRunAgent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockInsertValues.mockResolvedValue(undefined);
   });
 
   it('should execute the agent via AgentEngine and succeed', async () => {

@@ -29,6 +29,8 @@ vi.mock('@agentmou/db', () => ({
   executionRuns: {},
   executionSteps: {},
   workflowInstallations: {},
+  usageEvents: {},
+  billableUsageLedger: {},
 }));
 
 const mockExecuteWorkflow = vi.fn();
