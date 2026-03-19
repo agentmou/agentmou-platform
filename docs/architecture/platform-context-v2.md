@@ -1,6 +1,6 @@
 # Platform Context v2.0
 
-**Validated on**: March 18, 2026
+**Validated on**: March 19, 2026
 
 This document is the current, code-verified successor to
 [`whole-initial-context.md`](../../whole-initial-context.md).
@@ -43,10 +43,10 @@ payloads.
 | Web app | `partial` | Authenticated routes use the API provider, but marketing/demo and some tenant surfaces still rely on demo or empty-default paths |
 | Data plane | `partial` | Worker queues and runtime path are real, but breadth and contract maturity are still limited |
 | Catalog and workflow assets | `partial` | Real installable assets exist, but demo inventory is much larger than the real catalog |
-| Infrastructure model | `partial` | Production compose and deploy scripts are present; actual live VPS state cannot be proven from repo contents alone |
-| Validation baseline | `implemented` | `pnpm typecheck`, `pnpm test`, and `pnpm lint` all pass from the repo root; `pnpm lint` still reports non-blocking warnings |
+| Infrastructure model | `partial` | Production compose and deploy scripts are present; the March 19, 2026 public smoke test failed at DNS resolution for `api.agentmou.io`, so live VPS state remains unverified from this environment |
+| Validation baseline | `implemented` | `pnpm typecheck`, `pnpm test`, and `pnpm lint` all pass from the repo root as of March 19, 2026; `pnpm lint` still reports non-blocking warnings |
 
-### Validation Commands Observed On March 18, 2026
+### Validation Commands Observed On March 19, 2026
 
 - `pnpm typecheck`: passes
 - `pnpm test`: passes
@@ -54,6 +54,29 @@ payloads.
 
 The March 17 Vitest resolution failure no longer reproduces in the current repo
 state.
+
+### Operational Verification Snapshot On March 19, 2026
+
+This snapshot separates repository deployment intent from the live production
+truth that was actually verified during this epic.
+
+| Check | Result | Evidence / limits |
+| --- | --- | --- |
+| `bash infra/scripts/smoke-test.sh` | `failed` | `0 passed, 3 failed`; DNS failed for `api.agentmou.io` on API health, catalog, and invalid-login checks before any HTTP response was reached |
+| `infra/scripts/deploy-phase25.sh` | `not executed` | This script is VPS-only and mutates the deployment; the current workspace does not contain `infra/compose/.env` and is not the production host |
+| Local edge health via `curl --resolve ... 127.0.0.1` | `not executed` | Requires a shell on the VPS host where Traefik is bound to loopback-resolved TLS traffic |
+| API health | `not live-verified` | The public smoke test did not reach HTTP because DNS resolution failed first |
+| Catalog health | `not live-verified` | The public smoke test did not reach HTTP because DNS resolution failed first |
+| Minimal auth validation | `not live-verified` | The smoke test includes the invalid-login payload check, but DNS failure prevented the request from reaching the API |
+| Worker live status | `not live-verified` | `worker` has no public health endpoint; verification requires VPS `docker compose ps`, logs, or other host-level inspection |
+
+The canonical live statement supported by current evidence is:
+
+> As of March 19, 2026, the repository is prepared to run `api` and `worker`
+> in production. This workspace did not verify live activation: the public
+> smoke test against `agentmou.io` failed at DNS resolution for
+> `api.agentmou.io`, and no VPS shell or `.env` file was available to run
+> `deploy-phase25.sh` or the local Traefik health gate.
 
 ## Current Architecture
 
@@ -199,7 +222,8 @@ of domain ambiguity in the repository.
 
 #### Conservatively Resolving the Deployment Contradiction
 
-Current repository documents disagree:
+Before the March 19, 2026 documentation reconciliation, repository documents
+disagreed:
 
 - some docs say API and worker are active on the VPS
 - some docs still say Node services are not yet active in production
@@ -207,6 +231,7 @@ Current repository documents disagree:
 The repository itself proves that:
 
 - the production compose file includes API and worker as first-class services
+- only the web app is behind a compose profile
 - the Phase 2.5 deploy script rebuilds and restarts them
 - the runbook documents them as public or internal services
 
