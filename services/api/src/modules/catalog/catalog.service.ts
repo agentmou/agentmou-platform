@@ -1,9 +1,12 @@
-import { CatalogSDK, AgentManifest, PackManifest, WorkflowManifest } from '@agentmou/catalog-sdk';
+import { CatalogSDK, AgentManifest, PackManifest, WorkflowManifest, resolveRepoRoot } from '@agentmou/catalog-sdk';
 import { CATEGORIES, Category } from '@agentmou/contracts';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-const REPO_ROOT = path.resolve(import.meta.dirname, '../../../../..');
+const REPO_ROOT = resolveRepoRoot(import.meta.dirname, [
+  'catalog/agents',
+  'workflows/public',
+]);
 const CATALOG_DIR = path.join(REPO_ROOT, 'catalog');
 const WORKFLOWS_DIR = path.join(REPO_ROOT, 'workflows');
 

@@ -125,3 +125,5 @@ export class CatalogSDK {
     return fs.readFile(filePath, 'utf-8');
   }
 }
+
+export * from './repo-root';

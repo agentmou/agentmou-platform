@@ -14,12 +14,13 @@ import type { RunAgentPayload } from '@agentmou/queue';
 import { db, agentInstallations } from '@agentmou/db';
 import { eq } from 'drizzle-orm';
 import { AgentEngine, type AgentPolicyConfig } from '@agentmou/agent-engine';
+import { resolveRepoRoot } from '@agentmou/catalog-sdk';
 import { loadTenantConnectors } from '@agentmou/connectors';
 
 import { logJobMessage } from '../shared/job-log.js';
 import { recordRunUsage } from '../shared/metering.js';
 
-const REPO_ROOT = path.resolve(import.meta.dirname, '../../../../..');
+const REPO_ROOT = resolveRepoRoot(import.meta.dirname, ['catalog/agents']);
 const CATALOG_DIR = path.join(REPO_ROOT, 'catalog');
 
 export async function processRunAgent(job: Job<RunAgentPayload>) {
