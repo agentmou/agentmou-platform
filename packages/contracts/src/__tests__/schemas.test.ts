@@ -13,7 +13,10 @@ import {
   ApprovalRequestSchema,
   ApprovalRequestsResponseSchema,
   ConnectorsResponseSchema,
+  BillingOverviewSchema,
   InvoiceSchema,
+  PublicChatResponseSchema,
+  WorkflowEngineStatusSchema,
   CategorySchema,
 } from '../index';
 
@@ -275,6 +278,124 @@ describe('ApprovalRequestSchema', () => {
     });
 
     expect(result.approvals).toHaveLength(1);
+  });
+});
+
+describe('BillingOverviewSchema', () => {
+  it('parses billing overview envelopes with usage and payment details', () => {
+    const result = BillingOverviewSchema.parse({
+      subscription: {
+        id: 'sub-1',
+        tenantId: 'tenant-1',
+        provider: 'stripe',
+        plan: 'pro',
+        status: 'active',
+        cancelAtPeriodEnd: false,
+        entitlements: {
+          plan: 'pro',
+          includedRuns: 10000,
+          includedAgents: 10,
+          includedTeamMembers: 10,
+          logRetentionDays: 30,
+          monthlyBaseAmount: 99,
+          overageRunPrice: 0.005,
+          currency: 'usd',
+          softLimit: true,
+        },
+        usage: {
+          billableRuns: 210,
+          includedRuns: 10000,
+          overageRuns: 0,
+        },
+        monthlyBaseAmount: 99,
+        overageAmount: 0,
+        currency: 'usd',
+      },
+      usage: {
+        tenantId: 'tenant-1',
+        periodStart: '2024-01-01T00:00:00Z',
+        periodEnd: '2024-02-01T00:00:00Z',
+        includedRuns: 10000,
+        billableRuns: 210,
+        overageRuns: 0,
+        totalTokens: 42000,
+        totalCostEstimate: 12.3,
+        overageAmount: 0,
+        currency: 'usd',
+        metrics: [
+          {
+            metric: 'agent_runs',
+            used: 210,
+            limit: 10000,
+            unit: 'runs',
+          },
+        ],
+      },
+      invoices: [
+        {
+          id: 'inv-1',
+          tenantId: 'tenant-1',
+          date: '2024-01-01T00:00:00Z',
+          amount: 99,
+          status: 'paid',
+          currency: 'usd',
+          items: [{ description: 'Pro plan', amount: 99 }],
+        },
+      ],
+      paymentMethods: [
+        {
+          id: 'pm-1',
+          type: 'card',
+          brand: 'visa',
+          last4: '4242',
+          isDefault: true,
+        },
+      ],
+    });
+
+    expect(result.subscription.plan).toBe('pro');
+    expect(result.paymentMethods[0]?.last4).toBe('4242');
+  });
+});
+
+describe('WorkflowEngineStatusSchema', () => {
+  it('parses platform-managed n8n status payloads', () => {
+    const result = WorkflowEngineStatusSchema.parse({
+      tenantId: 'tenant-1',
+      availability: 'online',
+      baseUrl: 'https://n8n.example.com',
+      apiKeySet: true,
+      executionCount: 12,
+      installedWorkflows: 3,
+      activeWorkflows: 2,
+      platformManaged: true,
+    });
+
+    expect(result.availability).toBe('online');
+    expect(result.installedWorkflows).toBe(3);
+  });
+});
+
+describe('PublicChatResponseSchema', () => {
+  it('parses cited public chat responses', () => {
+    const result = PublicChatResponseSchema.parse({
+      reply: 'Here is what I can confirm.',
+      citations: [
+        {
+          id: 'citation-1',
+          title: 'Pricing',
+          href: '/pricing',
+          excerpt: 'Starter is $29/month.',
+          sourcePath: 'apps/web/app/(marketing)/pricing/page.tsx',
+        },
+      ],
+      actions: [{ label: 'View Pricing', href: '/pricing' }],
+      provider: 'retrieval',
+      fallback: false,
+    });
+
+    expect(result.citations[0]?.title).toBe('Pricing');
+    expect(result.provider).toBe('retrieval');
   });
 });
 

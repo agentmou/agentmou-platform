@@ -79,22 +79,58 @@ export {
   ConnectorResponseSchema,
   N8nConnectionStatusSchema,
   N8nConnectionSchema,
+  WorkflowEngineAvailabilitySchema,
+  WorkflowEngineStatusSchema,
+  WorkflowEngineStatusResponseSchema,
 } from './connectors';
 
 export {
   FindingSeveritySchema,
   FindingCategorySchema,
   SecurityFindingSchema,
+  AuditEventCategorySchema,
+  AuditEventSchema,
+  SecurityAlertSchema,
   PolicyCategorySchema,
   SecurityPolicySchema,
+  SecurityOverviewSchema,
   TenantSecurityScoreSchema,
+  SecurityFindingsResponseSchema,
+  SecurityPoliciesResponseSchema,
+  SecurityAlertsResponseSchema,
+  AuditEventsResponseSchema,
+  SecurityOverviewResponseSchema,
 } from './security';
 
 export {
   UsageMetricSchema,
+  PlanEntitlementSchema,
+  UsageSummarySchema,
+  UsageHistoryPointSchema,
+  BillableUsageLedgerEntrySchema,
   InvoiceStatusSchema,
   InvoiceItemSchema,
   InvoiceSchema,
+  BillingSubscriptionStatusSchema,
+  BillingSubscriptionSchema,
+  BillingPaymentMethodSchema,
+  BillingOverviewSchema,
+  UsageSummaryResponseSchema,
+  UsageHistoryResponseSchema,
+  UsageLimitsResponseSchema,
+  BillingSubscriptionResponseSchema,
+  BillingInvoicesResponseSchema,
+  BillingPaymentMethodsResponseSchema,
+  BillingOverviewResponseSchema,
 } from './billing';
 
 export { DashboardPeriodSchema, DashboardMetricsSchema } from './dashboard';
+
+export {
+  PublicChatRoleSchema,
+  PublicChatMessageSchema,
+  PublicChatCitationSchema,
+  PublicChatActionSchema,
+  PublicChatRequestSchema,
+  PublicChatResponseSchema,
+} from './chat';

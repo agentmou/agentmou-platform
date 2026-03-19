@@ -56,6 +56,41 @@ export const N8nConnectionSchema = z.object({
   lastTestAt: z.string().optional(),
   lastTestStatus: N8nConnectionStatusSchema.optional(),
   executionCount: z.number(),
+  availability: z
+    .enum(['online', 'offline', 'not_configured'])
+    .optional(),
+  installedWorkflows: z.number().optional(),
+  activeWorkflows: z.number().optional(),
+  lastProvisionedAt: z.string().optional(),
+  lastExecutionAt: z.string().optional(),
+  platformManaged: z.boolean().optional(),
 });
 
 export type N8nConnection = z.infer<typeof N8nConnectionSchema>;
+
+export const WorkflowEngineAvailabilitySchema = z.enum([
+  'online',
+  'offline',
+  'not_configured',
+]);
+
+export const WorkflowEngineStatusSchema = z.object({
+  tenantId: z.string(),
+  availability: WorkflowEngineAvailabilitySchema,
+  baseUrl: z.string(),
+  apiKeySet: z.boolean(),
+  lastTestAt: z.string().optional(),
+  lastTestStatus: N8nConnectionStatusSchema.optional(),
+  installedWorkflows: z.number(),
+  activeWorkflows: z.number(),
+  executionCount: z.number(),
+  lastProvisionedAt: z.string().optional(),
+  lastExecutionAt: z.string().optional(),
+  platformManaged: z.boolean(),
+});
+
+export type WorkflowEngineStatus = z.infer<typeof WorkflowEngineStatusSchema>;
+
+export const WorkflowEngineStatusResponseSchema = z.object({
+  status: WorkflowEngineStatusSchema,
+});

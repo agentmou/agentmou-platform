@@ -74,15 +74,40 @@ export type {
   ConnectorsResponse,
   ConnectorResponse,
   N8nConnection,
+  WorkflowEngineStatus,
 } from './connectors';
 
 export type {
   FindingSeverity,
   SecurityFinding,
+  AuditEventCategory,
+  AuditEvent,
+  SecurityAlert,
   SecurityPolicy,
+  SecurityOverview,
   TenantSecurityScore,
 } from './security';
 
-export type { UsageMetric, Invoice } from './billing';
+export type {
+  UsageMetric,
+  PlanEntitlement,
+  UsageSummary,
+  UsageHistoryPoint,
+  BillableUsageLedgerEntry,
+  Invoice,
+  BillingSubscriptionStatus,
+  BillingSubscription,
+  BillingPaymentMethod,
+  BillingOverview,
+} from './billing';
 
 export type { DashboardMetrics } from './dashboard';
+
+export type {
+  PublicChatRole,
+  PublicChatMessage,
+  PublicChatCitation,
+  PublicChatAction,
+  PublicChatRequest,
+  PublicChatResponse,
+} from './chat';
