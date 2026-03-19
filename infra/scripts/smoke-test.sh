@@ -4,7 +4,8 @@ set -uo pipefail
 # ===========================================================================
 # AgentMou — Smoke Test
 # ===========================================================================
-# Quick verification that all services are responding.
+# Quick verification that the public API is responding and serving the minimum
+# expected production inventory.
 #
 # Usage:
 #   bash infra/scripts/smoke-test.sh
@@ -31,7 +32,10 @@ check() {
   local expected="${3:-200}"
   local method="${4:-GET}"
   local payload="${5:-}"
+  local contains="${6:-}"
   local host
+  local body_file
+  local body_excerpt
   local err_file
   local err_msg
   local http_code
@@ -45,16 +49,25 @@ check() {
     return
   fi
 
+  body_file="$(mktemp)"
   err_file="$(mktemp)"
-  curl_args=(-sS -o /dev/null -w "%{http_code}" --max-time 10 -X "$method")
+  curl_args=(-sS -o "$body_file" -w "%{http_code}" --max-time 10 -X "$method")
   if [ -n "$payload" ]; then
     curl_args+=(-H "Content-Type: application/json" --data "$payload")
   fi
   http_code=$(curl "${curl_args[@]}" "$url" 2>"$err_file") || curl_exit=$?
   err_msg="$(tr '\n' ' ' < "$err_file" | sed -E 's/[[:space:]]+/ /g')"
+  body_excerpt="$(tr '\n' ' ' < "$body_file" | sed -E 's/[[:space:]]+/ /g' | cut -c1-200)"
+  rm -f "$body_file"
   rm -f "$err_file"
 
   if [ "$curl_exit" -eq 0 ] && [ "$http_code" = "$expected" ]; then
+    if [ -n "$contains" ] && ! printf '%s' "$body_excerpt" | grep -F "$contains" >/dev/null 2>&1; then
+      echo -e "${RED}  ✗${NC} $name [$method $url] → HTTP $http_code but body missing expected marker: $contains (${body_excerpt:-empty body})"
+      FAIL=$((FAIL + 1))
+      return
+    fi
+
     echo -e "${GREEN}  ✓${NC} $name → $method HTTP $http_code"
     PASS=$((PASS + 1))
     return
@@ -87,7 +100,7 @@ echo "════════════════════════�
 echo ""
 
 check "API Health"        "$API_URL/health"
-check "API Catalog"       "$API_URL/api/v1/catalog/agents"
+check "API Catalog"       "$API_URL/api/v1/catalog/agents" "200" "GET" "" "\"id\":\"inbox-triage\""
 check "API Auth Login (invalid payload)" "$API_URL/api/v1/auth/login" "400" "POST" "{}"
 
 echo ""
