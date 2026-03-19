@@ -109,6 +109,8 @@ On March 19, 2026, these checks were revalidated from the live VPS checkout at
 
 Run these checks from the VPS checkout with a real `infra/compose/.env`. If
 you cannot do that, record the checks as not executed rather than inferred.
+The smoke test now treats an empty catalog response as a failure by requiring
+the live catalog payload to include `inbox-triage`.
 Before running `deploy.sh` or `deploy-phase25.sh`, inspect `git status --short`
 on the VPS checkout and resolve any unexpected local drift.
 

@@ -168,8 +168,9 @@ The repository defines a single-VPS production stack
   `vps-n8n-agents` was inspected directly at `/srv/agentmou-platform`.
   `docker compose ps` showed Traefik, Postgres, Redis, n8n, agents, API,
   worker, and Uptime Kuma all `Up`; the local Traefik health gate returned
-  `200`; the public smoke test passed `3/3`; and worker logs showed all 5
-  active queues listening.
+  `200`; the VPS copy of `smoke-test.sh` passed `3/3`; a hardened
+  catalog-content check failed because `/api/v1/catalog/agents` returned
+  `{"agents":[]}`; and worker logs showed all 5 active queues listening.
 - **Monitoring**: Uptime Kuma at `uptime.DOMAIN` when the VPS stack is up.
 
 See [VPS Operations](../runbooks/vps-operations.md) for operational
@@ -181,6 +182,10 @@ details.
   checkout was already healthy and had local operational drift
   (`infra/compose/docker-compose.prod.yml` modified plus untracked backup
   artifacts) that should be reviewed before a scripted redeploy.
+- Live catalog data is degraded in production: the API container serves from
+  `/prod/api` but does not include `/prod/catalog` or `/prod/workflows`, so
+  `/api/v1/catalog/agents` returns an empty inventory even though manifests
+  exist on the VPS checkout.
 - Usage metering and billing (stubs exist, not blocking).
 - Knowledge/memory with pgvector.
 - RBAC and multi-tenant isolation hardening.
@@ -199,5 +204,8 @@ details.
   `redis`, `uptime-kuma`, and Traefik all `Up` on March 19, 2026.
 - VPS local edge check: `curl -sk --resolve api.agentmou.io:443:127.0.0.1 https://api.agentmou.io/health`
   returned `200` on March 19, 2026.
-- VPS `bash infra/scripts/smoke-test.sh`: passes `3 passed, 0 failed` on
-  March 19, 2026.
+- VPS copy of `bash infra/scripts/smoke-test.sh`: passes `3 passed, 0 failed`
+  on March 19, 2026.
+- Hardened `bash infra/scripts/smoke-test.sh` from this branch: fails
+  `2 passed, 1 failed` on March 19, 2026 because the live catalog response was
+  `{"agents":[]}` instead of exposing `inbox-triage`.
