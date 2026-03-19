@@ -23,8 +23,9 @@ infrastructure — making deploys error-prone and documentation unreliable.
 Align the repository with the real VPS stack:
 
 1. **Compose is the source of truth**: `infra/compose/docker-compose.prod.yml`
-   matches exactly what runs on the VPS. A `git pull + docker compose up -d`
-   reproduces the production environment.
+   is the version-controlled definition of the intended VPS stack. A
+   `git pull + docker compose up -d` is the deployment path, but the live
+   state still requires operational verification.
 
 2. **Bind mounts over Docker volumes**: the VPS uses bind mounts
    (`./postgres/data`, `./redis/data`, etc.) for data persistence. The
@@ -36,9 +37,9 @@ Align the repository with the real VPS stack:
    `traefik.yml`. This keeps all configuration in one place.
 
 4. **Python agents coexist with Node services**: the `services/agents/`
-   FastAPI service is part of the repo. Node services (api, worker, web)
-   are available via Docker Compose profiles (`--profile node`) and will
-   be activated when ready for production.
+   FastAPI service is part of the repo. `api` and `worker` are first-class
+   services in the production compose file, while `web` remains behind the
+   optional `--profile web` path because production web is Vercel-first.
 
 5. **Network naming matches VPS**: external network is `web`, internal
    network is `internal` (with `internal: true`).
@@ -55,6 +56,8 @@ Align the repository with the real VPS stack:
 ## Consequences
 
 - The repo can be cloned directly on the VPS and used to run the stack.
+- Live production statements still need smoke tests or VPS inspection; the
+  compose file alone is not proof of current runtime state.
 - Data directories (`postgres/data/`, `redis/data/`, etc.) are gitignored.
 - Secrets live in `infra/compose/.env` which is gitignored.
 - The `infra/traefik/traefik.yml` file has been removed.

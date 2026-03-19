@@ -1,6 +1,9 @@
 # VPS Operations
 
-This runbook documents the production VPS that runs the AgentMou stack.
+This runbook documents the single-VPS production layout defined in the
+repository. Pair it with the
+[Platform Context v2 operational verification snapshot](../architecture/platform-context-v2.md#operational-verification-snapshot-on-march-19-2026)
+before making claims about the live state that is currently verified.
 
 ## Server Specs
 
@@ -42,7 +45,9 @@ reach Postgres and Redis.
 ## Subdomains and Routing
 
 All traffic enters through Traefik on ports 80/443. HTTP redirects to
-HTTPS automatically.
+HTTPS automatically. The routing table below describes the compose and Traefik
+intent from the repository; live reachability still needs separate
+verification.
 
 Public web traffic is served by Vercel:
 
@@ -84,6 +89,7 @@ After cloning the repo on the VPS:
 │   │   └── .env                  # Real secrets — NOT in git
 │   └── scripts/
 │       ├── backup.sh
+│       ├── deploy-phase25.sh
 │       ├── setup.sh
 │       └── deploy.sh
 ├── services/agents/              # Python FastAPI source
@@ -129,6 +135,7 @@ For Phase 2.5 deploys, use `infra/scripts/deploy-phase25.sh`:
 - includes migrations via `migrate` profile service
 - gates success on local edge health (`--resolve ... 127.0.0.1`)
 - keeps public DNS/TLS checks separate in `infra/scripts/smoke-test.sh`
+- requires a VPS checkout with `infra/compose/.env` populated
 
 ### Deploy a specific service only
 

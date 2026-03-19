@@ -50,7 +50,11 @@ pnpm dev
 ## Production Deployment (VPS)
 
 The production stack runs on a single VPS. See
-[VPS Operations](./vps-operations.md) for full operational details.
+[VPS Operations](./vps-operations.md) for full operational details. This
+runbook describes the intended deployment procedure; it is not the canonical
+record of the latest verified live state. Use the
+[Platform Context v2 operational verification snapshot](../architecture/platform-context-v2.md#operational-verification-snapshot-on-march-19-2026)
+before making production-state claims.
 
 ### First-time setup
 
@@ -91,12 +95,16 @@ docker compose --profile ops -f infra/compose/docker-compose.prod.yml run --rm m
 
 ### Active services
 
-The `api` and `worker` services start automatically with the stack. The
-`web` service is behind a profile (`--profile web`) because the web app
-is deployed on Vercel instead (`https://agentmou.io`, with `www` redirecting
-to apex).
+In compose, the `api` and `worker` services start automatically with the
+stack. The `web` service is behind a profile (`--profile web`) because the web
+app is deployed on Vercel instead (`https://agentmou.io`, with `www`
+redirecting to apex). Verify the live VPS state with the checks below rather
+than inferring it from this runbook alone.
 
 ## Health Verification
+
+Run these checks from the VPS checkout with a real `infra/compose/.env`. If
+you cannot do that, record the checks as not executed rather than inferred.
 
 ```bash
 # Local deploy gate (through Traefik on the VPS host)

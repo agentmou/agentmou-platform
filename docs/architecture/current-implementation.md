@@ -140,19 +140,22 @@ Phase 2 additions:
 - `POST /analyze-email`: classifies emails using GPT-4o-mini with
   structured JSON output (priority, category, action, labels, summary).
 - `POST /health/deep`: verifies OpenAI API connectivity.
-- Runs on the VPS behind Traefik, protected by `x-api-key` header.
+- Production compose places this service behind Traefik, and non-health
+  endpoints are protected by the `x-api-key` header. See the
+  [Platform Context v2 operational verification snapshot](../architecture/platform-context-v2.md#operational-verification-snapshot-on-march-19-2026)
+  for the live-status evidence that was actually revalidated.
 
 ### Infrastructure (VPS)
 
-The production stack runs on a single VPS
+The repository defines a single-VPS production stack
 ([ADR-006](../adr/006-vps-stack-alignment.md)):
 
 - **Compose**: `infra/compose/docker-compose.prod.yml` is the source of
-  truth for the VPS stack (project name: `agentmou-stack`).
-- **Services**: Traefik, Postgres 16, Redis 7, n8n, agents (Python),
-  Uptime Kuma.
-- **Node services** (api, worker, web): available via `--profile node`
-  but not yet active in production.
+  truth for the intended VPS stack (project name: `agentmou-stack`).
+- **Compose-defined services**: Traefik, Postgres 16, Redis 7, n8n, agents
+  (Python), API, worker, migrate, and optional web.
+- **Node services**: `api` and `worker` are first-class services in
+  production compose; only `web` is behind `--profile web`.
 - **Networks**: `web` (external, Traefik-facing) and `internal` (isolated,
   DB-only).
 - **Data**: bind mounts to repo-relative directories (postgres/data,
@@ -161,14 +164,19 @@ The production stack runs on a single VPS
 - **Middlewares**: BasicAuth, HSTS/secure-headers, rate-limit, noindex.
 - **Backups**: daily PostgreSQL dump + Redis snapshot + n8n workflow
   export with 14-day rotation.
-- **Monitoring**: Uptime Kuma at `uptime.DOMAIN`.
+- **Live verification**: the March 19, 2026 public smoke test against
+  `agentmou.io` failed at DNS resolution for `api.agentmou.io`, and no VPS
+  shell or `infra/compose/.env` file was available in this workspace to run
+  `deploy-phase25.sh`, the local Traefik health gate, or `docker compose ps`.
+- **Monitoring**: Uptime Kuma at `uptime.DOMAIN` when the VPS stack is up.
 
 See [VPS Operations](../runbooks/vps-operations.md) for operational
 details.
 
 ## What Is Still Incomplete
 
-- VPS deploy of Phase 2.5 changes (PR 9 — operational).
+- Live VPS verification of the Phase 2.5 deployment remains incomplete from
+  this workspace.
 - Usage metering and billing (stubs exist, not blocking).
 - Knowledge/memory with pgvector.
 - RBAC and multi-tenant isolation hardening.
@@ -177,8 +185,11 @@ details.
 
 ## Validation Snapshot
 
-- `pnpm typecheck`: 13/13 pass on March 18, 2026.
-- `pnpm build`: 3/3 pass.
-- `pnpm lint`: 12/12 pass on March 18, 2026 (warnings only; 0 errors).
-- `pnpm test`: 6/6 pass on March 18, 2026 (67 tests across 6
+- `pnpm typecheck`: 13/13 pass on March 19, 2026.
+- `pnpm build`: last documented green snapshot remains March 18, 2026; it was
+  not re-run during Epic D.
+- `pnpm lint`: 12/12 pass on March 19, 2026 (warnings only; 0 errors).
+- `pnpm test`: 6/6 pass on March 19, 2026 (67 tests across 6
   packages/services).
+- `bash infra/scripts/smoke-test.sh`: fails `0 passed, 3 failed` on March 19,
+  2026 because `api.agentmou.io` did not resolve from this environment.
