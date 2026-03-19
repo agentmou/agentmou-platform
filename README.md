@@ -21,9 +21,9 @@ historical baseline that shaped the original direction.
   inventory and empty-default fallback paths still exist in the web layer.
 - `stub` or `planned`: billing, usage, security, parts of observability,
   richer memory/RAG, and enterprise hardening.
-- Validation on March 17, 2026: `pnpm typecheck` passes; `pnpm test`
-  currently fails in `@agentmou/api` because Vitest resolves a missing
-  `services/api/node_modules/vitest/vitest.mjs`.
+- Validation on March 19, 2026: `pnpm typecheck`, `pnpm test`, and
+  `pnpm lint` all pass from the repo root; `pnpm lint` still reports
+  warnings only.
 
 ## Monorepo Structure
 
@@ -97,6 +97,7 @@ pnpm dev
 | `pnpm db:migrate` | Apply migrations |
 | `pnpm db:seed` | Seed local database |
 | `pnpm db:studio` | Open Drizzle Studio |
+| `pnpm cleanup:validation-tenant` | Preview or execute cleanup for disposable OAuth/E2E validation tenants |
 
 ## Service Endpoints (Local)
 

@@ -214,6 +214,68 @@ the residual-risk cleanup installed `/etc/cron.d/agentmou-backup`, removed
 `/var/lock/agentmou`, and manually ran the tracked backup script with
 production output paths while leaving `git status` clean.
 
+## Temporary Validation Fixture Cleanup
+
+Use the repo-tracked cleanup script instead of direct SQL whenever you need to
+remove a disposable OAuth or E2E validation tenant:
+
+```bash
+cd /srv/agentmou-platform
+tsx scripts/cleanup-validation-tenant.ts \
+  --tenant-id <tenant-id> \
+  --user-email <validation-email>
+
+tsx scripts/cleanup-validation-tenant.ts \
+  --tenant-id <tenant-id> \
+  --user-email <validation-email> \
+  --execute
+```
+
+The script is dry-run by default and prints the exact deletion plan first. It
+refuses to run unless the tenant and owner email match the disposable fixture
+markers used in this repo (`oauth-check-*`, `e2e-*`, `example.com`,
+`test.agentmou.io`), the tenant remains on the `free` plan, and the tenant is
+still a single-owner workspace.
+
+On March 19, 2026, this script was dry-run and execute-verified live against
+both the historical OAuth validation tenant and a temporary connector-delete
+fixture. PostgreSQL post-checks returned `tenants=0`, `memberships=0`,
+`connector_accounts=0`, and `users=0` after each cleanup.
+
+## Provider-Backed Secret Rotation
+
+The remaining live-ops window after the March 19 residual-risk cleanup is
+provider-backed rotation for:
+
+- `OPENAI_API_KEY`
+- `GOOGLE_CLIENT_SECRET`
+- `N8N_API_KEY`
+
+Rotate each value in its source system first, then edit
+`/srv/agentmou-platform/infra/compose/.env` in place without leaving `.bak`
+files in the checkout.
+
+Restart only the affected services:
+
+```bash
+cd /srv/agentmou-platform
+docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents worker api
+```
+
+Post-rotation verification matrix:
+
+```bash
+docker compose -f infra/compose/docker-compose.prod.yml ps
+curl -sk --resolve api.agentmou.io:443:127.0.0.1 https://api.agentmou.io/health
+bash infra/scripts/smoke-test.sh
+```
+
+Then verify:
+
+- `https://agents.agentmou.io/health/deep` with the current `x-api-key`
+- a fresh Gmail OAuth authorize URL, callback, and `connected` connector state
+- a direct n8n API path that uses `X-N8N-API-KEY`
+
 ### Restore PostgreSQL
 
 ```bash

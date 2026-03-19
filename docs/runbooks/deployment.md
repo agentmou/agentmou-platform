@@ -126,6 +126,65 @@ bash infra/scripts/smoke-test.sh
 # Or via Uptime Kuma at https://uptime.DOMAIN
 ```
 
+## Temporary Validation Fixture Cleanup
+
+Use the repo-tracked cleanup script instead of ad hoc SQL when you need to
+remove a disposable OAuth or E2E validation tenant:
+
+```bash
+cd /srv/agentmou-platform
+tsx scripts/cleanup-validation-tenant.ts \
+  --tenant-id <tenant-id> \
+  --user-email <validation-email>
+
+tsx scripts/cleanup-validation-tenant.ts \
+  --tenant-id <tenant-id> \
+  --user-email <validation-email> \
+  --execute
+```
+
+The script is dry-run by default. It fails closed unless the tenant and owner
+match disposable validation markers (`oauth-check-*`, `e2e-*`,
+`example.com`, `test.agentmou.io`), the tenant is still on the `free` plan,
+and the tenant only has its single owner membership.
+
+On March 19, 2026, this script was dry-run and execute-verified live against
+the historical OAuth validation tenant and a temporary connector-delete
+fixture. PostgreSQL post-checks returned `tenants=0`, `memberships=0`,
+`connector_accounts=0`, and `users=0` after each cleanup.
+
+## Provider-Backed Secret Rotation
+
+Keep provider-backed rotation in its own live window. Rotate in the provider
+console first, then edit `infra/compose/.env` in place on the VPS without
+creating `.bak` files in the checkout.
+
+Order:
+
+1. `OPENAI_API_KEY`
+2. `GOOGLE_CLIENT_SECRET`
+3. `N8N_API_KEY`
+
+Restart only the affected services after updating `.env`:
+
+```bash
+docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents worker api
+```
+
+Minimum post-rotation verification:
+
+```bash
+docker compose -f infra/compose/docker-compose.prod.yml ps
+curl -sk --resolve api.DOMAIN:443:127.0.0.1 https://api.DOMAIN/health
+bash infra/scripts/smoke-test.sh
+```
+
+Then verify:
+
+- `agents.DOMAIN/health/deep` with the current `x-api-key`
+- a fresh Gmail OAuth authorize + callback flow
+- at least one n8n API path that uses `X-N8N-API-KEY`
+
 ## Rollback
 
 ```bash

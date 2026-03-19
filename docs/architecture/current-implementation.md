@@ -191,11 +191,8 @@ details.
 ## What Is Still Incomplete
 
 - The stale `.env.bak` copy inside the VPS checkout was removed, but broader
-  provider-backed secret rotation still needs explicit operator follow-up.
-- `DELETE /api/v1/tenants/:tenantId/connectors/:connectorId` still fails when
-  `connectorId` is a provider slug such as `gmail`; live cleanup had to remove
-  the temporary Gmail connector row directly from PostgreSQL after the OAuth
-  check completed.
+  provider-backed secret rotation still needs explicit operator follow-up for
+  `OPENAI_API_KEY`, `GOOGLE_CLIENT_SECRET`, and `N8N_API_KEY`.
 - Usage metering and billing (stubs exist, not blocking).
 - Knowledge/memory with pgvector.
 - RBAC and multi-tenant isolation hardening.
@@ -236,3 +233,16 @@ details.
   second authorize URL completed successfully, `/api/v1/oauth/callback`
   returned `302`, and the connectors API showed `gmail` `connected` for the
   temporary validation tenant on March 19, 2026.
+- Repo cleanup tooling: `tsx scripts/cleanup-validation-tenant.ts --help`
+  now resolves from the repo root and documents the supported dry-run and
+  execute modes for disposable validation tenants.
+- VPS validation-fixture cleanup: on March 19, 2026, the guarded cleanup
+  script was dry-run and execute-verified against both the historical OAuth
+  validation tenant and the temporary connector-delete fixture; PostgreSQL
+  post-checks returned `tenants=0`, `memberships=0`, `connector_accounts=0`,
+  and `users=0` for both targets.
+- VPS connector delete path: after redeploying `d358428` from
+  `codex/fix-production-residual-risks`, a fresh disposable tenant exercised
+  `POST /api/v1/tenants/:tenantId/connectors` for `gmail`, then
+  `DELETE /api/v1/tenants/:tenantId/connectors/gmail` returned `200` and the
+  follow-up connector listing came back empty.
