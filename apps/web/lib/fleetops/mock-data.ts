@@ -1418,6 +1418,7 @@ export const invoices: Invoice[] = [
     date: '2024-03-01',
     amount: 99,
     status: 'paid',
+    currency: 'usd',
     items: [
       { description: 'Pro Plan - March 2024', amount: 99 },
     ],
@@ -1428,6 +1429,7 @@ export const invoices: Invoice[] = [
     date: '2024-02-01',
     amount: 99,
     status: 'paid',
+    currency: 'usd',
     items: [
       { description: 'Pro Plan - February 2024', amount: 99 },
     ],

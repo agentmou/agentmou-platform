@@ -111,6 +111,26 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
           </div>
         )}
 
+        {!isUser && message.citations && message.citations.length > 0 && (
+          <div className="mt-1 space-y-2">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Sources
+            </p>
+            <div className="space-y-2">
+              {message.citations.map((citation) => (
+                <Link
+                  key={citation.id}
+                  href={citation.href}
+                  className="block rounded-lg border border-border/50 bg-background/70 p-2 text-xs transition-colors hover:border-emerald-500/40 hover:bg-emerald-500/5"
+                >
+                  <p className="font-medium text-foreground">{citation.title}</p>
+                  <p className="mt-1 text-muted-foreground">{citation.excerpt}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Copy button - appears on hover */}
         {!isUser && message.content && (
           <motion.div

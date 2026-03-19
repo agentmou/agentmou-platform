@@ -84,12 +84,16 @@ export function useChatStore(mode: ChatMode, workspaceId?: string) {
     return newMessage
   }, [])
 
-  const updateLastAssistantMessage = useCallback((content: string, actions?: ChatMessage['actions']) => {
+  const updateLastAssistantMessage = useCallback((
+    content: string,
+    actions?: ChatMessage['actions'],
+    citations?: ChatMessage['citations'],
+  ) => {
     setConversation(prev => {
       const messages = [...prev.messages]
       const lastIdx = messages.length - 1
       if (lastIdx >= 0 && messages[lastIdx].role === 'assistant') {
-        messages[lastIdx] = { ...messages[lastIdx], content, actions }
+        messages[lastIdx] = { ...messages[lastIdx], content, actions, citations }
       }
       return { ...prev, messages, updatedAt: new Date().toISOString() }
     })

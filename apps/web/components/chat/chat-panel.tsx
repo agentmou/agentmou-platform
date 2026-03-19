@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useChatStore } from '@/lib/chat/store'
 import { generateResponseStream } from '@/lib/chat/engine'
-import type { ChatMode, WorkspaceContextSnapshot } from '@/lib/chat/types'
+import type { ChatMode, ChatResponse, WorkspaceContextSnapshot } from '@/lib/chat/types'
 import { ChatMessageBubble } from './chat-message-bubble'
 import { ChatComposer } from './chat-composer'
 import { ChatQuickPrompts } from './chat-quick-prompts'
@@ -26,7 +26,7 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
   const { messages, isLoading, setIsLoading, addMessage, updateLastAssistantMessage, resetConversation } = useChatStore(mode, workspaceId)
   const [isStreaming, setIsStreaming] = useState(false)
   const assistantState = resolveHonestSurfaceState('chat-assistant', {
-    providerMode: mode === 'public' ? 'demo' : 'api',
+    providerMode: 'api',
     tenantId: workspaceId,
   })
 
@@ -49,15 +49,44 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
     addMessage({ role: 'assistant', content: '' })
 
     try {
-      // Stream response
-      const stream = generateResponseStream({
-        mode,
-        userMessage: content,
-        context: contextSnapshot,
-      })
+      if (mode === 'public') {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            mode,
+            messages: [
+              ...messages.map((message) => ({
+                role: message.role,
+                content: message.content,
+              })),
+              { role: 'user', content },
+            ],
+          }),
+        })
 
-      for await (const chunk of stream) {
-        updateLastAssistantMessage(chunk.content, chunk.actions)
+        if (!response.ok) {
+          throw new Error(`Chat request failed: ${response.status}`)
+        }
+
+        const data = await response.json() as ChatResponse
+        updateLastAssistantMessage(
+          data.message.content,
+          data.message.actions,
+          data.message.citations,
+        )
+      } else {
+        const stream = generateResponseStream({
+          mode,
+          userMessage: content,
+          context: contextSnapshot,
+        })
+
+        for await (const chunk of stream) {
+          updateLastAssistantMessage(chunk.content, chunk.actions)
+        }
       }
     } catch (error) {
       console.error('Chat error:', error)
@@ -68,7 +97,7 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
       setIsLoading(false)
       setIsStreaming(false)
     }
-  }, [mode, contextSnapshot, isLoading, addMessage, setIsLoading, updateLastAssistantMessage])
+  }, [mode, contextSnapshot, isLoading, messages, addMessage, setIsLoading, updateLastAssistantMessage])
 
   const handleQuickPrompt = useCallback((prompt: string) => {
     handleSend(prompt)
@@ -98,7 +127,7 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
             </div>
             <p className="text-xs text-muted-foreground">
               {mode === 'public'
-                ? 'Demo guidance about the product'
+                ? 'Public product assistant with cited answers'
                 : 'Preview guidance for this workspace'}
             </p>
           </div>
@@ -141,12 +170,12 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
               
               <h4 className="text-base font-semibold mb-1">
                 {mode === 'public'
-                  ? 'Explore the demo assistant'
+                  ? 'Ask the public product assistant'
                   : 'Review this workspace with the assistant preview'}
               </h4>
               <p className="text-sm text-muted-foreground text-center max-w-[280px]">
                 {mode === 'public'
-                  ? "I can explain the product, show which surfaces are still partial, and point you into the demo workspace."
+                  ? "I answer from AgentMou's public product corpus with citations and won't expose tenant-only data."
                   : "I can summarize blockers, readiness, and available surfaces, but I will not change tenant state from chat."}
               </p>
               <div className="mt-4 w-full max-w-[320px]">
@@ -173,10 +202,14 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
         disabled={isLoading}
         placeholder={
           mode === 'public'
-            ? 'Ask about the demo, pricing, or preview surfaces...'
+            ? 'Ask about pricing, security, workflows, or the demo workspace...'
             : 'Ask about blockers, readiness, or preview surfaces...'
         }
-        footerHint="Preview replies only. Press Enter to send, Shift+Enter for new line."
+        footerHint={
+          mode === 'public'
+            ? 'Public product answers only. Press Enter to send, Shift+Enter for new line.'
+            : 'Preview replies only. Press Enter to send, Shift+Enter for new line.'
+        }
       />
     </div>
   )

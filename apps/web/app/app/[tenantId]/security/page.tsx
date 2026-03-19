@@ -25,7 +25,13 @@ import { useDataProvider } from '@/lib/data'
 import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
 import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 import type { FleetSecret, FleetAuditEvent } from '@/lib/data/provider'
-import type { TenantMember } from '@agentmou/contracts'
+import type { SecurityFinding, TenantMember } from '@agentmou/contracts'
+
+function findingStatus(severity: SecurityFinding['severity']) {
+  if (severity === 'critical' || severity === 'high') return 'error'
+  if (severity === 'medium') return 'warning'
+  return 'pending'
+}
 
 export default function SecurityPage() {
   const params = useParams()
@@ -59,6 +65,11 @@ export default function SecurityPage() {
     [],
     [tenantId],
   )
+  const { data: findings } = useProviderQuery<SecurityFinding[]>(
+    (p) => p.listTenantSecurityFindings(tenantId),
+    [],
+    [tenantId],
+  )
   const [auditFilter, setAuditFilter] = useState('all')
   
   const filteredAuditEvents = auditFilter === 'all' 
@@ -72,6 +83,37 @@ export default function SecurityPage() {
         <h1 className="text-2xl font-bold tracking-tight">Security</h1>
         <p className="text-sm text-muted-foreground mt-1">Manage secrets, access controls, and audit logs</p>
       </div>
+
+      <Card className="border-border/50">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">Operational Findings</CardTitle>
+          <CardDescription className="text-xs">
+            Derived from real secrets, memberships, approvals, connectors, and audit activity.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {findings.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No operational findings are currently derived for this workspace.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {findings.slice(0, 3).map((finding) => (
+                <div key={finding.id} className="rounded-lg border border-border/50 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium">{finding.title}</p>
+                    <StatusPill
+                      status={findingStatus(finding.severity)}
+                      label={finding.severity}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">{finding.description}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="secrets" className="space-y-4">
         <TabsList>

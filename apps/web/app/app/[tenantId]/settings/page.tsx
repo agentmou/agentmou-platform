@@ -39,7 +39,7 @@ function formatInvoiceMonth(date: string): string {
     month: 'short',
     year: 'numeric',
     timeZone: 'UTC',
-  }).format(new Date(`${date}T00:00:00Z`))
+  }).format(new Date(date))
 }
 
 export default function SettingsPage() {
@@ -98,6 +98,7 @@ export default function SettingsPage() {
   const [weeklyDigest, setWeeklyDigest] = useState(false)
   const [timezone, setTimezone] = useState('America/New_York')
   const { theme, setTheme } = useTheme()
+  const showRealBilling = provider.providerMode === 'api'
 
   useEffect(() => {
     setWorkspaceName(tenant.name)
@@ -248,14 +249,34 @@ export default function SettingsPage() {
                     <span className="font-medium">{n8nConnection.baseUrl}</span>
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-3">
+                    <span className="text-muted-foreground">Availability</span>
+                    <span className="font-medium capitalize">
+                      {n8nConnection.availability ?? 'unknown'}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between gap-3">
                     <span className="text-muted-foreground">API key</span>
                     <span className="font-medium">
                       {n8nConnection.apiKeySet ? 'Configured' : 'Not set'}
+                    </span>
+                    </div>
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <span className="text-muted-foreground">Installed workflows</span>
+                    <span className="font-medium">
+                      {formatNumber(n8nConnection.installedWorkflows ?? 0)}
                     </span>
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-3">
                     <span className="text-muted-foreground">Executions</span>
                     <span className="font-medium">{formatNumber(n8nConnection.executionCount)}</span>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <span className="text-muted-foreground">Last execution</span>
+                    <span className="font-medium">
+                      {n8nConnection.lastExecutionAt
+                        ? new Date(n8nConnection.lastExecutionAt).toLocaleString()
+                        : 'No executions yet'}
+                    </span>
                   </div>
                 </div>
               ) : (
@@ -350,15 +371,15 @@ export default function SettingsPage() {
                   <div>
                     <p className="text-2xl font-bold capitalize">{tenant.plan}</p>
                     <p className="text-muted-foreground">
-                      {billingState.tone === 'demo'
+                      {billingState.tone === 'demo' || showRealBilling
                         ? `$${billing.monthlySpend.toFixed(2)}/month`
-                        : 'Spend data not yet available'}
+                        : 'Billing provider not configured'}
                     </p>
                   </div>
                   <HonestSurfaceBadge state={billingState} />
                 </div>
                 <Separator />
-                {billingState.tone === 'demo' ? (
+                {billingState.tone === 'demo' || showRealBilling ? (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Agents installed</span>
@@ -369,8 +390,34 @@ export default function SettingsPage() {
                       <span>{formatNumber(billing.runsThisMonth)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span>Billing period</span>
-                      <span>Monthly</span>
+                      <span>Included runs</span>
+                      <span>
+                        {billing.includedRuns === null || billing.includedRuns === undefined
+                          ? 'Unlimited'
+                          : formatNumber(billing.includedRuns)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Overage runs</span>
+                      <span>{formatNumber(billing.overageRuns ?? 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Overage amount</span>
+                      <span>
+                        ${(billing.overageAmount ?? 0).toFixed(2)} {billing.currency?.toUpperCase() ?? 'USD'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Status</span>
+                      <span className="capitalize">{billing.subscriptionStatus ?? 'not configured'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Current period end</span>
+                      <span>
+                        {billing.currentPeriodEnd
+                          ? new Date(billing.currentPeriodEnd).toLocaleDateString()
+                          : 'Not available'}
+                      </span>
                     </div>
                   </div>
                 ) : (
@@ -398,11 +445,20 @@ export default function SettingsPage() {
                 <CardDescription>Your billing information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="rounded-lg border border-dashed border-border/60 p-4 text-sm text-muted-foreground">
-                  {billingState.tone === 'demo'
-                    ? 'Demo billing details stay read-only in the sample workspace.'
-                    : 'Payment methods are not exposed in authenticated workspaces yet.'}
-                </div>
+                {billing.paymentMethodSummary ? (
+                  <div className="rounded-lg border border-border/50 p-4 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-muted-foreground">Default method</span>
+                      <span className="font-medium">{billing.paymentMethodSummary}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-dashed border-border/60 p-4 text-sm text-muted-foreground">
+                    {billingState.tone === 'demo'
+                      ? 'Demo billing details stay read-only in the sample workspace.'
+                      : 'No payment method is available yet for this tenant or billing provider.'}
+                  </div>
+                )}
               </CardContent>
               <CardFooter>
                 <Button variant="outline" className="w-full" disabled>Update Payment Method</Button>
