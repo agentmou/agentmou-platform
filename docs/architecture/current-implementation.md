@@ -119,6 +119,13 @@ Phase 2 additions:
   state validation, token exchange, encryption, and storage.
 - Routes: `GET /connectors/oauth/gmail/authorize` (tenant-scoped) and
   `GET /api/v1/oauth/callback` (public).
+- March 19, 2026 live validation confirmed a full Gmail OAuth callback and a
+  `connected` Gmail connector for a temporary tenant. The first attempt failed
+  only because the 10-minute OAuth state expired; the second attempt completed
+  successfully.
+- The same live cleanup exposed a remaining bug: the public delete path still
+  throws `500` when called with provider slug `gmail` instead of a connector
+  row UUID.
 - ADR-008 documents the token storage strategy.
 
 ### Database
@@ -171,8 +178,11 @@ The repository defines a single-VPS production stack
   `200`; an initial hardened catalog-content check failed and led to a
   follow-up `REPO_ROOT` fix; the final `deploy-phase25.sh` rerun passed the
   hardened public smoke test `3/3`; `/api/v1/catalog/agents` returned the
-  live `inbox-triage` manifest; and worker logs showed all 5 active queues
-  listening.
+  live `inbox-triage` manifest; the root cron was replaced with
+  `/etc/cron.d/agentmou-backup`; `JWT_SECRET`, `AGENTS_API_KEY`, and
+  `BASIC_AUTH_USERS` were rotated; protected public routes were revalidated;
+  Gmail OAuth completed end-to-end on the second in-window attempt; and
+  worker logs showed all 5 active queues listening.
 - **Monitoring**: Uptime Kuma at `uptime.DOMAIN` when the VPS stack is up.
 
 See [VPS Operations](../runbooks/vps-operations.md) for operational
@@ -180,13 +190,12 @@ details.
 
 ## What Is Still Incomplete
 
-- The root-owned legacy cron file `/etc/cron.d/stack-backup` still points at
-  `/srv/stack`. The tracked backup script was proven to work outside the repo
-  checkout, but replacing the cron job with `/etc/cron.d/agentmou-backup`
-  remains blocked until an operator with sudo access performs that root-level
-  change.
 - The stale `.env.bak` copy inside the VPS checkout was removed, but broader
   provider-backed secret rotation still needs explicit operator follow-up.
+- `DELETE /api/v1/tenants/:tenantId/connectors/:connectorId` still fails when
+  `connectorId` is a provider slug such as `gmail`; live cleanup had to remove
+  the temporary Gmail connector row directly from PostgreSQL after the OAuth
+  check completed.
 - Usage metering and billing (stubs exist, not blocking).
 - Knowledge/memory with pgvector.
 - RBAC and multi-tenant isolation hardening.
@@ -214,4 +223,16 @@ details.
   returned the live `inbox-triage` manifest payload on March 19, 2026.
 - VPS tracked backup script: manual run with
   `BACKUP_DIR=/tmp/agentmou-backup LOCK_FILE=/tmp/agentmou-backup.lock`
+  and later with
+  `BACKUP_DIR=/var/backups/agentmou LOCK_FILE=/var/lock/agentmou/backup.lock`
   completed successfully on March 19, 2026 and left `git status` clean.
+- VPS root backup cron: `/etc/cron.d/agentmou-backup` was installed and the
+  legacy `/etc/cron.d/stack-backup` entry was removed on March 19, 2026.
+- VPS protected public routes: `agents.agentmou.io/health` returned `401`
+  without BasicAuth and `200` with the rotated credential; `uptime.agentmou.io`
+  returned `401` without auth and `302 /dashboard` with it; `n8n.agentmou.io`
+  returned `200` on March 19, 2026.
+- VPS Gmail OAuth: the first live callback attempt expired the OAuth state; a
+  second authorize URL completed successfully, `/api/v1/oauth/callback`
+  returned `302`, and the connectors API showed `gmail` `connected` for the
+  temporary validation tenant on March 19, 2026.

@@ -208,10 +208,11 @@ sudo rm -f /etc/cron.d/stack-backup
 ```
 
 On March 19, 2026, Epic D confirmed that the tracked backup script runs cleanly
-outside the checkout by writing to `/tmp/agentmou-backup`, but the live VPS
-still retained `/etc/cron.d/stack-backup` because the `deploy` user did not
-have passwordless sudo. Treat the cron replacement above as still pending
-until an operator completes it.
+outside the checkout by writing to `/tmp/agentmou-backup`. Later the same day,
+the residual-risk cleanup installed `/etc/cron.d/agentmou-backup`, removed
+`/etc/cron.d/stack-backup`, created `/var/backups/agentmou` and
+`/var/lock/agentmou`, and manually ran the tracked backup script with
+production output paths while leaving `git status` clean.
 
 ### Restore PostgreSQL
 
@@ -271,8 +272,33 @@ free -h && uptime && df -h /
 - `BASIC_AUTH_USERS` uses htpasswd format with doubled `$$` for compose.
 - `N8N_ENCRYPTION_KEY` encrypts n8n credentials at rest — **do not lose
   this key** or stored n8n credentials become unrecoverable.
-- `AGENTS_API_KEY` is a shared secret between n8n and the agents service.
+- `AGENTS_API_KEY` is consumed directly by `services/agents` and
+  `services/worker`. If any n8n workflow also calls the agents service,
+  rotate that workflow-side credential separately because the n8n container
+  does not currently receive `AGENTS_API_KEY` via compose.
 - Generate strong values: `openssl rand -hex 32`
+
+### March 19, 2026 Cleanup Follow-Up
+
+- Root-level cleanup completed: `/etc/cron.d/agentmou-backup` replaced the
+  legacy `/etc/cron.d/stack-backup` entry, and `/srv/stack` was confirmed
+  absent on the host.
+- VPS-local secret rotation completed for `JWT_SECRET`, `AGENTS_API_KEY`, and
+  `BASIC_AUTH_USERS`. Provider-backed secret rotation still remains a separate
+  operator task.
+- Public route validation completed after the rotation:
+  - `https://api.DOMAIN/health` returned `200`
+  - `https://agents.DOMAIN/health` returned `401` without BasicAuth and `200`
+    with the rotated credential
+  - `https://uptime.DOMAIN/` returned `401` without auth and `302 /dashboard`
+    with the rotated credential
+  - `https://n8n.DOMAIN/` returned `200`
+- Gmail OAuth was validated live against the production API. The first attempt
+  expired the 10-minute OAuth state; the second attempt completed
+  successfully, and the connectors API showed a `gmail` connector in
+  `connected` status for the temporary validation tenant.
+- The temporary `sudoers` file used for the root-level cleanup was removed
+  after the intervention.
 
 ## Migration from Legacy Stack
 
