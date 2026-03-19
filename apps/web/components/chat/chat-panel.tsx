@@ -127,7 +127,7 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
             </div>
             <p className="text-xs text-muted-foreground">
               {mode === 'public'
-                ? 'Public product assistant with cited answers'
+                ? 'Public product assistant with cited answers when available'
                 : 'Preview guidance for this workspace'}
             </p>
           </div>
@@ -175,7 +175,7 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
               </h4>
               <p className="text-sm text-muted-foreground text-center max-w-[280px]">
                 {mode === 'public'
-                  ? "I answer from AgentMou's public product corpus with citations and won't expose tenant-only data."
+                  ? "I answer from AgentMou's public product corpus, add citations when the backend is available, and won't expose tenant-only data."
                   : "I can summarize blockers, readiness, and available surfaces, but I will not change tenant state from chat."}
               </p>
               <div className="mt-4 w-full max-w-[320px]">

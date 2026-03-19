@@ -74,7 +74,7 @@ export function ChatWidget({ mode, workspaceId, contextSnapshot }: ChatWidgetPro
           )}
         >
           {!isOpen && (
-            <span className="absolute inset-0 rounded-full bg-emerald-500/15" />
+            <span className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" />
           )}
           
           {/* Icon with transition */}
