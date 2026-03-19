@@ -33,6 +33,7 @@ export async function membershipRoutes(fastify: FastifyInstance) {
       const membership = await membershipsService.addMember(
         tenantId,
         request.body as AddMemberInput,
+        request.userId,
       );
       return reply.send(membershipResponseSchema.parse({ membership }));
     },
@@ -55,6 +56,7 @@ export async function membershipRoutes(fastify: FastifyInstance) {
         tenantId,
         memberId,
         (request.body as UpdateMemberRoleInput).role,
+        request.userId,
       );
       if (!membership) {
         return reply.status(404).send({ error: 'Member not found' });
@@ -65,7 +67,11 @@ export async function membershipRoutes(fastify: FastifyInstance) {
 
   fastify.delete('/tenants/:tenantId/members/:memberId', async (request: FastifyRequest, reply: FastifyReply) => {
     const { tenantId, memberId } = request.params as { tenantId: string; memberId: string };
-    const result = await membershipsService.removeMember(tenantId, memberId);
+    const result = await membershipsService.removeMember(
+      tenantId,
+      memberId,
+      request.userId,
+    );
     return reply.send(result);
   });
 }

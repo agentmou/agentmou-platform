@@ -3,6 +3,8 @@ import { db, connectorAccounts, connectorOauthStates } from '@agentmou/db';
 import { encrypt } from '@agentmou/connectors';
 import { eq, and } from 'drizzle-orm';
 
+import { recordAuditEvent } from '../../lib/audit.js';
+
 // ---------------------------------------------------------------------------
 // Config — read lazily so env vars can be set after module load (tests)
 // ---------------------------------------------------------------------------
@@ -241,6 +243,16 @@ export class OAuthService {
           scopes: GMAIL_SCOPES,
         });
     }
+
+    await recordAuditEvent({
+      tenantId,
+      action: 'connector.oauth_connected',
+      category: 'connector',
+      details: {
+        provider,
+        externalAccountId: userInfo.email,
+      },
+    });
   }
 }
 

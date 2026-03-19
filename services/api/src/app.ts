@@ -15,6 +15,8 @@ import { billingRoutes } from './modules/billing/index.js';
 import { securityRoutes } from './modules/security/index.js';
 import { webhookRoutes } from './modules/webhooks/index.js';
 import { n8nRoutes } from './modules/n8n/index.js';
+import { publicChatRoutes } from './modules/public-chat/index.js';
+import { stripeWebhookRoutes } from './modules/webhooks/index.js';
 import { requireAuth, requireTenantAccess } from './middleware/index.js';
 import { zodValidatorCompiler } from './routes/zod-validator.js';
 
@@ -39,6 +41,8 @@ export function buildApp() {
   app.register(authRoutes, { prefix: '/api/v1/auth' });
   app.register(catalogRoutes, { prefix: '/api/v1/catalog' });
   app.register(oauthCallbackRoutes, { prefix: '/api/v1' });
+  app.register(publicChatRoutes, { prefix: '/api/v1' });
+  app.register(stripeWebhookRoutes, { prefix: '/api/v1' });
 
   // --- Authenticated routes (JWT required) ----------------------------------
   app.register(async function authenticatedRoutes(authedApp) {

@@ -13,3 +13,5 @@ export { billingRoutes } from './billing/index.js';
 export { securityRoutes } from './security/index.js';
 export { webhookRoutes } from './webhooks/index.js';
 export { n8nRoutes } from './n8n/index.js';
+export { publicChatRoutes } from './public-chat/index.js';
+export { stripeWebhookRoutes } from './webhooks/index.js';
