@@ -5,10 +5,11 @@
 
 ## Context
 
-The production VPS at `/srv/stack/` runs a Docker Compose stack with
-Traefik, Postgres, Redis, n8n, a Python FastAPI agents service, and
-Uptime Kuma. This stack was set up manually and its `docker-compose.yml`
-was not tracked in the `agentmou-platform` repository.
+The production VPS originally ran a Docker Compose stack from `/srv/stack/`
+with Traefik, Postgres, Redis, n8n, a Python FastAPI agents service, and
+Uptime Kuma. By March 19, 2026, the active tracked checkout had moved to
+`/srv/agentmou-platform`, but a root-owned legacy cron file still pointed at
+`/srv/stack`.
 
 Meanwhile, the repo contained a theoretical `docker-compose.prod.yml`
 that did not match the VPS reality: different network names, different

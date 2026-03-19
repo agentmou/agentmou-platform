@@ -91,6 +91,11 @@ revalidates the live state explicitly.
   `schedules`, OAuth fields on `connector_accounts`).
 - 61+ unit tests across 7 packages/services.
 - E2E test script: `scripts/test-e2e-triage.ts`.
+- March 19, 2026 production verification: the live VPS stack was redeployed
+  from `main`, the hardened smoke test passed `3/3`, and the public catalog
+  now returns the live `inbox-triage` manifest. The remaining production-truth
+  follow-up is root-level cleanup of the legacy `/etc/cron.d/stack-backup`
+  file once sudo access is available.
 
 ## Next (Phase 3: Production Hardening)
 
@@ -109,12 +114,13 @@ The next phase is no longer feature-first. It is baseline-first.
 - Prefer honest `Preview`, `Read-only`, or `Not yet available` states over
   misleading production-like screens.
 
-### Track 2: Production Truth
+### Track 2: VPS Operations Cleanup
 
-- Verify the live VPS state with the documented deployment and smoke-test
-  workflow.
-- Reconcile roadmap, runbooks, and implementation docs to one verified
-  production statement.
+- Replace the root-owned legacy `/etc/cron.d/stack-backup` file with the
+  documented `/etc/cron.d/agentmou-backup` entry once sudo access is
+  available.
+- Rotate any provider-backed secrets that were exposed by historical `.env`
+  backups through their source systems.
 
 ### Track 3: Catalog Convergence
 
