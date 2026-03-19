@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # ---------------------------------------------------------------------------
 # AgentMou Stack — Backup Script
@@ -10,6 +10,7 @@ set -e
 # Usage:
 #   bash infra/scripts/backup.sh
 #   BACKUP_DIR=/custom/path bash infra/scripts/backup.sh
+#   LOCK_FILE=/run/lock/agentmou/backup.lock bash infra/scripts/backup.sh
 # ---------------------------------------------------------------------------
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -17,14 +18,33 @@ BACKUP_DIR="${BACKUP_DIR:-$REPO_ROOT/backups/out}"
 COMPOSE_FILE="$REPO_ROOT/infra/compose/docker-compose.prod.yml"
 TIMESTAMP=$(date +%Y-%m-%d_%H%M%S)
 RETENTION_DAYS=14
+LOCK_FILE="${LOCK_FILE:-}"
+
+cleanup_lock_dir() {
+  if [ -n "$LOCK_FILE" ]; then
+    local lock_dir
+    if ! command -v flock >/dev/null 2>&1; then
+      echo "ERROR: flock is required when LOCK_FILE is set"
+      exit 1
+    fi
+    lock_dir="$(dirname "$LOCK_FILE")"
+    mkdir -p "$lock_dir"
+    exec 9>"$LOCK_FILE"
+    if ! flock -n 9; then
+      echo "ERROR: another backup run is already holding $LOCK_FILE"
+      exit 1
+    fi
+  fi
+}
 
 echo "=== AgentMou backup — $TIMESTAMP ==="
 mkdir -p "$BACKUP_DIR"
+cleanup_lock_dir
 
 # --- PostgreSQL -------------------------------------------------------------
 echo "Backing up PostgreSQL..."
 docker compose -f "$COMPOSE_FILE" exec -T postgres \
-  pg_dumpall -U "$POSTGRES_USER" | gzip \
+  sh -c 'pg_dumpall -U "$POSTGRES_USER"' | gzip \
   > "$BACKUP_DIR/agentmou-stack_postgres_$TIMESTAMP.sql.gz"
 
 # --- Redis ------------------------------------------------------------------
