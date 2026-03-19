@@ -153,6 +153,14 @@ the historical OAuth validation tenant and a temporary connector-delete
 fixture. PostgreSQL post-checks returned `tenants=0`, `memberships=0`,
 `connector_accounts=0`, and `users=0` after each cleanup.
 
+On March 20, 2026, the script was used again after two disposable tenants
+exercised the live `support-starter` pack flow. PostgreSQL post-checks again
+returned `tenant=0`, `user=0`, `membership=0`, and `workflow_installations=0`
+for both fixtures. One successful fixture had already provisioned an n8n
+workflow, so that workflow was deleted manually through the n8n API
+afterward. Treat the current cleanup path as DB-scoped until external n8n
+resource cleanup is added.
+
 ## Provider-Backed Secret Rotation
 
 Keep provider-backed rotation in its own live window. Rotate in the provider
@@ -184,6 +192,17 @@ Then verify:
 - `agents.DOMAIN/health/deep` with the current `x-api-key`
 - a fresh Gmail OAuth authorize + callback flow
 - at least one n8n API path that uses `X-N8N-API-KEY`
+
+Observed March 19-20, 2026 results:
+
+- `GOOGLE_CLIENT_SECRET`: live-verified by a successful Gmail OAuth callback
+  and a `gmail` connector that returned in `connected` state.
+- `N8N_API_KEY`: live-verified by both a direct n8n API call and the real
+  queued `support-starter` install path after the worker env and payload fixes
+  landed on `codex/fix-production-residual-risks`.
+- `OPENAI_API_KEY`: still blocked by OpenAI `429 insufficient_quota` on the
+  direct `agents` deep-health path. Treat this as an upstream quota or billing
+  issue, not a local deploy issue.
 
 ## Rollback
 

@@ -190,9 +190,15 @@ details.
 
 ## What Is Still Incomplete
 
-- The stale `.env.bak` copy inside the VPS checkout was removed, but broader
-  provider-backed secret rotation still needs explicit operator follow-up for
-  `OPENAI_API_KEY`, `GOOGLE_CLIENT_SECRET`, and `N8N_API_KEY`.
+- The provider-backed March 19-20 rotation window is no longer blocked on
+  secret propagation. `GOOGLE_CLIENT_SECRET` and `N8N_API_KEY` were
+  revalidated live after the `.env` update, but the rotated
+  `OPENAI_API_KEY` still hits OpenAI `429 insufficient_quota` during
+  `agents` deep-health verification.
+- Temporary validation cleanup is now repo-tracked and no longer uses ad hoc
+  SQL, but the current cleanup path remains DB-scoped. March 20 validation
+  proved that a successfully provisioned n8n workflow still needs one manual
+  n8n API delete after the tenant rows are removed.
 - Usage metering and billing (stubs exist, not blocking).
 - Knowledge/memory with pgvector.
 - RBAC and multi-tenant isolation hardening.
@@ -201,11 +207,11 @@ details.
 
 ## Validation Snapshot
 
-- `pnpm typecheck`: 13/13 pass on March 19, 2026.
+- `pnpm typecheck`: 13/13 pass on March 19-20, 2026.
 - `pnpm build`: last documented green snapshot remains March 18, 2026; it was
   not re-run during Epic D.
-- `pnpm lint`: 12/12 pass on March 19, 2026 (warnings only; 0 errors).
-- `pnpm test`: 7/7 pass on March 19, 2026 (70 tests across 7
+- `pnpm lint`: 12/12 pass on March 19-20, 2026 (warnings only; 0 errors).
+- `pnpm test`: 7/7 pass on March 19-20, 2026 (70 tests across 7
   packages/services).
 - VPS `docker compose ps`: `api`, `worker`, `agents`, `n8n`, `postgres`,
   `redis`, `uptime-kuma`, and Traefik all `Up` on March 19, 2026.
@@ -246,3 +252,20 @@ details.
   `POST /api/v1/tenants/:tenantId/connectors` for `gmail`, then
   `DELETE /api/v1/tenants/:tenantId/connectors/gmail` returned `200` and the
   follow-up connector listing came back empty.
+- VPS provider-backed rotation: on March 19-20, 2026, `GOOGLE_CLIENT_SECRET`
+  was revalidated by a fresh Gmail OAuth callback, and `N8N_API_KEY` was
+  revalidated first by a direct n8n API call and then by the real
+  `support-starter` queued install path after deploying `cabbab85`,
+  `9911bc38`, and `5dbaa108`. A fresh disposable tenant reached
+  `workflow.status = active` on the first poll after the final worker
+  redeploy.
+- VPS OpenAI-backed validation: on March 19-20, 2026, a direct
+  `POST /health/deep` against the agents container reached OpenAI with the
+  rotated key, but the provider returned `429 insufficient_quota`. The
+  remaining live blocker is quota or billing state, not local secret wiring.
+- VPS validation-fixture cleanup after live pack install: on March 20, 2026,
+  the guarded cleanup script removed both temporary validation tenants from
+  PostgreSQL and post-checks returned `tenant=0`, `user=0`, `membership=0`,
+  and `workflow_installations=0` for both. One successful fixture had already
+  provisioned an n8n workflow, so that workflow was deleted manually through
+  the n8n API afterward.

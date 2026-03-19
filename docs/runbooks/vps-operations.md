@@ -242,10 +242,17 @@ both the historical OAuth validation tenant and a temporary connector-delete
 fixture. PostgreSQL post-checks returned `tenants=0`, `memberships=0`,
 `connector_accounts=0`, and `users=0` after each cleanup.
 
+On March 20, 2026, the same script was used again after two disposable tenants
+exercised the live `support-starter` pack path. PostgreSQL post-checks again
+returned `tenant=0`, `user=0`, `membership=0`, and `workflow_installations=0`
+for both fixtures. One of those tenants had already provisioned an n8n
+workflow successfully, so the workflow had to be deleted manually through the
+n8n API afterward. Today this cleanup path is DB-scoped, not full
+external-resource cleanup.
+
 ## Provider-Backed Secret Rotation
 
-The remaining live-ops window after the March 19 residual-risk cleanup is
-provider-backed rotation for:
+The March 19-20 provider-backed rotation window covered:
 
 - `OPENAI_API_KEY`
 - `GOOGLE_CLIENT_SECRET`
@@ -275,6 +282,18 @@ Then verify:
 - `https://agents.agentmou.io/health/deep` with the current `x-api-key`
 - a fresh Gmail OAuth authorize URL, callback, and `connected` connector state
 - a direct n8n API path that uses `X-N8N-API-KEY`
+
+Observed March 19-20, 2026 results:
+
+- `GOOGLE_CLIENT_SECRET`: live-verified. A fresh Gmail OAuth authorize URL
+  completed successfully and the connectors API returned `gmail` in
+  `connected` state.
+- `N8N_API_KEY`: live-verified. A direct n8n API call succeeded, and after
+  deploying `cabbab85`, `9911bc38`, and `5dbaa108`, the real queued
+  `support-starter` install path reached `workflow.status = active`.
+- `OPENAI_API_KEY`: blocked upstream. A direct `agents` deep-health check
+  reached OpenAI, but the provider returned `429 insufficient_quota`. The
+  current issue is quota or billing state, not local secret propagation.
 
 ### Restore PostgreSQL
 
