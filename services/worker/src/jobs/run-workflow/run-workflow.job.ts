@@ -11,6 +11,9 @@ import { db, executionRuns, executionSteps, workflowInstallations } from '@agent
 import { eq } from 'drizzle-orm';
 import { N8nClient } from '@agentmou/n8n-client';
 
+import { logJobMessage } from '../shared/job-log.js';
+import { recordRunUsage } from '../shared/metering.js';
+
 const N8N_API_URL = process.env.N8N_API_URL || 'http://n8n:5678/api/v1';
 const N8N_API_KEY = process.env.N8N_API_KEY || '';
 
@@ -21,14 +24,20 @@ function getClient(): N8nClient {
 export async function processRunWorkflow(job: Job<RunWorkflowPayload>) {
   const { tenantId, workflowInstallationId, runId, input } = job.data;
 
-  console.log(`[run-workflow] Running workflow installation ${workflowInstallationId} for tenant ${tenantId} [${runId}]`);
+  await logJobMessage(
+    job,
+    `[run-workflow] Running workflow installation ${workflowInstallationId} for tenant ${tenantId} [${runId}]`,
+  );
 
   const startedAt = new Date();
+  let installation:
+    | typeof workflowInstallations.$inferSelect
+    | undefined;
 
   try {
     await job.updateProgress(10);
 
-    const [installation] = await db
+    [installation] = await db
       .select()
       .from(workflowInstallations)
       .where(eq(workflowInstallations.id, workflowInstallationId));
@@ -81,12 +90,27 @@ export async function processRunWorkflow(job: Job<RunWorkflowPayload>) {
 
     await db
       .update(workflowInstallations)
-      .set({ lastRunAt: completedAt, runsTotal: (installation.runsTotal || 0) + 1 })
+      .set({
+        lastRunAt: completedAt,
+        runsTotal: (installation.runsTotal || 0) + 1,
+        runsSuccess: (installation.runsSuccess || 0) + (result.finished ? 1 : 0),
+      })
       .where(eq(workflowInstallations.id, workflowInstallationId));
+
+    await recordRunUsage({
+      tenantId,
+      runId,
+      status: result.finished ? 'success' : 'running',
+      source: 'workflow_run',
+      recordedAt: completedAt,
+    });
 
     await job.updateProgress(100);
 
-    console.log(`[run-workflow] Completed run ${runId} in ${durationMs}ms`);
+    await logJobMessage(
+      job,
+      `[run-workflow] Completed run ${runId} in ${durationMs}ms`,
+    );
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error(`[run-workflow] Failed run ${runId}:`, msg);
@@ -99,6 +123,24 @@ export async function processRunWorkflow(job: Job<RunWorkflowPayload>) {
         completedAt: new Date(),
       })
       .where(eq(executionRuns.id, runId));
+
+    if (installation) {
+      await db
+        .update(workflowInstallations)
+        .set({
+          lastRunAt: new Date(),
+          runsTotal: (installation.runsTotal || 0) + 1,
+        })
+        .where(eq(workflowInstallations.id, workflowInstallationId));
+    }
+
+    await recordRunUsage({
+      tenantId,
+      runId,
+      status: 'failed',
+      source: 'workflow_run',
+      recordedAt: new Date(),
+    });
 
     throw error;
   }

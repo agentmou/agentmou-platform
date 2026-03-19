@@ -6,6 +6,8 @@ import type {
   CreateApprovalBody,
 } from './approvals.schema.js';
 
+import { recordAuditEvent } from '../../lib/audit.js';
+
 export class ApprovalsService {
   async listApprovals(tenantId: string, filters?: { status?: string }) {
     const query = db
@@ -86,6 +88,17 @@ export class ApprovalsService {
       return null;
     }
 
+    await recordAuditEvent({
+      tenantId,
+      actorId: decidedBy,
+      action: 'approval.approved',
+      category: 'approval',
+      details: {
+        approvalId,
+        runId: updated.runId,
+      },
+    });
+
     const agentIds = await resolveAgentTemplateIds([updated]);
     return mapApproval(
       updated,
@@ -120,6 +133,17 @@ export class ApprovalsService {
       return null;
     }
 
+    await recordAuditEvent({
+      tenantId,
+      actorId: decidedBy,
+      action: 'approval.rejected',
+      category: 'approval',
+      details: {
+        approvalId,
+        runId: updated.runId,
+      },
+    });
+
     const agentIds = await resolveAgentTemplateIds([updated]);
     return mapApproval(
       updated,
@@ -148,6 +172,19 @@ export class ApprovalsService {
         status: 'pending',
       })
       .returning();
+
+    await recordAuditEvent({
+      tenantId,
+      action: 'approval.requested',
+      category: 'approval',
+      details: {
+        approvalId: approval.id,
+        runId: approval.runId,
+        actionType: approval.actionType,
+        riskLevel: approval.riskLevel,
+      },
+    });
+
     const agentIds = await resolveAgentTemplateIds([approval]);
     return mapApproval(
       approval,

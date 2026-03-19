@@ -52,6 +52,13 @@ export interface FleetBillingInfo {
   monthlySpend: number;
   agentsInstalled: number;
   runsThisMonth: number;
+  includedRuns?: number | null;
+  overageRuns?: number;
+  overageAmount?: number;
+  subscriptionStatus?: string;
+  currency?: string;
+  currentPeriodEnd?: string;
+  paymentMethodSummary?: string;
 }
 
 // ---------------------------------------------------------------------------

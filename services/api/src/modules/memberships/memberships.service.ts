@@ -2,6 +2,8 @@ import { db, memberships, users } from '@agentmou/db';
 import { eq, and } from 'drizzle-orm';
 import { mapMembership } from './memberships.mapper.js';
 
+import { recordAuditEvent } from '../../lib/audit.js';
+
 const membershipSelection = {
   id: memberships.id,
   tenantId: memberships.tenantId,
@@ -27,7 +29,11 @@ export class MembershipsService {
     return members.map(mapMembership);
   }
 
-  async addMember(tenantId: string, data: { userId: string; role: string }) {
+  async addMember(
+    tenantId: string,
+    data: { userId: string; role: string },
+    actorId?: string,
+  ) {
     const [membership] = await db
       .insert(memberships)
       .values({
@@ -41,6 +47,18 @@ export class MembershipsService {
     if (!createdMember) {
       throw new Error(`Created membership ${membership.id} could not be loaded`);
     }
+
+    await recordAuditEvent({
+      tenantId,
+      actorId,
+      action: 'membership.created',
+      category: 'membership',
+      details: {
+        membershipId: membership.id,
+        memberUserId: membership.userId,
+        role: membership.role,
+      },
+    });
 
     return createdMember;
   }
@@ -56,7 +74,12 @@ export class MembershipsService {
     return membership ? mapMembership(membership) : null;
   }
 
-  async updateMemberRole(tenantId: string, memberId: string, role: string) {
+  async updateMemberRole(
+    tenantId: string,
+    memberId: string,
+    role: string,
+    actorId?: string,
+  ) {
     const [membership] = await db
       .update(memberships)
       .set({ role })
@@ -69,16 +92,40 @@ export class MembershipsService {
       return null;
     }
 
+    await recordAuditEvent({
+      tenantId,
+      actorId,
+      action: 'membership.role_updated',
+      category: 'membership',
+      details: {
+        membershipId: membership.id,
+        role,
+      },
+    });
+
     return this.getMember(tenantId, membership.id);
   }
 
-  async removeMember(tenantId: string, memberId: string) {
+  async removeMember(tenantId: string, memberId: string, actorId?: string) {
     const [deleted] = await db
       .delete(memberships)
       .where(
         and(eq(memberships.id, memberId), eq(memberships.tenantId, tenantId)),
       )
       .returning({ id: memberships.id });
+
+    if (deleted) {
+      await recordAuditEvent({
+        tenantId,
+        actorId,
+        action: 'membership.removed',
+        category: 'membership',
+        details: {
+          membershipId: deleted.id,
+        },
+      });
+    }
+
     return deleted ? { success: true } : { success: false };
   }
 }

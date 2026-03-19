@@ -26,19 +26,28 @@ export async function connectorRoutes(fastify: FastifyInstance) {
   fastify.post('/tenants/:tenantId/connectors', async (request: FastifyRequest, reply: FastifyReply) => {
     const { tenantId } = request.params as { tenantId: string };
     const { provider, scopes } = request.body as { provider: string; scopes?: string[] };
-    const connector = await service.createConnector(tenantId, provider, scopes);
+    const connector = await service.createConnector(
+      tenantId,
+      provider,
+      scopes,
+      request.userId,
+    );
     return reply.status(201).send(ConnectorResponseSchema.parse({ connector }));
   });
 
   fastify.delete('/tenants/:tenantId/connectors/:connectorId', async (request: FastifyRequest, reply: FastifyReply) => {
     const { tenantId, connectorId } = request.params as { tenantId: string; connectorId: string };
-    await service.deleteConnector(tenantId, connectorId);
+    await service.deleteConnector(tenantId, connectorId, request.userId);
     return reply.send({ success: true });
   });
 
   fastify.post('/tenants/:tenantId/connectors/:connectorId/test', async (request: FastifyRequest, reply: FastifyReply) => {
     const { tenantId, connectorId } = request.params as { tenantId: string; connectorId: string };
-    const result = await service.testConnection(tenantId, connectorId);
+    const result = await service.testConnection(
+      tenantId,
+      connectorId,
+      request.userId,
+    );
     return reply.send(result);
   });
 

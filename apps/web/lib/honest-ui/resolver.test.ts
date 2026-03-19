@@ -11,7 +11,7 @@ describe('resolveHonestSurfaceState', () => {
 
     expect(state.tone).toBe('preview')
     expect(state.label).toBe('Preview')
-    expect(state.description).toContain('guidance')
+    expect(state.description).toContain('curated product knowledge')
   })
 
   it('returns demo states for demo workspaces even when provider mode is api', () => {

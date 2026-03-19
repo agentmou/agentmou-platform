@@ -272,3 +272,151 @@ export const usageEvents = pgTable('usage_events', {
   unit: text('unit').notNull(),
   recordedAt: timestamp('recorded_at').defaultNow().notNull(),
 });
+
+// ---------------------------------------------------------------------------
+// Billing Accounts
+// ---------------------------------------------------------------------------
+
+export const billingAccounts = pgTable('billing_accounts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .unique()
+    .references(() => tenants.id),
+  provider: text('provider').notNull().default('stripe'),
+  providerCustomerId: text('provider_customer_id'),
+  billingEmail: text('billing_email'),
+  portalUrl: text('portal_url'),
+  status: text('status').notNull().default('not_configured'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Billing Subscriptions
+// ---------------------------------------------------------------------------
+
+export const billingSubscriptions = pgTable('billing_subscriptions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .unique()
+    .references(() => tenants.id),
+  billingAccountId: uuid('billing_account_id').references(() => billingAccounts.id),
+  providerSubscriptionId: text('provider_subscription_id'),
+  plan: text('plan').notNull().default('free'),
+  status: text('status').notNull().default('not_configured'),
+  interval: text('interval').notNull().default('month'),
+  currentPeriodStart: timestamp('current_period_start'),
+  currentPeriodEnd: timestamp('current_period_end'),
+  cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
+  includedRuns: integer('included_runs').notNull().default(0),
+  includedAgents: integer('included_agents').notNull().default(0),
+  includedTeamMembers: integer('included_team_members').notNull().default(0),
+  logRetentionDays: integer('log_retention_days').notNull().default(30),
+  overageUnitAmount: real('overage_unit_amount').notNull().default(0),
+  baseAmount: real('base_amount').notNull().default(0),
+  currency: text('currency').notNull().default('usd'),
+  safetyCapAmount: real('safety_cap_amount').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Billing Invoices
+// ---------------------------------------------------------------------------
+
+export const billingInvoices = pgTable('billing_invoices', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  billingAccountId: uuid('billing_account_id').references(() => billingAccounts.id),
+  providerInvoiceId: text('provider_invoice_id').unique(),
+  status: text('status').notNull().default('draft'),
+  currency: text('currency').notNull().default('usd'),
+  amount: real('amount').notNull().default(0),
+  periodKey: text('period_key'),
+  periodStart: timestamp('period_start'),
+  periodEnd: timestamp('period_end'),
+  invoiceDate: timestamp('invoice_date').defaultNow().notNull(),
+  hostedInvoiceUrl: text('hosted_invoice_url'),
+  pdfUrl: text('pdf_url'),
+  items: jsonb('items').default([]),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Billable Usage Ledger
+// ---------------------------------------------------------------------------
+
+export const billableUsageLedger = pgTable('billable_usage_ledger', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  runId: uuid('run_id').references(() => executionRuns.id),
+  source: text('source').notNull(),
+  metric: text('metric').notNull(),
+  quantity: real('quantity').notNull().default(0),
+  unit: text('unit').notNull(),
+  billable: boolean('billable').notNull().default(true),
+  unitAmount: real('unit_amount').notNull().default(0),
+  amount: real('amount').notNull().default(0),
+  currency: text('currency').notNull().default('usd'),
+  periodKey: text('period_key').notNull(),
+  details: jsonb('details').default({}),
+  recordedAt: timestamp('recorded_at').defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Webhook Events
+// ---------------------------------------------------------------------------
+
+export const webhookEvents = pgTable('webhook_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  provider: text('provider').notNull(),
+  providerEventId: text('provider_event_id').notNull().unique(),
+  tenantId: uuid('tenant_id').references(() => tenants.id),
+  type: text('type').notNull(),
+  status: text('status').notNull().default('received'),
+  signature: text('signature'),
+  payload: jsonb('payload').default({}),
+  receivedAt: timestamp('received_at').defaultNow().notNull(),
+  processedAt: timestamp('processed_at'),
+});
+
+// ---------------------------------------------------------------------------
+// Public Knowledge Corpus
+// ---------------------------------------------------------------------------
+
+export const publicKnowledgeDocuments = pgTable('public_knowledge_documents', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  sourcePath: text('source_path').notNull(),
+  sourceType: text('source_type').notNull().default('curated'),
+  summary: text('summary'),
+  keywords: jsonb('keywords').default([]),
+  content: text('content').notNull(),
+  checksum: text('checksum'),
+  publishedAt: timestamp('published_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const publicKnowledgeChunks = pgTable('public_knowledge_chunks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  documentId: uuid('document_id')
+    .notNull()
+    .references(() => publicKnowledgeDocuments.id),
+  chunkIndex: integer('chunk_index').notNull(),
+  heading: text('heading'),
+  content: text('content').notNull(),
+  keywords: jsonb('keywords').default([]),
+  tokenCount: integer('token_count').notNull().default(0),
+  embeddingModel: text('embedding_model'),
+  embedding: jsonb('embedding').default([]),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

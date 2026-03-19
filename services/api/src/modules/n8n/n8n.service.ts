@@ -1,4 +1,7 @@
 import { N8nClient, type N8nWorkflow } from '@agentmou/n8n-client';
+import { WorkflowEngineStatusSchema } from '@agentmou/contracts';
+import { db, workflowInstallations } from '@agentmou/db';
+import { eq } from 'drizzle-orm';
 
 const N8N_API_URL = process.env.N8N_API_URL || 'http://n8n:5678/api/v1';
 const N8N_API_KEY = process.env.N8N_API_KEY || '';
@@ -53,5 +56,52 @@ export class N8nService {
       const msg = err instanceof Error ? err.message : String(err);
       return { success: false, message: `n8n connection failed: ${msg}`, latency: 0 };
     }
+  }
+
+  async getWorkflowEngineStatus(tenantId: string) {
+    const installations = await db
+      .select()
+      .from(workflowInstallations)
+      .where(eq(workflowInstallations.tenantId, tenantId));
+
+    const lastProvisionedAt = installations
+      .map((installation) => installation.installedAt)
+      .sort((a, b) => b.getTime() - a.getTime())[0];
+    const lastExecutionAt = installations
+      .map((installation) => installation.lastRunAt)
+      .filter((date): date is Date => Boolean(date))
+      .sort((a, b) => b.getTime() - a.getTime())[0];
+
+    if (!N8N_API_KEY) {
+      return WorkflowEngineStatusSchema.parse({
+        tenantId,
+        availability: 'not_configured',
+        baseUrl: N8N_API_URL,
+        apiKeySet: false,
+        installedWorkflows: installations.length,
+        activeWorkflows: installations.filter((item) => item.status === 'active').length,
+        executionCount: installations.reduce((sum, item) => sum + item.runsTotal, 0),
+        lastProvisionedAt: lastProvisionedAt?.toISOString(),
+        lastExecutionAt: lastExecutionAt?.toISOString(),
+        platformManaged: true,
+      });
+    }
+
+    const testResult = await this.testConnection();
+
+    return WorkflowEngineStatusSchema.parse({
+      tenantId,
+      availability: testResult.success ? 'online' : 'offline',
+      baseUrl: N8N_API_URL,
+      apiKeySet: true,
+      lastTestAt: new Date().toISOString(),
+      lastTestStatus: testResult.success ? 'success' : 'failed',
+      installedWorkflows: installations.length,
+      activeWorkflows: installations.filter((item) => item.status === 'active').length,
+      executionCount: installations.reduce((sum, item) => sum + item.runsTotal, 0),
+      lastProvisionedAt: lastProvisionedAt?.toISOString(),
+      lastExecutionAt: lastExecutionAt?.toISOString(),
+      platformManaged: true,
+    });
   }
 }

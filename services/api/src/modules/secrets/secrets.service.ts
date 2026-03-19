@@ -1,6 +1,8 @@
 import { db, secretEnvelopes } from '@agentmou/db';
 import { eq, and } from 'drizzle-orm';
 
+import { recordAuditEvent } from '../../lib/audit.js';
+
 export class SecretsService {
   async listSecrets(tenantId: string) {
     const rows = await db
@@ -19,7 +21,8 @@ export class SecretsService {
 
   async createSecret(
     tenantId: string,
-    body: { key: string; encryptedValue: string; connectorAccountId?: string }
+    body: { key: string; encryptedValue: string; connectorAccountId?: string },
+    actorId?: string,
   ) {
     const [secret] = await db
       .insert(secretEnvelopes)
@@ -30,10 +33,36 @@ export class SecretsService {
         connectorAccountId: body.connectorAccountId,
       })
       .returning();
+
+    await recordAuditEvent({
+      tenantId,
+      actorId,
+      action: 'secret.created',
+      category: 'security',
+      details: {
+        secretId: secret.id,
+        key: secret.key,
+        connectorAccountId: secret.connectorAccountId,
+      },
+    });
+
     return secret;
   }
 
-  async deleteSecret(tenantId: string, secretId: string) {
+  async deleteSecret(tenantId: string, secretId: string, actorId?: string) {
+    const [secret] = await db
+      .select({
+        id: secretEnvelopes.id,
+        key: secretEnvelopes.key,
+      })
+      .from(secretEnvelopes)
+      .where(
+        and(
+          eq(secretEnvelopes.tenantId, tenantId),
+          eq(secretEnvelopes.id, secretId)
+        )
+      );
+
     await db
       .delete(secretEnvelopes)
       .where(
@@ -42,5 +71,18 @@ export class SecretsService {
           eq(secretEnvelopes.id, secretId)
         )
       );
+
+    if (secret) {
+      await recordAuditEvent({
+        tenantId,
+        actorId,
+        action: 'secret.deleted',
+        category: 'security',
+        details: {
+          secretId: secret.id,
+          key: secret.key,
+        },
+      });
+    }
   }
 }

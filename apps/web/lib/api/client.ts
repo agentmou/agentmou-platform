@@ -8,23 +8,34 @@
 import {
   ApprovalRequestsResponseSchema,
   ApprovalResponseSchema,
+  AuditEventsResponseSchema,
+  BillingInvoicesResponseSchema,
+  BillingOverviewResponseSchema,
   ConnectorsResponseSchema,
   ExecutionRunResponseSchema,
   ExecutionRunsResponseSchema,
   InstallationsResponseSchema,
   InstalledAgentSchema,
+  SecurityFindingsResponseSchema,
+  SecurityPoliciesResponseSchema,
   TenantMembersResponseSchema,
   TenantResponseSchema,
   TenantsResponseSchema,
+  WorkflowEngineStatusResponseSchema,
   type ApprovalRequest,
   type AgentTemplate,
+  type BillingOverview,
   type ExecutionRun,
   type InstalledAgent,
   type InstalledWorkflow,
   type Integration,
+  type Invoice,
   type PackTemplate,
+  type SecurityFinding,
+  type SecurityPolicy,
   type Tenant,
   type TenantMember,
+  type WorkflowEngineStatus,
   type WorkflowTemplate,
 } from '@agentmou/contracts';
 import { z, type ZodTypeAny } from 'zod';
@@ -42,6 +53,21 @@ const installPackResponseSchema = z.object({
   status: z.literal('queued'),
   message: z.string(),
 });
+
+const secretsResponseSchema = z.object({
+  secrets: z.array(
+    z.object({
+      id: z.string(),
+      tenantId: z.string(),
+      key: z.string(),
+      connectorAccountId: z.string().nullable().optional(),
+      createdAt: z.string(),
+      rotatedAt: z.string().nullable().optional(),
+    }),
+  ),
+});
+
+export type ApiSecret = z.infer<typeof secretsResponseSchema>['secrets'][number];
 
 export class ApiError extends Error {
   constructor(
@@ -321,4 +347,80 @@ export async function rejectRequest(
       body: JSON.stringify({ reason }),
     },
   );
+}
+
+// ---------------------------------------------------------------------------
+// Security
+// ---------------------------------------------------------------------------
+
+export async function fetchTenantSecurityFindings(
+  tenantId: string,
+): Promise<SecurityFinding[]> {
+  const data = await requestParsed(
+    `/api/v1/tenants/${tenantId}/security/findings`,
+    SecurityFindingsResponseSchema,
+  );
+  return data.findings;
+}
+
+export async function fetchTenantSecurityPolicies(
+  tenantId: string,
+): Promise<SecurityPolicy[]> {
+  const data = await requestParsed(
+    `/api/v1/tenants/${tenantId}/security/policies`,
+    SecurityPoliciesResponseSchema,
+  );
+  return data.policies;
+}
+
+export async function fetchTenantSecrets(tenantId: string): Promise<ApiSecret[]> {
+  const data = await requestParsed(
+    `/api/v1/tenants/${tenantId}/secrets`,
+    secretsResponseSchema,
+  );
+  return data.secrets;
+}
+
+export async function fetchTenantAuditLogs(tenantId: string) {
+  const data = await requestParsed(
+    `/api/v1/tenants/${tenantId}/security/audit-logs`,
+    AuditEventsResponseSchema,
+  );
+  return data.logs;
+}
+
+// ---------------------------------------------------------------------------
+// Billing
+// ---------------------------------------------------------------------------
+
+export async function fetchBillingOverview(
+  tenantId: string,
+): Promise<BillingOverview> {
+  const data = await requestParsed(
+    `/api/v1/tenants/${tenantId}/billing/overview`,
+    BillingOverviewResponseSchema,
+  );
+  return data.overview;
+}
+
+export async function fetchTenantInvoices(tenantId: string): Promise<Invoice[]> {
+  const data = await requestParsed(
+    `/api/v1/tenants/${tenantId}/billing/invoices`,
+    BillingInvoicesResponseSchema,
+  );
+  return data.invoices;
+}
+
+// ---------------------------------------------------------------------------
+// Workflow Engine
+// ---------------------------------------------------------------------------
+
+export async function fetchWorkflowEngineStatus(
+  tenantId: string,
+): Promise<WorkflowEngineStatus> {
+  const data = await requestParsed(
+    `/api/v1/tenants/${tenantId}/n8n/status`,
+    WorkflowEngineStatusResponseSchema,
+  );
+  return data.status;
 }

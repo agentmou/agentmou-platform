@@ -1,8 +1,16 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { WorkflowEngineStatusResponseSchema } from '@agentmou/contracts';
+
 import { N8nService } from './n8n.service.js';
 
 export async function n8nRoutes(fastify: FastifyInstance) {
   const n8nService = new N8nService();
+
+  fastify.get('/tenants/:tenantId/n8n/status', async (request: FastifyRequest, reply: FastifyReply) => {
+    const { tenantId } = request.params as { tenantId: string };
+    const status = await n8nService.getWorkflowEngineStatus(tenantId);
+    return reply.send(WorkflowEngineStatusResponseSchema.parse({ status }));
+  });
 
   fastify.get('/tenants/:tenantId/n8n/workflows', async (_request: FastifyRequest, reply: FastifyReply) => {
     const workflows = await n8nService.listWorkflows();

@@ -1,13 +1,14 @@
 /**
  * ApiProvider — wraps the real API client for authenticated app routes.
  *
- * Methods whose API module is still a stub (security, billing, n8n)
- * return empty defaults so pages render gracefully with empty states.
+ * Security, billing, and workflow engine surfaces now fetch live tenant data
+ * where the backend is available, while dashboard rollups are still derived
+ * from run history on the client side.
  */
 
-import type { DashboardMetrics } from '@agentmou/contracts';
 import type { DataProvider } from './provider';
 import {
+  fetchBillingOverview,
   fetchTenants,
   fetchTenant,
   fetchTenantMembers,
@@ -24,26 +25,17 @@ import {
   fetchTenantRuns,
   fetchTenantRun,
   fetchTenantApprovals,
+  fetchTenantAuditLogs,
+  fetchTenantInvoices,
+  fetchTenantSecrets,
+  fetchTenantSecurityFindings,
+  fetchTenantSecurityPolicies,
+  fetchWorkflowEngineStatus,
   approveRequest as apiApprove,
   rejectRequest as apiReject,
 } from '@/lib/api/client';
 
-function emptyMetrics(tenantId: string, period: DashboardMetrics['period'] = 'week'): DashboardMetrics {
-  return {
-    tenantId,
-    period,
-    runsTotal: 0,
-    runsSuccess: 0,
-    runsFailed: 0,
-    avgLatencyMs: 0,
-    totalCost: 0,
-    topAgents: [],
-    topWorkflows: [],
-    runsByDay: [],
-    costByDay: [],
-    errorsByType: [],
-  };
-}
+import { buildDashboardMetrics } from './dashboard-metrics';
 
 export const apiProvider: DataProvider = {
   providerMode: 'api',
@@ -88,26 +80,90 @@ export const apiProvider: DataProvider = {
   rejectRequest: (tenantId, approvalId, reason) =>
     apiReject(tenantId, approvalId, reason),
 
-  // Security — API modules are stubs, return empty
-  listTenantSecurityFindings: async () => [],
-  listTenantSecurityPolicies: async () => [],
-  listTenantSecrets: async () => [],
-  listTenantAuditEvents: async () => [],
+  // Security — backed by live tenant aggregates where available
+  listTenantSecurityFindings: (id) => fetchTenantSecurityFindings(id),
+  listTenantSecurityPolicies: (id) => fetchTenantSecurityPolicies(id),
+  listTenantSecrets: async (id) => {
+    const secrets = await fetchTenantSecrets(id);
+    return secrets.map((secret) => ({
+      id: secret.id,
+      key: secret.key,
+      value: 'redacted',
+      createdAt: secret.createdAt,
+      lastRotated: secret.rotatedAt ?? secret.createdAt,
+      usedBy: secret.connectorAccountId ? [secret.connectorAccountId] : [],
+    }));
+  },
+  listTenantAuditEvents: async (id) => {
+    const logs = await fetchTenantAuditLogs(id);
+    return logs.map((log) => ({
+      id: log.id,
+      timestamp: log.timestamp,
+      action: log.action,
+      actor: log.actorLabel,
+      category: log.category === 'membership' || log.category === 'connector'
+        ? 'security'
+        : log.category === 'approval'
+          ? 'workflow'
+          : log.category === 'auth'
+            ? 'security'
+            : log.category,
+      details: Object.entries(log.details)
+        .map(([key, value]) => `${key}: ${String(value)}`)
+        .join(', '),
+    }));
+  },
 
-  // Billing — API module is stub
-  listTenantInvoices: async () => [],
-  getTenantBillingInfo: async () => ({
-    plan: 'free',
-    monthlySpend: 0,
-    agentsInstalled: 0,
-    runsThisMonth: 0,
-  }),
+  // Billing
+  listTenantInvoices: (id) => fetchTenantInvoices(id),
+  getTenantBillingInfo: async (id) => {
+    const [overview, agents] = await Promise.all([
+      fetchBillingOverview(id),
+      fetchInstalledAgents(id),
+    ]);
+    const primaryPaymentMethod = overview.paymentMethods.find(
+      (method) => method.isDefault,
+    );
+    return {
+      plan: overview.subscription.plan,
+      monthlySpend: overview.subscription.monthlyBaseAmount,
+      agentsInstalled: agents.length,
+      runsThisMonth: overview.usage.billableRuns,
+      includedRuns: overview.usage.includedRuns,
+      overageRuns: overview.usage.overageRuns,
+      overageAmount: overview.usage.overageAmount,
+      subscriptionStatus: overview.subscription.status,
+      currency: overview.subscription.currency,
+      currentPeriodEnd: overview.subscription.currentPeriodEnd,
+      paymentMethodSummary: primaryPaymentMethod?.last4
+        ? `${primaryPaymentMethod.brand?.toUpperCase() || 'CARD'} •••• ${primaryPaymentMethod.last4}`
+        : undefined,
+    };
+  },
 
-  // Dashboard — computed from runs when API endpoint doesn't exist yet
-  getTenantDashboardMetrics: async (tenantId, period) =>
-    emptyMetrics(tenantId, period),
+  // Dashboard — computed from real runs until the API exposes rollups
+  getTenantDashboardMetrics: async (tenantId, period) => {
+    const runs = await fetchTenantRuns(tenantId);
+    return buildDashboardMetrics(tenantId, runs, period);
+  },
 
   // Connectors
   listTenantIntegrations: (id) => fetchConnectors(id),
-  getTenantN8nConnection: async () => null,
+  getTenantN8nConnection: async (id) => {
+    const status = await fetchWorkflowEngineStatus(id);
+    return {
+      tenantId: status.tenantId,
+      baseUrl: status.baseUrl,
+      apiKeySet: status.apiKeySet,
+      lastTestAt: status.lastTestAt,
+      lastTestStatus: status.lastTestStatus,
+      executionCount: status.executionCount,
+      availability: status.availability,
+      installedWorkflows: status.installedWorkflows,
+      activeWorkflows: status.activeWorkflows,
+      lastProvisionedAt: status.lastProvisionedAt,
+      lastExecutionAt: status.lastExecutionAt,
+      platformManaged: status.platformManaged,
+    };
+  },
 };

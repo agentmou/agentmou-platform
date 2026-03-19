@@ -1,5 +1,7 @@
 // Chat Types for AgentMou Assistant
 
+import type { PublicChatCitation } from '@agentmou/contracts'
+
 export type ChatMode = 'public' | 'copilot'
 
 export interface ActionSuggestion {
@@ -12,6 +14,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant' | 'system'
   content: string
   actions?: ActionSuggestion[]
+  citations?: PublicChatCitation[]
   timestamp: string
 }
 
@@ -53,10 +56,10 @@ export interface ChatResponse {
 // Quick prompts by mode
 export const QUICK_PROMPTS: Record<ChatMode, string[]> = {
   public: [
-    'Show me the product tour',
-    'What is real today vs preview?',
-    'How does pricing work?',
-    'Which integrations are shown in the demo?',
+    'What does AgentMou actually do today?',
+    'How do pricing and run overages work?',
+    'What security capabilities are real today?',
+    'Which agents and workflows are public?',
   ],
   copilot: [
     "What's next for this workspace?",

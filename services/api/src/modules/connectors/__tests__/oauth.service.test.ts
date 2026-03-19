@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // ---------------------------------------------------------------------------
 // Mock @agentmou/db
 // ---------------------------------------------------------------------------
-const mockSelect = vi.fn();
 const mockInsert = vi.fn();
 const mockUpdate = vi.fn();
 const mockDelete = vi.fn();
@@ -33,6 +32,7 @@ vi.mock('@agentmou/db', () => ({
   },
   connectorAccounts: { tenantId: 'tenantId', provider: 'provider', id: 'id' },
   connectorOauthStates: { state: 'state', id: 'id' },
+  auditEvents: { tenantId: 'tenantId', action: 'action', category: 'category' },
   eq: vi.fn((a, b) => ({ field: a, value: b })),
   and: vi.fn((...args: unknown[]) => args),
 }));
