@@ -103,9 +103,13 @@ revalidates the live state explicitly.
   for temporary validation fixtures. On March 20, 2026, the same branch
   live-verified the rotated `GOOGLE_CLIENT_SECRET` and `N8N_API_KEY`, plus
   the real queued n8n provisioning path, after deploying follow-up worker
-  fixes. The remaining production-truth live follow-up is now the OpenAI quota
-  state behind `OPENAI_API_KEY`, plus cleanup hardening for external n8n
-  workflows created by disposable validation fixtures.
+  fixes. Later on March 20, 2026, `ee804132` live-verified the remaining two
+  residual-risk items as well: `scripts/cleanup-validation-tenant.ts` now
+  removes external n8n workflows and BullMQ repeatables before deleting local
+  rows, `DELETE /api/v1/tenants/:tenantId/installations/:installationId` uses
+  the same shared cleanup path, and a direct agents deep-health probe returned
+  `{"ok":true,"model":"gpt-4o-mini-2024-07-18"}`. No Epic D production-truth
+  follow-up remains open from the March 19-20 validation window.
 
 ## Next (Phase 3: Production Hardening)
 
@@ -113,7 +117,7 @@ The next phase is no longer feature-first. It is baseline-first.
 
 ### Track 0: Baseline Confidence
 
-- Fix the current `pnpm test` breakage.
+- Keep `pnpm test` green as the baseline confidence gate.
 - Align core payloads with `@agentmou/contracts`.
 - Add runtime validation in the web API client.
 
@@ -126,10 +130,12 @@ The next phase is no longer feature-first. It is baseline-first.
 
 ### Track 2: VPS Operations Cleanup
 
-- Restore usable quota or billing for the rotated `OPENAI_API_KEY`, then
-  re-run the direct `agents` deep-health check.
-- Extend temporary-fixture and uninstall cleanup so n8n workflows are deleted
-  along with their local installation rows.
+- Keep the guarded validation-fixture cleanup invocation documented with the
+  required host-shell env exports (`DATABASE_URL`, `REDIS_URL`, and
+  `N8N_API_URL`).
+- Preserve the live-verified cleanup behavior in future deploys: temporary
+  fixtures and normal uninstall must continue removing external n8n workflows
+  and BullMQ repeatables before local rows are deleted.
 
 ### Track 3: Catalog Convergence
 

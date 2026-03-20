@@ -133,11 +133,19 @@ remove a disposable OAuth or E2E validation tenant:
 
 ```bash
 cd /srv/agentmou-platform
-tsx scripts/cleanup-validation-tenant.ts \
+set -a
+source infra/compose/.env
+set +a
+export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}"
+REDIS_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' agentmou-stack-redis-1)
+export REDIS_URL="redis://${REDIS_IP}:6379"
+export N8N_API_URL="${N8N_EDITOR_BASE_URL}/api/v1"
+
+./node_modules/.bin/tsx scripts/cleanup-validation-tenant.ts \
   --tenant-id <tenant-id> \
   --user-email <validation-email>
 
-tsx scripts/cleanup-validation-tenant.ts \
+./node_modules/.bin/tsx scripts/cleanup-validation-tenant.ts \
   --tenant-id <tenant-id> \
   --user-email <validation-email> \
   --execute
@@ -148,18 +156,26 @@ match disposable validation markers (`oauth-check-*`, `e2e-*`,
 `example.com`, `test.agentmou.io`), the tenant is still on the `free` plan,
 and the tenant only has its single owner membership.
 
+These host-shell exports are required because the repo-level script runs
+outside Docker: PostgreSQL is reached through `127.0.0.1:5432`, Redis needs
+the current container IP, and `N8N_API_URL` must use
+`${N8N_EDITOR_BASE_URL}/api/v1` instead of the container-internal `n8n`
+hostname.
+
 On March 19, 2026, this script was dry-run and execute-verified live against
 the historical OAuth validation tenant and a temporary connector-delete
 fixture. PostgreSQL post-checks returned `tenants=0`, `memberships=0`,
 `connector_accounts=0`, and `users=0` after each cleanup.
 
-On March 20, 2026, the script was used again after two disposable tenants
-exercised the live `support-starter` pack flow. PostgreSQL post-checks again
-returned `tenant=0`, `user=0`, `membership=0`, and `workflow_installations=0`
-for both fixtures. One successful fixture had already provisioned an n8n
-workflow, so that workflow was deleted manually through the n8n API
-afterward. Treat the current cleanup path as DB-scoped until external n8n
-resource cleanup is added.
+On March 20, 2026, the same command path was re-verified after deploying
+`ee804132` from `codex/fix-production-residual-risks`. Dry-run output for a
+fresh `e2e-*` tenant showed `n8n_workflows: 1` and `schedule_repeatables: 1`;
+execute mode then removed the tenant rows, the remote n8n workflow returned
+`404`, and BullMQ repeatables returned to their pre-fixture baseline. The same
+deployment also live-verified `DELETE /api/v1/tenants/:tenantId/installations/:installationId`
+against a disposable tenant: repeatables moved from `5 -> 6 -> 5`, the remote
+n8n workflow returned `404`, and the guarded cleanup script then removed the
+empty tenant and owner user.
 
 ## Provider-Backed Secret Rotation
 
@@ -200,9 +216,9 @@ Observed March 19-20, 2026 results:
 - `N8N_API_KEY`: live-verified by both a direct n8n API call and the real
   queued `support-starter` install path after the worker env and payload fixes
   landed on `codex/fix-production-residual-risks`.
-- `OPENAI_API_KEY`: still blocked by OpenAI `429 insufficient_quota` on the
-  direct `agents` deep-health path. Treat this as an upstream quota or billing
-  issue, not a local deploy issue.
+- `OPENAI_API_KEY`: live-verified. On March 20, 2026, a direct
+  `POST /health/deep` against the agents container returned
+  `{"ok":true,"model":"gpt-4o-mini-2024-07-18"}`.
 
 ## Rollback
 

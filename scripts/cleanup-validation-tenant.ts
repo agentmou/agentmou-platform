@@ -80,6 +80,13 @@ function printSummary(
   );
   console.log(`Tenant: ${plan.tenant.name} (${plan.tenant.id})`);
   console.log(`User: ${plan.user.email} (${plan.user.id})`);
+  console.log('External cleanup:');
+
+  for (const operation of plan.externalOperations) {
+    console.log(`- ${operation.label}: ${operation.count}`);
+  }
+
+  console.log(`Total external resources scheduled: ${plan.totalExternalResources}`);
   console.log('Delete plan:');
 
   for (const operation of plan.operations) {
