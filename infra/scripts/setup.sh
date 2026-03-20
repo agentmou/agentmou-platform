@@ -1,8 +1,8 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# AgentMou Stack — Initial Setup
+# AgentMou Stack - Initial Setup
 # ---------------------------------------------------------------------------
 # Run once after cloning the repo on a fresh VPS.
 #
@@ -47,7 +47,6 @@ mkdir -p "$REPO_ROOT/redis/data"
 mkdir -p "$REPO_ROOT/n8n/data"
 mkdir -p "$REPO_ROOT/traefik/letsencrypt"
 mkdir -p "$REPO_ROOT/uptime-kuma/data"
-mkdir -p "$REPO_ROOT/backups/out"
 
 # --- Done -------------------------------------------------------------------
 echo ""
@@ -59,3 +58,4 @@ echo "  2. Start the stack:"
 echo "     docker compose -f infra/compose/docker-compose.prod.yml up -d"
 echo "  3. Verify:"
 echo "     docker compose -f infra/compose/docker-compose.prod.yml ps"
+echo "  4. Provision /var/backups/agentmou and /var/lock/agentmou for production backups"

@@ -146,7 +146,18 @@ flowchart LR
 ## Infrastructure
 
 - `infra/compose/` — local and prod Docker Compose files.
-- `infra/scripts/` — `setup.sh`, `backup.sh`.
+- `infra/scripts/`
+  - `setup.sh` bootstraps a fresh VPS checkout.
+  - `verify-prod-image-assets.sh` guards API and worker image contents before
+    production deploys.
+  - `deploy-prod.sh` is the canonical production deploy entrypoint.
+  - `deploy.sh` and `deploy-phase25.sh` are deprecated compatibility wrappers
+    that forward to `deploy-prod.sh`.
+  - `smoke-test.sh` is the public API/catalog/auth verification check.
+  - `backup.sh` is the production-safe backup entrypoint with external output
+    defaults.
+  - `cleanup-validation-tenant.sh` is the VPS wrapper for disposable fixture
+    cleanup.
 - `infra/traefik/` — Traefik config.
 
 ## Tooling

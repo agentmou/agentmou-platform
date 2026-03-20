@@ -92,9 +92,13 @@ After cloning the repo on the VPS:
 │   │   └── .env                  # Real secrets — NOT in git
 │   └── scripts/
 │       ├── backup.sh
-│       ├── deploy-phase25.sh
+│       ├── cleanup-validation-tenant.sh
+│       ├── deploy-phase25.sh     # Deprecated wrapper
+│       ├── deploy-prod.sh
 │       ├── setup.sh
-│       └── deploy.sh
+│       ├── deploy.sh             # Deprecated wrapper
+│       ├── smoke-test.sh
+│       └── verify-prod-image-assets.sh
 ├── services/agents/              # Python FastAPI source
 ├── postgres/data/                # Bind mount — NOT in git
 ├── redis/data/                   # Bind mount — NOT in git
@@ -117,34 +121,50 @@ cd agentmou-platform
 bash infra/scripts/setup.sh
 # Edit .env:
 nano infra/compose/.env
+sudo install -d -o deploy -g deploy -m 750 /var/backups/agentmou /var/lock/agentmou
 # Start:
 docker compose -f infra/compose/docker-compose.prod.yml up -d
 ```
+
+## Script Roles
+
+Use the scripts below in this order so the VPS workflow stays coherent:
+
+| Script | When to use it | Why it exists |
+| --- | --- | --- |
+| `infra/scripts/setup.sh` | Once per VPS after clone | Creates `.env` from the tracked example, ensures Docker networks exist, and prepares the bind-mounted service data directories |
+| `infra/scripts/verify-prod-image-assets.sh` | Before shipping API or worker image changes | Confirms the built runtime images still contain repo-backed `catalog/` and `workflows/` assets that production resolves at runtime |
+| `infra/scripts/deploy-prod.sh` | Every production deploy | Pulls `origin/main`, validates required production env vars, rebuilds `api` and `worker`, runs migrations, restarts the stack, gates on local edge health, and runs the hardened public smoke test |
+| `infra/scripts/smoke-test.sh` | After deploys or during incident checks | Verifies public API health, catalog content, and auth behavior without requiring a redeploy |
+| `infra/scripts/backup.sh` | Daily cron or manual backup | Dumps PostgreSQL, snapshots Redis, exports n8n workflows, and captures bind-mounted state while writing outside the git checkout by default |
+| `infra/scripts/cleanup-validation-tenant.sh` | Disposable OAuth or E2E fixture cleanup on the VPS | Wraps the TypeScript cleanup implementation with the host-shell `DATABASE_URL`, `REDIS_URL`, and `N8N_API_URL` values that production cleanup needs |
+
+`infra/scripts/deploy.sh` and `infra/scripts/deploy-phase25.sh` still exist
+for one transition cycle, but they are deprecated compatibility wrappers that
+forward to `deploy-prod.sh`.
 
 ## Deploy (Manual)
 
 ```bash
 ssh deploy@<vps-ip>
 cd /srv/agentmou-platform
-bash infra/scripts/deploy.sh
+bash infra/scripts/deploy-prod.sh
 ```
 
-The deploy script does:
+The canonical deploy script does:
 
 1. `git pull origin main`
-2. `docker compose build` (rebuilds changed images)
-3. `docker compose up -d` (restarts changed services)
-4. Prints `docker compose ps` for verification
+2. validates the required production env vars in `infra/compose/.env`
+3. rebuilds `api`, `worker`, and `migrate`
+4. waits for PostgreSQL to become healthy and runs migrations
+5. restarts the stack
+6. gates success on local edge health (`--resolve ... 127.0.0.1`)
+7. runs the hardened public smoke test in `infra/scripts/smoke-test.sh`
 
-For Phase 2.5 deploys, use `infra/scripts/deploy-phase25.sh`:
-
-- includes migrations via `migrate` profile service
-- gates success on local edge health (`--resolve ... 127.0.0.1`)
-- also runs the hardened public smoke test in `infra/scripts/smoke-test.sh`
-- requires a VPS checkout with `infra/compose/.env` populated
-- should be run only from an intentionally clean or reviewed worktree; on
-  March 19, 2026 Epic D first cleaned the known untracked drift, then reran
-  `deploy-phase25.sh` from `main` until the hardened smoke test passed
+It should be run only from an intentionally clean or reviewed worktree. On
+March 19, 2026 Epic D first cleaned the known untracked drift, then reran the
+historical `deploy-phase25.sh` path from `main` until the hardened smoke test
+passed. That deploy gate now lives in `deploy-prod.sh`.
 
 ### Deploy a specific service only
 
@@ -174,11 +194,18 @@ docker compose -f infra/compose/docker-compose.prod.yml up -d
 
 ## Backups
 
-Run manually with an external output path:
+Run manually with the production-safe defaults:
 
 ```bash
-BACKUP_DIR=/var/backups/agentmou \
-LOCK_FILE=/var/lock/agentmou/backup.lock \
+bash infra/scripts/backup.sh
+```
+
+For local or non-VPS runs, set explicit overrides if those defaults are not
+writable:
+
+```bash
+BACKUP_DIR=/tmp/agentmou-backup \
+LOCK_FILE=/tmp/agentmou-backup.lock \
 bash infra/scripts/backup.sh
 ```
 
@@ -221,19 +248,11 @@ remove a disposable OAuth or E2E validation tenant:
 
 ```bash
 cd /srv/agentmou-platform
-set -a
-source infra/compose/.env
-set +a
-export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}"
-REDIS_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' agentmou-stack-redis-1)
-export REDIS_URL="redis://${REDIS_IP}:6379"
-export N8N_API_URL="${N8N_EDITOR_BASE_URL}/api/v1"
-
-./node_modules/.bin/tsx scripts/cleanup-validation-tenant.ts \
+bash infra/scripts/cleanup-validation-tenant.sh \
   --tenant-id <tenant-id> \
   --user-email <validation-email>
 
-./node_modules/.bin/tsx scripts/cleanup-validation-tenant.ts \
+bash infra/scripts/cleanup-validation-tenant.sh \
   --tenant-id <tenant-id> \
   --user-email <validation-email> \
   --execute
@@ -245,11 +264,12 @@ markers used in this repo (`oauth-check-*`, `e2e-*`, `example.com`,
 `test.agentmou.io`), the tenant remains on the `free` plan, and the tenant is
 still a single-owner workspace.
 
-These exports matter on the VPS host because the repo-local script runs
-outside Docker. PostgreSQL is reached through `127.0.0.1:5432`, Redis needs
-the current container IP, and `N8N_API_URL` must point at
-`${N8N_EDITOR_BASE_URL}/api/v1` instead of the container-internal `n8n`
-hostname.
+The wrapper exists because the underlying TypeScript implementation runs on
+the VPS host, not inside Docker. It sources `infra/compose/.env`, builds a
+host-reachable `DATABASE_URL` via `127.0.0.1:5432`, resolves the current
+Redis container IP for `REDIS_URL`, derives `N8N_API_URL` from
+`${N8N_EDITOR_BASE_URL}/api/v1`, and then executes
+`scripts/cleanup-validation-tenant.ts`.
 
 On March 19, 2026, this script was dry-run and execute-verified live against
 both the historical OAuth validation tenant and a temporary connector-delete

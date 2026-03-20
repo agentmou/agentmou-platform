@@ -170,7 +170,12 @@ The repository defines a single-VPS production stack
 - **TLS**: Traefik with Let's Encrypt ACME HTTP challenge.
 - **Middlewares**: BasicAuth, HSTS/secure-headers, rate-limit, noindex.
 - **Backups**: daily PostgreSQL dump + Redis snapshot + n8n workflow
-  export with 14-day rotation.
+  export with 14-day rotation; `infra/scripts/backup.sh` now defaults to the
+  external production paths `/var/backups/agentmou` and
+  `/var/lock/agentmou/backup.lock`.
+- **Deploy tooling**: `infra/scripts/deploy-prod.sh` is the canonical
+  production deploy entrypoint; `deploy.sh` and `deploy-phase25.sh` are
+  compatibility wrappers retained for one transition cycle.
 - **Live verification**: on March 19, 2026, the VPS host
   `vps-n8n-agents` was inspected directly at `/srv/agentmou-platform`.
   `docker compose ps` showed Traefik, Postgres, Redis, n8n, agents, API,
@@ -238,9 +243,10 @@ details.
   second authorize URL completed successfully, `/api/v1/oauth/callback`
   returned `302`, and the connectors API showed `gmail` `connected` for the
   temporary validation tenant on March 19, 2026.
-- Repo cleanup tooling: `tsx scripts/cleanup-validation-tenant.ts --help`
-  now resolves from the repo root and documents the supported dry-run and
-  execute modes for disposable validation tenants.
+- Repo cleanup tooling: `bash infra/scripts/cleanup-validation-tenant.sh`
+  is the canonical VPS path, and the underlying
+  `tsx scripts/cleanup-validation-tenant.ts --help` continues to document the
+  supported dry-run and execute modes for disposable validation tenants.
 - VPS validation-fixture cleanup: on March 19, 2026, the guarded cleanup
   script was dry-run and execute-verified against both the historical OAuth
   validation tenant and the temporary connector-delete fixture; PostgreSQL
