@@ -26,3 +26,20 @@ recommended_settings:
   followup_delay_hours: 48
   lead_score_threshold: 70
   auto_schedule_enabled: true
+catalog:
+  slug: sales-accelerator
+  vertical: sales
+  includedCategories:
+    - sales
+  setupTimeEstimate: 30 minutes
+  kpis:
+    - Lead qualification throughput
+    - Follow-up completion rate
+    - Meeting-booked rate
+  riskProfile: medium
+  monthlyPrice: null
+  catalogGroup: sales
+  tags:
+    - sales
+    - crm
+    - follow-up

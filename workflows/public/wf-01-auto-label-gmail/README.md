@@ -4,40 +4,37 @@ Automatically categorize and label incoming Gmail messages using AI.
 
 ## Overview
 
-This workflow monitors your Gmail inbox and automatically applies labels to incoming messages based on their content and intent.
+This repository stores one canonical workflow template in Git. Each tenant installation provisions its own runtime copy in the shared n8n instance and records the resulting `n8nWorkflowId` in `workflow_installations`.
 
-## Features
+## Runtime Model
 
-- Automatic email categorization (support, sales, general, spam)
-- Priority-based labeling (high, medium, low)
-- Optional CRM activity logging for sales-related emails
-- Configurable label mapping
+- `workflows/public/wf-01-auto-label-gmail/workflow.json` is the sanitized template tracked in Git.
+- Installing the template creates a tenant-scoped runtime copy in n8n. We do not store one JSON per tenant in the repository.
+- Runtime executions and lifecycle state live in n8n, BullMQ, Postgres, and logs, not in Git.
 
-## Setup
+## Credential Strategy
 
-1. Configure Gmail credentials in n8n
-2. Map labels in the workflow settings
-3. Activate the workflow
+This workflow is a documented `n8n_native_exception`.
 
-## Configuration
+- The default product rule is `platform_managed` credentials through AgentMou connectors and services.
+- This specific workflow still uses n8n-native Gmail nodes at runtime because Gmail trigger/action nodes require native n8n credentials today.
+- The exception applies only to runtime binding. The repository still stores a sanitized template with no tenant secrets.
 
-Edit `manifest.yaml` to customize:
-- Trigger frequency
-- Agent configuration
-- Label mappings
+## Authoring Rules
+
+When editing this workflow:
+
+1. Prototype in n8n or through MCP if that is faster.
+2. Export the workflow JSON.
+3. Remove create-invalid or environment-specific fields before committing.
+4. Update `manifest.yaml` and this README in the same change.
 
 ## Testing
 
-Run the workflow manually in n8n to test with sample emails.
+Install the workflow into a disposable tenant, confirm it provisions a distinct `n8nWorkflowId`, run it once, and verify cleanup through uninstall or the guarded validation-fixture cleanup path.
 
-See `fixtures/` for test data.
+## Related Components
 
-## Dependencies
-
-- Gmail connector
-- Inbox Triage agent
-- Optional: Salesforce connector
-
-## Troubleshooting
-
-Check the execution history in n8n for any errors or failed runs.
+- Companion agent template: `catalog/agents/inbox-triage/`
+- Provisioning path: `services/api` and `services/worker`
+- Runtime engine: shared n8n instance behind `@agentmou/n8n-client`

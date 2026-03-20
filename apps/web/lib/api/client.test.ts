@@ -83,6 +83,97 @@ describe('api client runtime parsing', () => {
     expect(agents[0]?.kpiValues).toEqual({});
   });
 
+  it('parses catalog endpoints through the shared catalog contracts', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            agents: [
+              {
+                id: 'inbox-triage',
+                name: 'Inbox Triage',
+                outcome: 'Keep inboxes organized',
+                domain: 'support',
+                description: 'Auto-triage incoming emails',
+                inputs: ['emails'],
+                outputs: ['labels'],
+                requiredIntegrations: ['gmail'],
+                workflows: ['wf-01-auto-label-gmail'],
+                riskLevel: 'low',
+                hitl: 'optional',
+                kpis: [{ name: 'accuracy', description: 'Label accuracy' }],
+                complexity: 'S',
+                version: '0.1.0',
+                channel: 'stable',
+                setupTimeMinutes: 15,
+                monthlyPrice: null,
+                catalogGroup: 'support',
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            workflows: [
+              {
+                id: 'wf-01-auto-label-gmail',
+                name: 'Auto Label Gmail Messages',
+                summary: 'Automatically label Gmail messages after AI triage',
+                trigger: 'email',
+                integrations: ['gmail'],
+                output: 'Applied labels in Gmail',
+                useCase: 'Inbox management',
+                riskLevel: 'low',
+                version: '0.1.0',
+                changelog: ['0.1.0: Initial release'],
+                nodesOverview: [{ id: '1', type: 'action', name: 'Analyze' }],
+                catalogGroups: ['support'],
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            packs: [
+              {
+                id: 'support-starter',
+                name: 'Support Starter Pack',
+                slug: 'support-starter',
+                vertical: 'support',
+                description: 'Essential support automations',
+                includedCategories: ['support'],
+                includedAgents: ['inbox-triage'],
+                includedWorkflows: ['wf-01-auto-label-gmail'],
+                setupTimeEstimate: '20 minutes',
+                kpis: ['Time to first triage'],
+                riskProfile: 'low',
+                monthlyPrice: null,
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
+      );
+    globalThis.fetch = fetchMock as typeof fetch;
+
+    const {
+      fetchCatalogAgents,
+      fetchCatalogWorkflows,
+      fetchCatalogPacks,
+    } = await import('./client');
+
+    await expect(fetchCatalogAgents()).resolves.toHaveLength(1);
+    await expect(fetchCatalogWorkflows()).resolves.toHaveLength(1);
+    await expect(fetchCatalogPacks()).resolves.toHaveLength(1);
+  });
+
   it('rejects malformed tenant members with a visible contract error', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue(
       new Response(

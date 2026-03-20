@@ -1,8 +1,8 @@
 id: inbox-triage
 name: Inbox Triage
 version: 0.1.0
-description: Automatically categorize and prioritize incoming emails
-category: productivity
+description: Automatically categorize, prioritize, and label incoming Gmail messages for support teams
+category: support
 author: AgentMou Team
 tags:
   - email
@@ -18,6 +18,48 @@ triggers:
     cron: '*/15 * * * *'
   - type: webhook
     event: gmail.new_message
+runtime:
+  requiredConnectors:
+    - gmail
+  credentialStrategy: platform_managed
+  installStrategy: platform_managed_installation
+  runtimeOwner: agent_engine
+  linkedWorkflows:
+    - wf-01-auto-label-gmail
+catalog:
+  outcome: Keep shared inboxes organized without manual triage
+  domain: support
+  inputs:
+    - unread_emails
+    - connector_context
+  outputs:
+    - classifications
+    - label_actions
+    - response_drafts
+  riskLevel: low
+  hitl: optional
+  kpis:
+    - name: Time to first triage
+      description: Minutes until a new message is categorized
+    - name: Label coverage
+      description: Percentage of unread messages labeled automatically
+  complexity: S
+  channel: stable
+  setupTimeMinutes: 15
+  monthlyPrice: null
+  availability: available
+  audience: business
+  source: manifest
+  catalogGroup: support
+  family: inbox
+  subdomain: email-operations
+  tags:
+    - email
+    - gmail
+    - automation
+    - triage
+  featured: true
+  visibility: public
 metadata:
   createdAt: '2026-03-07'
   updatedAt: '2026-03-07'

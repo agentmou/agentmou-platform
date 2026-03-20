@@ -1,13 +1,14 @@
 # @agentmou/catalog-sdk
 
-Loads and validates agent, workflow, and pack manifest files from the
-versioned `catalog/` and `workflows/` directories.
+Loads and validates operational agent, workflow, and pack manifest files from
+the versioned `catalog/` and `workflows/` directories.
 
 ## Purpose
 
-Provides Zod schemas that match the actual YAML manifest structure used
-in the repository, plus a `CatalogSDK` class for loading and validating
-manifests from disk.
+Provides a `CatalogSDK` class for loading and validating operational manifests
+from disk. The manifest schemas come from `@agentmou/contracts`, which keeps a
+clear boundary between repo-facing operational manifests and UI-facing catalog
+contracts.
 
 ## Usage
 

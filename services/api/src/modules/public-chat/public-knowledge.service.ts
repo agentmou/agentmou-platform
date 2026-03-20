@@ -165,9 +165,9 @@ export class PublicKnowledgeService {
 
 async function buildKnowledgeDocuments(): Promise<KnowledgeDocumentInput[]> {
   const [agents, workflows, packs] = await Promise.all([
-    catalogService.listAgents(),
-    catalogService.listWorkflows(),
-    catalogService.listPacks(),
+    catalogService.listOperationalAgents(),
+    catalogService.listOperationalWorkflows(),
+    catalogService.listOperationalPacks(),
   ]);
 
   return [

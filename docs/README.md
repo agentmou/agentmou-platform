@@ -11,6 +11,8 @@ historical logs.
   and first-day workflow.
 - [Architecture Overview](./architecture/overview.md) for the short map of the
   system and the most important supporting docs.
+- [AI Surfaces](./architecture/ai-surfaces.md) for the boundary between
+  developer agents, product agents, workflows, and runtime ownership.
 - [Repository Map](./repo-map.md) for the current workspace layout and runtime
   boundaries.
 - [Testing Guide](./testing.md) for validation commands and where tests live.
@@ -25,6 +27,8 @@ historical logs.
   architecture and operations snapshot.
 - [Architecture Overview](./architecture/overview.md) is the short landing page
   for architecture readers.
+- [AI Surfaces](./architecture/ai-surfaces.md) explains where workflows,
+  product agents, developer agents, manifests, and runtime state belong.
 - [Web App Architecture](./architecture/apps-web.md) describes the current
   `apps/web` structure and constraints.
 - [Engineering Conventions](./architecture/conventions.md) captures repo-wide

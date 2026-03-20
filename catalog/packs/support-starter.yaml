@@ -24,3 +24,21 @@ recommended_settings:
   triage_frequency: '*/15 * * * *'
   auto_assign_enabled: true
   sentiment_threshold: 0.7
+catalog:
+  slug: support-starter
+  vertical: support
+  includedCategories:
+    - support
+  setupTimeEstimate: 20 minutes
+  kpis:
+    - Time to first triage
+    - Inbox SLA adherence
+    - Label coverage
+  riskProfile: low
+  monthlyPrice: null
+  featured: true
+  catalogGroup: support
+  tags:
+    - support
+    - gmail
+    - inbox
