@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   AgentTemplateSchema,
+  AgentTemplateResponseSchema,
+  AgentTemplatesResponseSchema,
   TenantSchema,
   TenantsResponseSchema,
   TenantMembersResponseSchema,
@@ -18,6 +20,11 @@ import {
   PublicChatResponseSchema,
   WorkflowEngineStatusSchema,
   CategorySchema,
+  OperationalAgentManifestSchema,
+  OperationalWorkflowManifestSchema,
+  OperationalPackManifestSchema,
+  WorkflowTemplatesResponseSchema,
+  PackTemplatesResponseSchema,
 } from '../index';
 
 describe('CategorySchema', () => {
@@ -110,6 +117,142 @@ describe('AgentTemplateSchema', () => {
     expect(() =>
       AgentTemplateSchema.parse({ ...validAgent, riskLevel: 'extreme' }),
     ).toThrow();
+  });
+
+  it('parses catalog response envelopes', () => {
+    expect(
+      AgentTemplatesResponseSchema.parse({ agents: [validAgent] }).agents,
+    ).toHaveLength(1);
+    expect(
+      AgentTemplateResponseSchema.parse({ agent: validAgent }).agent.id,
+    ).toBe('inbox-triage');
+  });
+});
+
+describe('Operational manifest schemas', () => {
+  it('parses an operational agent manifest with runtime and catalog metadata', () => {
+    const manifest = OperationalAgentManifestSchema.parse({
+      id: 'inbox-triage',
+      name: 'Inbox Triage',
+      version: '0.1.0',
+      description: 'Triage inbox messages',
+      category: 'support',
+      runtime: {
+        requiredConnectors: ['gmail'],
+        credentialStrategy: 'platform_managed',
+        installStrategy: 'platform_managed_installation',
+        runtimeOwner: 'agent_engine',
+        linkedWorkflows: ['wf-01-auto-label-gmail'],
+      },
+      catalog: {
+        outcome: 'Keep inboxes organized',
+        domain: 'support',
+        inputs: ['emails'],
+        outputs: ['labels'],
+        riskLevel: 'low',
+        hitl: 'optional',
+        kpis: [{ name: 'accuracy', description: 'Classification accuracy' }],
+        complexity: 'S',
+        channel: 'stable',
+        setupTimeMinutes: 15,
+        monthlyPrice: null,
+      },
+    });
+
+    expect(manifest.runtime?.runtimeOwner).toBe('agent_engine');
+    expect(manifest.catalog?.domain).toBe('support');
+  });
+
+  it('parses an operational workflow manifest with an n8n-native credential exception', () => {
+    const manifest = OperationalWorkflowManifestSchema.parse({
+      id: 'wf-01',
+      name: 'Auto Label',
+      version: '0.1.0',
+      description: 'Apply inbox labels',
+      type: 'n8n',
+      status: 'public',
+      category: 'support',
+      runtime: {
+        requiredConnectors: ['gmail'],
+        credentialStrategy: 'n8n_native_exception',
+        installStrategy: 'shared_n8n_per_installation',
+        runtimeOwner: 'n8n',
+      },
+      catalog: {
+        summary: 'Auto-label Gmail messages',
+        integrations: ['gmail'],
+        output: 'Labels applied',
+        useCase: 'Inbox management',
+        riskLevel: 'low',
+        changelog: ['0.1.0: Initial release'],
+        nodesOverview: [{ id: '1', type: 'action', name: 'Analyze' }],
+      },
+    });
+
+    expect(manifest.runtime?.credentialStrategy).toBe('n8n_native_exception');
+  });
+
+  it('parses an operational pack manifest with nested catalog metadata', () => {
+    const manifest = OperationalPackManifestSchema.parse({
+      id: 'support-starter',
+      name: 'Support Starter',
+      version: '0.1.0',
+      description: 'Support pack',
+      category: 'support',
+      agents: ['inbox-triage'],
+      workflows: ['wf-01'],
+      catalog: {
+        slug: 'support-starter',
+        vertical: 'support',
+        includedCategories: ['support'],
+        setupTimeEstimate: '20 minutes',
+        kpis: ['Time to first triage'],
+        riskProfile: 'low',
+        monthlyPrice: null,
+      },
+    });
+
+    expect(manifest.catalog?.vertical).toBe('support');
+  });
+});
+
+describe('WorkflowTemplateSchema', () => {
+  it('parses workflow and pack catalog response envelopes', () => {
+    const workflow = {
+      id: 'wf-01',
+      name: 'Auto Label',
+      summary: 'Auto-label Gmail messages',
+      trigger: 'email',
+      integrations: ['gmail'],
+      output: 'Labels applied',
+      useCase: 'Inbox management',
+      riskLevel: 'low',
+      version: '0.1.0',
+      changelog: ['0.1.0: Initial release'],
+      nodesOverview: [{ id: '1', type: 'action', name: 'Analyze' }],
+    };
+
+    const pack = {
+      id: 'support-starter',
+      name: 'Support Starter',
+      slug: 'support-starter',
+      vertical: 'support',
+      description: 'Support pack',
+      includedCategories: ['support'],
+      includedAgents: ['inbox-triage'],
+      includedWorkflows: ['wf-01'],
+      setupTimeEstimate: '20 minutes',
+      kpis: ['Time to first triage'],
+      riskProfile: 'low',
+      monthlyPrice: null,
+    };
+
+    expect(
+      WorkflowTemplatesResponseSchema.parse({ workflows: [workflow] }).workflows,
+    ).toHaveLength(1);
+    expect(
+      PackTemplatesResponseSchema.parse({ packs: [pack] }).packs,
+    ).toHaveLength(1);
   });
 });
 

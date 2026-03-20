@@ -12,7 +12,8 @@ across multiple files.
   - Control plane: `apps/web` plus `services/api`
   - Data plane: `services/worker`, `packages/agent-engine`, and n8n-backed
     workflow execution
-- Versioned assets live in `catalog/` and `workflows/`
+- Versioned operational assets live in `catalog/` and `workflows/`, then map to
+  UI catalog contracts through `services/api`
 - Shared contracts in `@agentmou/contracts` provide the cross-workspace type
   vocabulary
 
@@ -34,6 +35,8 @@ flowchart TD
 
 - [Current State](./current-state.md) for the code-verified repository and
   operations snapshot
+- [AI Surfaces](./ai-surfaces.md) for workflow vs product-agent vs
+  developer-agent boundaries
 - [Repository Map](../repo-map.md) for the workspace layout
 - [Web App Architecture](./apps-web.md) for the current `apps/web` structure
 - [Engineering Conventions](./conventions.md) for repo-wide implementation

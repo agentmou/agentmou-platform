@@ -7,6 +7,9 @@ here, then open the procedure that matches the task you need to perform.
 
 - [Deployment Runbook](./deployment.md) for local stack setup, VPS deploys,
   health verification, fixture cleanup, and provider-backed secret rotation.
+- [Workflow Authoring and Promotion](./workflow-authoring-and-promotion.md) for
+  turning an n8n prototype into a canonical Git-tracked workflow template and
+  validating its tenant install path.
 - [VPS Operations](./vps-operations.md) for host-level operational knowledge
   and longer-lived production procedures.
 - [Postgres Credential Rename](./postgres-rename-to-agentmou.md) for the

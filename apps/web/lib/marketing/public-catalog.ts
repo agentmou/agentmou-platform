@@ -51,15 +51,16 @@ interface ApiAgentManifest {
   name?: unknown;
   description?: unknown;
   category?: unknown;
+  domain?: unknown;
+  catalogGroup?: unknown;
 }
 
 interface ApiWorkflowManifest {
   id?: unknown;
   name?: unknown;
+  summary?: unknown;
   description?: unknown;
-  trigger?: {
-    type?: unknown;
-  };
+  trigger?: unknown;
 }
 
 interface ApiPackManifest {
@@ -68,6 +69,8 @@ interface ApiPackManifest {
   description?: unknown;
   agents?: unknown;
   workflows?: unknown;
+  includedAgents?: unknown;
+  includedWorkflows?: unknown;
 }
 
 const EMPTY_CATALOG: MarketingCatalogPayload = {
@@ -396,7 +399,11 @@ function mapApiAgents(agents: ApiAgentManifest[] | undefined): MarketingAgent[] 
     const id = toStringValue(agent.id) || 'unknown-agent';
     const name = toStringValue(agent.name) || humanizeId(id);
     const description = toStringValue(agent.description) || 'AI agent for operational automation';
-    const category = normalizeMarketingCategory(toStringValue(agent.category));
+    const category = normalizeMarketingCategory(
+      toStringValue(agent.catalogGroup) ??
+        toStringValue(agent.category) ??
+        toStringValue(agent.domain),
+    );
 
     return {
       id,
@@ -413,8 +420,10 @@ function mapApiWorkflows(workflows: ApiWorkflowManifest[] | undefined): Marketin
   return asArray(workflows).map((workflow) => {
     const id = toStringValue(workflow.id) || 'unknown-workflow';
     const name = toStringValue(workflow.name) || humanizeId(id);
-    const description = toStringValue(workflow.description);
-    const trigger = toStringValue(workflow.trigger?.type) || 'manual';
+    const description =
+      toStringValue(workflow.summary) ??
+      toStringValue(workflow.description);
+    const trigger = readWorkflowTrigger(workflow.trigger) || 'manual';
 
     return {
       id,
@@ -430,16 +439,30 @@ function mapApiPacks(packs: ApiPackManifest[] | undefined): MarketingPack[] {
     const id = toStringValue(pack.id) || 'unknown-pack';
     const name = toStringValue(pack.name) || humanizeId(id);
     const description = toStringValue(pack.description) || 'Curated bundle for automation outcomes';
+    const agents = toStringArray(pack.includedAgents ?? pack.agents);
+    const workflows = toStringArray(pack.includedWorkflows ?? pack.workflows);
 
     return {
       id,
       name,
       description,
-      agents: toStringArray(pack.agents).length,
-      workflows: toStringArray(pack.workflows).length,
+      agents: agents.length,
+      workflows: workflows.length,
       outcome: derivePackOutcome(description),
     };
   });
+}
+
+function readWorkflowTrigger(value: unknown): string | undefined {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    return toStringValue((value as { type?: unknown }).type);
+  }
+
+  return undefined;
 }
 
 function asArray<T>(value: T[] | undefined): T[] {

@@ -1,7 +1,25 @@
-import { CatalogSDK, AgentManifest, PackManifest, WorkflowManifest, resolveRepoRoot } from '@agentmou/catalog-sdk';
-import { CATEGORIES, Category } from '@agentmou/contracts';
+import {
+  CatalogSDK,
+  resolveRepoRoot,
+} from '@agentmou/catalog-sdk';
+import {
+  CATEGORIES,
+  type AgentTemplate,
+  type Category,
+  type OperationalAgentManifest,
+  type OperationalPackManifest,
+  type OperationalWorkflowManifest,
+  type PackTemplate,
+  type WorkflowTemplate,
+} from '@agentmou/contracts';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+
+import {
+  mapAgentManifest,
+  mapPackManifest,
+  mapWorkflowManifest,
+} from './catalog.mapper.js';
 
 const REPO_ROOT = resolveRepoRoot(import.meta.dirname, [
   'catalog/agents',
@@ -12,9 +30,9 @@ const WORKFLOWS_DIR = path.join(REPO_ROOT, 'workflows');
 
 export class CatalogService {
   private sdk = new CatalogSDK();
-  private agents: AgentManifest[] = [];
-  private packs: PackManifest[] = [];
-  private workflows: WorkflowManifest[] = [];
+  private agents: OperationalAgentManifest[] = [];
+  private packs: OperationalPackManifest[] = [];
+  private workflows: OperationalWorkflowManifest[] = [];
   private loaded = false;
 
   private async ensureLoaded(): Promise<void> {
@@ -34,10 +52,10 @@ export class CatalogService {
     this.workflows = workflows;
   }
 
-  private async discoverAgents(): Promise<AgentManifest[]> {
+  private async discoverAgents(): Promise<OperationalAgentManifest[]> {
     const agentsDir = path.join(CATALOG_DIR, 'agents');
     const entries = await readDirSafe(agentsDir);
-    const manifests: AgentManifest[] = [];
+    const manifests: OperationalAgentManifest[] = [];
 
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
@@ -52,10 +70,10 @@ export class CatalogService {
     return manifests;
   }
 
-  private async discoverPacks(): Promise<PackManifest[]> {
+  private async discoverPacks(): Promise<OperationalPackManifest[]> {
     const packsDir = path.join(CATALOG_DIR, 'packs');
     const entries = await readDirSafe(packsDir);
-    const manifests: PackManifest[] = [];
+    const manifests: OperationalPackManifest[] = [];
 
     for (const entry of entries) {
       if (!entry.name.endsWith('.yaml') && !entry.name.endsWith('.yml')) continue;
@@ -68,8 +86,8 @@ export class CatalogService {
     return manifests;
   }
 
-  private async discoverWorkflows(): Promise<WorkflowManifest[]> {
-    const manifests: WorkflowManifest[] = [];
+  private async discoverWorkflows(): Promise<OperationalWorkflowManifest[]> {
+    const manifests: OperationalWorkflowManifest[] = [];
 
     for (const subdir of ['public', 'planned']) {
       const dir = path.join(WORKFLOWS_DIR, subdir);
@@ -93,68 +111,105 @@ export class CatalogService {
   // Public API
   // ---------------------------------------------------------------------------
 
-  async listAgents(filters?: {
+  async listOperationalAgents(filters?: {
     category?: string;
     tags?: string[];
-  }): Promise<AgentManifest[]> {
+  }): Promise<OperationalAgentManifest[]> {
     await this.ensureLoaded();
     let result = this.agents;
 
     if (filters?.category) {
-      result = result.filter((a) => a.category === filters.category);
+      result = result.filter((agent) => agent.category === filters.category);
     }
     if (filters?.tags?.length) {
-      result = result.filter((a) =>
-        filters.tags!.some((t) => a.tags?.includes(t)),
+      result = result.filter((agent) =>
+        filters.tags!.some((tag) => agent.tags?.includes(tag)),
       );
     }
     return result;
   }
 
-  async getAgent(id: string): Promise<AgentManifest | undefined> {
+  async listAgents(filters?: {
+    category?: string;
+    tags?: string[];
+  }): Promise<AgentTemplate[]> {
+    const agents = await this.listOperationalAgents(filters);
+    return agents.map(mapAgentManifest);
+  }
+
+  async getOperationalAgent(id: string): Promise<OperationalAgentManifest | undefined> {
     await this.ensureLoaded();
     return this.agents.find((a) => a.id === id);
   }
 
-  async listPacks(filters?: {
+  async getAgent(id: string): Promise<AgentTemplate | undefined> {
+    const agent = await this.getOperationalAgent(id);
+    return agent ? mapAgentManifest(agent) : undefined;
+  }
+
+  async listOperationalPacks(filters?: {
     category?: string;
-  }): Promise<PackManifest[]> {
+  }): Promise<OperationalPackManifest[]> {
     await this.ensureLoaded();
     let result = this.packs;
 
     if (filters?.category) {
-      result = result.filter((p) => p.category === filters.category);
+      result = result.filter((pack) => pack.category === filters.category);
     }
     return result;
   }
 
-  async getPack(id: string): Promise<PackManifest | undefined> {
+  async listPacks(filters?: {
+    category?: string;
+  }): Promise<PackTemplate[]> {
+    const packs = await this.listOperationalPacks(filters);
+    return packs.map(mapPackManifest);
+  }
+
+  async getOperationalPack(id: string): Promise<OperationalPackManifest | undefined> {
     await this.ensureLoaded();
     return this.packs.find((p) => p.id === id);
+  }
+
+  async getPack(id: string): Promise<PackTemplate | undefined> {
+    const pack = await this.getOperationalPack(id);
+    return pack ? mapPackManifest(pack) : undefined;
+  }
+
+  async listOperationalWorkflows(filters?: {
+    status?: string;
+    category?: string;
+  }): Promise<OperationalWorkflowManifest[]> {
+    await this.ensureLoaded();
+    let result = this.workflows;
+
+    if (filters?.status) {
+      result = result.filter((workflow) => workflow.status === filters.status);
+    } else {
+      result = result.filter((workflow) => workflow.status !== 'planned');
+    }
+    if (filters?.category) {
+      result = result.filter((workflow) => workflow.category === filters.category);
+    }
+    return result;
   }
 
   async listWorkflows(filters?: {
     status?: string;
     category?: string;
-  }): Promise<WorkflowManifest[]> {
-    await this.ensureLoaded();
-    let result = this.workflows;
-
-    if (filters?.status) {
-      result = result.filter((w) => w.status === filters.status);
-    } else {
-      // Default catalog view should only expose installable workflows.
-      result = result.filter((w) => w.status !== 'planned');
-    }
-    if (filters?.category) {
-      result = result.filter((w) => w.category === filters.category);
-    }
-    return result;
+  }): Promise<WorkflowTemplate[]> {
+    const workflows = await this.listOperationalWorkflows(filters);
+    return workflows.map(mapWorkflowManifest);
   }
 
-  async getWorkflow(id: string): Promise<WorkflowManifest | undefined> {
+  async getOperationalWorkflow(id: string): Promise<OperationalWorkflowManifest | undefined> {
     await this.ensureLoaded();
     return this.workflows.find((w) => w.id === id);
+  }
+
+  async getWorkflow(id: string): Promise<WorkflowTemplate | undefined> {
+    const workflow = await this.getOperationalWorkflow(id);
+    return workflow ? mapWorkflowManifest(workflow) : undefined;
   }
 
   async listCategories(): Promise<{ id: Category; name: string }[]> {
@@ -168,9 +223,9 @@ export class CatalogService {
     query: string,
     filters?: { type?: 'agent' | 'pack' | 'workflow' },
   ): Promise<{
-    agents: AgentManifest[];
-    packs: PackManifest[];
-    workflows: WorkflowManifest[];
+    agents: AgentTemplate[];
+    packs: PackTemplate[];
+    workflows: WorkflowTemplate[];
   }> {
     await this.ensureLoaded();
     const q = query.toLowerCase();
@@ -182,19 +237,21 @@ export class CatalogService {
       !filters?.type || filters.type === 'agent'
         ? this.agents.filter((a) =>
             matchText([a.name, a.description, a.id, ...(a.tags ?? [])]),
-          )
+          ).map(mapAgentManifest)
         : [];
 
     const matchingPacks =
       !filters?.type || filters.type === 'pack'
-        ? this.packs.filter((p) => matchText([p.name, p.description, p.id]))
+        ? this.packs
+            .filter((p) => matchText([p.name, p.description, p.id]))
+            .map(mapPackManifest)
         : [];
 
     const matchingWorkflows =
       !filters?.type || filters.type === 'workflow'
         ? this.workflows.filter((w) =>
             matchText([w.name, w.description, w.id]),
-          )
+          ).map(mapWorkflowManifest)
         : [];
 
     return {

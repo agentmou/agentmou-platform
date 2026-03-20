@@ -1,7 +1,5 @@
 {
-  "id": "wf-01-auto-label-gmail",
   "name": "Auto Label Gmail Messages",
-  "active": false,
   "nodes": [
     {
       "id": "gmailTrigger",
@@ -20,9 +18,18 @@
       "position": [450, 300],
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.AGENT_API_URL }}/analyze",
+        "url": "={{ ($env.AGENTS_API_URL || \"http://agents:8000\") + \"/analyze-email\" }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.AGENTS_API_KEY }}"
+            }
+          ]
+        },
         "body": {
-          "emailId": "={{ $json.id }}",
+          "sender": "={{ $json.from }}",
           "subject": "={{ $json.subject }}",
           "content": "={{ $json.content }}"
         }

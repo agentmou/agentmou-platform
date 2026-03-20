@@ -1,32 +1,32 @@
 # Inbox Triage Agent
 
-Automatically categorize and prioritize incoming emails using AI.
+Automatically categorize, prioritize, and label incoming Gmail messages using the platform agent runtime.
 
-## Features
+## Runtime Shape
 
-- **Smart Categorization**: Automatically labels emails by priority and type
-- **Action Suggestions**: Recommends actions (reply, delegate, archive, flag)
-- **Response Drafts**: Generates draft responses for high-priority emails
-- **Spam Detection**: Identifies and filters spam with high confidence
+- The versioned definition lives in `catalog/agents/inbox-triage/`.
+- Tenant installs create `agent_installations` rows that point back to this template by `templateId`.
+- `services/worker` loads `prompt.md` and `policy.yaml`, then runs the template through `@agentmou/agent-engine`.
+- `services/agents` is not the main runtime for this product agent. It is a narrow helper service currently used for the LLM-backed email classification step.
 
 ## Configuration
 
-See `manifest.yaml` for agent configuration and `policy.yaml` for permissions.
+See `manifest.yaml` for the operational manifest, `prompt.md` for the runtime instructions, and `policy.yaml` for the permission model.
 
 ## Usage
 
-The agent runs automatically every 15 minutes and can also be triggered via webhook when new emails arrive.
+The agent can run on a schedule or from event/webhook fan-out depending on the installation. The template in Git is canonical; tenant-specific state lives in installations, connectors, runs, approvals, and logs.
 
 ## Development
 
-To test locally:
+To validate the template locally:
 
 ```bash
-pnpm --filter @agentmou/catalog-sdk test:agent inbox-triage
+pnpm --filter @agentmou/catalog-sdk test
+pnpm --filter @agentmou/agent-engine test
 ```
 
-## Metrics
+## Notes
 
-- Accuracy: ~92%
-- Average processing time: 1.2s per email
-- False positive rate: <3%
+- This template defaults to `platform_managed` credentials through tenant connectors.
+- Link any deterministic workflow companions through `runtime.linkedWorkflows` in the manifest instead of creating tenant-specific copies in Git.

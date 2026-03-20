@@ -4,13 +4,13 @@ version: 0.1.0
 description: Automatically categorize and label incoming Gmail messages
 type: n8n
 status: public
-category: productivity
+category: support
 
 trigger:
   type: gmail
   event: new_message
   config:
-    userId: '{{ credentials.gmailUserId }}'
+    userId: '{{ runtime.gmailUserIdStub }}'
 
 steps:
   - id: 1
@@ -36,6 +36,48 @@ steps:
     node: salesforce
     action: logActivity
     condition: '{{ $json.category == "sales" }}'
+runtime:
+  requiredConnectors:
+    - gmail
+  credentialStrategy: n8n_native_exception
+  installStrategy: shared_n8n_per_installation
+  runtimeOwner: n8n
+catalog:
+  summary: Automatically label Gmail messages after AI triage
+  integrations:
+    - gmail
+  output: Gmail labels applied to new messages
+  useCase: Keep shared Gmail inboxes organized with one template in Git and one runtime copy per tenant installation
+  riskLevel: low
+  changelog:
+    - '0.1.0: Initial workflow template'
+  nodesOverview:
+    - id: gmail-trigger
+      type: trigger
+      name: Gmail Trigger
+      description: Detect new Gmail messages in the runtime-bound inbox
+    - id: analyze-message
+      type: action
+      name: Analyze Message
+      description: Call the AgentMou agents helper service for classification
+    - id: apply-labels
+      type: action
+      name: Apply Labels
+      description: Apply the suggested Gmail labels to the message
+    - id: update-crm
+      type: action
+      name: Update CRM
+      description: Optionally log sales-related messages in the CRM
+  availability: available
+  source: manifest
+  catalogGroups:
+    - support
+  family: inbox
+  tags:
+    - gmail
+    - labeling
+    - n8n
+  visibility: public
 
 metadata:
   author: AgentMou Team

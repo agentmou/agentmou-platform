@@ -87,6 +87,8 @@ route shape exists even where the implementation is still thin.
 - `src/app.ts` wires middleware, route registration, CORS, and validation.
 - `src/modules/auth` owns register/login/me flows.
 - `src/modules/catalog` serves manifest-backed catalog data.
+  It maps operational manifests to shared UI catalog contracts before sending
+  API responses.
 - `src/modules/installations` creates installations and queues pack installs.
   `GET /installations` returns grouped `{ agents, workflows }` lists.
 - `src/modules/connectors` manages connector records and Gmail OAuth flows.

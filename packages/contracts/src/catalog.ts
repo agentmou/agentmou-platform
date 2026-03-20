@@ -104,15 +104,174 @@ export const WorkflowTriggerTypeSchema = z.enum([
 /** TypeScript view of workflow trigger types. */
 export type WorkflowTriggerType = z.infer<typeof WorkflowTriggerTypeSchema>;
 
-// ---------------------------------------------------------------------------
-// Agent Template
-// ---------------------------------------------------------------------------
-
 /** KPI definition shared by agent and pack marketing surfaces. */
 export const KpiDefinitionSchema = z.object({
   name: z.string(),
   description: z.string(),
 });
+
+/** Summary of a workflow node shown in the catalog UI. */
+export const WorkflowNodeSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+});
+
+/** TypeScript shape for a workflow node summary. */
+export type WorkflowNode = z.infer<typeof WorkflowNodeSchema>;
+
+// ---------------------------------------------------------------------------
+// Operational manifest metadata
+// ---------------------------------------------------------------------------
+
+/** Runtime owner responsible for executing an installed catalog asset. */
+export const RuntimeOwnerSchema = z.enum([
+  'agent_engine',
+  'n8n',
+  'agents_service',
+  'platform_api',
+]);
+
+/** TypeScript view of supported runtime owners. */
+export type RuntimeOwner = z.infer<typeof RuntimeOwnerSchema>;
+
+/** Strategy describing where runtime credentials are expected to live. */
+export const CredentialStrategySchema = z.enum([
+  'platform_managed',
+  'n8n_native_exception',
+]);
+
+/** TypeScript view of supported credential strategies. */
+export type CredentialStrategy = z.infer<typeof CredentialStrategySchema>;
+
+/** Strategy describing how installs are materialized at runtime. */
+export const InstallStrategySchema = z.enum([
+  'shared_n8n_per_installation',
+  'platform_managed_installation',
+]);
+
+/** TypeScript view of supported install strategies. */
+export type InstallStrategy = z.infer<typeof InstallStrategySchema>;
+
+/** Shared runtime metadata attached to operational manifests. */
+export const RuntimeMetadataSchema = z.object({
+  requiredConnectors: z.array(z.string()).default([]),
+  credentialStrategy: CredentialStrategySchema.default('platform_managed'),
+  installStrategy: InstallStrategySchema.default('platform_managed_installation'),
+  runtimeOwner: RuntimeOwnerSchema,
+});
+
+/** TypeScript shape for shared runtime manifest metadata. */
+export type RuntimeMetadata = z.infer<typeof RuntimeMetadataSchema>;
+
+/** Minimal trigger declaration used by operational agent manifests. */
+export const AgentManifestTriggerSchema = z.object({
+  type: z.string(),
+  cron: z.string().optional(),
+  event: z.string().optional(),
+});
+
+/** TypeScript shape for an operational agent trigger declaration. */
+export type AgentManifestTrigger = z.infer<typeof AgentManifestTriggerSchema>;
+
+/** Minimal operational workflow step declaration. */
+export const WorkflowManifestStepSchema = z.object({
+  id: z.union([z.string(), z.number()]),
+  name: z.string(),
+  type: z.string(),
+  node: z.string().optional(),
+  agent: z.string().optional(),
+  action: z.string().optional(),
+  condition: z.string().optional(),
+});
+
+/** TypeScript shape for an operational workflow step. */
+export type WorkflowManifestStep = z.infer<typeof WorkflowManifestStepSchema>;
+
+/** Trigger declaration used by operational workflow manifests. */
+export const WorkflowManifestTriggerSchema = z.object({
+  type: z.string(),
+  event: z.string().optional(),
+  config: z.record(z.unknown()).optional(),
+});
+
+/** TypeScript shape for an operational workflow trigger declaration. */
+export type WorkflowManifestTrigger = z.infer<typeof WorkflowManifestTriggerSchema>;
+
+/** UI-oriented metadata nested inside an operational agent manifest. */
+export const AgentCatalogMetadataSchema = z.object({
+  outcome: z.string(),
+  domain: AgentDomainSchema,
+  inputs: z.array(z.string()),
+  outputs: z.array(z.string()),
+  riskLevel: RiskLevelSchema,
+  hitl: HITLModeSchema,
+  kpis: z.array(KpiDefinitionSchema),
+  complexity: ComplexitySchema,
+  channel: VersionChannelSchema,
+  setupTimeMinutes: z.number(),
+  monthlyPrice: z.number().nullable(),
+  availability: AvailabilitySchema.optional(),
+  audience: AudienceSchema.optional(),
+  statusNote: z.string().optional(),
+  source: z.string().optional(),
+  catalogGroup: CategorySchema.optional(),
+  family: z.string().optional(),
+  subdomain: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  featured: z.boolean().optional(),
+  visibility: VisibilitySchema.optional(),
+  variantOf: z.string().optional(),
+  replacedBy: z.string().optional(),
+});
+
+/** TypeScript shape for nested agent catalog metadata. */
+export type AgentCatalogMetadata = z.infer<typeof AgentCatalogMetadataSchema>;
+
+/** UI-oriented metadata nested inside an operational workflow manifest. */
+export const WorkflowCatalogMetadataSchema = z.object({
+  summary: z.string(),
+  integrations: z.array(z.string()),
+  output: z.string(),
+  useCase: z.string(),
+  riskLevel: RiskLevelSchema,
+  changelog: z.array(z.string()),
+  nodesOverview: z.array(WorkflowNodeSchema),
+  availability: AvailabilitySchema.optional(),
+  source: z.string().optional(),
+  statusNote: z.string().optional(),
+  catalogGroups: z.array(CategorySchema).optional(),
+  family: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  featured: z.boolean().optional(),
+  visibility: WorkflowVisibilitySchema.optional(),
+  replacedBy: z.string().optional(),
+});
+
+/** TypeScript shape for nested workflow catalog metadata. */
+export type WorkflowCatalogMetadata = z.infer<typeof WorkflowCatalogMetadataSchema>;
+
+/** UI-oriented metadata nested inside an operational pack manifest. */
+export const PackCatalogMetadataSchema = z.object({
+  slug: z.string(),
+  vertical: CategorySchema,
+  includedCategories: z.array(CategorySchema),
+  setupTimeEstimate: z.string(),
+  kpis: z.array(z.string()),
+  riskProfile: RiskLevelSchema,
+  monthlyPrice: z.number().nullable(),
+  featured: z.boolean().optional(),
+  catalogGroup: CategorySchema.optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+/** TypeScript shape for nested pack catalog metadata. */
+export type PackCatalogMetadata = z.infer<typeof PackCatalogMetadataSchema>;
+
+// ---------------------------------------------------------------------------
+// Agent Template
+// ---------------------------------------------------------------------------
 
 /** Canonical agent template contract used in the catalog UI and API. */
 export const AgentTemplateSchema = z.object({
@@ -150,20 +309,35 @@ export const AgentTemplateSchema = z.object({
 /** TypeScript shape for an agent template. */
 export type AgentTemplate = z.infer<typeof AgentTemplateSchema>;
 
+/** Operational manifest schema for `catalog/agents/<slug>/manifest.yaml`. */
+export const OperationalAgentManifestSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  version: z.string(),
+  description: z.string(),
+  category: CategorySchema.optional(),
+  author: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  capabilities: z.array(z.record(z.unknown())).optional(),
+  triggers: z.array(AgentManifestTriggerSchema).optional(),
+  runtime: RuntimeMetadataSchema.extend({
+    linkedWorkflows: z.array(z.string()).default([]),
+  }).optional(),
+  catalog: AgentCatalogMetadataSchema.optional(),
+  metadata: z
+    .object({
+      createdAt: z.string().optional(),
+      updatedAt: z.string().optional(),
+    })
+    .optional(),
+});
+
+/** TypeScript shape for an operational agent manifest. */
+export type OperationalAgentManifest = z.infer<typeof OperationalAgentManifestSchema>;
+
 // ---------------------------------------------------------------------------
 // Workflow Template
 // ---------------------------------------------------------------------------
-
-/** Summary of a workflow node shown in the catalog UI. */
-export const WorkflowNodeSchema = z.object({
-  id: z.string(),
-  type: z.string(),
-  name: z.string(),
-  description: z.string().optional(),
-});
-
-/** TypeScript shape for a workflow node summary. */
-export type WorkflowNode = z.infer<typeof WorkflowNodeSchema>;
 
 /** Canonical workflow template contract used in the catalog UI and API. */
 export const WorkflowTemplateSchema = z.object({
@@ -192,6 +366,33 @@ export const WorkflowTemplateSchema = z.object({
 /** TypeScript shape for a workflow template. */
 export type WorkflowTemplate = z.infer<typeof WorkflowTemplateSchema>;
 
+/** Operational manifest schema for `workflows/public/<slug>/manifest.yaml`. */
+export const OperationalWorkflowManifestSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  version: z.string(),
+  description: z.string(),
+  type: z.string().optional(),
+  status: z.string().optional(),
+  category: CategorySchema.optional(),
+  trigger: WorkflowManifestTriggerSchema.optional(),
+  steps: z.array(WorkflowManifestStepSchema).optional(),
+  runtime: RuntimeMetadataSchema.optional(),
+  catalog: WorkflowCatalogMetadataSchema.optional(),
+  metadata: z
+    .object({
+      author: z.string().optional(),
+      createdAt: z.string().optional(),
+      updatedAt: z.string().optional(),
+      executionCount: z.number().optional(),
+      avgExecutionTime: z.string().optional(),
+    })
+    .optional(),
+});
+
+/** TypeScript shape for an operational workflow manifest. */
+export type OperationalWorkflowManifest = z.infer<typeof OperationalWorkflowManifestSchema>;
+
 // ---------------------------------------------------------------------------
 // Pack Template
 // ---------------------------------------------------------------------------
@@ -217,6 +418,53 @@ export const PackTemplateSchema = z.object({
 
 /** TypeScript shape for a pack template. */
 export type PackTemplate = z.infer<typeof PackTemplateSchema>;
+
+/** Operational manifest schema for `catalog/packs/<slug>.yaml`. */
+export const OperationalPackManifestSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  version: z.string(),
+  description: z.string(),
+  category: CategorySchema.optional(),
+  agents: z.array(z.string()),
+  workflows: z.array(z.string()).optional(),
+  connectors: z.array(z.string()).optional(),
+  recommended_settings: z.record(z.unknown()).optional(),
+  catalog: PackCatalogMetadataSchema.optional(),
+});
+
+/** TypeScript shape for an operational pack manifest. */
+export type OperationalPackManifest = z.infer<typeof OperationalPackManifestSchema>;
+
+/** Catalog response envelope for agent template lists. */
+export const AgentTemplatesResponseSchema = z.object({
+  agents: z.array(AgentTemplateSchema),
+});
+
+/** Catalog response envelope for a single agent template. */
+export const AgentTemplateResponseSchema = z.object({
+  agent: AgentTemplateSchema,
+});
+
+/** Catalog response envelope for workflow template lists. */
+export const WorkflowTemplatesResponseSchema = z.object({
+  workflows: z.array(WorkflowTemplateSchema),
+});
+
+/** Catalog response envelope for a single workflow template. */
+export const WorkflowTemplateResponseSchema = z.object({
+  workflow: WorkflowTemplateSchema,
+});
+
+/** Catalog response envelope for pack template lists. */
+export const PackTemplatesResponseSchema = z.object({
+  packs: z.array(PackTemplateSchema),
+});
+
+/** Catalog response envelope for a single pack template. */
+export const PackTemplateResponseSchema = z.object({
+  pack: PackTemplateSchema,
+});
 
 /** Backward-compatible alias for grouping catalog assets by category. */
 export type CatalogGroup = Category;

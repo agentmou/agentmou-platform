@@ -204,12 +204,12 @@ export const analyzeEmailTool: Tool = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+          ...(apiKey ? { 'x-api-key': apiKey } : {}),
         },
         body: JSON.stringify({
-          from: email.from,
+          sender: email.from,
           subject: email.subject,
-          body: email.body,
+          content: email.body,
         }),
       });
 

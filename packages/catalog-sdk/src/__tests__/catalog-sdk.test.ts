@@ -15,6 +15,8 @@ describe('CatalogSDK', () => {
       expect(manifest.id).toBe('inbox-triage');
       expect(manifest.name).toBe('Inbox Triage');
       expect(manifest.version).toBe('0.1.0');
+      expect(manifest.runtime?.runtimeOwner).toBe('agent_engine');
+      expect(manifest.catalog?.domain).toBe('support');
     });
 
     it('throws on missing file', async () => {
@@ -31,6 +33,7 @@ describe('CatalogSDK', () => {
       );
       expect(manifest.id).toBe('support-starter');
       expect(manifest.agents).toContain('inbox-triage');
+      expect(manifest.catalog?.vertical).toBe('support');
     });
   });
 
@@ -41,6 +44,8 @@ describe('CatalogSDK', () => {
       );
       expect(manifest.id).toBe('wf-01-auto-label-gmail');
       expect(manifest.type).toBe('n8n');
+      expect(manifest.runtime?.credentialStrategy).toBe('n8n_native_exception');
+      expect(manifest.catalog?.catalogGroups).toContain('support');
     });
   });
 });
@@ -53,6 +58,7 @@ describe('Manifest Schemas', () => {
         name: 'Test Agent',
         version: '1.0.0',
         description: 'A test agent',
+        category: 'core',
       });
       expect(result.id).toBe('test-agent');
     });
@@ -69,6 +75,7 @@ describe('Manifest Schemas', () => {
         name: 'Test Pack',
         version: '1.0.0',
         description: 'A test pack',
+        category: 'core',
         agents: ['agent-1', 'agent-2'],
       });
       expect(result.agents).toHaveLength(2);
@@ -84,6 +91,7 @@ describe('Manifest Schemas', () => {
         description: 'A test workflow',
         type: 'n8n',
         status: 'public',
+        category: 'core',
       });
       expect(result.type).toBe('n8n');
     });

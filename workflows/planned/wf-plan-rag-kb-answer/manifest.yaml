@@ -4,7 +4,7 @@ version: 0.1.0-planned
 description: Answer questions using retrieval-augmented generation from knowledge base
 type: n8n
 status: planned
-category: productivity
+category: support
 priority: high
 
 planned_features:

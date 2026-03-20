@@ -8,6 +8,8 @@
 import {
   ApprovalRequestsResponseSchema,
   ApprovalResponseSchema,
+  AgentTemplateResponseSchema,
+  AgentTemplatesResponseSchema,
   AuditEventsResponseSchema,
   BillingInvoicesResponseSchema,
   BillingOverviewResponseSchema,
@@ -16,11 +18,14 @@ import {
   ExecutionRunsResponseSchema,
   InstallationsResponseSchema,
   InstalledAgentSchema,
+  PackTemplateResponseSchema,
+  PackTemplatesResponseSchema,
   SecurityFindingsResponseSchema,
   SecurityPoliciesResponseSchema,
   TenantMembersResponseSchema,
   TenantResponseSchema,
   TenantsResponseSchema,
+  WorkflowTemplatesResponseSchema,
   WorkflowEngineStatusResponseSchema,
   type ApprovalRequest,
   type AgentTemplate,
@@ -192,13 +197,16 @@ export async function fetchTenantMembers(tenantId: string): Promise<TenantMember
 // ---------------------------------------------------------------------------
 
 export async function fetchCatalogAgents(): Promise<AgentTemplate[]> {
-  const data = await request<{ agents: AgentTemplate[] }>('/api/v1/catalog/agents');
+  const data = await requestParsed('/api/v1/catalog/agents', AgentTemplatesResponseSchema);
   return data.agents;
 }
 
 export async function fetchCatalogAgent(agentId: string): Promise<AgentTemplate | null> {
   try {
-    const data = await request<{ agent: AgentTemplate }>(`/api/v1/catalog/agents/${agentId}`);
+    const data = await requestParsed(
+      `/api/v1/catalog/agents/${agentId}`,
+      AgentTemplateResponseSchema,
+    );
     return data.agent;
   } catch {
     return null;
@@ -206,13 +214,16 @@ export async function fetchCatalogAgent(agentId: string): Promise<AgentTemplate 
 }
 
 export async function fetchCatalogPacks(): Promise<PackTemplate[]> {
-  const data = await request<{ packs: PackTemplate[] }>('/api/v1/catalog/packs');
+  const data = await requestParsed('/api/v1/catalog/packs', PackTemplatesResponseSchema);
   return data.packs;
 }
 
 export async function fetchCatalogPack(packId: string): Promise<PackTemplate | null> {
   try {
-    const data = await request<{ pack: PackTemplate }>(`/api/v1/catalog/packs/${packId}`);
+    const data = await requestParsed(
+      `/api/v1/catalog/packs/${packId}`,
+      PackTemplateResponseSchema,
+    );
     return data.pack;
   } catch {
     return null;
@@ -220,7 +231,10 @@ export async function fetchCatalogPack(packId: string): Promise<PackTemplate | n
 }
 
 export async function fetchCatalogWorkflows(): Promise<WorkflowTemplate[]> {
-  const data = await request<{ workflows: WorkflowTemplate[] }>('/api/v1/catalog/workflows');
+  const data = await requestParsed(
+    '/api/v1/catalog/workflows',
+    WorkflowTemplatesResponseSchema,
+  );
   return data.workflows;
 }
 
