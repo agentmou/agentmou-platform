@@ -17,14 +17,17 @@
     "db:migrate": "pnpm --filter @agentmou/db migrate",
     "db:studio": "pnpm --filter @agentmou/db studio",
     "db:seed": "pnpm --filter @agentmou/db seed",
+    "cleanup:validation-tenant": "tsx scripts/cleanup-validation-tenant.ts",
     "setup": "bash infra/scripts/setup.sh",
     "backup": "bash infra/scripts/backup.sh"
   },
   "devDependencies": {
+    "@agentmou/db": "workspace:*",
     "@eslint/js": "^10.0.1",
     "eslint": "^10.0.3",
     "prettier": "^3.4.0",
     "turbo": "^2.3.0",
+    "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.56.1",
     "vitest": "^3.0.0"

@@ -43,7 +43,7 @@ payloads.
 | Web app | `partial` | Authenticated routes use the API provider, but marketing/demo and some tenant surfaces still rely on demo or empty-default paths |
 | Data plane | `partial` | Worker queues and runtime path are real, but breadth and contract maturity are still limited |
 | Catalog and workflow assets | `partial` | Real installable assets exist, but demo inventory is much larger than the real catalog |
-| Infrastructure model | `partial` | Production compose and deploy scripts are present, and the March 19, 2026 VPS inspection plus same-day residual-risk cleanup verified live API, worker, edge, backup cron, protected public routes, and Gmail OAuth. Provider-backed secret rotation and one connector-delete bug still remain follow-up work |
+| Infrastructure model | `partial` | Production compose and deploy scripts are present, and the March 19, 2026 VPS inspection plus same-day residual-risk cleanup verified live API, worker, edge, backup cron, protected public routes, and Gmail OAuth. Later on March 19, 2026, `deploy-phase25.sh` also revalidated the live stack from `codex/fix-production-residual-risks` at `d358428`, and the live follow-up list narrowed to provider-backed secret rotation only |
 | Validation baseline | `implemented` | `pnpm typecheck`, `pnpm test`, and `pnpm lint` all pass from the repo root as of March 19, 2026; `pnpm lint` still reports non-blocking warnings |
 
 ### Validation Commands Observed On March 19, 2026
@@ -79,7 +79,7 @@ truth that was actually verified during this epic.
 | VPS-local secret rotation | `passed` | `JWT_SECRET`, `AGENTS_API_KEY`, and `BASIC_AUTH_USERS` were rotated in `infra/compose/.env`; only `api`, `worker`, `agents`, and `traefik` were recreated; the hardened public smoke test still passed `3 passed, 0 failed` afterward |
 | Tracked backup script outside the checkout | `passed` | Manual runs with `BACKUP_DIR=/tmp/agentmou-backup LOCK_FILE=/tmp/agentmou-backup.lock` and later `BACKUP_DIR=/var/backups/agentmou LOCK_FILE=/var/lock/agentmou/backup.lock` produced PostgreSQL, Redis, n8n, and file backups and left `git status` clean |
 | Gmail OAuth end-to-end | `live-verified` | A first live attempt expired the 10-minute state TTL; a second authorize URL completed within the window, `/api/v1/oauth/callback` returned `302` without an OAuth error log, and the connectors API showed `gmail` `connected` for the temporary tenant used for validation |
-| Connector cleanup after OAuth test | `partial` | The temporary Gmail connector was removed directly from PostgreSQL after validation. The public `DELETE /api/v1/tenants/:tenantId/connectors/:connectorId` path returned `500` when called with provider slug `gmail`, exposing a UUID-cast bug that still needs a code fix |
+| Connector cleanup after OAuth test | `live-verified` | After deploying `d358428` from `codex/fix-production-residual-risks`, a fresh disposable tenant was created through `POST /api/v1/auth/register`, `POST /api/v1/tenants/:tenantId/connectors` returned `201` for `gmail`, `DELETE /api/v1/tenants/:tenantId/connectors/gmail` returned `200`, and `GET /api/v1/tenants/:tenantId/connectors` came back empty. The guarded `scripts/cleanup-validation-tenant.ts` path was then dry-run and execute-verified on both the historical March 19 OAuth fixture and the temporary delete-test tenant, with PostgreSQL post-checks showing `tenants=0`, `memberships=0`, `connector_accounts=0`, and `users=0` for each cleanup target |
 
 The canonical live statement supported by current evidence is:
 
@@ -92,9 +92,13 @@ The canonical live statement supported by current evidence is:
 > callback that completed successfully on the second in-window attempt.
 > Production catalog data remains live-verified: `/api/v1/catalog/agents`
 > returns the `inbox-triage` manifest payload. The VPS checkout itself is
-> clean. The remaining operational gaps are provider-backed secret rotation and
-> a connector-delete bug triggered when the public delete route is called with
-> provider aliases such as `gmail`.
+> clean. Later the same night, the VPS was redeployed to
+> `codex/fix-production-residual-risks` at `d358428`, `deploy-phase25.sh`
+> passed again, `DELETE /api/v1/tenants/:tenantId/connectors/gmail` was
+> live-verified against a disposable tenant, and the guarded
+> `scripts/cleanup-validation-tenant.ts` path replaced the March 19 direct-SQL
+> workaround for temporary validation tenants. The remaining live operational
+> gap is provider-backed secret rotation.
 
 ## Current Architecture
 

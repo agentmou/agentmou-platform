@@ -1,8 +1,13 @@
 import { db, connectorAccounts } from '@agentmou/db';
-import { eq, and, or } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { mapConnector } from './connectors.mapper.js';
 
 import { recordAuditEvent } from '../../lib/audit.js';
+
+// Matches canonical UUID strings so provider slugs like "gmail" never hit the
+// UUID column predicate.
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class ConnectorsService {
   async listConnectors(tenantId: string) {
@@ -95,18 +100,23 @@ export class ConnectorsService {
   }
 
   private async getConnectorRow(tenantId: string, connectorId: string) {
+    const connectorIdentifier = isUuid(connectorId)
+      ? eq(connectorAccounts.id, connectorId)
+      : eq(connectorAccounts.provider, connectorId);
+
     const [connector] = await db
       .select()
       .from(connectorAccounts)
       .where(
         and(
           eq(connectorAccounts.tenantId, tenantId),
-          or(
-            eq(connectorAccounts.id, connectorId),
-            eq(connectorAccounts.provider, connectorId),
-          ),
+          connectorIdentifier,
         )
       );
     return connector ?? null;
   }
+}
+
+function isUuid(value: string): boolean {
+  return UUID_PATTERN.test(value);
 }
