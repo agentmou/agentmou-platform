@@ -26,6 +26,7 @@ const workflow = await sdk.loadWorkflowManifest('workflows/public/wf-01-auto-lab
 - `PackManifestSchema` / `PackManifest`
 - `WorkflowManifestSchema` / `WorkflowManifest`
 - `CatalogSDK` class
+- `resolveRepoRoot` helper for services that run from `src/` or `dist/`
 
 ## Development
 
@@ -33,3 +34,9 @@ const workflow = await sdk.loadWorkflowManifest('workflows/public/wf-01-auto-lab
 pnpm --filter @agentmou/catalog-sdk typecheck
 pnpm --filter @agentmou/catalog-sdk lint
 ```
+
+## Related Docs
+
+- [Current State](../../docs/architecture/current-state.md)
+- [Repository Map](../../docs/repo-map.md)
+- [ADR-001: Monorepo Structure](../../docs/adr/001-monorepo-structure.md)

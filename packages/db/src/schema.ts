@@ -13,6 +13,7 @@ import {
 // Users
 // ---------------------------------------------------------------------------
 
+/** Platform users that can belong to one or more tenants. */
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: text('email').notNull().unique(),
@@ -26,6 +27,7 @@ export const users = pgTable('users', {
 // Tenants
 // ---------------------------------------------------------------------------
 
+/** Tenant records that scope platform data and memberships. */
 export const tenants = pgTable('tenants', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
@@ -43,6 +45,7 @@ export const tenants = pgTable('tenants', {
 // Memberships (user ↔ tenant)
 // ---------------------------------------------------------------------------
 
+/** Join table linking users to tenants with a role. */
 export const memberships = pgTable('memberships', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -60,6 +63,7 @@ export const memberships = pgTable('memberships', {
 // Connector Accounts
 // ---------------------------------------------------------------------------
 
+/** Tenant-scoped OAuth and connector account records. */
 export const connectorAccounts = pgTable('connector_accounts', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -82,6 +86,7 @@ export const connectorAccounts = pgTable('connector_accounts', {
 // Connector OAuth States (CSRF protection during OAuth dance)
 // ---------------------------------------------------------------------------
 
+/** Short-lived OAuth state rows used during connector authorization. */
 export const connectorOauthStates = pgTable('connector_oauth_states', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -98,6 +103,7 @@ export const connectorOauthStates = pgTable('connector_oauth_states', {
 // Secret Envelopes
 // ---------------------------------------------------------------------------
 
+/** Encrypted secret values stored per tenant. */
 export const secretEnvelopes = pgTable('secret_envelopes', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -116,6 +122,7 @@ export const secretEnvelopes = pgTable('secret_envelopes', {
 // Agent Installations
 // ---------------------------------------------------------------------------
 
+/** Installed agent records created for a tenant. */
 export const agentInstallations = pgTable('agent_installations', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -135,6 +142,7 @@ export const agentInstallations = pgTable('agent_installations', {
 // Workflow Installations
 // ---------------------------------------------------------------------------
 
+/** Installed workflow records created for a tenant. */
 export const workflowInstallations = pgTable('workflow_installations', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -154,6 +162,7 @@ export const workflowInstallations = pgTable('workflow_installations', {
 // Execution Runs
 // ---------------------------------------------------------------------------
 
+/** Top-level execution records for agent and workflow runs. */
 export const executionRuns = pgTable('execution_runs', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -179,6 +188,7 @@ export const executionRuns = pgTable('execution_runs', {
 // Execution Steps
 // ---------------------------------------------------------------------------
 
+/** Step-level execution records belonging to a run. */
 export const executionSteps = pgTable('execution_steps', {
   id: uuid('id').primaryKey().defaultRandom(),
   runId: uuid('run_id')
@@ -201,6 +211,7 @@ export const executionSteps = pgTable('execution_steps', {
 // Approval Requests
 // ---------------------------------------------------------------------------
 
+/** Human approval requests linked to an execution run. */
 export const approvalRequests = pgTable('approval_requests', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -229,6 +240,7 @@ export const approvalRequests = pgTable('approval_requests', {
 // Audit Events
 // ---------------------------------------------------------------------------
 
+/** Tenant audit log records for security and governance actions. */
 export const auditEvents = pgTable('audit_events', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -245,6 +257,7 @@ export const auditEvents = pgTable('audit_events', {
 // Schedules (cron-based triggers)
 // ---------------------------------------------------------------------------
 
+/** Cron-backed schedule definitions for installed assets. */
 export const schedules = pgTable('schedules', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -262,6 +275,7 @@ export const schedules = pgTable('schedules', {
 // Usage Events (metering)
 // ---------------------------------------------------------------------------
 
+/** Raw usage events captured for metering and reporting. */
 export const usageEvents = pgTable('usage_events', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -277,6 +291,7 @@ export const usageEvents = pgTable('usage_events', {
 // Billing Accounts
 // ---------------------------------------------------------------------------
 
+/** Billing account configuration stored per tenant. */
 export const billingAccounts = pgTable('billing_accounts', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -296,6 +311,7 @@ export const billingAccounts = pgTable('billing_accounts', {
 // Billing Subscriptions
 // ---------------------------------------------------------------------------
 
+/** Billing subscription state and entitlements per tenant. */
 export const billingSubscriptions = pgTable('billing_subscriptions', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -326,6 +342,7 @@ export const billingSubscriptions = pgTable('billing_subscriptions', {
 // Billing Invoices
 // ---------------------------------------------------------------------------
 
+/** Billing invoice records produced for a tenant. */
 export const billingInvoices = pgTable('billing_invoices', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -351,6 +368,7 @@ export const billingInvoices = pgTable('billing_invoices', {
 // Billable Usage Ledger
 // ---------------------------------------------------------------------------
 
+/** Metered ledger rows that can roll up into invoices. */
 export const billableUsageLedger = pgTable('billable_usage_ledger', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -374,6 +392,7 @@ export const billableUsageLedger = pgTable('billable_usage_ledger', {
 // Webhook Events
 // ---------------------------------------------------------------------------
 
+/** Stored inbound webhook events from external providers. */
 export const webhookEvents = pgTable('webhook_events', {
   id: uuid('id').primaryKey().defaultRandom(),
   provider: text('provider').notNull(),
@@ -391,6 +410,7 @@ export const webhookEvents = pgTable('webhook_events', {
 // Public Knowledge Corpus
 // ---------------------------------------------------------------------------
 
+/** Curated public knowledge documents used by retrieval-backed experiences. */
 export const publicKnowledgeDocuments = pgTable('public_knowledge_documents', {
   id: uuid('id').primaryKey().defaultRandom(),
   slug: text('slug').notNull().unique(),
@@ -406,6 +426,7 @@ export const publicKnowledgeDocuments = pgTable('public_knowledge_documents', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+/** Chunks derived from public knowledge documents for retrieval workflows. */
 export const publicKnowledgeChunks = pgTable('public_knowledge_chunks', {
   id: uuid('id').primaryKey().defaultRandom(),
   documentId: uuid('document_id')

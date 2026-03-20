@@ -2,7 +2,7 @@
 
 This runbook documents the single-VPS production layout defined in the
 repository. Pair it with the
-[Platform Context v2 operational verification snapshot](../architecture/platform-context-v2.md#operational-verification-snapshot-on-march-19-2026)
+[current-state operational verification snapshot](../architecture/current-state.md#operational-verification-snapshot-on-march-19-20-2026)
 before making claims about the live state that is currently verified.
 
 The March 19, 2026 live verification used the current VPS checkout at

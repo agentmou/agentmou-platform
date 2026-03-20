@@ -33,6 +33,7 @@ const parsed = AgentTemplateSchema.parse(rawData);
 | `security` | SecurityFinding, SecurityPolicy, TenantSecurityScore |
 | `billing` | Invoice, UsageMetric |
 | `dashboard` | DashboardMetrics |
+| `chat` | PublicChatRequest, PublicChatResponse, citations, and actions |
 
 ### Barrel Exports
 
@@ -46,3 +47,9 @@ const parsed = AgentTemplateSchema.parse(rawData);
 pnpm --filter @agentmou/contracts typecheck
 pnpm --filter @agentmou/contracts lint
 ```
+
+## Related Docs
+
+- [Current State](../../docs/architecture/current-state.md)
+- [Repository Map](../../docs/repo-map.md)
+- [ADR-002: Shared Contracts](../../docs/adr/002-shared-contracts-type-system.md)

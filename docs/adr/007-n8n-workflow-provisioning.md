@@ -1,4 +1,4 @@
-# 007 — n8n Workflow Provisioning Strategy
+# ADR-007 — n8n Workflow Provisioning Strategy
 
 **Status**: accepted
 **Date**: 2026-03-09

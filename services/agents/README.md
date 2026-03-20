@@ -4,6 +4,12 @@ Lightweight FastAPI service that exposes AI agent endpoints. Called by n8n
 workflows and the platform worker to run agent logic that requires LLM
 inference.
 
+## Purpose
+
+`services/agents` is a narrow helper service for the current production slice.
+It handles LLM-backed email analysis and provides a deep health check that
+verifies OpenAI connectivity with the configured service credentials.
+
 ## Endpoints
 
 | Method | Path              | Auth               | Description                        |
@@ -74,3 +80,9 @@ Use an HTTP Request node with:
 - **Method**: POST
 - **Header**: `x-api-key: <AGENTS_API_KEY>`
 - **Body**: JSON with `subject`, `content`, and optional `sender`
+
+## Related Docs
+
+- [Current State](../../docs/architecture/current-state.md)
+- [Deployment Runbook](../../docs/runbooks/deployment.md)
+- [VPS Operations Runbook](../../docs/runbooks/vps-operations.md)

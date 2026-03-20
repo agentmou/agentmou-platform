@@ -1,5 +1,17 @@
 # Deployment Runbook
 
+## Purpose
+
+Use this runbook for local environment bring-up, VPS deploys, health
+verification, temporary validation-fixture cleanup, and provider-backed secret
+rotation.
+
+## Preconditions
+
+- Access to the repository checkout for the target environment
+- Docker and Compose available for the relevant environment
+- A populated `infra/compose/.env` when working outside disposable local flows
+
 ## Pre-Deployment Checklist
 
 - `pnpm install`
@@ -53,7 +65,7 @@ The production stack runs on a single VPS. See
 [VPS Operations](./vps-operations.md) for full operational details. This
 runbook describes the intended deployment procedure; it is not the canonical
 record of the latest verified live state. Use the
-[Platform Context v2 operational verification snapshot](../architecture/platform-context-v2.md#operational-verification-snapshot-on-march-19-2026)
+[current-state operational verification snapshot](../architecture/current-state.md#operational-verification-snapshot-on-march-19-20-2026)
 before making production-state claims.
 
 ### Production script order

@@ -84,4 +84,4 @@ package-local `test` script in `package.json`.
 ## Related Docs
 
 - [ADR-008: Connector OAuth Token Storage](../../docs/adr/008-connector-oauth-token-storage.md)
-- [Current Implementation vs Target Plan](../../docs/architecture/current-implementation.md)
+- [Current State](../../docs/architecture/current-state.md)

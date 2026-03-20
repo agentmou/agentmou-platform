@@ -16,6 +16,7 @@ const AgentTriggerSchema = z.object({
   event: z.string().optional(),
 });
 
+/** Manifest schema for `catalog/agents/<slug>/manifest.yaml`. */
 export const AgentManifestSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -34,12 +35,14 @@ export const AgentManifestSchema = z.object({
     .optional(),
 });
 
+/** TypeScript shape for an agent manifest. */
 export type AgentManifest = z.infer<typeof AgentManifestSchema>;
 
 // ---------------------------------------------------------------------------
 // Pack Manifest (catalog/packs/<slug>.yaml)
 // ---------------------------------------------------------------------------
 
+/** Manifest schema for `catalog/packs/<slug>.yaml`. */
 export const PackManifestSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -52,6 +55,7 @@ export const PackManifestSchema = z.object({
   recommended_settings: z.record(z.unknown()).optional(),
 });
 
+/** TypeScript shape for a pack manifest. */
 export type PackManifest = z.infer<typeof PackManifestSchema>;
 
 // ---------------------------------------------------------------------------
@@ -74,6 +78,7 @@ const WorkflowTriggerConfigSchema = z.object({
   config: z.record(z.unknown()).optional(),
 });
 
+/** Manifest schema for `workflows/public/<slug>/manifest.yaml`. */
 export const WorkflowManifestSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -95,12 +100,14 @@ export const WorkflowManifestSchema = z.object({
     .optional(),
 });
 
+/** TypeScript shape for a workflow manifest. */
 export type WorkflowManifest = z.infer<typeof WorkflowManifestSchema>;
 
 // ---------------------------------------------------------------------------
 // CatalogSDK
 // ---------------------------------------------------------------------------
 
+/** Loader that reads catalog manifests from disk and validates them with Zod. */
 export class CatalogSDK {
   async loadAgentManifest(path: string): Promise<AgentManifest> {
     const content = await this.readFile(path);

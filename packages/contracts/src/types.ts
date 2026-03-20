@@ -5,6 +5,7 @@
  * when you only need a subset.
  */
 
+/** Re-exported catalog types. */
 export type {
   Category,
   RiskLevel,
@@ -25,6 +26,7 @@ export type {
   PackVertical,
 } from './catalog';
 
+/** Re-exported tenancy types. */
 export type {
   TenantType,
   TenantPlan,
@@ -39,6 +41,7 @@ export type {
   TenantMemberResponse,
 } from './tenancy';
 
+/** Re-exported installation types. */
 export type {
   InstalledStatus,
   InstalledAgent,
@@ -50,6 +53,7 @@ export type {
   InstallRun,
 } from './installations';
 
+/** Re-exported execution types. */
 export type {
   ExecutionStatus,
   ExecutionStepType,
@@ -60,6 +64,7 @@ export type {
   ExecutionRunLogsResponse,
 } from './execution';
 
+/** Re-exported approval types. */
 export type {
   ApprovalActionType,
   ApprovalRequest,
@@ -67,6 +72,7 @@ export type {
   ApprovalResponse,
 } from './approvals';
 
+/** Re-exported connector types. */
 export type {
   IntegrationStatus,
   IntegrationCategory,
@@ -77,6 +83,7 @@ export type {
   WorkflowEngineStatus,
 } from './connectors';
 
+/** Re-exported security types. */
 export type {
   FindingSeverity,
   SecurityFinding,
@@ -88,6 +95,7 @@ export type {
   TenantSecurityScore,
 } from './security';
 
+/** Re-exported billing types. */
 export type {
   UsageMetric,
   PlanEntitlement,
@@ -101,8 +109,10 @@ export type {
   BillingOverview,
 } from './billing';
 
+/** Re-exported dashboard types. */
 export type { DashboardMetrics } from './dashboard';
 
+/** Re-exported public chat types. */
 export type {
   PublicChatRole,
   PublicChatMessage,

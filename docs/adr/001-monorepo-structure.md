@@ -1,8 +1,7 @@
-# ADR 001: Monorepo Structure
+# ADR-001 — Monorepo Structure
 
-## Status
-
-Accepted
+**Status**: accepted
+**Date**: 2026-03-08
 
 ## Context
 
@@ -54,4 +53,5 @@ Each internal package follows this structure:
 
 ## Compliance
 
-All new code must follow this structure. Existing code should be migrated gradually.
+All new code must follow this structure. Existing code should be migrated
+gradually.

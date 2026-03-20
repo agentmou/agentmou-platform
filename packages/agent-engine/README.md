@@ -82,5 +82,5 @@ pnpm --filter @agentmou/agent-engine test
 
 ## Related Docs
 
-- [Current Implementation vs Target Plan](../../docs/architecture/current-implementation.md)
+- [Current State](../../docs/architecture/current-state.md)
 - [ADR-003: n8n Role](../../docs/adr/003-n8n-role.md)

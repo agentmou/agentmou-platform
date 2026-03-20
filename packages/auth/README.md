@@ -52,4 +52,4 @@ pnpm --filter @agentmou/auth test
 
 ## Related Docs
 
-- [Current Implementation vs Target Plan](../../docs/architecture/current-implementation.md)
+- [Current State](../../docs/architecture/current-state.md)

@@ -52,4 +52,4 @@ pnpm --filter @agentmou/observability lint
 ## Related Docs
 
 - [Engineering Conventions](../../docs/architecture/conventions.md)
-- [Current Implementation vs Target Plan](../../docs/architecture/current-implementation.md)
+- [Current State](../../docs/architecture/current-state.md)

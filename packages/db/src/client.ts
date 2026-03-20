@@ -7,6 +7,7 @@ const DATABASE_URL =
 
 const client = postgres(DATABASE_URL);
 
+/** Shared Drizzle client used by long-lived services. */
 export const db = drizzle(client, { schema });
 
 /** Create a one-off DB client for scripts (seed, tests). */

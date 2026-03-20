@@ -6,6 +6,7 @@
  * compatibility.
  */
 
+/** Re-exported catalog schemas. */
 export {
   CategorySchema,
   RiskLevelSchema,
@@ -26,6 +27,7 @@ export {
   CATEGORIES,
 } from './catalog';
 
+/** Re-exported tenancy schemas. */
 export {
   TenantTypeSchema,
   TenantPlanSchema,
@@ -40,6 +42,7 @@ export {
   TenantMemberResponseSchema,
 } from './tenancy';
 
+/** Re-exported installation schemas. */
 export {
   InstalledStatusSchema,
   InstalledAgentSchema,
@@ -51,6 +54,7 @@ export {
   InstallRunSchema,
 } from './installations';
 
+/** Re-exported execution schemas. */
 export {
   ExecutionStatusSchema,
   ExecutionStepTypeSchema,
@@ -62,6 +66,7 @@ export {
   ExecutionRunLogsResponseSchema,
 } from './execution';
 
+/** Re-exported approval schemas. */
 export {
   ApprovalActionTypeSchema,
   ApprovalStatusSchema,
@@ -71,6 +76,7 @@ export {
   ApprovalResponseSchema,
 } from './approvals';
 
+/** Re-exported connector schemas. */
 export {
   IntegrationStatusSchema,
   IntegrationCategorySchema,
@@ -84,6 +90,7 @@ export {
   WorkflowEngineStatusResponseSchema,
 } from './connectors';
 
+/** Re-exported security schemas. */
 export {
   FindingSeveritySchema,
   FindingCategorySchema,
@@ -102,6 +109,7 @@ export {
   SecurityOverviewResponseSchema,
 } from './security';
 
+/** Re-exported billing schemas. */
 export {
   UsageMetricSchema,
   PlanEntitlementSchema,
@@ -124,8 +132,10 @@ export {
   BillingOverviewResponseSchema,
 } from './billing';
 
+/** Re-exported dashboard schemas. */
 export { DashboardPeriodSchema, DashboardMetricsSchema } from './dashboard';
 
+/** Re-exported public chat schemas. */
 export {
   PublicChatRoleSchema,
   PublicChatMessageSchema,

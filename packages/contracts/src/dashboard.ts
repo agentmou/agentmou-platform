@@ -4,8 +4,10 @@ import { z } from 'zod';
 // Dashboard metrics (derived/aggregated view)
 // ---------------------------------------------------------------------------
 
+/** Supported time windows for dashboard aggregation. */
 export const DashboardPeriodSchema = z.enum(['day', 'week', 'month']);
 
+/** Aggregate metrics returned for the tenant dashboard. */
 export const DashboardMetricsSchema = z.object({
   tenantId: z.string(),
   period: DashboardPeriodSchema,
@@ -46,4 +48,5 @@ export const DashboardMetricsSchema = z.object({
   ),
 });
 
+/** TypeScript shape for the aggregated dashboard metrics response. */
 export type DashboardMetrics = z.infer<typeof DashboardMetricsSchema>;
