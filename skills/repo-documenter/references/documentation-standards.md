@@ -1,5 +1,8 @@
 # Documentation Standards
 
+Use this reference when the task includes repo documentation updates that should
+stay aligned with code, API surfaces, and operational ownership.
+
 ## Required Artifacts
 
 | Artifact | Location | Requirement |
@@ -15,7 +18,8 @@
 
 - Use American English.
 - Write for a reader with zero context.
-- Explain what the component does, how it fits into the system, and how to use or operate it.
+- Explain what the component does, how it fits into the system, and how to use
+  or operate it.
 - Prefer co-located docs over central documentation.
 - Update documentation in the same change as the code.
 - Remove stale text immediately when behavior changes.
@@ -23,9 +27,12 @@
 
 ## Public API Documentation
 
-Add TSDoc to exported functions, classes, interfaces, types, enums, and constants in `packages/` when the export is part of the package's public surface.
+Add TSDoc to exported functions, classes, interfaces, types, enums, and
+constants in `packages/` when the export is part of the package's public
+surface.
 
 Cover:
+
 - Purpose in one clear sentence
 - Parameters and important option fields
 - Return value or produced side effect
@@ -49,17 +56,23 @@ Use comments when they add information the type system does not already reveal.
 
 ## REST Endpoint Documentation
 
-Document REST endpoints with OpenAPI 3.1 annotations and endpoint-adjacent JSDoc.
+Document REST endpoints with OpenAPI 3.1 annotations and endpoint-adjacent
+JSDoc.
 
 Use these rules:
-- Treat Zod schemas in `@agentmou/contracts` as the source of truth when available
-- Keep request and response examples inside the OpenAPI spec, not in separate prose files
-- Document authentication, required inputs, success responses, and failure modes
+
+- Treat Zod schemas in `@agentmou/contracts` as the source of truth when
+  available
+- Keep request and response examples inside the OpenAPI spec, not in separate
+  prose files
+- Document authentication, required inputs, success responses, and failure
+  modes
 - Update endpoint docs whenever behavior, validation, or payload shapes change
 
 ## ADR Template
 
-Use ADRs for decisions that affect multiple packages, constrain future work, or are expensive to reverse.
+Use ADRs for decisions that affect multiple packages, constrain future work, or
+are expensive to reverse.
 
 ```markdown
 # NNNN - Title
@@ -82,7 +95,8 @@ What are the trade-offs? What must change as a result?
 
 ## Package README Template
 
-Every package under `packages/`, `services/`, and `apps/` should have a `README.md` with these sections when relevant:
+Every package under `packages/`, `services/`, and `apps/` should have a
+`README.md` with these sections when relevant:
 
 1. One-line purpose
 2. Responsibilities or feature scope
@@ -122,6 +136,7 @@ What to do if the procedure fails.
 ## Documentation Checklist
 
 Before considering the work complete, confirm that:
+
 - The document answers what, why, and how
 - Terminology is consistent with the codebase
 - Examples are minimal but real
