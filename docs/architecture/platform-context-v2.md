@@ -245,7 +245,8 @@ of domain ambiguity in the repository.
 | Version pinning for n8n | `implemented` | Compose uses `n8nio/n8n:2.11.2`, not `latest` |
 | Split networks | `implemented` | `web` and `internal` networks exist in compose |
 | Web deployment profile | `implemented` | Web service exists behind a compose profile and is documented as Vercel-first for production |
-| Deploy scripts | `implemented` | `deploy.sh`, `deploy-phase25.sh`, and `smoke-test.sh` are present |
+| Deploy scripts | `implemented` | `deploy-prod.sh` is the canonical production entrypoint; `deploy.sh` and `deploy-phase25.sh` remain as deprecated compatibility wrappers, and `smoke-test.sh` is the standalone verification gate |
+| VPS cleanup wrapper | `implemented` | `cleanup-validation-tenant.sh` derives host-shell `DATABASE_URL`, `REDIS_URL`, and `N8N_API_URL` before invoking the guarded TypeScript cleanup path |
 | Proven live VPS state | `partial` | The repo proves deployment intent and scripts, but not the actual live state of the VPS at this moment |
 
 #### Conservatively Resolving the Deployment Contradiction

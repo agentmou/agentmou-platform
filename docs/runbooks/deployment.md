@@ -56,6 +56,21 @@ record of the latest verified live state. Use the
 [Platform Context v2 operational verification snapshot](../architecture/platform-context-v2.md#operational-verification-snapshot-on-march-19-2026)
 before making production-state claims.
 
+### Production script order
+
+Use the infra scripts in this order so the VPS workflow stays predictable:
+
+1. `infra/scripts/setup.sh` for first-time VPS bootstrap after cloning.
+2. `infra/scripts/verify-prod-image-assets.sh` before shipping API or worker
+   changes that depend on repo-backed `catalog/` or `workflows/` assets.
+3. `infra/scripts/deploy-prod.sh` for every production deploy.
+4. `infra/scripts/smoke-test.sh` for standalone public verification.
+5. `infra/scripts/backup.sh` for scheduled or manual backups.
+
+`infra/scripts/deploy.sh` and `infra/scripts/deploy-phase25.sh` now remain
+only as compatibility wrappers. They print a deprecation warning and forward
+to `deploy-prod.sh`.
+
 ### First-time setup
 
 ```bash
@@ -65,6 +80,7 @@ git clone <repo-url> agentmou-platform
 cd agentmou-platform
 bash infra/scripts/setup.sh
 nano infra/compose/.env              # Fill in real secrets
+sudo install -d -o deploy -g deploy -m 750 /var/backups/agentmou /var/lock/agentmou
 docker compose -f infra/compose/docker-compose.prod.yml up -d
 ```
 
@@ -73,7 +89,7 @@ docker compose -f infra/compose/docker-compose.prod.yml up -d
 ```bash
 ssh deploy@<vps-ip>
 cd /srv/agentmou-platform
-bash infra/scripts/deploy.sh
+bash infra/scripts/deploy-prod.sh
 ```
 
 ### Deploy only a specific service
@@ -103,9 +119,11 @@ than inferring it from this runbook alone.
 
 On March 19, 2026, these checks were revalidated from the live VPS checkout at
 `/srv/agentmou-platform`: `git status --short --branch` was clean before the
-final redeploy, local Traefik health returned `200`, `bash infra/scripts/deploy-phase25.sh`
-completed successfully, and the hardened public smoke test passed `3/3` with
-the live catalog payload exposing `inbox-triage`.
+final redeploy, local Traefik health returned `200`, the historical
+`bash infra/scripts/deploy-phase25.sh` path completed successfully, and the
+hardened public smoke test passed `3/3` with the live catalog payload
+exposing `inbox-triage`. The canonical deploy entrypoint is now
+`bash infra/scripts/deploy-prod.sh`.
 
 ## Health Verification
 
@@ -113,8 +131,8 @@ Run these checks from the VPS checkout with a real `infra/compose/.env`. If
 you cannot do that, record the checks as not executed rather than inferred.
 The smoke test now treats an empty catalog response as a failure by requiring
 the live catalog payload to include `inbox-triage`.
-Before running `deploy.sh` or `deploy-phase25.sh`, inspect `git status --short`
-on the VPS checkout and resolve any unexpected local drift.
+Before running `deploy-prod.sh`, inspect `git status --short` on the VPS
+checkout and resolve any unexpected local drift.
 
 ```bash
 # Local deploy gate (through Traefik on the VPS host)
@@ -128,24 +146,16 @@ bash infra/scripts/smoke-test.sh
 
 ## Temporary Validation Fixture Cleanup
 
-Use the repo-tracked cleanup script instead of ad hoc SQL when you need to
-remove a disposable OAuth or E2E validation tenant:
+Use the VPS wrapper instead of ad hoc SQL or manual host-shell env exports
+when you need to remove a disposable OAuth or E2E validation tenant:
 
 ```bash
 cd /srv/agentmou-platform
-set -a
-source infra/compose/.env
-set +a
-export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}"
-REDIS_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' agentmou-stack-redis-1)
-export REDIS_URL="redis://${REDIS_IP}:6379"
-export N8N_API_URL="${N8N_EDITOR_BASE_URL}/api/v1"
-
-./node_modules/.bin/tsx scripts/cleanup-validation-tenant.ts \
+bash infra/scripts/cleanup-validation-tenant.sh \
   --tenant-id <tenant-id> \
   --user-email <validation-email>
 
-./node_modules/.bin/tsx scripts/cleanup-validation-tenant.ts \
+bash infra/scripts/cleanup-validation-tenant.sh \
   --tenant-id <tenant-id> \
   --user-email <validation-email> \
   --execute
@@ -156,11 +166,11 @@ match disposable validation markers (`oauth-check-*`, `e2e-*`,
 `example.com`, `test.agentmou.io`), the tenant is still on the `free` plan,
 and the tenant only has its single owner membership.
 
-These host-shell exports are required because the repo-level script runs
-outside Docker: PostgreSQL is reached through `127.0.0.1:5432`, Redis needs
-the current container IP, and `N8N_API_URL` must use
-`${N8N_EDITOR_BASE_URL}/api/v1` instead of the container-internal `n8n`
-hostname.
+The wrapper sources `infra/compose/.env`, derives `DATABASE_URL` for
+`127.0.0.1:5432`, resolves the current Redis container IP for `REDIS_URL`,
+converts `N8N_EDITOR_BASE_URL` into `${N8N_EDITOR_BASE_URL}/api/v1`, and
+then invokes the underlying TypeScript implementation in
+`scripts/cleanup-validation-tenant.ts`.
 
 On March 19, 2026, this script was dry-run and execute-verified live against
 the historical OAuth validation tenant and a temporary connector-delete
@@ -233,13 +243,19 @@ docker compose -f infra/compose/docker-compose.prod.yml up -d
 ## Backup
 
 ```bash
-BACKUP_DIR=/var/backups/agentmou \
-LOCK_FILE=/var/lock/agentmou/backup.lock \
 bash infra/scripts/backup.sh
 ```
 
-Production backups should live outside the git checkout. The recommended VPS
-targets are `/var/backups/agentmou` for backup output and
-`/var/lock/agentmou/backup.lock` for the non-overlapping run lock.
+`backup.sh` now defaults to the production-safe external paths
+`/var/backups/agentmou` and `/var/lock/agentmou/backup.lock`. For local or
+non-VPS runs, set explicit overrides if those paths are not writable:
+
+```bash
+BACKUP_DIR=/tmp/agentmou-backup \
+LOCK_FILE=/tmp/agentmou-backup.lock \
+bash infra/scripts/backup.sh
+```
+
+Production backups should live outside the git checkout.
 See [VPS Operations](./vps-operations.md) for the root-owned cron setup and
 restore procedures.
