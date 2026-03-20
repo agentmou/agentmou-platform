@@ -79,9 +79,9 @@ Use the infra scripts in this order so the VPS workflow stays predictable:
 4. `infra/scripts/smoke-test.sh` for standalone public verification.
 5. `infra/scripts/backup.sh` for scheduled or manual backups.
 
-`infra/scripts/deploy.sh` and `infra/scripts/deploy-phase25.sh` now remain
-only as compatibility wrappers. They print a deprecation warning and forward
-to `deploy-prod.sh`.
+`infra/scripts/deploy-prod.sh` is the only tracked production deploy command.
+If an operator wants a shortcut, keep it as a shell alias outside the repo
+instead of a duplicate tracked script.
 
 ### First-time setup
 
