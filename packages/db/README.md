@@ -19,9 +19,11 @@ The schema covers the full domain model:
 | `tenants` | Workspaces / organizations |
 | `memberships` | User-to-tenant membership with roles |
 | `connector_accounts` | OAuth/integration connections per tenant |
+| `connector_oauth_states` | Short-lived OAuth state rows for CSRF protection |
 | `secret_envelopes` | Encrypted secrets per tenant |
 | `agent_installations` | Agents installed by a tenant |
 | `workflow_installations` | Workflows installed by a tenant |
+| `schedules` | Cron-backed schedules created by installation flows |
 | `execution_runs` | Agent/workflow execution records |
 | `execution_steps` | Individual steps within a run |
 | `approval_requests` | HITL approval requests |
@@ -48,3 +50,9 @@ pnpm --filter @agentmou/db migrate    # Run migrations
 pnpm --filter @agentmou/db studio     # Open Drizzle Studio
 pnpm --filter @agentmou/db typecheck
 ```
+
+## Related Docs
+
+- [Current State](../../docs/architecture/current-state.md)
+- [Repository Map](../../docs/repo-map.md)
+- [Deployment Runbook](../../docs/runbooks/deployment.md)

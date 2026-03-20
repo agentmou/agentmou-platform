@@ -58,4 +58,4 @@ pnpm --filter @agentmou/ui lint
 ## Related Docs
 
 - [Web App Architecture](../../docs/architecture/apps-web.md)
-- [Monorepo Map](../../docs/architecture/monorepo-map.md)
+- [Repository Map](../../docs/repo-map.md)

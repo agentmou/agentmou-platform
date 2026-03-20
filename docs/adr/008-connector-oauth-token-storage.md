@@ -1,4 +1,4 @@
-# 008 — Connector OAuth and Token Storage Strategy
+# ADR-008 — Connector OAuth and Token Storage Strategy
 
 **Status**: accepted
 **Date**: 2026-03-09

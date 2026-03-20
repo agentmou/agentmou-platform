@@ -103,6 +103,6 @@ other workspaces.
 ## Related Docs
 
 - [Web App Architecture](../../docs/architecture/apps-web.md)
-- [Current Implementation vs Target Plan](../../docs/architecture/current-implementation.md)
-- [Honest UI Audit — March 2026](../../docs/architecture/honest-ui-audit-2026-03.md)
-- [Monorepo Map](../../docs/architecture/monorepo-map.md)
+- [Current State](../../docs/architecture/current-state.md)
+- [Honest UI Audit — March 2026](../../docs/archive/architecture/honest-ui-audit-2026-03.md)
+- [Repository Map](../../docs/repo-map.md)

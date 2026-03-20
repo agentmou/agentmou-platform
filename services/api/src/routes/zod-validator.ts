@@ -28,6 +28,7 @@ function toFastifyValidationError(issue: ZodIssue): FastifySchemaValidationError
   };
 }
 
+/** Fastify schema compiler that delegates validation to Zod schemas. */
 export const zodValidatorCompiler: FastifySchemaCompiler<unknown> = ({
   schema,
   method,

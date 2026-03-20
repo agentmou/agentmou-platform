@@ -4,13 +4,17 @@ import { z } from 'zod';
 // Installation status
 // ---------------------------------------------------------------------------
 
+/** Lifecycle states for installed agents and workflows. */
 export const InstalledStatusSchema = z.enum(['active', 'paused', 'error', 'configuring']);
+
+/** TypeScript view of installation lifecycle states. */
 export type InstalledStatus = z.infer<typeof InstalledStatusSchema>;
 
 // ---------------------------------------------------------------------------
 // Installed Agent
 // ---------------------------------------------------------------------------
 
+/** Tenant-scoped installed agent record. */
 export const InstalledAgentSchema = z.object({
   id: z.string(),
   tenantId: z.string(),
@@ -25,12 +29,14 @@ export const InstalledAgentSchema = z.object({
   kpiValues: z.record(z.number()).default({}),
 });
 
+/** TypeScript shape for an installed agent. */
 export type InstalledAgent = z.infer<typeof InstalledAgentSchema>;
 
 // ---------------------------------------------------------------------------
 // Installed Workflow
 // ---------------------------------------------------------------------------
 
+/** Tenant-scoped installed workflow record. */
 export const InstalledWorkflowSchema = z.object({
   id: z.string(),
   tenantId: z.string(),
@@ -43,25 +49,31 @@ export const InstalledWorkflowSchema = z.object({
   runsSuccess: z.number(),
 });
 
+/** TypeScript shape for an installed workflow. */
 export type InstalledWorkflow = z.infer<typeof InstalledWorkflowSchema>;
 
+/** Grouped installation payload returned by the API. */
 export const InstallationCollectionSchema = z.object({
   agents: z.array(InstalledAgentSchema),
   workflows: z.array(InstalledWorkflowSchema),
 });
 
+/** TypeScript shape for grouped installations. */
 export type InstallationCollection = z.infer<typeof InstallationCollectionSchema>;
 
+/** Response payload for installation listing endpoints. */
 export const InstallationsResponseSchema = z.object({
   installations: InstallationCollectionSchema,
 });
 
+/** TypeScript shape for the installations response. */
 export type InstallationsResponse = z.infer<typeof InstallationsResponseSchema>;
 
 // ---------------------------------------------------------------------------
 // Installation process
 // ---------------------------------------------------------------------------
 
+/** Per-step lifecycle states for an install run. */
 export const InstallStepStatusSchema = z.enum([
   'pending',
   'in_progress',
@@ -69,8 +81,11 @@ export const InstallStepStatusSchema = z.enum([
   'failed',
   'skipped',
 ]);
+
+/** TypeScript view of install step lifecycle states. */
 export type InstallStepStatus = z.infer<typeof InstallStepStatusSchema>;
 
+/** Single step inside an installation run. */
 export const InstallStepSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -81,8 +96,10 @@ export const InstallStepSchema = z.object({
   error: z.string().optional(),
 });
 
+/** TypeScript shape for an installation step. */
 export type InstallStep = z.infer<typeof InstallStepSchema>;
 
+/** End-to-end installation run payload shared with the UI. */
 export const InstallRunSchema = z.object({
   id: z.string(),
   tenantId: z.string(),
@@ -101,4 +118,5 @@ export const InstallRunSchema = z.object({
   completedAt: z.string().optional(),
 });
 
+/** TypeScript shape for an installation run. */
 export type InstallRun = z.infer<typeof InstallRunSchema>;

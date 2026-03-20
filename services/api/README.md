@@ -1,7 +1,7 @@
 # @agentmou/api
 
 Fastify-based control-plane API for tenants, catalog access, installations,
-connectors, approvals, and run orchestration.
+connectors, approvals, public chat, and run orchestration.
 
 ## Purpose
 
@@ -13,6 +13,7 @@ BullMQ.
 ## Responsibilities
 
 - Expose public authentication and catalog endpoints.
+- Expose a public chat endpoint for the marketing experience.
 - Protect authenticated and tenant-scoped routes with JWT and membership checks.
 - Validate selected request bodies with Zod-based validators.
 - Persist tenants, memberships, connectors, secrets, installations, runs, and
@@ -62,6 +63,7 @@ curl http://localhost:3001/health
 | `/health` | Liveness check |
 | `/api/v1/auth` | Register, login, and current-user lookup |
 | `/api/v1/catalog` | Agent, pack, workflow, category, and search access |
+| `/public/chat` | Public chat route backed by shared contracts |
 | `/api/v1/oauth/callback` | Public Google OAuth callback |
 
 ### Authenticated Routes
@@ -91,6 +93,8 @@ route shape exists even where the implementation is still thin.
 - `src/modules/runs` creates run records and triggers agent or workflow jobs.
 - `src/modules/approvals` manages human-in-the-loop requests and decisions.
 - `src/modules/n8n` adapts workflow import/export/execute operations to `@agentmou/n8n-client`.
+- `src/modules/public-chat` exposes the public chat route and its backing
+  service.
 
 ## Configuration
 
@@ -127,6 +131,7 @@ pnpm --filter @agentmou/api build
 
 ## Related Docs
 
-- [Current Implementation vs Target Plan](../../docs/architecture/current-implementation.md)
+- [Current State](../../docs/architecture/current-state.md)
+- [Repository Map](../../docs/repo-map.md)
 - [ADR-007: n8n Workflow Provisioning](../../docs/adr/007-n8n-workflow-provisioning.md)
 - [ADR-008: Connector OAuth Token Storage](../../docs/adr/008-connector-oauth-token-storage.md)

@@ -57,5 +57,5 @@ pnpm --filter @agentmou/queue lint
 
 ## Related Docs
 
-- [Current Implementation vs Target Plan](../../docs/architecture/current-implementation.md)
+- [Current State](../../docs/architecture/current-state.md)
 - [VPS Operations Runbook](../../docs/runbooks/vps-operations.md)

@@ -1,5 +1,6 @@
 import { Job } from 'bullmq';
 
+/** Payload accepted by the placeholder document ingestion job. */
 export interface IngestDocumentJobData {
   tenantId: string;
   documentId: string;
@@ -8,6 +9,7 @@ export interface IngestDocumentJobData {
   metadata?: Record<string, any>;
 }
 
+/** Placeholder worker job that ingests a document into the retrieval corpus. */
 export class IngestDocumentJob {
   static async process(job: Job<IngestDocumentJobData>) {
     const { tenantId, documentId, sourceType, sourceData, metadata } = job.data;
