@@ -93,10 +93,8 @@ After cloning the repo on the VPS:
 │   └── scripts/
 │       ├── backup.sh
 │       ├── cleanup-validation-tenant.sh
-│       ├── deploy-phase25.sh     # Deprecated wrapper
 │       ├── deploy-prod.sh
 │       ├── setup.sh
-│       ├── deploy.sh             # Deprecated wrapper
 │       ├── smoke-test.sh
 │       └── verify-prod-image-assets.sh
 ├── services/agents/              # Python FastAPI source
@@ -139,9 +137,9 @@ Use the scripts below in this order so the VPS workflow stays coherent:
 | `infra/scripts/backup.sh` | Daily cron or manual backup | Dumps PostgreSQL, snapshots Redis, exports n8n workflows, and captures bind-mounted state while writing outside the git checkout by default |
 | `infra/scripts/cleanup-validation-tenant.sh` | Disposable OAuth or E2E fixture cleanup on the VPS | Wraps the TypeScript cleanup implementation with the host-shell `DATABASE_URL`, `REDIS_URL`, and `N8N_API_URL` values that production cleanup needs |
 
-`infra/scripts/deploy.sh` and `infra/scripts/deploy-phase25.sh` still exist
-for one transition cycle, but they are deprecated compatibility wrappers that
-forward to `deploy-prod.sh`.
+`infra/scripts/deploy-prod.sh` is the only tracked production deploy command.
+If an operator wants a shortcut, keep it as a shell alias outside the repo
+instead of a duplicate tracked script.
 
 ## Deploy (Manual)
 

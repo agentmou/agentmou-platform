@@ -10,8 +10,6 @@ deployment model.
 | `setup.sh` | Bootstrap a fresh VPS checkout after cloning |
 | `verify-prod-image-assets.sh` | Confirm API and worker images include repo-backed assets before deploy |
 | `deploy-prod.sh` | Canonical production deploy entrypoint |
-| `deploy.sh` | Deprecated compatibility wrapper that forwards to `deploy-prod.sh` |
-| `deploy-phase25.sh` | Deprecated compatibility wrapper retained for one transition cycle |
 | `smoke-test.sh` | Public API/catalog/auth verification check |
 | `backup.sh` | Production-safe backup entrypoint |
 | `cleanup-validation-tenant.sh` | VPS wrapper around disposable fixture cleanup |
@@ -24,3 +22,5 @@ deployment model.
   required environment variables.
 - Prefer script-backed procedures over ad hoc shell commands for production
   operations.
+- Keep `deploy-prod.sh` as the only tracked production deploy command. If an
+  operator wants a shortcut, use a shell alias outside the repo.
