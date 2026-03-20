@@ -2,10 +2,16 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# AgentMou Stack — Backup Script
+# AgentMou Stack - Backup Script
 # ---------------------------------------------------------------------------
-# Backs up PostgreSQL, Redis, and n8n workflows.
-# Run from the repo root or set REPO_ROOT explicitly.
+# Backs up PostgreSQL, Redis, n8n workflows, and bind-mounted state.
+#
+# Production-safe defaults write outside the git checkout:
+#   BACKUP_DIR=/var/backups/agentmou
+#   LOCK_FILE=/var/lock/agentmou/backup.lock
+#
+# For local/manual runs, set explicit overrides if those paths are not
+# writable in the current environment.
 #
 # Usage:
 #   bash infra/scripts/backup.sh
@@ -14,31 +20,49 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-BACKUP_DIR="${BACKUP_DIR:-$REPO_ROOT/backups/out}"
+BACKUP_DIR="${BACKUP_DIR:-/var/backups/agentmou}"
 COMPOSE_FILE="$REPO_ROOT/infra/compose/docker-compose.prod.yml"
 TIMESTAMP=$(date +%Y-%m-%d_%H%M%S)
 RETENTION_DAYS=14
-LOCK_FILE="${LOCK_FILE:-}"
+LOCK_FILE="${LOCK_FILE:-/var/lock/agentmou/backup.lock}"
+
+fail() {
+  echo "ERROR: $1" >&2
+  exit 1
+}
+
+ensure_writable_directory() {
+  local directory="$1"
+  local description="$2"
+
+  if mkdir -p "$directory" 2>/dev/null; then
+    :
+  elif [ ! -d "$directory" ]; then
+    fail "Cannot create ${description} at ${directory}. Set an explicit override for local/manual runs."
+  fi
+
+  if [ ! -w "$directory" ]; then
+    fail "${description} is not writable at ${directory}. Set an explicit override for local/manual runs."
+  fi
+}
 
 cleanup_lock_dir() {
-  if [ -n "$LOCK_FILE" ]; then
-    local lock_dir
-    if ! command -v flock >/dev/null 2>&1; then
-      echo "ERROR: flock is required when LOCK_FILE is set"
-      exit 1
-    fi
-    lock_dir="$(dirname "$LOCK_FILE")"
-    mkdir -p "$lock_dir"
-    exec 9>"$LOCK_FILE"
-    if ! flock -n 9; then
-      echo "ERROR: another backup run is already holding $LOCK_FILE"
-      exit 1
-    fi
+  local lock_dir
+
+  if ! command -v flock >/dev/null 2>&1; then
+    fail "flock is required when LOCK_FILE is set"
+  fi
+
+  lock_dir="$(dirname "$LOCK_FILE")"
+  ensure_writable_directory "$lock_dir" "LOCK_FILE parent directory"
+  exec 9>"$LOCK_FILE"
+  if ! flock -n 9; then
+    fail "another backup run is already holding $LOCK_FILE"
   fi
 }
 
 echo "=== AgentMou backup — $TIMESTAMP ==="
-mkdir -p "$BACKUP_DIR"
+ensure_writable_directory "$BACKUP_DIR" "BACKUP_DIR"
 cleanup_lock_dir
 
 # --- PostgreSQL -------------------------------------------------------------
