@@ -104,5 +104,5 @@ other workspaces.
 
 - [Web App Architecture](../../docs/architecture/apps-web.md)
 - [Current State](../../docs/architecture/current-state.md)
-- [Honest UI Audit — March 2026](../../docs/archive/architecture/honest-ui-audit-2026-03.md)
+- [Honest UI Audit Map](./lib/honest-ui/audit.ts)
 - [Repository Map](../../docs/repo-map.md)

@@ -2,17 +2,14 @@
 
 **Validated on**: March 19, 2026
 
-This document is the current, code-verified successor to the archived original
-context in
-[`docs/archive/context/whole-initial-context.md`](../archive/context/whole-initial-context.md).
-
-Use this file for operational understanding of the repository as it exists
-today. Keep the archived initial context as historical background, not as the
-operational source of truth.
+This document is the current, code-verified architecture and operations
+context for the repository. It supersedes the original architecture proposal
+and should be used as the canonical starting point for operational
+understanding of the repo as it exists today.
 
 Active planning derived from this document lives in
-[`../planning/roadmap.md`](../planning/roadmap.md), while retired execution
-plans live under [`../archive/planning/`](../archive/planning/).
+[`../planning/roadmap.md`](../planning/roadmap.md). Retired execution planning
+has been intentionally removed from the active documentation surface.
 
 ## How To Read This Document
 
@@ -285,9 +282,8 @@ The safest current statement is:
 
 ## Delta Versus The Initial Context
 
-The original context in `docs/archive/context/whole-initial-context.md` described the desired
-destination. The repository has since moved from proposal to implementation in
-several areas.
+The original architecture proposal described the desired destination. The
+repository has since moved from proposal to implementation in several areas.
 
 | Theme from the initial context | Current state |
 | --- | --- |
@@ -392,7 +388,6 @@ quality.
 **Conservative correction**
 
 - Use this document as the current architecture context.
-- Preserve the original initial-context file as history.
 - Reconcile future README, roadmap, and implementation notes only after code or
   deployment facts are revalidated.
 
@@ -401,8 +396,8 @@ quality.
 ### Priority 0: Canonicalize the Current Context
 
 - Keep this document linked from the repo entry points.
-- Preserve `docs/archive/context/whole-initial-context.md` as history, not as
-  the operational guide.
+- Keep this document and [`../planning/roadmap.md`](../planning/roadmap.md) as
+  the active architecture and planning context.
 
 ### Priority 1: Fix Contract Drift Across API, Worker, DB, and Web
 
