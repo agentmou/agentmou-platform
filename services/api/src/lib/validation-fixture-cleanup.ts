@@ -21,6 +21,10 @@ import {
   workflowInstallations,
 } from '@agentmou/db';
 import { and, eq, inArray, ne } from 'drizzle-orm';
+import {
+  cleanupInstallationExternalResources,
+  type ExternalInstallationCleanupPlan,
+} from './external-installation-cleanup.js';
 
 export interface ValidationFixtureCleanupInput {
   tenantId: string;
@@ -39,6 +43,10 @@ export interface ValidationFixtureCleanupPlan {
     email: string;
     name: string | null;
   };
+  externalOperations: Array<{
+    label: string;
+    count: number;
+  }>;
   operations: Array<{
     label: string;
     count: number;
@@ -50,6 +58,7 @@ export interface ValidationFixtureCleanupPlan {
       count: number;
     }>;
   };
+  totalExternalResources: number;
   totalRows: number;
 }
 
@@ -66,6 +75,7 @@ interface ValidationFixtureIdentity {
 }
 
 interface ValidationFixtureCleanupContext {
+  externalCleanupPlan: ExternalInstallationCleanupPlan;
   plan: ValidationFixtureCleanupPlan;
   runIds: string[];
   userId: string;
@@ -95,6 +105,16 @@ export class ValidationFixtureCleanupError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'ValidationFixtureCleanupError';
+  }
+}
+
+export class ValidationFixturePartialCleanupError extends ValidationFixtureCleanupError {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message);
+    this.name = 'ValidationFixturePartialCleanupError';
+    if (options?.cause) {
+      this.cause = options.cause;
+    }
   }
 }
 
@@ -158,9 +178,18 @@ export async function executeValidationFixtureCleanup(
 ): Promise<ValidationFixtureCleanupPlan> {
   const context = await buildValidationFixtureCleanupContext(db, input);
 
-  await db.transaction(async (tx) => {
-    await deleteRowsForTenant(tx, context);
-  });
+  await cleanupInstallationExternalResources(context.externalCleanupPlan);
+
+  try {
+    await db.transaction(async (tx) => {
+      await deleteRowsForTenant(tx, context);
+    });
+  } catch (error) {
+    throw new ValidationFixturePartialCleanupError(
+      `External cleanup succeeded but database deletion failed for tenant ${context.tenantId}. Rerun is safe because missing external resources are treated as already cleaned.`,
+      { cause: error },
+    );
+  }
 
   return context.plan;
 }
@@ -269,12 +298,21 @@ async function buildValidationFixtureCleanupContext(
     .where(eq(agentInstallations.tenantId, tenant.id));
 
   const workflowInstallationRows = await db
-    .select({ id: workflowInstallations.id })
+    .select({
+      id: workflowInstallations.id,
+      templateId: workflowInstallations.templateId,
+      n8nWorkflowId: workflowInstallations.n8nWorkflowId,
+    })
     .from(workflowInstallations)
     .where(eq(workflowInstallations.tenantId, tenant.id));
 
   const scheduleRows = await db
-    .select({ id: schedules.id })
+    .select({
+      id: schedules.id,
+      installationId: schedules.installationId,
+      targetType: schedules.targetType,
+      cron: schedules.cron,
+    })
     .from(schedules)
     .where(eq(schedules.tenantId, tenant.id));
 
@@ -339,6 +377,33 @@ async function buildValidationFixtureCleanupContext(
     otherAuditEvents: otherAuditEventRows.length,
     otherApprovalDecisions: otherApprovalDecisionRows.length,
   });
+
+  const externalCleanupPlan = {
+    workflows: workflowInstallationRows.map((workflow) => ({
+      installationId: workflow.id,
+      templateId: workflow.templateId,
+      n8nWorkflowId: workflow.n8nWorkflowId,
+    })),
+    schedules: scheduleRows.map((schedule) => ({
+      id: schedule.id,
+      installationId: schedule.installationId,
+      targetType: schedule.targetType,
+      cron: schedule.cron,
+    })),
+  } satisfies ExternalInstallationCleanupPlan;
+
+  const externalOperations = [
+    {
+      label: 'n8n_workflows',
+      count: externalCleanupPlan.workflows.filter((workflow) =>
+        Boolean(workflow.n8nWorkflowId),
+      ).length,
+    },
+    {
+      label: 'schedule_repeatables',
+      count: externalCleanupPlan.schedules.length,
+    },
+  ];
 
   const operations = [
     {
@@ -426,12 +491,18 @@ async function buildValidationFixtureCleanupContext(
         ownerId: tenant.ownerId,
       },
       user,
+      externalOperations,
       operations,
       userDeletion,
+      totalExternalResources: externalOperations.reduce(
+        (total, operation) => total + operation.count,
+        0,
+      ),
       totalRows:
         operations.reduce((total, operation) => total + operation.count, 0) +
         (userDeletion.willDelete ? 1 : 0),
     },
+    externalCleanupPlan,
   };
 }
 

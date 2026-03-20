@@ -11,6 +11,14 @@ export const QUEUE_NAMES = {
   DAILY_DIGEST: 'daily-digest',
 } as const;
 
+/** BullMQ job name used for persisted cron schedules. */
+export const SCHEDULE_TRIGGER_JOB_NAME = 'schedule-trigger';
+
+/** Builds the repeatable BullMQ job id for a persisted schedule row. */
+export function getScheduleTriggerJobId(scheduleId: string): string {
+  return `schedule-${scheduleId}`;
+}
+
 /** Typed payload for install-pack jobs. */
 export interface InstallPackPayload {
   tenantId: string;

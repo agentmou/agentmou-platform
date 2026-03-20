@@ -10,7 +10,12 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import type { Job } from 'bullmq';
 import type { InstallPackPayload } from '@agentmou/queue';
-import { getQueue, QUEUE_NAMES } from '@agentmou/queue';
+import {
+  getQueue,
+  getScheduleTriggerJobId,
+  QUEUE_NAMES,
+  SCHEDULE_TRIGGER_JOB_NAME,
+} from '@agentmou/queue';
 import { CatalogSDK, resolveRepoRoot } from '@agentmou/catalog-sdk';
 import { N8nClient } from '@agentmou/n8n-client';
 import { db, agentInstallations, workflowInstallations, schedules } from '@agentmou/db';
@@ -200,7 +205,7 @@ async function createSchedule(
 
   const queue = getQueue(QUEUE_NAMES.SCHEDULE_TRIGGER);
   await queue.add(
-    'schedule-trigger',
+    SCHEDULE_TRIGGER_JOB_NAME,
     {
       tenantId,
       scheduleId: schedule.id,
@@ -209,7 +214,7 @@ async function createSchedule(
     },
     {
       repeat: { pattern: cron },
-      jobId: `schedule-${schedule.id}`,
+      jobId: getScheduleTriggerJobId(schedule.id),
     },
   );
 

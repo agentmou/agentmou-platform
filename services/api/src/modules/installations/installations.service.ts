@@ -1,9 +1,10 @@
-import { db, agentInstallations, workflowInstallations } from '@agentmou/db';
+import { db, agentInstallations, schedules, workflowInstallations } from '@agentmou/db';
 import { eq, and } from 'drizzle-orm';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { resolveRepoRoot } from '@agentmou/catalog-sdk';
 import { N8nService } from '../n8n/n8n.service';
+import { cleanupInstallationExternalResources } from '../../lib/external-installation-cleanup.js';
 import {
   mapAgentInstallation,
   mapWorkflowInstallation,
@@ -134,22 +135,114 @@ export class InstallationsService {
   }
 
   async uninstall(tenantId: string, installationId: string) {
-    await db
-      .delete(agentInstallations)
-      .where(
-        and(
-          eq(agentInstallations.tenantId, tenantId),
-          eq(agentInstallations.id, installationId)
-        )
+    const [agentRows, workflowRows, scheduleRows] = await Promise.all([
+      db
+        .select({
+          id: agentInstallations.id,
+          templateId: agentInstallations.templateId,
+        })
+        .from(agentInstallations)
+        .where(
+          and(
+            eq(agentInstallations.tenantId, tenantId),
+            eq(agentInstallations.id, installationId)
+          )
+        ),
+      db
+        .select({
+          id: workflowInstallations.id,
+          templateId: workflowInstallations.templateId,
+          n8nWorkflowId: workflowInstallations.n8nWorkflowId,
+        })
+        .from(workflowInstallations)
+        .where(
+          and(
+            eq(workflowInstallations.tenantId, tenantId),
+            eq(workflowInstallations.id, installationId)
+          )
+        ),
+      db
+        .select({
+          id: schedules.id,
+          installationId: schedules.installationId,
+          targetType: schedules.targetType,
+          cron: schedules.cron,
+        })
+        .from(schedules)
+        .where(
+          and(
+            eq(schedules.tenantId, tenantId),
+            eq(schedules.installationId, installationId)
+          )
+        ),
+    ]);
+
+    const agent = agentRows[0];
+    const workflow = workflowRows[0];
+
+    if (!agent && !workflow) {
+      return;
+    }
+
+    await cleanupInstallationExternalResources({
+      workflows: workflow
+        ? [
+            {
+              installationId: workflow.id,
+              templateId: workflow.templateId,
+              n8nWorkflowId: workflow.n8nWorkflowId,
+            },
+          ]
+        : [],
+      schedules: scheduleRows.map((schedule) => ({
+        id: schedule.id,
+        installationId: schedule.installationId,
+        targetType: schedule.targetType,
+        cron: schedule.cron,
+      })),
+    });
+
+    try {
+      await db.transaction(async (tx) => {
+        await tx
+          .delete(schedules)
+          .where(
+            and(
+              eq(schedules.tenantId, tenantId),
+              eq(schedules.installationId, installationId)
+            )
+          );
+
+        if (agent) {
+          await tx
+            .delete(agentInstallations)
+            .where(
+              and(
+                eq(agentInstallations.tenantId, tenantId),
+                eq(agentInstallations.id, installationId)
+              )
+            );
+        }
+
+        if (workflow) {
+          await tx
+            .delete(workflowInstallations)
+            .where(
+              and(
+                eq(workflowInstallations.tenantId, tenantId),
+                eq(workflowInstallations.id, installationId)
+              )
+            );
+        }
+      });
+    } catch (error) {
+      throw Object.assign(
+        new Error(
+          `External cleanup succeeded but local uninstall failed for installation ${installationId}. Rerun is safe because missing external resources are treated as already cleaned.`,
+        ),
+        { statusCode: 500, cause: error },
       );
-    await db
-      .delete(workflowInstallations)
-      .where(
-        and(
-          eq(workflowInstallations.tenantId, tenantId),
-          eq(workflowInstallations.id, installationId)
-        )
-      );
+    }
   }
 }
 
