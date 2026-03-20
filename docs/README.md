@@ -43,8 +43,3 @@ historical logs.
 
 - [Roadmap](./planning/roadmap.md) is the only planning document that stays in
   the main navigation.
-
-## Archive
-
-- [Archive Index](./archive/README.md) explains where historical context,
-  refactor logs, and retired planning material now live.

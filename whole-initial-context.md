@@ -2,5 +2,7 @@
 
 This legacy path is kept as a compatibility stub.
 
-The archived original context now lives at
-[`docs/archive/context/whole-initial-context.md`](./docs/archive/context/whole-initial-context.md).
+The original historical context document was intentionally removed when the
+docs surface was collapsed into the current canonical set. Use
+[`docs/architecture/current-state.md`](./docs/architecture/current-state.md)
+as the current repository context instead.

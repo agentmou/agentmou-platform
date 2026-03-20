@@ -3,12 +3,8 @@
 This roadmap reflects the current repository state and the architecture
 direction in
 [`current-state.md`](../architecture/current-state.md).
-
-Historical execution planning now lives in:
-
-- [`docs/archive/planning/action-plan.md`](../archive/planning/action-plan.md)
-- [`docs/archive/planning/epic-template.md`](../archive/planning/epic-template.md)
-- the archived epic portfolio under `docs/archive/planning/epics/`
+It is the only active planning document kept in the main docs surface.
+Historical execution plans have been intentionally removed.
 
 ## Completed
 
@@ -130,9 +126,8 @@ The next phase is no longer feature-first. It is baseline-first.
 
 ### Track 2: VPS Operations Cleanup
 
-- Keep the guarded validation-fixture cleanup invocation documented with the
-  required host-shell env exports (`DATABASE_URL`, `REDIS_URL`, and
-  `N8N_API_URL`).
+- Keep the guarded validation-fixture cleanup path documented through
+  `infra/scripts/cleanup-validation-tenant.sh`.
 - Preserve the live-verified cleanup behavior in future deploys: temporary
   fixtures and normal uninstall must continue removing external n8n workflows
   and BullMQ repeatables before local rows are deleted.

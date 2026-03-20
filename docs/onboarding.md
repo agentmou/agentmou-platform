@@ -77,5 +77,3 @@ pnpm --filter @agentmou/worker typecheck
 
 - Use [Runbooks](./runbooks/README.md) for operational procedures.
 - Use [ADRs](./adr/) for cross-package decisions.
-- Use the [Archive](./archive/README.md) if you need historical reasoning or
-  previous refactor context.

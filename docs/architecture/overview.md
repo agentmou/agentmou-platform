@@ -39,8 +39,3 @@ flowchart TD
 - [Engineering Conventions](./conventions.md) for repo-wide implementation
   rules
 - [ADRs](../adr/) for hard-to-reverse architectural decisions
-
-## Historical Material
-
-- [Archive Index](../archive/README.md) for refactor logs, dated audits, and
-  the original repo context

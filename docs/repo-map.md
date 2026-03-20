@@ -17,7 +17,7 @@ agentmou-platform/
 ├─ catalog/                 # Versioned agent and pack manifests
 ├─ workflows/               # Versioned workflow definitions
 ├─ infra/                   # Compose files, deploy scripts, backups, Traefik
-├─ docs/                    # Canonical docs, runbooks, ADRs, archive
+├─ docs/                    # Canonical docs, runbooks, ADRs, and planning
 ├─ scripts/                 # Repo-level automation and helper scripts
 ├─ turbo.json
 ├─ pnpm-workspace.yaml
@@ -123,8 +123,6 @@ flowchart LR
   subsystem docs.
 - `docs/runbooks/` for operational procedures.
 - `docs/planning/` for the active roadmap only.
-- `docs/archive/` for historical context, refactor logs, and retired planning
-  material.
 
 ## Related Docs
 

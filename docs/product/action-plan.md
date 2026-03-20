@@ -2,5 +2,5 @@
 
 This legacy path is kept as a compatibility stub.
 
-The archived planning document now lives at
-[`../archive/planning/action-plan.md`](../archive/planning/action-plan.md).
+Use [`../planning/roadmap.md`](../planning/roadmap.md) as the only active
+planning entrypoint.
