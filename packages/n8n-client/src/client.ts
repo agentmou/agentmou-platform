@@ -48,7 +48,10 @@ export class N8nClient {
    * The n8n REST API uses POST /workflows with the full workflow body.
    */
   async createWorkflow(workflow: Record<string, unknown>): Promise<N8nWorkflow> {
-    const response = await this.client.post('/workflows', workflow);
+    const response = await this.client.post(
+      '/workflows',
+      sanitizeWorkflowForCreate(workflow),
+    );
     return response.data;
   }
 
@@ -70,4 +73,24 @@ export class N8nClient {
     const response = await this.client.post(`/workflows/${id}/execute`, data);
     return response.data;
   }
+}
+
+/**
+ * n8n rejects top-level read-only fields such as `id` on workflow creation.
+ * Strip only the known create-invalid keys and preserve the node graph as-is.
+ */
+export function sanitizeWorkflowForCreate(
+  workflow: Record<string, unknown>,
+): Record<string, unknown> {
+  const {
+    id: _id,
+    active: _active,
+    createdAt: _createdAt,
+    updatedAt: _updatedAt,
+    versionId: _versionId,
+    isArchived: _isArchived,
+    ...createPayload
+  } = workflow;
+
+  return createPayload;
 }

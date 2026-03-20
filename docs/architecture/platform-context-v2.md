@@ -43,10 +43,10 @@ payloads.
 | Web app | `partial` | Authenticated routes use the API provider, but marketing/demo and some tenant surfaces still rely on demo or empty-default paths |
 | Data plane | `partial` | Worker queues and runtime path are real, but breadth and contract maturity are still limited |
 | Catalog and workflow assets | `partial` | Real installable assets exist, but demo inventory is much larger than the real catalog |
-| Infrastructure model | `partial` | Production compose and deploy scripts are present, and the March 19, 2026 VPS inspection plus same-day residual-risk cleanup verified live API, worker, edge, backup cron, protected public routes, and Gmail OAuth. Later on March 19, 2026, `deploy-phase25.sh` also revalidated the live stack from `codex/fix-production-residual-risks` at `d358428`, and the live follow-up list narrowed to provider-backed secret rotation only |
-| Validation baseline | `implemented` | `pnpm typecheck`, `pnpm test`, and `pnpm lint` all pass from the repo root as of March 19, 2026; `pnpm lint` still reports non-blocking warnings |
+| Infrastructure model | `partial` | Production compose and deploy scripts are present, and the March 19-20, 2026 VPS inspection plus follow-up fixes verified live API, worker, edge, backup cron, protected public routes, Gmail OAuth, and the real n8n provisioning path. The remaining live follow-up is no longer key wiring; it is the OpenAI quota state behind the rotated `OPENAI_API_KEY` plus a cleanup hardening gap for external n8n resources |
+| Validation baseline | `implemented` | `pnpm typecheck`, `pnpm test`, and `pnpm lint` all pass from the repo root as of March 19-20, 2026; `pnpm lint` still reports non-blocking warnings |
 
-### Validation Commands Observed On March 19, 2026
+### Validation Commands Observed On March 19-20, 2026
 
 - `pnpm typecheck`: passes
 - `pnpm test`: passes
@@ -55,7 +55,7 @@ payloads.
 The March 17 Vitest resolution failure no longer reproduces in the current repo
 state.
 
-### Operational Verification Snapshot On March 19, 2026
+### Operational Verification Snapshot On March 19-20, 2026
 
 This snapshot separates repository deployment intent from the live production
 truth that was actually verified during this epic.
@@ -80,10 +80,14 @@ truth that was actually verified during this epic.
 | Tracked backup script outside the checkout | `passed` | Manual runs with `BACKUP_DIR=/tmp/agentmou-backup LOCK_FILE=/tmp/agentmou-backup.lock` and later `BACKUP_DIR=/var/backups/agentmou LOCK_FILE=/var/lock/agentmou/backup.lock` produced PostgreSQL, Redis, n8n, and file backups and left `git status` clean |
 | Gmail OAuth end-to-end | `live-verified` | A first live attempt expired the 10-minute state TTL; a second authorize URL completed within the window, `/api/v1/oauth/callback` returned `302` without an OAuth error log, and the connectors API showed `gmail` `connected` for the temporary tenant used for validation |
 | Connector cleanup after OAuth test | `live-verified` | After deploying `d358428` from `codex/fix-production-residual-risks`, a fresh disposable tenant was created through `POST /api/v1/auth/register`, `POST /api/v1/tenants/:tenantId/connectors` returned `201` for `gmail`, `DELETE /api/v1/tenants/:tenantId/connectors/gmail` returned `200`, and `GET /api/v1/tenants/:tenantId/connectors` came back empty. The guarded `scripts/cleanup-validation-tenant.ts` path was then dry-run and execute-verified on both the historical March 19 OAuth fixture and the temporary delete-test tenant, with PostgreSQL post-checks showing `tenants=0`, `memberships=0`, `connector_accounts=0`, and `users=0` for each cleanup target |
+| Provider-backed rotation: `GOOGLE_CLIENT_SECRET` | `live-verified` | After the live `.env` update and service restart, a fresh Gmail authorize URL completed successfully and the connectors API again showed `gmail` `connected` for the March 19 validation tenant |
+| Provider-backed rotation: `N8N_API_KEY` | `live-verified` | A direct n8n API call using `X-N8N-API-KEY` succeeded. The real `support-starter` pack path initially exposed missing worker env wiring, then two read-only n8n create-payload fields. After deploying `cabbab85`, `9911bc38`, and `5dbaa108` from `codex/fix-production-residual-risks`, a fresh disposable tenant reached `workflow.status = active` on the first poll on March 20, 2026 |
+| Provider-backed rotation: `OPENAI_API_KEY` | `blocked` | A direct `POST /health/deep` against the agents container with the current `AGENTS_API_KEY` reached OpenAI, but the provider responded with `429 insufficient_quota`; the rotated key is wired through production, but the backing OpenAI quota or billing state is not currently usable |
+| Validation cleanup after live pack provisioning | `partial` | The guarded cleanup script removed both March 20 validation tenants from PostgreSQL and post-checks returned `tenant=0`, `user=0`, `membership=0`, and `workflow_installations=0` for each. One successful fixture had already provisioned an n8n workflow, so the workflow `[ee1e76d6] Auto Label Gmail Messages` was deleted manually through the n8n API afterward. The current cleanup path is therefore DB-scoped, not full external-resource cleanup |
 
 The canonical live statement supported by current evidence is:
 
-> As of March 19, 2026, the VPS host `vps-n8n-agents` is actively running the
+> As of March 20, 2026, the VPS host `vps-n8n-agents` is actively running the
 > AgentMou production stack from `/srv/agentmou-platform`. `api`, `worker`,
 > the edge, the root backup cron, protected public routes, and Gmail OAuth were
 > directly re-verified via `docker compose ps`, the local Traefik health gate,
@@ -97,8 +101,13 @@ The canonical live statement supported by current evidence is:
 > passed again, `DELETE /api/v1/tenants/:tenantId/connectors/gmail` was
 > live-verified against a disposable tenant, and the guarded
 > `scripts/cleanup-validation-tenant.ts` path replaced the March 19 direct-SQL
-> workaround for temporary validation tenants. The remaining live operational
-> gap is provider-backed secret rotation.
+> workaround for temporary validation tenants. On March 20, 2026, the same
+> branch also live-verified the rotated `GOOGLE_CLIENT_SECRET` and
+> `N8N_API_KEY`, plus the real queued pack-provisioning path into n8n, after
+> deploying `cabbab85`, `9911bc38`, and `5dbaa108`. The remaining live
+> operational gap is the OpenAI quota state behind the rotated
+> `OPENAI_API_KEY`, and the remaining cleanup hardening gap is external n8n
+> workflow deletion for temporary validation fixtures.
 
 ## Current Architecture
 
@@ -131,7 +140,7 @@ The API has 14 module directories under `services/api/src/modules`.
 | `memberships` | `implemented` | Tenant membership listing and management |
 | `catalog` | `implemented` | Loads manifests from `catalog/` and `workflows/` through `@agentmou/catalog-sdk` |
 | `installations` | `partial` | Real installs and queued pack installs; uninstall exists; no broader lifecycle management yet |
-| `connectors` | `partial` | Real DB-backed connectors plus live-validated Gmail OAuth, but response shapes are not aligned with shared contracts and the delete path still fails when called with a provider alias instead of a row UUID |
+| `connectors` | `partial` | Real DB-backed connectors plus live-validated Gmail OAuth; `DELETE /connectors/:connectorId` now works with either a row UUID or a provider slug like `gmail`, but response shapes are still not aligned with shared contracts |
 | `secrets` | `partial` | Real persistence exists, but broader governance and UI integration are limited |
 | `approvals` | `partial` | Real CRUD/decision flow, but payload shape drifts from shared contracts |
 | `runs` | `partial` | Real run creation and DB-backed retrieval, but contract shape is not yet stable |

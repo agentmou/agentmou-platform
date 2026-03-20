@@ -100,8 +100,12 @@ revalidates the live state explicitly.
   again from `codex/fix-production-residual-risks`, `DELETE /connectors/gmail`
   was revalidated live on a disposable tenant, and the guarded
   `scripts/cleanup-validation-tenant.ts` path replaced the ad hoc SQL cleanup
-  for temporary validation fixtures. The remaining production-truth live
-  follow-up is now provider-backed secret rotation only.
+  for temporary validation fixtures. On March 20, 2026, the same branch
+  live-verified the rotated `GOOGLE_CLIENT_SECRET` and `N8N_API_KEY`, plus
+  the real queued n8n provisioning path, after deploying follow-up worker
+  fixes. The remaining production-truth live follow-up is now the OpenAI quota
+  state behind `OPENAI_API_KEY`, plus cleanup hardening for external n8n
+  workflows created by disposable validation fixtures.
 
 ## Next (Phase 3: Production Hardening)
 
@@ -122,8 +126,10 @@ The next phase is no longer feature-first. It is baseline-first.
 
 ### Track 2: VPS Operations Cleanup
 
-- Rotate any provider-backed secrets that were exposed by historical `.env`
-  backups through their source systems.
+- Restore usable quota or billing for the rotated `OPENAI_API_KEY`, then
+  re-run the direct `agents` deep-health check.
+- Extend temporary-fixture and uninstall cleanup so n8n workflows are deleted
+  along with their local installation rows.
 
 ### Track 3: Catalog Convergence
 
