@@ -1,0 +1,53 @@
+id: <agent-id>
+name: <Agent Display Name>
+version: 0.1.0
+description: <Decision-making agent that hands off deterministic execution>
+category: ops
+author: AgentMou Team
+tags:
+  - hybrid
+  - orchestration
+  - <tag-one>
+triggers:
+  - type: webhook
+    event: <domain.event.name>
+runtime:
+  requiredConnectors:
+    - <primary-connector>
+  credentialStrategy: platform_managed
+  installStrategy: platform_managed_installation
+  runtimeOwner: agent_engine
+  linkedWorkflows:
+    - <workflow-id>
+catalog:
+  outcome: <Business outcome delivered by the combined pattern>
+  domain: ops
+  inputs:
+    - <primary-input>
+    - connector_context
+  outputs:
+    - workflow_request
+    - review_decision
+  riskLevel: medium
+  hitl: recommended
+  kpis:
+    - name: <Primary KPI name>
+      description: <How success is measured>
+  complexity: M
+  channel: stable
+  setupTimeMinutes: 30
+  monthlyPrice: null
+  availability: available
+  audience: business
+  source: manifest
+  catalogGroup: ops
+  family: orchestration
+  subdomain: <subdomain-name>
+  tags:
+    - hybrid
+    - orchestration
+  featured: false
+  visibility: public
+metadata:
+  createdAt: '2026-03-21'
+  updatedAt: '2026-03-21'

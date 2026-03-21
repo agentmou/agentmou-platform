@@ -5,6 +5,9 @@ here, then open the procedure that matches the task you need to perform.
 
 ## Available Runbooks
 
+- [Agent Authoring and Promotion](./agent-authoring-and-promotion.md) for
+  turning a reference product-agent skeleton into a canonical Git-tracked
+  template and validating its tenant install path.
 - [Deployment Runbook](./deployment.md) for local stack setup, VPS deploys,
   health verification, fixture cleanup, and provider-backed secret rotation.
 - [Workflow Authoring and Promotion](./workflow-authoring-and-promotion.md) for

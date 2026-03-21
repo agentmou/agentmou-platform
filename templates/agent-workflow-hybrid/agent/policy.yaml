@@ -1,0 +1,13 @@
+permissions:
+  <primary-connector>:
+    read: true
+    write: true
+
+constraints:
+  min_confidence_threshold: 0.7
+  require_human_review_for:
+    - <high-risk-scenario>
+
+audit:
+  log_all_actions: true
+  retain_logs_days: 30

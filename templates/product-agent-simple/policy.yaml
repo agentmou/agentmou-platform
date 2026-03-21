@@ -1,0 +1,16 @@
+permissions:
+  <connector-name>:
+    read: true
+    write: true
+
+rate_limits:
+  api_calls_per_minute: 60
+
+constraints:
+  min_confidence_threshold: 0.6
+  require_human_review_for:
+    - <high-risk-action>
+
+audit:
+  log_all_actions: true
+  retain_logs_days: 30

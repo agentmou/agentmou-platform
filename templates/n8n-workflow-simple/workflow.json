@@ -1,0 +1,57 @@
+{
+  "name": "<Workflow Display Name>",
+  "nodes": [
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [260, 300],
+      "parameters": {
+        "path": "REPLACE_ME_PATH",
+        "httpMethod": "POST"
+      }
+    },
+    {
+      "name": "Transform Payload",
+      "type": "n8n-nodes-base.set",
+      "position": [520, 300],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "normalizedField",
+              "value": "={{$json.inputField}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [780, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://REPLACE_ME_ENDPOINT",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"value\": $json.normalizedField}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "RUNTIME_STUB",
+          "name": "RUNTIME_STUB"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Transform Payload", "type": "main", "index": 0 }]]
+    },
+    "Transform Payload": {
+      "main": [[{ "node": "HTTP Request", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {}
+}

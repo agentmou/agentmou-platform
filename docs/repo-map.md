@@ -15,6 +15,7 @@ agentmou-platform/
 │  └─ worker/               # BullMQ workers
 ├─ packages/                # Shared internal libraries
 ├─ catalog/                 # Versioned agent and pack manifests
+├─ templates/               # Non-installable agent/workflow skeletons
 ├─ workflows/               # Versioned workflow definitions
 ├─ infra/                   # Compose files, deploy scripts, backups, Traefik
 ├─ docs/                    # Canonical docs, runbooks, ADRs, and planning
@@ -108,6 +109,9 @@ flowchart LR
 - `catalog/`
   - Installable agent and pack manifests. The live catalog currently includes
     the `inbox-triage` agent and packs such as `support-starter`.
+- `templates/`
+  - Reference-only skeletons for future agents, workflows, and hybrid
+    patterns. These files are intentionally outside the live catalog paths.
 - `workflows/`
   - Public and planned workflow manifests plus n8n workflow JSON.
 - `infra/compose/`
