@@ -1,0 +1,70 @@
+id: <workflow-id>
+name: <Workflow Display Name>
+version: 0.1.0
+description: <Deterministic workflow executed after agent approval>
+type: n8n
+status: public
+category: ops
+trigger:
+  type: event
+  event: <domain.event.name>
+steps:
+  - id: 1
+    name: Receive Workflow Request
+    type: trigger
+    node: webhook
+  - id: 2
+    name: Create Operational Record
+    type: action
+    node: httpRequest
+  - id: 3
+    name: Notify Stakeholders
+    type: action
+    node: slack
+    action: sendMessage
+runtime:
+  requiredConnectors:
+    - <primary-connector>
+    - slack
+  credentialStrategy: platform_managed
+  installStrategy: shared_n8n_per_installation
+  runtimeOwner: n8n
+catalog:
+  summary: <Short catalog summary>
+  integrations:
+    - <primary-connector>
+    - slack
+  output: <Operational side effects produced by the workflow>
+  useCase: <When the linked agent should dispatch this workflow>
+  riskLevel: low
+  changelog:
+    - '0.1.0: Initial workflow template'
+  nodesOverview:
+    - id: receive-request
+      type: trigger
+      name: Receive Workflow Request
+      description: Accept the agent-generated workflow payload
+    - id: create-record
+      type: action
+      name: Create Operational Record
+      description: Persist the deterministic execution target
+    - id: notify-stakeholders
+      type: action
+      name: Notify Stakeholders
+      description: Send the final handoff notification
+  availability: available
+  source: manifest
+  catalogGroups:
+    - ops
+  family: orchestration
+  tags:
+    - hybrid
+    - orchestration
+  featured: false
+  visibility: public
+metadata:
+  author: AgentMou Team
+  createdAt: '2026-03-21'
+  updatedAt: '2026-03-21'
+  executionCount: 0
+  avgExecutionTime: 0s

@@ -1,0 +1,69 @@
+id: <workflow-id>
+name: <Workflow Display Name>
+version: 0.1.0
+description: <One-sentence description of the deterministic outcome>
+type: n8n
+status: public
+category: ops
+trigger:
+  type: webhook
+  event: <domain.event.name>
+  config:
+    source: <runtime-source-stub>
+steps:
+  - id: 1
+    name: Receive Event
+    type: trigger
+    node: webhook
+  - id: 2
+    name: Transform Payload
+    type: action
+    node: set
+  - id: 3
+    name: Call External System
+    type: action
+    node: httpRequest
+runtime:
+  requiredConnectors:
+    - <connector-name>
+  credentialStrategy: platform_managed
+  installStrategy: shared_n8n_per_installation
+  runtimeOwner: n8n
+catalog:
+  summary: <Short catalog summary>
+  integrations:
+    - <connector-name>
+  output: <What the workflow produces>
+  useCase: <When this workflow should be installed>
+  riskLevel: low
+  changelog:
+    - '0.1.0: Initial workflow template'
+  nodesOverview:
+    - id: receive-event
+      type: trigger
+      name: Receive Event
+      description: Accept the upstream payload
+    - id: transform-payload
+      type: action
+      name: Transform Payload
+      description: Normalize the payload for downstream nodes
+    - id: call-external-system
+      type: action
+      name: Call External System
+      description: Execute the final deterministic side effect
+  availability: available
+  source: manifest
+  catalogGroups:
+    - ops
+  family: <family-name>
+  tags:
+    - <tag-one>
+    - <tag-two>
+  featured: false
+  visibility: public
+metadata:
+  author: AgentMou Team
+  createdAt: '2026-03-21'
+  updatedAt: '2026-03-21'
+  executionCount: 0
+  avgExecutionTime: 0s

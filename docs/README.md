@@ -13,6 +13,9 @@ historical logs.
   system and the most important supporting docs.
 - [AI Surfaces](./architecture/ai-surfaces.md) for the boundary between
   developer agents, product agents, workflows, and runtime ownership.
+- [Template Library](./template-library.md) for reference skeletons that show
+  how to start new agents, workflows, and hybrid assets without polluting the
+  live catalog.
 - [Repository Map](./repo-map.md) for the current workspace layout and runtime
   boundaries.
 - [Testing Guide](./testing.md) for validation commands and where tests live.
@@ -40,6 +43,11 @@ historical logs.
 - [Deployment Guide](./deployment.md) explains which procedure to use in local
   development versus on the VPS.
 - [Runbooks](./runbooks/README.md) indexes detailed operational procedures.
+- [Agent Authoring and Promotion](./runbooks/agent-authoring-and-promotion.md)
+  explains how to promote a reference skeleton into a real product-agent
+  template.
+- [Workflow Authoring and Promotion](./runbooks/workflow-authoring-and-promotion.md)
+  explains how to promote a sanitized n8n workflow template into a real asset.
 - [Infrastructure Overview](../infra/README.md) explains the files under
   `infra/` and where to make production changes.
 

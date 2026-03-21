@@ -37,6 +37,8 @@ flowchart TD
   operations snapshot
 - [AI Surfaces](./ai-surfaces.md) for workflow vs product-agent vs
   developer-agent boundaries
+- [Template Library](../template-library.md) for non-installable skeletons and
+  promotion rules
 - [Repository Map](../repo-map.md) for the workspace layout
 - [Web App Architecture](./apps-web.md) for the current `apps/web` structure
 - [Engineering Conventions](./conventions.md) for repo-wide implementation

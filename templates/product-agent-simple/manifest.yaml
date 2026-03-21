@@ -1,0 +1,57 @@
+id: <agent-id>
+name: <Agent Display Name>
+version: 0.1.0
+description: <One-sentence description of the agent outcome>
+category: core
+author: AgentMou Team
+tags:
+  - <tag-one>
+  - <tag-two>
+capabilities:
+  - connector: <connector-name>
+    access: read_write
+  - action: classify
+triggers:
+  - type: webhook
+    event: <domain.event.name>
+  - type: schedule
+    cron: '0 * * * *'
+runtime:
+  requiredConnectors:
+    - <connector-name>
+  credentialStrategy: platform_managed
+  installStrategy: platform_managed_installation
+  runtimeOwner: agent_engine
+  linkedWorkflows: []
+catalog:
+  outcome: <Business outcome this agent creates>
+  domain: core
+  inputs:
+    - <primary-input>
+    - connector_context
+  outputs:
+    - <primary-output>
+    - audit_log
+  riskLevel: low
+  hitl: optional
+  kpis:
+    - name: <Primary KPI name>
+      description: <How success is measured>
+  complexity: S
+  channel: stable
+  setupTimeMinutes: 15
+  monthlyPrice: null
+  availability: available
+  audience: business
+  source: manifest
+  catalogGroup: core
+  family: <family-name>
+  subdomain: <subdomain-name>
+  tags:
+    - <tag-one>
+    - <tag-two>
+  featured: false
+  visibility: public
+metadata:
+  createdAt: '2026-03-21'
+  updatedAt: '2026-03-21'
