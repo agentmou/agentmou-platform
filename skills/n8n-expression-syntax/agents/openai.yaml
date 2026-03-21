@@ -1,0 +1,4 @@
+interface:
+  display_name: 'n8n Expression Syntax'
+  short_description: 'Write and debug n8n expressions safely'
+  default_prompt: 'Use $n8n-expression-syntax to fix these n8n expressions, especially if the issue involves {{$json}}, {{$node}}, or webhook payload access.'

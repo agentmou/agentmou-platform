@@ -1,0 +1,4 @@
+interface:
+  display_name: 'n8n Node Configuration'
+  short_description: 'Configure n8n nodes operation-by-operation'
+  default_prompt: 'Use $n8n-node-configuration to finish this node configuration correctly, especially if the required fields depend on the selected resource, operation, or body/auth settings.'
