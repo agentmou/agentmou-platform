@@ -9,7 +9,7 @@ set -euo pipefail
 # Behavior:
 #   1. Pull latest code from origin/main
 #   2. Validate required production environment variables
-#   3. Rebuild api, worker, and migrate images
+#   3. Rebuild api, worker, internal-ops, and migrate images
 #   4. Wait for PostgreSQL health and run migrations
 #   5. Restart the stack
 #   6. Gate success on local edge health and the public smoke test
@@ -70,6 +70,27 @@ wait_for_postgres() {
         return 0
       fi
     fi
+    sleep "$delay_seconds"
+  done
+
+  return 1
+}
+
+check_local_https_health() {
+  local host="$1"
+  local label="$2"
+  local max_retries=12
+  local delay_seconds=5
+  local health_url="https://${host}/health"
+
+  for attempt in $(seq 1 "$max_retries"); do
+    http_code=$(curl -sk --resolve "${host}:443:127.0.0.1" -o /dev/null -w "%{http_code}" "$health_url" 2>/dev/null || echo "000")
+    if [ "$http_code" = "200" ]; then
+      ok "${label} health: ${health_url} -> 200"
+      return 0
+    fi
+
+    warn "${label} health attempt ${attempt}/${max_retries} failed: ${health_url} -> $http_code"
     sleep "$delay_seconds"
   done
 
@@ -152,11 +173,20 @@ required_env_vars=(
   GOOGLE_CLIENT_SECRET
   GOOGLE_REDIRECT_URI
   CONNECTOR_ENCRYPTION_KEY
+  INTERNAL_OPS_TENANT_ID
+  INTERNAL_OPS_TELEGRAM_BOT_TOKEN
+  INTERNAL_OPS_TELEGRAM_WEBHOOK_SECRET
+  INTERNAL_OPS_CALLBACK_SECRET
+  OPENCLAW_API_URL
+  OPENCLAW_API_KEY
 )
 
 optional_env_vars=(
   CORS_ORIGIN
   N8N_API_URL
+  INTERNAL_OPS_TELEGRAM_ALLOWED_CHAT_IDS
+  INTERNAL_OPS_TELEGRAM_ALLOWED_USER_IDS
+  OPENCLAW_TIMEOUT_MS
 )
 
 missing_required=0
@@ -174,8 +204,8 @@ if [ "$missing_required" -ne 0 ]; then
   fail "Populate the missing required production env vars in $ENV_FILE and rerun the deploy"
 fi
 
-step "Step 3/6 - Rebuilding API, worker, and migrate images"
-docker compose --profile ops -f "$COMPOSE_FILE" build api worker migrate
+step "Step 3/6 - Rebuilding API, worker, internal-ops, and migrate images"
+docker compose --profile ops -f "$COMPOSE_FILE" build api worker internal-ops migrate
 ok "Images rebuilt"
 
 if [ "$BUILD_ONLY" -eq 1 ]; then
@@ -204,30 +234,24 @@ sleep 10
 step "Step 6/6 - Verifying local edge health and public smoke"
 
 API_HOST="api.${API_DOMAIN}"
-LOCAL_HEALTH_URL="https://${API_HOST}/health"
-MAX_HEALTH_RETRIES=12
-HEALTH_DELAY_SECONDS=5
-HEALTH_OK=0
+OPS_HOST="ops.${API_DOMAIN}"
 
-for attempt in $(seq 1 "$MAX_HEALTH_RETRIES"); do
-  HTTP_CODE=$(curl -sk --resolve "${API_HOST}:443:127.0.0.1" -o /dev/null -w "%{http_code}" "$LOCAL_HEALTH_URL" 2>/dev/null || echo "000")
-  if [ "$HTTP_CODE" = "200" ]; then
-    ok "Local edge health: $LOCAL_HEALTH_URL -> 200"
-    HEALTH_OK=1
-    break
-  fi
-
-  warn "Local health attempt ${attempt}/${MAX_HEALTH_RETRIES} failed: $LOCAL_HEALTH_URL -> $HTTP_CODE"
-  sleep "$HEALTH_DELAY_SECONDS"
-done
-
-if [ "$HEALTH_OK" -ne 1 ]; then
+if ! check_local_https_health "$API_HOST" "API"; then
   docker compose -f "$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
   echo
   docker compose -f "$COMPOSE_FILE" logs --tail 120 api || true
   echo
   docker compose -f "$COMPOSE_FILE" logs --tail 120 traefik || true
   fail "Deploy failed because local edge/API health is unhealthy"
+fi
+
+if ! check_local_https_health "$OPS_HOST" "Internal Ops"; then
+  docker compose -f "$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+  echo
+  docker compose -f "$COMPOSE_FILE" logs --tail 120 internal-ops || true
+  echo
+  docker compose -f "$COMPOSE_FILE" logs --tail 120 traefik || true
+  fail "Deploy failed because internal-ops health is unhealthy"
 fi
 
 echo

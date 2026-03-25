@@ -52,6 +52,8 @@ historical logs.
 - [Internal Ops Operations](./runbooks/internal-ops-operations.md) explains how
   to run the private Telegram/OpenClaw operating system and how it reuses the
   main worker and optional tenant substrate.
+- [OpenClaw Runtime Operations](./runbooks/openclaw-runtime-operations.md)
+  explains how to deploy and verify the separate reasoning-runtime VPS.
 - [Workflow Authoring and Promotion](./runbooks/workflow-authoring-and-promotion.md)
   explains how to promote a sanitized n8n workflow template into a real asset.
 - [Infrastructure Overview](../infra/README.md) explains the files under

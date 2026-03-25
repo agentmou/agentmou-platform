@@ -23,6 +23,7 @@ This subsystem is intentionally separate from tenant-facing product agents.
 ### What This System Is
 
 - A Fastify service at `services/internal-ops`
+- A deployable reasoning runtime at `services/openclaw-runtime`
 - A set of shared contracts under `packages/contracts/src/internal-ops.ts`
 - A persistence slice in `@agentmou/db`
 - A worker-side execution path based on the `internal-work-order` queue
@@ -34,7 +35,6 @@ This subsystem is intentionally separate from tenant-facing product agents.
 - Not a tenant-facing catalog feature
 - Not a generalized multi-tenant control plane
 - Not a replacement for `services/api`
-- Not a local OpenClaw runtime implementation
 - Not a free-form automation shell with unrestricted access to the full product
   surface
 
@@ -45,7 +45,7 @@ flowchart TD
   operator["Operator (Telegram)"]
   webhook["services/internal-ops\nPOST /telegram/webhook"]
   registry["Internal org registry\nCEO, chiefs, subagents"]
-  openclaw["Remote OpenClaw runtime"]
+  openclaw["services/openclaw-runtime\n(separate VPS)"]
   coherence["hc-coherence governor"]
   db["PostgreSQL via @agentmou/db"]
   queue["BullMQ internal-work-order"]
@@ -86,10 +86,11 @@ Responsibilities:
 - persist delegations, protocol events, decisions, and work orders
 - enqueue deterministic follow-up work for `services/worker`
 
-### Remote OpenClaw Runtime
+### `services/openclaw-runtime`
 
-`src/openclaw/openclaw-runner.ts` defines a typed HTTP boundary rather than a
-local runtime implementation.
+`services/internal-ops/src/openclaw/openclaw-runner.ts` defines the typed HTTP
+boundary and `services/openclaw-runtime` provides the deployable server behind
+that boundary.
 
 Supported remote operations:
 
@@ -100,8 +101,8 @@ Supported remote operations:
 - `cancelObjective()`
 - `fetchTrace()`
 
-This keeps the repo-local service authoritative for governance and persistence
-while allowing reasoning to run on a separate VPS or service boundary.
+This keeps the control plane authoritative for governance and persistence while
+allowing reasoning to run on a separate VPS boundary.
 
 ### `hc-coherence`
 

@@ -51,13 +51,13 @@ pnpm dev
 
 ### Service Endpoints (Local)
 
-| Service    | URL                        |
-| ---------- | -------------------------- |
-| Web        | `http://localhost:3000`     |
-| API        | `http://localhost:3001`     |
-| n8n        | `http://localhost:5678`     |
-| PostgreSQL | `localhost:5432`           |
-| Redis      | `localhost:6379`           |
+| Service    | URL                     |
+| ---------- | ----------------------- |
+| Web        | `http://localhost:3000` |
+| API        | `http://localhost:3001` |
+| n8n        | `http://localhost:5678` |
+| PostgreSQL | `localhost:5432`        |
+| Redis      | `localhost:6379`        |
 
 ## Production Deployment (VPS)
 
@@ -72,16 +72,18 @@ before making production-state claims.
 
 Use the infra scripts in this order so the VPS workflow stays predictable:
 
-1. `infra/scripts/setup.sh` for first-time VPS bootstrap after cloning.
+1. `infra/scripts/setup.sh` for first-time AgentMou VPS bootstrap after cloning.
 2. `infra/scripts/verify-prod-image-assets.sh` before shipping API or worker
    changes that depend on repo-backed `catalog/` or `workflows/` assets.
-3. `infra/scripts/deploy-prod.sh` for every production deploy.
-4. `infra/scripts/smoke-test.sh` for standalone public verification.
-5. `infra/scripts/backup.sh` for scheduled or manual backups.
+3. `infra/scripts/deploy-prod.sh` for every main AgentMou VPS deploy.
+4. `infra/scripts/deploy-openclaw.sh` for the dedicated OpenClaw runtime VPS.
+5. `infra/scripts/smoke-test.sh` for standalone public verification.
+6. `infra/scripts/backup.sh` for scheduled or manual backups.
 
-`infra/scripts/deploy-prod.sh` is the only tracked production deploy command.
-If an operator wants a shortcut, keep it as a shell alias outside the repo
-instead of a duplicate tracked script.
+`infra/scripts/deploy-prod.sh` is the tracked deploy command for the main
+AgentMou VPS. `infra/scripts/deploy-openclaw.sh` is the tracked deploy command
+for the dedicated OpenClaw runtime VPS. If an operator wants a shortcut, keep
+it as a shell alias outside the repo instead of a duplicate tracked script.
 
 ### First-time setup
 
@@ -121,13 +123,23 @@ After first deploy or after schema changes:
 docker compose --profile ops -f infra/compose/docker-compose.prod.yml run --rm migrate
 ```
 
+### Deploy the OpenClaw runtime VPS
+
+```bash
+ssh deploy@<openclaw-vps-ip>
+cd /srv/agentmou-platform
+bash infra/scripts/deploy-openclaw.sh
+```
+
 ### Active services
 
-In compose, the `api` and `worker` services start automatically with the
-stack. The `web` service is behind a profile (`--profile web`) because the web
-app is deployed on Vercel instead (`https://agentmou.io`, with `www`
-redirecting to apex). Verify the live VPS state with the checks below rather
-than inferring it from this runbook alone.
+In compose, the `api`, `worker`, and `internal-ops` services start
+automatically with the main stack. The `web` service is behind a profile
+(`--profile web`) because the web app is deployed on Vercel instead
+(`https://agentmou.io`, with `www` redirecting to apex). The OpenClaw runtime
+is intentionally deployed on a separate VPS with
+`infra/scripts/deploy-openclaw.sh`. Verify the live VPS state with the checks
+below rather than inferring it from this runbook alone.
 
 On March 19, 2026, these checks were revalidated from the live VPS checkout at
 `/srv/agentmou-platform`: `git status --short --branch` was clean before the
@@ -147,8 +159,9 @@ Before running `deploy-prod.sh`, inspect `git status --short` on the VPS
 checkout and resolve any unexpected local drift.
 
 ```bash
-# Local deploy gate (through Traefik on the VPS host)
+# Local deploy gates (through Traefik on the VPS host)
 curl -sk --resolve api.DOMAIN:443:127.0.0.1 https://api.DOMAIN/health
+curl -sk --resolve ops.DOMAIN:443:127.0.0.1 https://ops.DOMAIN/health
 
 # Public DNS/TLS/API smoke
 bash infra/scripts/smoke-test.sh
@@ -214,7 +227,7 @@ Order:
 Restart only the affected services after updating `.env`:
 
 ```bash
-docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents worker api
+docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents worker api internal-ops
 ```
 
 Minimum post-rotation verification:

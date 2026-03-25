@@ -10,8 +10,8 @@ across multiple files.
 - One product
 - Three operational surfaces:
   - Product control plane: `apps/web` plus `services/api`
-  - Personal internal ops plane: `services/internal-ops` plus a remote
-    OpenClaw runtime and Telegram operator interface
+  - Personal internal ops plane: `services/internal-ops`,
+    `services/openclaw-runtime`, and the Telegram operator interface
   - Data plane: `services/worker`, `packages/agent-engine`, and n8n-backed
     workflow execution
 - Versioned operational assets live in `catalog/` and `workflows/`, then map to
@@ -23,7 +23,7 @@ across multiple files.
 flowchart TD
   Web["apps/web"] --> API["services/api"]
   Telegram["Telegram"] --> InternalOps["services/internal-ops"]
-  InternalOps --> OpenClaw["Remote OpenClaw"]
+  InternalOps --> OpenClaw["services/openclaw-runtime"]
   InternalOps --> Worker["services/worker"]
   InternalOps --> DB["packages/db"]
   API --> Worker["services/worker"]

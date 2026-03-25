@@ -13,6 +13,8 @@ here, then open the procedure that matches the task you need to perform.
 - [Internal Ops Operations](./internal-ops-operations.md) for the private
   Telegram/OpenClaw operating system, operator webhook setup, capability
   bindings, and approval/resumption flow checks.
+- [OpenClaw Runtime Operations](./openclaw-runtime-operations.md) for the
+  dedicated reasoning-runtime VPS, its compose stack, and deploy procedure.
 - [Workflow Authoring and Promotion](./workflow-authoring-and-promotion.md) for
   turning an n8n prototype into a canonical Git-tracked workflow template and
   validating its tenant install path.
