@@ -1,0 +1,24 @@
+---
+alwaysApply: true
+description: n8n workflow authoring guidance for AgentMou
+---
+
+# n8n Workflow Authoring
+
+When the task is about creating, updating, debugging, or validating an n8n
+workflow in this repo:
+
+1. Prefer the existing `n8n-mcp` connection from `/.cursor/mcp.json` before
+   hand-writing workflow JSON.
+2. Prototype in n8n first, validate iteratively, and only promote to Git when
+   the workflow should become a real AgentMou asset.
+3. Treat n8n as runtime infrastructure, not the source of truth.
+4. Do not commit tenant-specific workflow copies, secrets, or live credential
+   values.
+5. Prefer deterministic workflows in n8n. If the problem is primarily agentic,
+   use the hybrid pattern from `templates/agent-workflow-hybrid/` instead of
+   defaulting to n8n AI-agent behavior.
+6. Follow:
+   - `docs/runbooks/workflow-authoring-and-promotion.md`
+   - `docs/template-library.md`
+   - the repo-local n8n skills under `/skills/`
