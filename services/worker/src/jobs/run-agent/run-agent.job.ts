@@ -19,6 +19,7 @@ import { loadTenantConnectors } from '@agentmou/connectors';
 
 import { logJobMessage } from '../shared/job-log.js';
 import { recordRunUsage } from '../shared/metering.js';
+import { syncInternalExecutionRunResult } from '../internal-work-order/internal-execution-sync.js';
 
 const REPO_ROOT = resolveRepoRoot(import.meta.dirname, ['catalog/agents']);
 const CATALOG_DIR = path.join(REPO_ROOT, 'catalog');
@@ -105,6 +106,22 @@ export async function processRunAgent(job: Job<RunAgentPayload>) {
     tokensUsed: result.tokensUsed?.total,
     costEstimate: result.cost,
     recordedAt: completedAt,
+  });
+
+  await syncInternalExecutionRunResult({
+    runId,
+    status: result.success ? 'success' : 'failed',
+    source: 'agent_installation',
+    summary: result.success
+      ? `Agent installation ${templateId} completed ${result.stepsCompleted} step(s).`
+      : result.error ?? 'Agent execution failed.',
+    metadata: {
+      templateId,
+      stepsCompleted: result.stepsCompleted,
+      durationMs: result.duration,
+      tokensUsed: result.tokensUsed?.total,
+      costEstimate: result.cost,
+    },
   });
 
   await job.updateProgress(100);

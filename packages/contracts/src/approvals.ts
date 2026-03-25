@@ -14,6 +14,14 @@ export const ApprovalActionTypeSchema = z.enum([
   'post_message',
   'transfer_funds',
   'delete_data',
+  'dispatch_workflow',
+  'publish_campaign',
+  'adjust_budget',
+  'change_strategy',
+  'run_agent_installation',
+  'run_workflow_installation',
+  'sync_internal_state',
+  'notify_operator',
 ]);
 
 /** TypeScript view of approval-gated action types. */
@@ -25,6 +33,13 @@ export type ApprovalActionType = z.infer<typeof ApprovalActionTypeSchema>;
 
 /** Status values for a human-in-the-loop approval request. */
 export const ApprovalStatusSchema = z.enum(['pending', 'approved', 'rejected']);
+
+/** Channel or subsystem that originated the approval request. */
+export const ApprovalSourceSchema = z.enum([
+  'web',
+  'telegram',
+  'internal_orchestrator',
+]);
 
 /** Structured context captured alongside an approval request. */
 export const ApprovalContextSchema = z.object({
@@ -46,6 +61,11 @@ export const ApprovalRequestSchema = z.object({
   payloadPreview: z.unknown(),
   context: ApprovalContextSchema,
   status: ApprovalStatusSchema,
+  source: ApprovalSourceSchema.optional(),
+  sourceMetadata: z.record(z.string(), z.unknown()).optional(),
+  resumeToken: z.string().optional(),
+  objectiveId: z.string().uuid().optional(),
+  workOrderId: z.string().uuid().optional(),
   requestedAt: z.string(),
   decidedAt: z.string().optional(),
   decidedBy: z.string().optional(),

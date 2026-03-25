@@ -9,12 +9,13 @@ import { Worker, type Job } from 'bullmq';
 import {
   getConnectionOptions,
   QUEUE_NAMES,
+  type InternalWorkOrderPayload,
   type InstallPackPayload,
   type RunAgentPayload,
   type RunWorkflowPayload,
   type ScheduleTriggerPayload,
 } from '@agentmou/queue';
-import { processInstallPack, processRunAgent, processRunWorkflow, processScheduleTrigger, processApprovalTimeout, type ApprovalTimeoutPayload } from './jobs';
+import { processInstallPack, processRunAgent, processRunWorkflow, processScheduleTrigger, processApprovalTimeout, processInternalWorkOrder, type ApprovalTimeoutPayload } from './jobs';
 
 const connection = getConnectionOptions();
 
@@ -42,6 +43,7 @@ const workers = [
   startWorker<RunWorkflowPayload>(QUEUE_NAMES.RUN_WORKFLOW, processRunWorkflow),
   startWorker<ScheduleTriggerPayload>(QUEUE_NAMES.SCHEDULE_TRIGGER, processScheduleTrigger),
   startWorker<ApprovalTimeoutPayload>(QUEUE_NAMES.APPROVAL_TIMEOUT, processApprovalTimeout),
+  startWorker<InternalWorkOrderPayload>(QUEUE_NAMES.INTERNAL_WORK_ORDER, processInternalWorkOrder),
 ];
 
 async function shutdown() {

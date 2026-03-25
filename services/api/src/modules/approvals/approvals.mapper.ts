@@ -22,11 +22,24 @@ export function mapApproval(
     payloadPreview: approval.payloadPreview ?? {},
     context: normalizeContext(approval.context),
     status: approval.status,
+    source: approval.source ?? undefined,
+    sourceMetadata: normalizeMetadata(approval.sourceMetadata),
+    resumeToken: approval.resumeToken ?? undefined,
+    objectiveId: approval.objectiveId ?? undefined,
+    workOrderId: approval.workOrderId ?? undefined,
     requestedAt: approval.requestedAt.toISOString(),
     decidedAt: approval.decidedAt?.toISOString(),
     decidedBy: approval.decidedBy ?? undefined,
     decisionReason: approval.decisionReason ?? undefined,
   });
+}
+
+function normalizeMetadata(context: unknown): Record<string, unknown> | undefined {
+  if (!isRecord(context)) {
+    return undefined;
+  }
+
+  return { ...context };
 }
 
 function normalizeContext(context: unknown): Record<string, unknown> {

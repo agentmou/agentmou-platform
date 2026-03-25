@@ -169,6 +169,11 @@ export class ApprovalsService {
         description: data.description,
         payloadPreview: data.payloadPreview || {},
         context: data.context || {},
+        source: data.source,
+        sourceMetadata: data.sourceMetadata || {},
+        resumeToken: data.resumeToken,
+        objectiveId: data.objectiveId,
+        workOrderId: data.workOrderId,
         status: 'pending',
       })
       .returning();
@@ -182,6 +187,7 @@ export class ApprovalsService {
         runId: approval.runId,
         actionType: approval.actionType,
         riskLevel: approval.riskLevel,
+        source: approval.source,
       },
     });
 

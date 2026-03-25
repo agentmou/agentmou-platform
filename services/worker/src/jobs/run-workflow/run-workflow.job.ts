@@ -13,6 +13,7 @@ import { N8nClient } from '@agentmou/n8n-client';
 
 import { logJobMessage } from '../shared/job-log.js';
 import { recordRunUsage } from '../shared/metering.js';
+import { syncInternalExecutionRunResult } from '../internal-work-order/internal-execution-sync.js';
 
 const N8N_API_URL = process.env.N8N_API_URL || 'http://n8n:5678/api/v1';
 const N8N_API_KEY = process.env.N8N_API_KEY || '';
@@ -105,6 +106,20 @@ export async function processRunWorkflow(job: Job<RunWorkflowPayload>) {
       recordedAt: completedAt,
     });
 
+    if (result.finished) {
+      await syncInternalExecutionRunResult({
+        runId,
+        status: 'success',
+        source: 'workflow_installation',
+        summary: `Workflow installation ${installation.templateId} completed.`,
+        metadata: {
+          templateId: installation.templateId,
+          durationMs,
+          output: result.data || {},
+        },
+      });
+    }
+
     await job.updateProgress(100);
 
     await logJobMessage(
@@ -140,6 +155,16 @@ export async function processRunWorkflow(job: Job<RunWorkflowPayload>) {
       status: 'failed',
       source: 'workflow_run',
       recordedAt: new Date(),
+    });
+
+    await syncInternalExecutionRunResult({
+      runId,
+      status: 'failed',
+      source: 'workflow_installation',
+      summary: msg,
+      metadata: {
+        templateId: installation?.templateId,
+      },
     });
 
     throw error;

@@ -208,6 +208,311 @@ export const executionSteps = pgTable('execution_steps', {
 });
 
 // ---------------------------------------------------------------------------
+// Internal Ops Agent Registry
+// ---------------------------------------------------------------------------
+
+/** Internal organizational agents used to run AgentMou itself. */
+export const internalAgentProfiles = pgTable('internal_agent_profiles', {
+  id: text('id').primaryKey(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  roleTitle: text('role_title').notNull(),
+  department: text('department').notNull(),
+  mission: text('mission').notNull(),
+  parentAgentId: text('parent_agent_id'),
+  kpis: jsonb('kpis').default([]),
+  allowedTools: jsonb('allowed_tools').default([]),
+  allowedCapabilities: jsonb('allowed_capabilities').default([]),
+  allowedWorkflowTags: jsonb('allowed_workflow_tags').default([]),
+  memoryScope: text('memory_scope').notNull(),
+  riskBudget: text('risk_budget').notNull().default('low'),
+  participantBudget: integer('participant_budget').notNull().default(4),
+  maxDelegationDepth: integer('max_delegation_depth').notNull().default(3),
+  escalationPolicy: text('escalation_policy').notNull(),
+  playbooks: jsonb('playbooks').default([]),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+/** Hierarchical links between internal organizational agents. */
+export const internalAgentRelationships = pgTable('internal_agent_relationships', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  parentAgentId: text('parent_agent_id')
+    .notNull()
+    .references(() => internalAgentProfiles.id),
+  childAgentId: text('child_agent_id')
+    .notNull()
+    .references(() => internalAgentProfiles.id),
+  relationship: text('relationship').notNull().default('manages'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Internal Ops Sessions And Objectives
+// ---------------------------------------------------------------------------
+
+/** Channel session state for the internal multi-agent operating system. */
+export const internalConversationSessions = pgTable('internal_conversation_sessions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  channel: text('channel').notNull(),
+  externalChatId: text('external_chat_id').notNull(),
+  externalUserId: text('external_user_id').notNull(),
+  status: text('status').notNull().default('active'),
+  currentObjectiveId: uuid('current_objective_id'),
+  openclawSessionId: text('openclaw_session_id'),
+  lastMessage: text('last_message'),
+  lastMessageAt: timestamp('last_message_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+/** Objectives tracked across internal multi-agent sessions. */
+export const internalObjectives = pgTable('internal_objectives', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  sessionId: uuid('session_id')
+    .notNull()
+    .references(() => internalConversationSessions.id),
+  runId: uuid('run_id')
+    .notNull()
+    .references(() => executionRuns.id),
+  ownerAgentId: text('owner_agent_id')
+    .notNull()
+    .references(() => internalAgentProfiles.id),
+  rootAgentId: text('root_agent_id')
+    .notNull()
+    .references(() => internalAgentProfiles.id),
+  openclawSessionId: text('openclaw_session_id'),
+  title: text('title').notNull(),
+  summary: text('summary').notNull(),
+  status: text('status').notNull().default('active'),
+  requestedBy: text('requested_by').notNull(),
+  sourceMessage: text('source_message').notNull(),
+  coherenceSummary: jsonb('coherence_summary').default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  completedAt: timestamp('completed_at'),
+});
+
+// ---------------------------------------------------------------------------
+// Internal Ops Delegations, Work Orders, Decisions
+// ---------------------------------------------------------------------------
+
+/** Delegations exchanged between internal organizational agents. */
+export const internalDelegations = pgTable('internal_delegations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  objectiveId: uuid('objective_id')
+    .notNull()
+    .references(() => internalObjectives.id),
+  sessionId: uuid('session_id')
+    .notNull()
+    .references(() => internalConversationSessions.id),
+  senderAgentId: text('sender_agent_id')
+    .notNull()
+    .references(() => internalAgentProfiles.id),
+  recipientAgentId: text('recipient_agent_id')
+    .notNull()
+    .references(() => internalAgentProfiles.id),
+  parentDelegationId: uuid('parent_delegation_id'),
+  depth: integer('depth').notNull().default(0),
+  kind: text('kind').notNull(),
+  status: text('status').notNull().default('created'),
+  envelope: jsonb('envelope').default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  completedAt: timestamp('completed_at'),
+});
+
+/** Typed work orders emitted by the internal orchestrator for execution. */
+export const internalWorkOrders = pgTable('internal_work_orders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  objectiveId: uuid('objective_id')
+    .notNull()
+    .references(() => internalObjectives.id),
+  delegationId: uuid('delegation_id').references(() => internalDelegations.id),
+  parentDelegationId: uuid('parent_delegation_id').references(
+    () => internalDelegations.id
+  ),
+  agentId: text('agent_id')
+    .notNull()
+    .references(() => internalAgentProfiles.id),
+  workType: text('work_type').notNull(),
+  status: text('status').notNull().default('queued'),
+  executionTarget: text('execution_target').notNull().default('native'),
+  capabilityKey: text('capability_key'),
+  openclawSessionId: text('openclaw_session_id'),
+  executionRunId: uuid('execution_run_id').references(() => executionRuns.id),
+  resumeFromWorkOrderId: uuid('resume_from_work_order_id'),
+  title: text('title').notNull(),
+  summary: text('summary').notNull(),
+  requiresApproval: boolean('requires_approval').notNull().default(false),
+  approvalRequestId: uuid('approval_request_id'),
+  payload: jsonb('payload').default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  completedAt: timestamp('completed_at'),
+});
+
+/** Decisions and review outcomes attached to internal objectives. */
+export const internalDecisions = pgTable('internal_decisions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  objectiveId: uuid('objective_id')
+    .notNull()
+    .references(() => internalObjectives.id),
+  workOrderId: uuid('work_order_id').references(() => internalWorkOrders.id),
+  agentId: text('agent_id')
+    .notNull()
+    .references(() => internalAgentProfiles.id),
+  outcome: text('outcome').notNull(),
+  summary: text('summary').notNull(),
+  rationale: text('rationale').notNull(),
+  metadata: jsonb('metadata').default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+/** Artifacts produced by internal work orders and review loops. */
+export const internalArtifacts = pgTable('internal_artifacts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  objectiveId: uuid('objective_id')
+    .notNull()
+    .references(() => internalObjectives.id),
+  workOrderId: uuid('work_order_id').references(() => internalWorkOrders.id),
+  executionRunId: uuid('execution_run_id').references(() => executionRuns.id),
+  agentId: text('agent_id')
+    .notNull()
+    .references(() => internalAgentProfiles.id),
+  artifactType: text('artifact_type').notNull(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  metadata: jsonb('metadata').default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+/** Persisted protocol envelopes and coherence cycle outputs for auditability. */
+export const internalProtocolEvents = pgTable('internal_protocol_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  sessionId: uuid('session_id').references(() => internalConversationSessions.id),
+  objectiveId: uuid('objective_id').references(() => internalObjectives.id),
+  delegationId: uuid('delegation_id').references(() => internalDelegations.id),
+  remoteSessionId: text('remote_session_id'),
+  source: text('source').notNull(),
+  sourceEventId: text('source_event_id'),
+  eventKey: text('event_key').unique(),
+  eventType: text('event_type').notNull(),
+  businessEnvelope: jsonb('business_envelope').default({}),
+  coherenceArtifacts: jsonb('coherence_artifacts').default({}),
+  traceReference: jsonb('trace_reference').default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+/** Structured memory entries for objectives, sessions, and agents. */
+export const internalMemoryEntries = pgTable('internal_memory_entries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  objectiveId: uuid('objective_id').references(() => internalObjectives.id),
+  sessionId: uuid('session_id').references(() => internalConversationSessions.id),
+  agentId: text('agent_id').references(() => internalAgentProfiles.id),
+  scope: text('scope').notNull(),
+  title: text('title').notNull(),
+  summary: text('summary').notNull(),
+  details: jsonb('details').default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+/** Bound OpenClaw remote sessions for internal objectives. */
+export const internalOpenClawSessions = pgTable('internal_openclaw_sessions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  objectiveId: uuid('objective_id')
+    .notNull()
+    .references(() => internalObjectives.id),
+  remoteSessionId: text('remote_session_id').notNull().unique(),
+  status: text('status').notNull().default('active'),
+  activeAgentId: text('active_agent_id')
+    .notNull()
+    .references(() => internalAgentProfiles.id),
+  primaryAgentId: text('primary_agent_id')
+    .notNull()
+    .references(() => internalAgentProfiles.id),
+  traceReference: jsonb('trace_reference').default({}),
+  metadata: jsonb('metadata').default({}),
+  lastTurnAt: timestamp('last_turn_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+/** Telegram message ledger for inbound and outbound operator communication. */
+export const internalTelegramMessages = pgTable('internal_telegram_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  sessionId: uuid('session_id').references(() => internalConversationSessions.id),
+  objectiveId: uuid('objective_id').references(() => internalObjectives.id),
+  direction: text('direction').notNull(),
+  mode: text('mode').notNull(),
+  chatId: text('chat_id').notNull(),
+  userId: text('user_id'),
+  updateId: integer('update_id'),
+  messageId: integer('message_id'),
+  callbackQueryId: text('callback_query_id'),
+  dedupeKey: text('dedupe_key').notNull().unique(),
+  payload: jsonb('payload').default({}),
+  deliveredAt: timestamp('delivered_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+/** Tenant-scoped bindings from internal capabilities to execution targets. */
+export const internalCapabilityBindings = pgTable('internal_capability_bindings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  capabilityKey: text('capability_key').notNull(),
+  title: text('title').notNull(),
+  description: text('description'),
+  targetType: text('target_type').notNull(),
+  agentInstallationId: uuid('agent_installation_id').references(
+    () => agentInstallations.id
+  ),
+  workflowInstallationId: uuid('workflow_installation_id').references(
+    () => workflowInstallations.id
+  ),
+  enabled: boolean('enabled').notNull().default(true),
+  config: jsonb('config').default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
 // Approval Requests
 // ---------------------------------------------------------------------------
 
@@ -230,6 +535,11 @@ export const approvalRequests = pgTable('approval_requests', {
   payloadPreview: jsonb('payload_preview').default({}),
   context: jsonb('context').default({}),
   status: text('status').notNull().default('pending'),
+  source: text('source'),
+  sourceMetadata: jsonb('source_metadata').default({}),
+  resumeToken: text('resume_token'),
+  objectiveId: uuid('objective_id'),
+  workOrderId: uuid('work_order_id'),
   requestedAt: timestamp('requested_at').defaultNow().notNull(),
   decidedAt: timestamp('decided_at'),
   decidedBy: uuid('decided_by').references(() => users.id),
