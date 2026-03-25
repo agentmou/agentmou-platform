@@ -11,6 +11,8 @@ deployment model.
 | `verify-prod-image-assets.sh`  | Confirm API and worker images include repo-backed assets before deploy |
 | `deploy-prod.sh`               | Canonical production deploy entrypoint                                 |
 | `deploy-openclaw.sh`           | Canonical deploy entrypoint for the dedicated OpenClaw runtime VPS     |
+| `register-telegram-webhook.sh` | Register the tracked Telegram webhook for `services/internal-ops`      |
+| `smoke-test-internal-ops.sh`   | Local bring-up verification for `internal-ops` + `openclaw-runtime`    |
 | `smoke-test.sh`                | Public API/catalog/auth verification check                             |
 | `backup.sh`                    | Production-safe backup entrypoint                                      |
 | `cleanup-validation-tenant.sh` | VPS wrapper around disposable fixture cleanup                          |

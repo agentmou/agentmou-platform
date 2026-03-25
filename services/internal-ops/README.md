@@ -175,5 +175,6 @@ pnpm --filter @agentmou/internal-ops build
 
 ## Related Docs
 
+- [Internal Ops Bring-Up](../../docs/runbooks/internal-ops-bring-up.md)
 - [AI Surfaces](../../docs/architecture/ai-surfaces.md)
 - [OpenClaw Runtime Operations](../../docs/runbooks/openclaw-runtime-operations.md)
