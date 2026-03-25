@@ -1,4 +1,0 @@
-interface:
-  display_name: 'n8n Validation Expert'
-  short_description: 'Interpret and fix n8n validation errors'
-  default_prompt: 'Use $n8n-validation-expert to interpret these validation errors, fix the blocking issues first, and decide which warnings matter for an AgentMou workflow.'

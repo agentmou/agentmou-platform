@@ -22,19 +22,18 @@ const parsed = AgentTemplateSchema.parse(rawData);
 
 ### Domain Modules
 
-| Module          | Entities                                                                                                                                   |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `catalog`       | Category, AgentTemplate, WorkflowTemplate, PackTemplate, WorkflowNode, enums (RiskLevel, HITLMode, Complexity, etc.)                       |
-| `tenancy`       | Tenant, TenantMember, UserRole, TenantType, TenantPlan                                                                                     |
-| `installations` | InstalledAgent, InstalledWorkflow, InstallStep, InstallRun                                                                                 |
-| `execution`     | ExecutionRun, ExecutionStep, ExecutionStatus                                                                                               |
-| `approvals`     | ApprovalRequest, ApprovalActionType                                                                                                        |
-| `connectors`    | Integration, N8nConnection                                                                                                                 |
-| `security`      | SecurityFinding, SecurityPolicy, TenantSecurityScore                                                                                       |
-| `billing`       | Invoice, UsageMetric                                                                                                                       |
-| `dashboard`     | DashboardMetrics                                                                                                                           |
-| `chat`          | PublicChatRequest, PublicChatResponse, citations, and actions                                                                              |
-| `internal-ops`  | Internal agent profiles, objectives, delegations, Telegram updates, OpenClaw turn contracts, capability bindings, and internal work orders |
+| Module | Entities |
+| --- | --- |
+| `catalog` | Category, AgentTemplate, WorkflowTemplate, PackTemplate, WorkflowNode, enums (RiskLevel, HITLMode, Complexity, etc.) |
+| `tenancy` | Tenant, TenantMember, UserRole, TenantType, TenantPlan |
+| `installations` | InstalledAgent, InstalledWorkflow, InstallStep, InstallRun |
+| `execution` | ExecutionRun, ExecutionStep, ExecutionStatus |
+| `approvals` | ApprovalRequest, ApprovalActionType |
+| `connectors` | Integration, N8nConnection |
+| `security` | SecurityFinding, SecurityPolicy, TenantSecurityScore |
+| `billing` | Invoice, UsageMetric |
+| `dashboard` | DashboardMetrics |
+| `chat` | PublicChatRequest, PublicChatResponse, citations, and actions |
 
 ### Barrel Exports
 
@@ -53,5 +52,4 @@ pnpm --filter @agentmou/contracts lint
 
 - [Current State](../../docs/architecture/current-state.md)
 - [Repository Map](../../docs/repo-map.md)
-- [Internal Ops Architecture](../../docs/architecture/internal-ops-personal-os.md)
 - [ADR-002: Shared Contracts](../../docs/adr/002-shared-contracts-type-system.md)

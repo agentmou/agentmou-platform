@@ -12,7 +12,6 @@ agentmou-platform/
 ├─ services/
 │  ├─ agents/               # Python FastAPI helper service
 │  ├─ api/                  # Fastify control-plane API
-│  ├─ internal-ops/         # Personal Telegram/OpenClaw operating system
 │  └─ worker/               # BullMQ workers
 ├─ packages/                # Shared internal libraries
 ├─ catalog/                 # Versioned agent and pack manifests
@@ -42,15 +41,9 @@ agentmou-platform/
     connectors, runs, approvals, public chat, and n8n operations.
   - Important directories: `src/modules/`, `src/routes/`, `src/lib/`.
 
-- `services/internal-ops`
-  - Role: private company-operations control plane driven through Telegram and
-    a remote OpenClaw runtime.
-  - Important directories: `src/orchestrator/`, `src/openclaw/`,
-    `src/coherence/`, `src/routes/`.
-
 - `services/worker`
   - Role: BullMQ jobs for installation, execution, scheduling, approvals, and
-    internal work orders, and future ingestion paths.
+    future ingestion paths.
   - Important directories: `src/jobs/`, `src/lib/`.
 
 - `services/agents`
@@ -87,9 +80,6 @@ agentmou-platform/
 flowchart LR
   web["apps/web"]
   api["services/api"]
-  internalOps["services/internal-ops"]
-  telegram["Telegram"]
-  openclaw["Remote OpenClaw"]
   worker["services/worker"]
   agents["services/agents"]
   engine["packages/agent-engine"]
@@ -100,10 +90,6 @@ flowchart LR
   n8n["n8n"]
 
   web --> api
-  telegram --> internalOps
-  internalOps --> openclaw
-  internalOps --> db
-  internalOps --> worker
   api --> db
   api --> catalogSdk
   api --> worker
@@ -134,9 +120,6 @@ flowchart LR
   - Canonical setup, deploy, smoke-test, backup, and cleanup scripts.
 - `infra/traefik/`
   - Persistent certificate storage used by the production Traefik container.
-- `services/internal-ops/`
-  - Private internal operating system for Telegram-based company management and
-    remote OpenClaw orchestration.
 
 ## Documentation Layout
 
@@ -150,5 +133,4 @@ flowchart LR
 - [Documentation Hub](./README.md)
 - [Architecture Overview](./architecture/overview.md)
 - [Current State](./architecture/current-state.md)
-- [Internal Ops Personal Operating System](./architecture/internal-ops-personal-os.md)
 - [Infrastructure Overview](../infra/README.md)

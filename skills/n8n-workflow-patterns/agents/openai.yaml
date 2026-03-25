@@ -1,4 +1,0 @@
-interface:
-  display_name: 'n8n Workflow Patterns'
-  short_description: 'Choose the right n8n workflow architecture'
-  default_prompt: 'Use $n8n-workflow-patterns to choose the best structure for this workflow before configuring nodes, especially if the request may need a hybrid agent-plus-workflow pattern.'
