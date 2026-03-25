@@ -8,8 +8,10 @@ across multiple files.
 
 - One monorepo
 - One product
-- Two logical planes:
-  - Control plane: `apps/web` plus `services/api`
+- Three operational surfaces:
+  - Product control plane: `apps/web` plus `services/api`
+  - Personal internal ops plane: `services/internal-ops` plus a remote
+    OpenClaw runtime and Telegram operator interface
   - Data plane: `services/worker`, `packages/agent-engine`, and n8n-backed
     workflow execution
 - Versioned operational assets live in `catalog/` and `workflows/`, then map to
@@ -20,6 +22,10 @@ across multiple files.
 ```mermaid
 flowchart TD
   Web["apps/web"] --> API["services/api"]
+  Telegram["Telegram"] --> InternalOps["services/internal-ops"]
+  InternalOps --> OpenClaw["Remote OpenClaw"]
+  InternalOps --> Worker["services/worker"]
+  InternalOps --> DB["packages/db"]
   API --> Worker["services/worker"]
   Worker --> Engine["packages/agent-engine"]
   Engine --> Agents["services/agents"]
@@ -37,6 +43,8 @@ flowchart TD
   operations snapshot
 - [AI Surfaces](./ai-surfaces.md) for workflow vs product-agent vs
   developer-agent boundaries
+- [Internal Ops Personal Operating System](./internal-ops-personal-os.md) for
+  the private Telegram/OpenClaw company-operations layer
 - [Template Library](../template-library.md) for non-installable skeletons and
   promotion rules
 - [Repository Map](../repo-map.md) for the workspace layout
