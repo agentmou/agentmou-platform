@@ -63,3 +63,16 @@ curl http://localhost:3003/health
 - The service uses the shared schemas in
   `packages/contracts/src/internal-ops.ts` as the source of truth for the wire
   contract.
+
+## Boundaries
+
+- This service is a remote reasoning runtime, not a shell agent.
+- It does not directly mutate the AgentMou repository or call Git on your
+  behalf.
+- Real side effects still happen through `services/internal-ops` and
+  `services/worker`.
+
+## Related Docs
+
+- [Internal Ops Bring-Up](../../docs/runbooks/internal-ops-bring-up.md)
+- [OpenClaw Runtime Operations](../../docs/runbooks/openclaw-runtime-operations.md)

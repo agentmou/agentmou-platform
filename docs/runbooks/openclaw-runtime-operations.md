@@ -3,6 +3,10 @@
 Use this runbook when you need to deploy, verify, or troubleshoot the
 dedicated OpenClaw runtime VPS that serves `services/internal-ops`.
 
+This architecture does not require installing a separate OpenClaw product
+outside the repo. The deployable runtime is the service already living in
+`services/openclaw-runtime`.
+
 ## Scope
 
 This runbook covers:

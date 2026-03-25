@@ -3,6 +3,10 @@
 Use this runbook when you need to start, verify, or troubleshoot the personal
 internal operating system that powers AgentMou's private org chart.
 
+If you are bringing the system up for the first time and need the full local
+validation plus two-VPS rollout path, start with
+[Internal Ops Bring-Up](./internal-ops-bring-up.md) first.
+
 ## Scope
 
 This runbook covers:
@@ -88,7 +92,13 @@ Expected response shape:
 Point your Telegram bot to the internal-ops webhook and pass the secret token
 that the service expects.
 
-Example:
+Canonical helper:
+
+```bash
+bash infra/scripts/register-telegram-webhook.sh
+```
+
+Equivalent raw example:
 
 ```bash
 curl -X POST "https://api.telegram.org/bot${INTERNAL_OPS_TELEGRAM_BOT_TOKEN}/setWebhook" \
@@ -106,6 +116,14 @@ If you are using the tracked production compose file, the canonical public
 host is `https://ops.<DOMAIN>/telegram/webhook`.
 
 ## Smoke-Test The Operator Flow
+
+Fast local helper:
+
+```bash
+bash infra/scripts/smoke-test-internal-ops.sh
+```
+
+Manual production verification:
 
 1. Send a message to the bot from an allowed chat and user.
 2. Confirm an inbound row appears in `internal_telegram_messages`.

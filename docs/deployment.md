@@ -9,6 +9,8 @@ then follow the linked runbook for the detailed steps.
   [`docs/runbooks/deployment.md#local-development-stack`](./runbooks/deployment.md#local-development-stack)
 - Production VPS deploy:
   [`docs/runbooks/deployment.md#production-deployment-vps`](./runbooks/deployment.md#production-deployment-vps)
+- First-time bring-up of the personal internal operating system:
+  [`docs/runbooks/internal-ops-bring-up.md`](./runbooks/internal-ops-bring-up.md)
 - Personal internal ops service and Telegram/OpenClaw setup:
   [`docs/runbooks/internal-ops-operations.md`](./runbooks/internal-ops-operations.md)
 - Dedicated OpenClaw runtime VPS:
@@ -25,8 +27,12 @@ Use the scripts in this order:
    repo-backed assets in `catalog/` or `workflows/`
 3. `infra/scripts/deploy-prod.sh` for production deploys
 4. `infra/scripts/deploy-openclaw.sh` for the dedicated OpenClaw runtime VPS
-5. `infra/scripts/smoke-test.sh` for standalone public verification
-6. `infra/scripts/backup.sh` for scheduled or manual backups
+5. `infra/scripts/register-telegram-webhook.sh` for the tracked Telegram
+   webhook registration path
+6. `infra/scripts/smoke-test-internal-ops.sh` for local internal-ops/OpenClaw
+   bring-up verification
+7. `infra/scripts/smoke-test.sh` for standalone public verification
+8. `infra/scripts/backup.sh` for scheduled or manual backups
 
 ## Before You Deploy
 
@@ -39,7 +45,8 @@ Use the scripts in this order:
   Compose, Traefik, backups, or deploy scripts.
 - If the change touches `services/internal-ops`, also review the OpenClaw and
   Telegram requirements in
-  [`docs/runbooks/internal-ops-operations.md`](./runbooks/internal-ops-operations.md).
+  [`docs/runbooks/internal-ops-bring-up.md`](./runbooks/internal-ops-bring-up.md)
+  and [`docs/runbooks/internal-ops-operations.md`](./runbooks/internal-ops-operations.md).
 
 ## Related Docs
 

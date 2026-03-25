@@ -10,6 +10,9 @@ here, then open the procedure that matches the task you need to perform.
   template and validating its tenant install path.
 - [Deployment Runbook](./deployment.md) for local stack setup, VPS deploys,
   health verification, fixture cleanup, and provider-backed secret rotation.
+- [Internal Ops Bring-Up](./internal-ops-bring-up.md) for the first-time
+  rollout path from local validation to the two-VPS Telegram/OpenClaw
+  topology.
 - [Internal Ops Operations](./internal-ops-operations.md) for the private
   Telegram/OpenClaw operating system, operator webhook setup, capability
   bindings, and approval/resumption flow checks.
