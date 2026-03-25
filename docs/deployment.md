@@ -11,6 +11,8 @@ then follow the linked runbook for the detailed steps.
   [`docs/runbooks/deployment.md#production-deployment-vps`](./runbooks/deployment.md#production-deployment-vps)
 - First-time bring-up of the personal internal operating system:
   [`docs/runbooks/internal-ops-bring-up.md`](./runbooks/internal-ops-bring-up.md)
+- Hetzner-specific fast path for the personal internal operating system:
+  [`docs/runbooks/internal-ops-hetzner-rollout.md`](./runbooks/internal-ops-hetzner-rollout.md)
 - Personal internal ops service and Telegram/OpenClaw setup:
   [`docs/runbooks/internal-ops-operations.md`](./runbooks/internal-ops-operations.md)
 - Dedicated OpenClaw runtime VPS:
@@ -27,12 +29,18 @@ Use the scripts in this order:
    repo-backed assets in `catalog/` or `workflows/`
 3. `infra/scripts/deploy-prod.sh` for production deploys
 4. `infra/scripts/deploy-openclaw.sh` for the dedicated OpenClaw runtime VPS
-5. `infra/scripts/register-telegram-webhook.sh` for the tracked Telegram
+5. `infra/scripts/bootstrap-openclaw-ubuntu-host.sh` for one-time bootstrap of
+   a fresh Ubuntu OpenClaw VPS
+6. `infra/scripts/register-telegram-webhook.sh` for the tracked Telegram
    webhook registration path
-6. `infra/scripts/smoke-test-internal-ops.sh` for local internal-ops/OpenClaw
+7. `infra/scripts/smoke-test-internal-ops.sh` for local internal-ops/OpenClaw
    bring-up verification
-7. `infra/scripts/smoke-test.sh` for standalone public verification
-8. `infra/scripts/backup.sh` for scheduled or manual backups
+8. `infra/scripts/verify-openclaw-runtime.sh` for remote OpenClaw health plus
+   authenticated contract verification
+9. `infra/scripts/verify-internal-ops-remote.sh` for remote internal-ops plus
+   Telegram webhook verification
+10. `infra/scripts/smoke-test.sh` for standalone public verification
+11. `infra/scripts/backup.sh` for scheduled or manual backups
 
 ## Before You Deploy
 
@@ -46,6 +54,8 @@ Use the scripts in this order:
 - If the change touches `services/internal-ops`, also review the OpenClaw and
   Telegram requirements in
   [`docs/runbooks/internal-ops-bring-up.md`](./runbooks/internal-ops-bring-up.md)
+  or the Hetzner fast path in
+  [`docs/runbooks/internal-ops-hetzner-rollout.md`](./runbooks/internal-ops-hetzner-rollout.md),
   and [`docs/runbooks/internal-ops-operations.md`](./runbooks/internal-ops-operations.md).
 
 ## Related Docs

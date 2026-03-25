@@ -4,6 +4,10 @@ Use this runbook when you are bringing up the personal internal operating
 system for the first time and need a single path from local validation to the
 two-VPS production topology.
 
+If your dedicated OpenClaw runtime VPS will live on Hetzner, follow the
+provider-specific fast path in
+[Internal Ops Hetzner Rollout](./internal-ops-hetzner-rollout.md).
+
 ## Mental Model
 
 This repo now contains both sides of the system:
