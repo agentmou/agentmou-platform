@@ -13,6 +13,7 @@ agentmou-platform/
 │  ├─ agents/               # Python FastAPI helper service
 │  ├─ api/                  # Fastify control-plane API
 │  ├─ internal-ops/         # Personal Telegram/OpenClaw operating system
+│  ├─ openclaw-runtime/     # Deployable reasoning runtime for internal ops
 │  └─ worker/               # BullMQ workers
 ├─ packages/                # Shared internal libraries
 ├─ catalog/                 # Versioned agent and pack manifests
@@ -47,6 +48,11 @@ agentmou-platform/
     a remote OpenClaw runtime.
   - Important directories: `src/orchestrator/`, `src/openclaw/`,
     `src/coherence/`, `src/routes/`.
+
+- `services/openclaw-runtime`
+  - Role: deployable OpenClaw-compatible runtime that stores remote sessions,
+    plans turns, and exposes traces for `services/internal-ops`.
+  - Important directories: `src/runtime/`, `src/routes/`.
 
 - `services/worker`
   - Role: BullMQ jobs for installation, execution, scheduling, approvals, and
@@ -89,7 +95,7 @@ flowchart LR
   api["services/api"]
   internalOps["services/internal-ops"]
   telegram["Telegram"]
-  openclaw["Remote OpenClaw"]
+  openclaw["services/openclaw-runtime"]
   worker["services/worker"]
   agents["services/agents"]
   engine["packages/agent-engine"]

@@ -1,7 +1,8 @@
 # VPS Operations
 
-This runbook documents the single-VPS production layout defined in the
-repository. Pair it with the
+This runbook documents the main AgentMou production VPS. Pair it with the
+[OpenClaw Runtime Operations](./openclaw-runtime-operations.md) runbook for the
+separate reasoning-runtime host used by internal ops. Also pair it with the
 [current-state operational verification snapshot](../architecture/current-state.md#operational-verification-snapshot-on-march-19-20-2026)
 before making claims about the live state that is currently verified.
 
@@ -10,16 +11,16 @@ The March 19, 2026 live verification used the current VPS checkout at
 
 ## Server Specs
 
-| Resource   | Value                          |
-| ---------- | ------------------------------ |
-| Provider   | (your provider)                |
-| OS         | Ubuntu (latest LTS)            |
-| RAM        | 8 GB                           |
-| Disk       | 150 GB SSD                     |
-| CPU        | Shared vCPUs                   |
-| IP         | Static public IPv4             |
-| SSH user   | `deploy`                       |
-| Hostname   | `vps-n8n-agents`               |
+| Resource | Value               |
+| -------- | ------------------- |
+| Provider | (your provider)     |
+| OS       | Ubuntu (latest LTS) |
+| RAM      | 8 GB                |
+| Disk     | 150 GB SSD          |
+| CPU      | Shared vCPUs        |
+| IP       | Static public IPv4  |
+| SSH user | `deploy`            |
+| Hostname | `vps-n8n-agents`    |
 
 ## Network and Firewall
 
@@ -36,10 +37,10 @@ networks.
 
 ## Docker Networks
 
-| Network    | Type     | Services                                  |
-| ---------- | -------- | ----------------------------------------- |
-| `web`      | External | Traefik, n8n, agents, api, uptime-kuma    |
-| `internal` | Internal | Postgres, Redis, n8n, api, worker         |
+| Network    | Type     | Services                                                     |
+| ---------- | -------- | ------------------------------------------------------------ |
+| `web`      | External | Traefik, n8n, agents, api, internal-ops, worker, uptime-kuma |
+| `internal` | Internal | Postgres, Redis, n8n, api, internal-ops, worker              |
 
 `internal` is a true Docker internal network — no outbound internet
 access. n8n is on both networks: `web` for HTTP traffic and `internal` to
@@ -57,13 +58,14 @@ Public web traffic is served by Vercel:
 - Canonical web domain: `https://agentmou.io`
 - `https://www.agentmou.io` redirects permanently to apex
 
-| Subdomain           | Service          | Auth       | Middlewares                                |
-| ------------------- | ---------------- | ---------- | ------------------------------------------ |
-| `api.DOMAIN`        | Control Plane API| None (JWT) | secure-headers, rate-limit, noindex        |
-| `n8n.DOMAIN`        | n8n editor       | —          | secure-headers, noindex                    |
-| `hooks.DOMAIN`      | n8n webhooks     | None       | secure-headers, rate-limit, noindex        |
-| `agents.DOMAIN`     | agents API       | BasicAuth  | auth, secure-headers, noindex              |
-| `uptime.DOMAIN`     | Uptime Kuma      | BasicAuth  | auth, secure-headers, rate-limit, noindex  |
+| Subdomain       | Service           | Auth       | Middlewares                               |
+| --------------- | ----------------- | ---------- | ----------------------------------------- |
+| `api.DOMAIN`    | Control Plane API | None (JWT) | secure-headers, rate-limit, noindex       |
+| `ops.DOMAIN`    | Internal Ops      | None       | secure-headers, rate-limit, noindex       |
+| `n8n.DOMAIN`    | n8n editor        | —          | secure-headers, noindex                   |
+| `hooks.DOMAIN`  | n8n webhooks      | None       | secure-headers, rate-limit, noindex       |
+| `agents.DOMAIN` | agents API        | BasicAuth  | auth, secure-headers, noindex             |
+| `uptime.DOMAIN` | Uptime Kuma       | BasicAuth  | auth, secure-headers, rate-limit, noindex |
 
 Replace `DOMAIN` with the value of the `DOMAIN` env var
 (e.g., `agentmou.io`).
@@ -128,18 +130,20 @@ docker compose -f infra/compose/docker-compose.prod.yml up -d
 
 Use the scripts below in this order so the VPS workflow stays coherent:
 
-| Script | When to use it | Why it exists |
-| --- | --- | --- |
-| `infra/scripts/setup.sh` | Once per VPS after clone | Creates `.env` from the tracked example, ensures Docker networks exist, and prepares the bind-mounted service data directories |
-| `infra/scripts/verify-prod-image-assets.sh` | Before shipping API or worker image changes | Confirms the built runtime images still contain repo-backed `catalog/` and `workflows/` assets that production resolves at runtime |
-| `infra/scripts/deploy-prod.sh` | Every production deploy | Pulls `origin/main`, validates required production env vars, rebuilds `api` and `worker`, runs migrations, restarts the stack, gates on local edge health, and runs the hardened public smoke test |
-| `infra/scripts/smoke-test.sh` | After deploys or during incident checks | Verifies public API health, catalog content, and auth behavior without requiring a redeploy |
-| `infra/scripts/backup.sh` | Daily cron or manual backup | Dumps PostgreSQL, snapshots Redis, exports n8n workflows, and captures bind-mounted state while writing outside the git checkout by default |
-| `infra/scripts/cleanup-validation-tenant.sh` | Disposable OAuth or E2E fixture cleanup on the VPS | Wraps the TypeScript cleanup implementation with the host-shell `DATABASE_URL`, `REDIS_URL`, and `N8N_API_URL` values that production cleanup needs |
+| Script                                       | When to use it                                     | Why it exists                                                                                                                                                                                                       |
+| -------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `infra/scripts/setup.sh`                     | Once per VPS after clone                           | Creates `.env` from the tracked example, ensures Docker networks exist, and prepares the bind-mounted service data directories                                                                                      |
+| `infra/scripts/verify-prod-image-assets.sh`  | Before shipping API or worker image changes        | Confirms the built runtime images still contain repo-backed `catalog/` and `workflows/` assets that production resolves at runtime                                                                                  |
+| `infra/scripts/deploy-prod.sh`               | Every production deploy                            | Pulls `origin/main`, validates required production env vars, rebuilds `api`, `worker`, and `internal-ops`, runs migrations, restarts the stack, gates on local edge health, and runs the hardened public smoke test |
+| `infra/scripts/deploy-openclaw.sh`           | OpenClaw runtime deploy on the separate VPS        | Pulls `origin/main`, validates the OpenClaw env file, rebuilds `services/openclaw-runtime`, restarts the runtime stack, and gates on local OpenClaw health                                                          |
+| `infra/scripts/smoke-test.sh`                | After deploys or during incident checks            | Verifies public API health, catalog content, and auth behavior without requiring a redeploy                                                                                                                         |
+| `infra/scripts/backup.sh`                    | Daily cron or manual backup                        | Dumps PostgreSQL, snapshots Redis, exports n8n workflows, and captures bind-mounted state while writing outside the git checkout by default                                                                         |
+| `infra/scripts/cleanup-validation-tenant.sh` | Disposable OAuth or E2E fixture cleanup on the VPS | Wraps the TypeScript cleanup implementation with the host-shell `DATABASE_URL`, `REDIS_URL`, and `N8N_API_URL` values that production cleanup needs                                                                 |
 
-`infra/scripts/deploy-prod.sh` is the only tracked production deploy command.
-If an operator wants a shortcut, keep it as a shell alias outside the repo
-instead of a duplicate tracked script.
+`infra/scripts/deploy-prod.sh` is the tracked deploy command for the main
+AgentMou VPS. `infra/scripts/deploy-openclaw.sh` is the tracked deploy command
+for the separate OpenClaw runtime VPS. If an operator wants a shortcut, keep it
+as a shell alias outside the repo instead of a duplicate tracked script.
 
 ## Deploy (Manual)
 
@@ -153,7 +157,7 @@ The canonical deploy script does:
 
 1. `git pull origin main`
 2. validates the required production env vars in `infra/compose/.env`
-3. rebuilds `api`, `worker`, and `migrate`
+3. rebuilds `api`, `worker`, `internal-ops`, and `migrate`
 4. waits for PostgreSQL to become healthy and runs migrations
 5. restarts the stack
 6. gates success on local edge health (`--resolve ... 127.0.0.1`)

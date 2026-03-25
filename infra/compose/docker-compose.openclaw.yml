@@ -1,0 +1,67 @@
+name: openclaw-stack
+
+services:
+  traefik:
+    image: traefik:v3.6.8
+    container_name: openclaw-traefik
+    restart: unless-stopped
+    command:
+      - --api=false
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --certificatesresolvers.le.acme.email=${LE_EMAIL}
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+      - --log.level=INFO
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ../../traefik/openclaw-letsencrypt:/letsencrypt
+    networks:
+      - web
+    labels:
+      - traefik.enable=true
+      - traefik.http.middlewares.secure-headers.headers.stsSeconds=31536000
+      - traefik.http.middlewares.secure-headers.headers.stsIncludeSubdomains=true
+      - traefik.http.middlewares.secure-headers.headers.stsPreload=true
+      - traefik.http.middlewares.secure-headers.headers.frameDeny=true
+      - traefik.http.middlewares.secure-headers.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.secure-headers.headers.referrerPolicy=no-referrer
+      - traefik.http.middlewares.rate-limit.ratelimit.average=30
+      - traefik.http.middlewares.rate-limit.ratelimit.burst=60
+      - traefik.http.middlewares.noindex.headers.customResponseHeaders.X-Robots-Tag=noindex, nofollow, noarchive, nosnippet
+
+  openclaw-runtime:
+    build:
+      context: ../..
+      dockerfile: services/openclaw-runtime/Dockerfile
+    restart: unless-stopped
+    environment:
+      - OPENCLAW_API_KEY=${OPENCLAW_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENCLAW_MODEL=${OPENCLAW_MODEL:-gpt-4o-mini}
+      - OPENCLAW_STATE_DIR=${OPENCLAW_STATE_DIR:-/data/state}
+      - NODE_ENV=production
+    volumes:
+      - ../../openclaw/state:/data/state
+    networks:
+      - web
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web
+      - traefik.http.routers.openclaw.rule=Host(`openclaw.${DOMAIN}`)
+      - traefik.http.routers.openclaw.entrypoints=websecure
+      - traefik.http.routers.openclaw.tls.certresolver=le
+      - traefik.http.routers.openclaw.middlewares=secure-headers@docker,rate-limit@docker,noindex@docker
+      - traefik.http.services.openclaw.loadbalancer.server.port=3003
+
+networks:
+  web:
+    name: web

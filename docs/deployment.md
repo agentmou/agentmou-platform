@@ -11,6 +11,8 @@ then follow the linked runbook for the detailed steps.
   [`docs/runbooks/deployment.md#production-deployment-vps`](./runbooks/deployment.md#production-deployment-vps)
 - Personal internal ops service and Telegram/OpenClaw setup:
   [`docs/runbooks/internal-ops-operations.md`](./runbooks/internal-ops-operations.md)
+- Dedicated OpenClaw runtime VPS:
+  [`docs/runbooks/openclaw-runtime-operations.md`](./runbooks/openclaw-runtime-operations.md)
 - VPS operating procedures and host-level maintenance:
   [`docs/runbooks/vps-operations.md`](./runbooks/vps-operations.md)
 
@@ -22,14 +24,17 @@ Use the scripts in this order:
 2. `infra/scripts/verify-prod-image-assets.sh` before deploys that depend on
    repo-backed assets in `catalog/` or `workflows/`
 3. `infra/scripts/deploy-prod.sh` for production deploys
-4. `infra/scripts/smoke-test.sh` for standalone public verification
-5. `infra/scripts/backup.sh` for scheduled or manual backups
+4. `infra/scripts/deploy-openclaw.sh` for the dedicated OpenClaw runtime VPS
+5. `infra/scripts/smoke-test.sh` for standalone public verification
+6. `infra/scripts/backup.sh` for scheduled or manual backups
 
 ## Before You Deploy
 
 - Validate the repo locally with `pnpm typecheck`, `pnpm lint`, and
   `pnpm test`.
 - Confirm `infra/compose/.env` is up to date for the target environment.
+- Confirm `infra/compose/.env.openclaw` is up to date on the OpenClaw VPS if
+  the change touches `services/openclaw-runtime`.
 - Review [`infra/README.md`](../infra/README.md) if the change touches Docker
   Compose, Traefik, backups, or deploy scripts.
 - If the change touches `services/internal-ops`, also review the OpenClaw and

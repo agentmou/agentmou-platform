@@ -25,6 +25,7 @@ It does not replace the main deployment runbook for the product stack.
 - The main PostgreSQL and Redis services available to the repo
 - `services/worker` running if you want outbound Telegram delivery or external
   execution
+- A deployed `services/openclaw-runtime` reachable from `OPENCLAW_API_URL`
 
 ## Required Environment Variables
 
@@ -72,6 +73,16 @@ Expected response shape:
 }
 ```
 
+## Production Topology
+
+- `services/internal-ops` now runs on the main AgentMou VPS through
+  `infra/compose/docker-compose.prod.yml`.
+- The public host is `https://ops.<DOMAIN>`.
+- `services/worker` must share the same
+  `INTERNAL_OPS_TELEGRAM_BOT_TOKEN` and `INTERNAL_OPS_CALLBACK_SECRET`.
+- The OpenClaw runtime runs on a separate VPS and is documented in
+  [OpenClaw Runtime Operations](./openclaw-runtime-operations.md).
+
 ## Register The Telegram Webhook
 
 Point your Telegram bot to the internal-ops webhook and pass the secret token
@@ -90,6 +101,9 @@ curl -X POST "https://api.telegram.org/bot${INTERNAL_OPS_TELEGRAM_BOT_TOKEN}/set
 
 If you are deploying behind a reverse proxy, make sure the public route
 preserves the `x-telegram-bot-api-secret-token` header.
+
+If you are using the tracked production compose file, the canonical public
+host is `https://ops.<DOMAIN>/telegram/webhook`.
 
 ## Smoke-Test The Operator Flow
 
@@ -257,6 +271,9 @@ Useful tables for debugging:
 - `execution_runs` for any dispatched agent or workflow execution
 
 ## Related Docs
+
+- [OpenClaw Runtime Operations](./openclaw-runtime-operations.md)
+- [Deployment Guide](../deployment.md)
 
 - [Internal Ops Architecture](../architecture/internal-ops-personal-os.md)
 - [Internal Ops Service README](../../services/internal-ops/README.md)
