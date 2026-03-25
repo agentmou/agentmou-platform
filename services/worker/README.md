@@ -22,7 +22,6 @@ slow or stateful work that should not happen during an API request.
 
 `services/api` publishes jobs, `services/worker` consumes them, and the rest of
 the platform provides the required runtime pieces:
-
 - `@agentmou/queue` defines queue names and payloads.
 - `@agentmou/db` stores installations, schedules, runs, approvals, and steps.
 - `@agentmou/catalog-sdk` and the `catalog/` directory provide manifests.
@@ -30,8 +29,6 @@ the platform provides the required runtime pieces:
   run logging.
 - `@agentmou/connectors` decrypts and loads tenant connector instances.
 - `@agentmou/n8n-client` triggers workflow execution in n8n.
-- `services/internal-ops` publishes private company-operation work orders into
-  the shared queue layer.
 
 ## Local Usage
 
@@ -52,14 +49,13 @@ pnpm --filter @agentmou/worker start
 
 `src/index.ts` currently starts workers for these queues:
 
-| Queue                 | Processor                  | What it does                                                                                                                                                 |
-| --------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `install-pack`        | `processInstallPack`       | Installs available agents/workflows from a pack manifest, provisions workflows in n8n, and creates schedules                                                 |
-| `run-agent`           | `processRunAgent`          | Loads prompt/policy/connectors and runs `AgentEngine.execute()`                                                                                              |
-| `run-workflow`        | `processRunWorkflow`       | Executes an installed n8n workflow and persists run status                                                                                                   |
-| `schedule-trigger`    | `processScheduleTrigger`   | Converts a cron trigger into a concrete execution run and follow-up job                                                                                      |
-| `approval-timeout`    | `processApprovalTimeout`   | Applies auto-approve, auto-reject, or escalation logic after timeout                                                                                         |
-| `internal-work-order` | `processInternalWorkOrder` | Executes the private internal-ops queue, including Telegram delivery, approval gating, native artifacts, and optional dispatch to installed agents/workflows |
+| Queue | Processor | What it does |
+| --- | --- | --- |
+| `install-pack` | `processInstallPack` | Installs available agents/workflows from a pack manifest, provisions workflows in n8n, and creates schedules |
+| `run-agent` | `processRunAgent` | Loads prompt/policy/connectors and runs `AgentEngine.execute()` |
+| `run-workflow` | `processRunWorkflow` | Executes an installed n8n workflow and persists run status |
+| `schedule-trigger` | `processScheduleTrigger` | Converts a cron trigger into a concrete execution run and follow-up job |
+| `approval-timeout` | `processApprovalTimeout` | Applies auto-approve, auto-reject, or escalation logic after timeout |
 
 Additional job folders such as `install-agent`, `daily-digest`,
 `ingest-document`, and `rebuild-embeddings` exist as future-facing scaffolds,
@@ -69,20 +65,18 @@ but they are not currently started by `src/index.ts`.
 
 Important environment variables:
 
-| Variable                          | Purpose                                                           |
-| --------------------------------- | ----------------------------------------------------------------- |
-| `REDIS_URL`                       | BullMQ connection string                                          |
-| `DATABASE_URL`                    | PostgreSQL connection via `@agentmou/db`                          |
-| `OPENAI_API_KEY`                  | Enables LLM-backed planning in `@agentmou/agent-engine`           |
-| `AGENTS_API_URL`                  | Base URL for the Python agents service                            |
-| `AGENTS_API_KEY`                  | Optional auth key for the Python agents service                   |
-| `N8N_API_URL`                     | n8n API base URL                                                  |
-| `N8N_API_KEY`                     | n8n API key                                                       |
-| `GOOGLE_CLIENT_ID`                | Needed when loading Gmail connectors                              |
-| `GOOGLE_CLIENT_SECRET`            | Needed when loading Gmail connectors                              |
-| `CONNECTOR_ENCRYPTION_KEY`        | Decrypts stored connector tokens                                  |
-| `INTERNAL_OPS_TELEGRAM_BOT_TOKEN` | Required for outbound Telegram messages from internal work orders |
-| `INTERNAL_OPS_CALLBACK_SECRET`    | Required to sign Telegram approval callback payloads              |
+| Variable | Purpose |
+| --- | --- |
+| `REDIS_URL` | BullMQ connection string |
+| `DATABASE_URL` | PostgreSQL connection via `@agentmou/db` |
+| `OPENAI_API_KEY` | Enables LLM-backed planning in `@agentmou/agent-engine` |
+| `AGENTS_API_URL` | Base URL for the Python agents service |
+| `AGENTS_API_KEY` | Optional auth key for the Python agents service |
+| `N8N_API_URL` | n8n API base URL |
+| `N8N_API_KEY` | n8n API key |
+| `GOOGLE_CLIENT_ID` | Needed when loading Gmail connectors |
+| `GOOGLE_CLIENT_SECRET` | Needed when loading Gmail connectors |
+| `CONNECTOR_ENCRYPTION_KEY` | Decrypts stored connector tokens |
 
 ## Development
 
@@ -100,5 +94,4 @@ API and web app.
 
 - [Current State](../../docs/architecture/current-state.md)
 - [Repository Map](../../docs/repo-map.md)
-- [Internal Ops Architecture](../../docs/architecture/internal-ops-personal-os.md)
 - [VPS Operations Runbook](../../docs/runbooks/vps-operations.md)

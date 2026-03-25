@@ -9,8 +9,6 @@ then follow the linked runbook for the detailed steps.
   [`docs/runbooks/deployment.md#local-development-stack`](./runbooks/deployment.md#local-development-stack)
 - Production VPS deploy:
   [`docs/runbooks/deployment.md#production-deployment-vps`](./runbooks/deployment.md#production-deployment-vps)
-- Personal internal ops service and Telegram/OpenClaw setup:
-  [`docs/runbooks/internal-ops-operations.md`](./runbooks/internal-ops-operations.md)
 - VPS operating procedures and host-level maintenance:
   [`docs/runbooks/vps-operations.md`](./runbooks/vps-operations.md)
 
@@ -32,9 +30,6 @@ Use the scripts in this order:
 - Confirm `infra/compose/.env` is up to date for the target environment.
 - Review [`infra/README.md`](../infra/README.md) if the change touches Docker
   Compose, Traefik, backups, or deploy scripts.
-- If the change touches `services/internal-ops`, also review the OpenClaw and
-  Telegram requirements in
-  [`docs/runbooks/internal-ops-operations.md`](./runbooks/internal-ops-operations.md).
 
 ## Related Docs
 

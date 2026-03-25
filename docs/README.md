@@ -32,9 +32,6 @@ historical logs.
   for architecture readers.
 - [AI Surfaces](./architecture/ai-surfaces.md) explains where workflows,
   product agents, developer agents, manifests, and runtime state belong.
-- [Internal Ops Personal Operating System](./architecture/internal-ops-personal-os.md)
-  documents the private Telegram/OpenClaw orchestration layer used to run
-  AgentMou itself.
 - [Web App Architecture](./architecture/apps-web.md) describes the current
   `apps/web` structure and constraints.
 - [Engineering Conventions](./architecture/conventions.md) captures repo-wide
@@ -49,9 +46,6 @@ historical logs.
 - [Agent Authoring and Promotion](./runbooks/agent-authoring-and-promotion.md)
   explains how to promote a reference skeleton into a real product-agent
   template.
-- [Internal Ops Operations](./runbooks/internal-ops-operations.md) explains how
-  to run the private Telegram/OpenClaw operating system and how it reuses the
-  main worker and optional tenant substrate.
 - [Workflow Authoring and Promotion](./runbooks/workflow-authoring-and-promotion.md)
   explains how to promote a sanitized n8n workflow template into a real asset.
 - [Infrastructure Overview](../infra/README.md) explains the files under

@@ -1,4 +1,0 @@
-interface:
-  display_name: 'n8n Workflow Builder'
-  short_description: 'Create and refine n8n workflows from natural language'
-  default_prompt: 'Use $n8n-workflow-builder to design or fix this n8n workflow through MCP first, and only promote it into the repo if the workflow should become a versioned AgentMou asset.'

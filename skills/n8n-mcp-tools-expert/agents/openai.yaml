@@ -1,4 +1,0 @@
-interface:
-  display_name: 'n8n MCP Tools Expert'
-  short_description: 'Use the n8n MCP toolset effectively'
-  default_prompt: 'Use $n8n-mcp-tools-expert to choose the right MCP tools, inspect nodes efficiently, and iterate on this workflow inside n8n without jumping to hand-written JSON too early.'

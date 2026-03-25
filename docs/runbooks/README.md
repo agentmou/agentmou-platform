@@ -10,9 +10,6 @@ here, then open the procedure that matches the task you need to perform.
   template and validating its tenant install path.
 - [Deployment Runbook](./deployment.md) for local stack setup, VPS deploys,
   health verification, fixture cleanup, and provider-backed secret rotation.
-- [Internal Ops Operations](./internal-ops-operations.md) for the private
-  Telegram/OpenClaw operating system, operator webhook setup, capability
-  bindings, and approval/resumption flow checks.
 - [Workflow Authoring and Promotion](./workflow-authoring-and-promotion.md) for
   turning an n8n prototype into a canonical Git-tracked workflow template and
   validating its tenant install path.
