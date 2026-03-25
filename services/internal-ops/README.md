@@ -156,6 +156,15 @@ Health check:
 curl http://localhost:3002/health
 ```
 
+## Production Docker
+
+The image built from [`Dockerfile`](./Dockerfile) runs `npx tsx dist/index.js`, same
+pattern as `services/api` and `services/worker`. Workspace packages such as
+`@agentmou/contracts` and `@agentmou/db` publish TypeScript entrypoints (`main`
+points at `src/*.ts`). Plain `node dist/index.js` cannot load those modules in
+production; `tsx` resolves them at runtime after `tsc` compiles this service’s
+own sources into `dist/`.
+
 ## Development
 
 ```bash

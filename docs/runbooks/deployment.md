@@ -158,6 +158,13 @@ the live catalog payload to include `inbox-triage`.
 Before running `deploy-prod.sh`, inspect `git status --short` on the VPS
 checkout and resolve any unexpected local drift.
 
+If the `internal-ops` container exits with `ERR_UNKNOWN_FILE_EXTENSION` for
+`.ts` files under workspace packages (for example `@agentmou/contracts`), the
+image must start with `tsx` as in the tracked
+[`services/internal-ops/Dockerfile`](../../services/internal-ops/Dockerfile).
+Rebuild from a clean checkout and redeploy; do not override `CMD` with plain
+`node` in Compose overrides.
+
 ```bash
 # Local deploy gates (through Traefik on the VPS host)
 curl -sk --resolve api.DOMAIN:443:127.0.0.1 https://api.DOMAIN/health
