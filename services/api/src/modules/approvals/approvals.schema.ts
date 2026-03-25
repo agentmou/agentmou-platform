@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   ApprovalActionTypeSchema,
   ApprovalContextSchema,
+  ApprovalSourceSchema,
   ApprovalStatusSchema,
 } from '@agentmou/contracts';
 import { RiskLevelSchema } from '@agentmou/contracts';
@@ -23,6 +24,11 @@ export const createApprovalBodySchema = z.object({
   description: z.string().optional(),
   payloadPreview: z.unknown().optional(),
   context: ApprovalContextSchema.optional(),
+  source: ApprovalSourceSchema.optional(),
+  sourceMetadata: z.record(z.string(), z.unknown()).optional(),
+  resumeToken: z.string().min(1).optional(),
+  objectiveId: z.string().uuid().optional(),
+  workOrderId: z.string().uuid().optional(),
 });
 
 export type ApprovalListQuery = z.infer<typeof approvalListQuerySchema>;
