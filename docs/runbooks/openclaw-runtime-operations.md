@@ -40,6 +40,14 @@ reasoning runtime is split out.
 
 ## First-Time Setup
 
+Fast path for a fresh Ubuntu VPS:
+
+```bash
+bash infra/scripts/bootstrap-openclaw-ubuntu-host.sh
+```
+
+Then continue with the repo checkout and deploy:
+
 ```bash
 ssh deploy@<openclaw-vps-ip>
 cd /srv
@@ -70,6 +78,12 @@ curl -sk --resolve openclaw.DOMAIN:443:127.0.0.1 https://openclaw.DOMAIN/health
 ```
 
 Contract smoke checks:
+
+```bash
+bash infra/scripts/verify-openclaw-runtime.sh
+```
+
+Equivalent manual calls:
 
 ```bash
 curl -sk https://openclaw.DOMAIN/health
@@ -123,5 +137,6 @@ Check:
 ## Related Docs
 
 - [Deployment Guide](../deployment.md)
+- [Internal Ops Hetzner Rollout](./internal-ops-hetzner-rollout.md)
 - [Internal Ops Operations](./internal-ops-operations.md)
 - [Internal Ops Personal Operating System](../architecture/internal-ops-personal-os.md)
