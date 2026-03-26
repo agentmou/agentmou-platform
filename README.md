@@ -29,6 +29,8 @@ pnpm dev
 | `pnpm db:migrate`                | Run DB migrations                             |
 | `pnpm db:seed`                   | Seed the local database                       |
 | `pnpm cleanup:validation-tenant` | Preview or execute disposable tenant cleanup  |
+| `pnpm demo-catalog:generate`    | Regenerate `operational-ids.gen.json` after catalog changes |
+| `pnpm demo-catalog:check`       | Fail CI if operational ID snapshot is out of date           |
 
 ## Local Endpoints
 
@@ -48,4 +50,5 @@ pnpm dev
 - [Current State](./docs/architecture/current-state.md)
 - [Internal Ops Personal Operating System](./docs/architecture/internal-ops-personal-os.md)
 - [Repository Map](./docs/repo-map.md)
+- [Catalog, demo, and marketing](./docs/catalog-and-demo.md)
 - [Deployment Guide](./docs/deployment.md)
