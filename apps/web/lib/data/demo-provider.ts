@@ -1,20 +1,49 @@
-import type { AgentTemplate, WorkflowTemplate } from '@agentmou/contracts';
+import type { AgentTemplate, PackTemplate, WorkflowTemplate } from '@agentmou/contracts';
 import type { DataProvider } from './provider';
+import {
+  isOperationalAgent,
+  isOperationalPack,
+  isOperationalWorkflow,
+} from '@/lib/demo-catalog/operational-index';
 import { mockProvider } from './mock-provider';
 
-function markComingSoon<T extends { availability?: 'available' | 'planned'; statusNote?: string }>(
-  item: T,
-): T {
-  if (item.availability === 'planned') {
-    return { ...item, statusNote: 'Coming soon' };
+/**
+ * Demo workspace overlay: items that are not backed by an operational manifest
+ * on disk are labeled "Coming soon". Operational assets stay unmarked so the UI
+ * can show them as the real catalog slice inside the full demo inventory.
+ */
+function markDemoAgent(agent: AgentTemplate): AgentTemplate {
+  if (isOperationalAgent(agent.id)) {
+    return { ...agent, statusNote: undefined };
   }
-  return item;
+  return { ...agent, statusNote: 'Coming soon' };
 }
 
-function markComingSoonList<T extends { availability?: 'available' | 'planned'; statusNote?: string }>(
-  items: T[],
-): T[] {
-  return items.map((item) => markComingSoon(item));
+function markDemoWorkflow(workflow: WorkflowTemplate): WorkflowTemplate {
+  if (isOperationalWorkflow(workflow.id)) {
+    return { ...workflow, statusNote: undefined };
+  }
+  return { ...workflow, statusNote: 'Coming soon' };
+}
+
+function markDemoPack(pack: PackTemplate): PackTemplate {
+  if (isOperationalPack(pack.id)) {
+    return { ...pack };
+  }
+  // PackTemplate has no statusNote in contracts; UI may ignore — still useful for future badges.
+  return { ...pack, statusNote: 'Coming soon' } as PackTemplate;
+}
+
+function markDemoAgentList(agents: AgentTemplate[]): AgentTemplate[] {
+  return agents.map((a) => markDemoAgent(a));
+}
+
+function markDemoWorkflowList(workflows: WorkflowTemplate[]): WorkflowTemplate[] {
+  return workflows.map((w) => markDemoWorkflow(w));
+}
+
+function markDemoPackList(packs: PackTemplate[]): PackTemplate[] {
+  return packs.map((p) => markDemoPack(p));
 }
 
 export const demoProvider: DataProvider = {
@@ -22,29 +51,37 @@ export const demoProvider: DataProvider = {
   providerMode: 'demo',
   listCatalogAgentTemplates: async () => {
     const agents = await mockProvider.listCatalogAgentTemplates();
-    return markComingSoonList(agents);
+    return markDemoAgentList(agents);
   },
   listMarketplaceAgentTemplates: async () => {
     const agents = await mockProvider.listMarketplaceAgentTemplates();
-    return markComingSoonList(agents);
+    return markDemoAgentList(agents);
   },
   getAgentTemplate: async (agentId: string): Promise<AgentTemplate | null> => {
     const agent = await mockProvider.getAgentTemplate(agentId);
-    return agent ? markComingSoon(agent) : null;
+    return agent ? markDemoAgent(agent) : null;
   },
   listCatalogWorkflowTemplates: async () => {
     const workflows = await mockProvider.listCatalogWorkflowTemplates();
-    return markComingSoonList(workflows);
+    return markDemoWorkflowList(workflows);
   },
   listMarketplaceWorkflowTemplates: async () => {
     const workflows = await mockProvider.listMarketplaceWorkflowTemplates();
-    return markComingSoonList(workflows);
+    return markDemoWorkflowList(workflows);
   },
   getWorkflowTemplate: async (
     workflowId: string,
   ): Promise<WorkflowTemplate | null> => {
     const workflow = await mockProvider.getWorkflowTemplate(workflowId);
-    return workflow ? markComingSoon(workflow) : null;
+    return workflow ? markDemoWorkflow(workflow) : null;
+  },
+  listPackTemplates: async () => {
+    const packs = await mockProvider.listPackTemplates();
+    return markDemoPackList(packs);
+  },
+  getPackTemplate: async (packIdOrSlug: string): Promise<PackTemplate | null> => {
+    const pack = await mockProvider.getPackTemplate(packIdOrSlug);
+    return pack ? markDemoPack(pack) : null;
   },
   installAgent: async () => ({
     ok: true,

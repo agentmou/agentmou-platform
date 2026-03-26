@@ -1,34 +1,39 @@
 import { NextResponse } from 'next/server';
-import { getPublicMarketingCatalogResult } from '@/lib/marketing/public-catalog';
+import { buildMarketingFeaturedCatalog } from '@/lib/marketing/featured-from-demo';
 
-const EMPTY_PAYLOAD = { agents: [], workflows: [], packs: [] };
+const EMPTY_PAYLOAD = {
+  agents: [],
+  workflows: [],
+  packs: [],
+  demoTotals: { agents: 0, workflows: 0, packs: 0 },
+  operationalFeaturedCounts: { agents: 0, workflows: 0, packs: 0 },
+};
 
 export async function GET() {
   try {
-    const result = await getPublicMarketingCatalogResult();
+    const featured = buildMarketingFeaturedCatalog();
 
-    if (result.degraded) {
-      console.warn(
-        `[public-catalog] degraded response source=${result.source} reason=${result.reason ?? 'unknown'}`,
-      );
-    }
-
-    return NextResponse.json(result.payload, {
-      headers: {
-        'Cache-Control': result.degraded
-          ? 'public, s-maxage=60, stale-while-revalidate=120'
-          : 'public, s-maxage=300, stale-while-revalidate=600',
-      },
-    });
-  } catch (error) {
-    console.warn('[public-catalog] unexpected route failure', error);
     return NextResponse.json(
-      EMPTY_PAYLOAD,
+      {
+        agents: featured.agents,
+        workflows: featured.workflows,
+        packs: featured.packs,
+        demoTotals: featured.demoTotals,
+        operationalFeaturedCounts: featured.operationalFeaturedCounts,
+        source: 'demo-featured',
+      },
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
         },
       },
     );
+  } catch (error) {
+    console.warn('[public-catalog] featured demo catalog failure', error);
+    return NextResponse.json(EMPTY_PAYLOAD, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+      },
+    });
   }
 }

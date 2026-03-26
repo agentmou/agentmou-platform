@@ -38,6 +38,16 @@ interface MarketingCatalogPayload {
     workflows: number
     outcome: string
   }>
+  demoTotals?: {
+    agents: number
+    workflows: number
+    packs: number
+  }
+  operationalFeaturedCounts?: {
+    agents: number
+    workflows: number
+    packs: number
+  }
 }
 
 const iconMap: Record<string, typeof Mail> = {
@@ -53,6 +63,8 @@ const emptyCatalog: MarketingCatalogPayload = {
   agents: [],
   workflows: [],
   packs: [],
+  demoTotals: { agents: 0, workflows: 0, packs: 0 },
+  operationalFeaturedCounts: { agents: 0, workflows: 0, packs: 0 },
 }
 
 const securityFeatures = [
@@ -88,19 +100,35 @@ export default function HomePage() {
     }
   }, [])
 
-  const featuredAgents = catalog.agents.slice(0, 4).map((agent) => ({
+  const featuredAgents = catalog.agents.map((agent) => ({
     ...agent,
     icon: iconMap[agent.id] || Bot,
     metrics: { timeSaved: agent.timeSaved, accuracy: agent.accuracy },
   }))
 
-  const featuredWorkflows = catalog.workflows.slice(0, 4)
-  const packs = catalog.packs.slice(0, 3)
+  const featuredWorkflows = catalog.workflows
+  const packs = catalog.packs
+
+  const totals = catalog.demoTotals ?? {
+    agents: catalog.agents.length,
+    workflows: catalog.workflows.length,
+    packs: catalog.packs.length,
+  }
+  const op = catalog.operationalFeaturedCounts ?? {
+    agents: 0,
+    workflows: 0,
+    packs: 0,
+  }
+  const liveFeaturedTotal = op.agents + op.workflows + op.packs
+
   const stats = [
-    { value: `${catalog.agents.length}+`, label: 'Agents' },
-    { value: `${catalog.workflows.length}+`, label: 'Workflows' },
-    { value: 'Real', label: 'Catalog source' },
-    { value: 'Live', label: 'Status' },
+    { value: `${totals.agents}+`, label: 'Demo catalog agents' },
+    { value: `${totals.workflows}+`, label: 'Demo catalog workflows' },
+    { value: `${totals.packs}`, label: 'Demo packs' },
+    {
+      value: `${liveFeaturedTotal}`,
+      label: 'Featured items in repo catalog',
+    },
   ]
 
   return (

@@ -1,4 +1,4 @@
-import type { WorkflowTemplate } from '../types'
+import type { WorkflowTemplate } from '../../fleetops/types'
 
 // Planned workflow placeholders to support orphan planned agents
 export const plannedWorkflowTemplates: WorkflowTemplate[] = [

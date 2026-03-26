@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
@@ -25,17 +25,17 @@ import { RiskBadge, ChannelBadge, IntegrationChip, SpecLine, AvailabilityBadge, 
 import { FadeContent } from '@/components/reactbits/fade-content'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { TiltedCard } from '@/components/reactbits/tilted-card'
-import { CATEGORY_OPTIONS, normalizeCategory, type Category } from '@/lib/fleetops/category-config'
+import { CATEGORY_OPTIONS, normalizeCategory } from '@/lib/fleetops/category-config'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import type { AgentTemplate, WorkflowTemplate, PackTemplate } from '@agentmou/contracts'
 
 export default function MarketplacePage() {
   const params = useParams()
   const tenantId = params.tenantId as string
-  const { data: agentTemplates, isLoading: loadingAgents } = useProviderQuery<AgentTemplate[]>(
+  const { data: agentTemplates } = useProviderQuery<AgentTemplate[]>(
     (p) => p.listMarketplaceAgentTemplates(), [],
   )
-  const { data: workflowTemplates, isLoading: loadingWorkflows } = useProviderQuery<WorkflowTemplate[]>(
+  const { data: workflowTemplates } = useProviderQuery<WorkflowTemplate[]>(
     (p) => p.listMarketplaceWorkflowTemplates(), [],
   )
   const { data: packTemplates } = useProviderQuery<PackTemplate[]>(
@@ -67,36 +67,39 @@ export default function MarketplacePage() {
       if (audienceFilter !== 'all' && agent.audience && agent.audience !== 'both' && agent.audience !== audienceFilter) return false
       return true
     })
-  }, [search, categoryFilter, riskFilter, availabilityFilter, audienceFilter])
+  }, [search, categoryFilter, riskFilter, availabilityFilter, audienceFilter, agentTemplates])
   
-  // Derive workflows from currently visible agents
+  // Workflows are listed independently of agents (agents may orchestrate workflows; workflows stay first-class).
   const filteredWorkflows = React.useMemo(() => {
-    // Get all workflow IDs from visible agents
-    const visibleWorkflowIds = new Set<string>()
-    filteredAgents.forEach(agent => {
-      agent.workflows.forEach(wfId => visibleWorkflowIds.add(wfId))
-    })
-    
-    // Filter workflows that belong to visible agents
-    return workflowTemplates.filter(workflow => {
-      // Hide utility, hidden, and deprecated workflows from main marketplace
-      if (workflow.visibility && (workflow.visibility === 'hidden' || workflow.visibility === 'deprecated')) return false
-      
-      // Must be linked to at least one visible agent
-      if (!visibleWorkflowIds.has(workflow.id)) return false
-      
-      // Apply search filter
-      if (search && !workflow.name.toLowerCase().includes(search.toLowerCase()) && 
-          !workflow.summary.toLowerCase().includes(search.toLowerCase())) {
+    return workflowTemplates.filter((workflow) => {
+      if (workflow.visibility && (workflow.visibility === 'hidden' || workflow.visibility === 'deprecated')) {
         return false
       }
-      
-      // Apply other filters
+
+      if (
+        search &&
+        !workflow.name.toLowerCase().includes(search.toLowerCase()) &&
+        !workflow.summary.toLowerCase().includes(search.toLowerCase()) &&
+        !workflow.useCase.toLowerCase().includes(search.toLowerCase())
+      ) {
+        return false
+      }
+
+      if (categoryFilter !== 'all') {
+        const groups = workflow.catalogGroups ?? []
+        const matchesGroup = groups.some(
+          (g) => normalizeCategory(g) === categoryFilter,
+        )
+        if (groups.length > 0 && !matchesGroup) return false
+      }
+
       if (riskFilter !== 'all' && workflow.riskLevel !== riskFilter) return false
-      if (availabilityFilter !== 'all' && (workflow.availability || 'available') !== availabilityFilter) return false
+      if (availabilityFilter !== 'all' && (workflow.availability || 'available') !== availabilityFilter) {
+        return false
+      }
       return true
     })
-  }, [filteredAgents, search, riskFilter, availabilityFilter])
+  }, [workflowTemplates, search, categoryFilter, riskFilter, availabilityFilter])
   
   return (
     <div className="p-6 lg:p-8 space-y-8">
