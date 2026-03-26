@@ -54,6 +54,13 @@ Health check:
 curl http://localhost:3003/health
 ```
 
+## Production Docker image
+
+The [`Dockerfile`](./Dockerfile) runs the compiled service with `npx tsx dist/index.js`,
+not plain `node`. Workspace-linked packages such as `@agentmou/contracts` expose
+TypeScript entrypoints; `tsx` resolves those imports at runtime, matching the
+api, worker, and internal-ops container images.
+
 ## Runtime Notes
 
 - Session and trace state is persisted to `OPENCLAW_STATE_DIR`.

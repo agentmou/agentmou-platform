@@ -44,6 +44,12 @@ const parsed = AgentTemplateSchema.parse(rawData);
 
 ## Development
 
+Production Docker images for Node services in this monorepo that bundle
+workspace-linked dependencies typically run the service entrypoint with `tsx`
+so TypeScript package entrypoints (this package’s `main` points at `src`) load
+correctly inside the container. See `services/openclaw-runtime/Dockerfile` and
+`services/internal-ops/Dockerfile` for examples.
+
 ```bash
 pnpm --filter @agentmou/contracts typecheck
 pnpm --filter @agentmou/contracts lint
