@@ -1,4 +1,4 @@
-import type { Integration } from '../types'
+import type { Integration } from '../../fleetops/types'
 
 // New integrations to add
 export const newIntegrations: Integration[] = [

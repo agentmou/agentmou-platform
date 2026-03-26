@@ -1,4 +1,4 @@
-import type { AgentTemplate } from '../types'
+import type { AgentTemplate } from '../../fleetops/types'
 
 // Core / Transversal agents (12)
 export const coreAgentTemplates: AgentTemplate[] = [

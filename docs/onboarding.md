@@ -12,8 +12,10 @@ change the repository.
 3. Read the [Current State](./architecture/current-state.md) for the validated
    implementation snapshot.
 4. Read the [Repository Map](./repo-map.md) to see where each concern lives.
-5. Read the [Testing Guide](./testing.md) before changing code.
-6. Read the [Infrastructure Overview](../infra/README.md) if your change
+5. If you touch agents, workflows, packs, or marketing cards, read
+   [Catalog, demo, and marketing](./catalog-and-demo.md).
+6. Read the [Testing Guide](./testing.md) before changing code.
+7. Read the [Infrastructure Overview](../infra/README.md) if your change
    touches deployment, Docker Compose, or VPS operations.
 
 ## Prerequisites

@@ -119,11 +119,11 @@ The canonical live statement supported by current evidence is:
 
 | Capability                                        | Status        | Notes                                                                                                                         |
 | ------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Marketing site                                    | `partial`     | Uses a public catalog route with API-first loading and filesystem fallback                                                    |
+| Marketing site                                    | `implemented` | Homepage catalog from demo featured slice via `/api/public-catalog` (operational stats use `demoTotals` / `operationalFeaturedCounts`) |
 | Auth flows                                        | `implemented` | Login/register pages, Zustand auth store, JWT cookie, route protection                                                        |
 | Tenant app shell                                  | `implemented` | Tenant route groups, navigation shell, command palette, typed client helpers                                                  |
 | Authenticated tenant pages backed by API provider | `partial`     | Tenant pages use `apiProvider`, but several surfaces still fall back to empty defaults because backend modules are incomplete |
-| Demo workspace and marketing demo data            | `implemented` | `mockProvider` and `demoProvider` remain active for marketing and demo UX                                                     |
+| Demo workspace and marketing demo data            | `implemented` | `mockProvider` / `demoProvider` read `apps/web/lib/demo-catalog/`; marketing cards use curated `marketing-featured`; see `docs/catalog-and-demo.md` |
 | `/api/chat` assistant route                       | `stub`        | Uses the mock chat engine with an explicit TODO for a real OpenAI-backed implementation                                       |
 
 The web app is now a real control-plane client, but not a fully honest one yet.
@@ -245,17 +245,13 @@ service for email analysis.
 
 #### Demo and UX Catalog
 
-`apps/web/lib/fleetops/mock-data.ts` still carries a significantly larger demo
-inventory for the marketing experience and demo workspace:
-
-| Asset group         | Count | Status        | Notes                                                           |
-| ------------------- | ----- | ------------- | --------------------------------------------------------------- |
-| Demo/mock agents    | 10    | `implemented` | UX and demo inventory, not the real installable source of truth |
-| Demo/mock workflows | 10    | `implemented` | Includes planned and marketing-oriented surfaces                |
-| Demo/mock packs     | 6     | `implemented` | Outcome-based demo inventory                                    |
-
-This split is deliberate for now, but it is one of the most important sources
-of domain ambiguity in the repository.
+`apps/web/lib/demo-catalog/` holds the full demo inventory (templates, fixtures)
+for `demo-workspace` and the marketing **featured** subset. Operational
+installable assets remain under `catalog/` and `workflows/public/`; demo IDs map
+to operational IDs in `operational-refs.ts` where they differ. Generated
+`operational-ids.gen.json` tracks which demo items are backed by real manifests
+(`pnpm demo-catalog:generate`). See [Catalog, demo, and marketing](../catalog-and-demo.md)
+and [ADR 011](../adr/011-operational-demo-marketing-catalog.md).
 
 ### Infrastructure and Deployment Model
 

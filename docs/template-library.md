@@ -5,6 +5,19 @@ agent, n8n workflow, or hybrid agent-plus-workflow asset.
 
 These templates are reference material, not installable assets.
 
+## How This Relates To `demo-catalog/`
+
+- **`catalog/`** and **`workflows/public/`** are operational: the API discovers
+  them and tenants can install what is listed there.
+- **`apps/web/lib/demo-catalog/`** is **demo and marketing only**: a larger UX
+  inventory for `demo-workspace` and curated homepage cards. It does **not**
+  provision real installs by itself.
+- After promoting a template into `catalog/` or `workflows/public/`, map demo IDs
+  to operational IDs in `demo-catalog/operational-refs.ts` when they differ,
+  then run `pnpm demo-catalog:generate`.
+
+See [Catalog, demo, and marketing](./catalog-and-demo.md).
+
 ## Why These Templates Live Outside `catalog/` And `workflows/`
 
 - `catalog/agents/` and `workflows/` contain real operational assets.

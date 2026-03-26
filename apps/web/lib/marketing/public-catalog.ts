@@ -1,3 +1,7 @@
+/**
+ * Legacy helpers for loading catalog-shaped data from the API or filesystem.
+ * Marketing homepage cards use `featured-from-demo.ts` + `/api/public-catalog` instead.
+ */
 import 'server-only';
 
 import * as fs from 'node:fs/promises';

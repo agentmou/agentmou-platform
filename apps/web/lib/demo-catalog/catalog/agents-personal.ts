@@ -1,4 +1,4 @@
-import type { AgentTemplate } from '../types'
+import type { AgentTemplate } from '../../fleetops/types'
 
 // Personal / Creator / Productivity agents (10)
 export const personalAgentTemplates: AgentTemplate[] = [

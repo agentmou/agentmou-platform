@@ -44,8 +44,9 @@ import { AgentTemplateSchema } from '@agentmou/contracts';
 ## Imports and Layering
 
 - Page/components in `apps/web` should import FleetOps data through
-  `lib/fleetops/read-model`.
-- Avoid importing `lib/fleetops/mock-data` directly from pages.
+  `lib/fleetops/read-model` (or `useDataProvider` for async catalog calls).
+- Avoid importing `lib/demo-catalog/mock-data` or `lib/fleetops/mock-data`
+  directly from pages; keep demo data behind the read model or data providers.
 - Domain types are imported from `@/lib/fleetops/types` (which
   re-exports from `@agentmou/contracts`).
 - Keep cross-domain imports explicit and minimal.

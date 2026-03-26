@@ -18,12 +18,13 @@ or workflows itself.
 - Handle login and registration under `app/(auth)`.
 - Protect tenant routes with Next.js proxy and a JWT cookie.
 - Consume the control-plane API through typed client helpers in `lib/api/`.
-- Serve marketing catalog cards from a real-catalog adapter (`/api/public-catalog`)
-  using an API-first source (`/api/v1/catalog/*`) with local filesystem
-  fallback for development (`catalog/` and `workflows/public`).
-- Switch between `apiProvider` and `demoProvider` so real tenants use backend
-  data while `demo-workspace` stays read-only and can show `planned` as
-  `Coming soon`.
+- Serve marketing homepage cards from `/api/public-catalog`, built from the
+  **curated demo featured list** (`lib/demo-catalog/marketing-featured.ts`) plus
+  honest `demoTotals` / `operationalFeaturedCounts` (see `docs/catalog-and-demo.md`).
+- Switch between `apiProvider` and `demoProvider`: real tenants use the API
+  catalog; `demo-workspace` uses the full demo inventory with **Coming soon** on
+  items not backed by operational manifests (`operational-ids.gen.json` +
+  `operational-refs.ts`).
 - Apply honest product labels for tenant surfaces that are still preview,
   read-only, demo, or not yet available.
 
@@ -63,6 +64,14 @@ pnpm --filter @agentmou/web start
 | `app/app` | Authenticated app shell and tenant redirects |
 | `app/app/[tenantId]` | Tenant-scoped dashboard, marketplace, fleet, runs, approvals, security, and settings |
 
+### Data providers
+
+| Provider | When | Catalog source |
+| --- | --- | --- |
+| `mockProvider` | Marketing layout `DataProviderContext` default | `lib/demo-catalog` via `lib/fleetops/read-model` |
+| `demoProvider` | `tenantId === demo-workspace` | Same as mock, plus operational overlay in `lib/data/demo-provider.ts` |
+| `apiProvider` | Authenticated real tenants | `services/api` / `catalog/` + `workflows/` on disk |
+
 ### Important Modules
 
 - `app/layout.tsx` mounts theme support, toaster notifications, and analytics.
@@ -71,11 +80,15 @@ pnpm --filter @agentmou/web start
   and `/register`.
 - `lib/api/client.ts` contains typed fetchers for tenants, catalog, runs, approvals, connectors, and installations.
 - `lib/data/api-provider.ts` adapts the real API to the `DataProvider` interface.
-- `lib/data/demo-provider.ts` powers `demo-workspace` with read-only demo data.
+- `lib/data/demo-provider.ts` powers `demo-workspace` with read-only demo data
+  and operational vs preview labels.
+- `lib/demo-catalog/` owns the demo inventory, marketing featured IDs, and
+  generated operational ID index.
 - `lib/honest-ui/audit.ts` is the authoritative audit map for placeholder,
   preview, and demo tenant surfaces.
-- `lib/marketing/public-catalog.ts` loads real public catalog assets for
-  marketing pages using API-first loading with resilient fallback.
+- `lib/marketing/featured-from-demo.ts` builds the homepage catalog payload.
+- `lib/marketing/public-catalog.ts` remains for optional API/filesystem catalog
+  helpers; homepage cards no longer depend on it.
 - `lib/auth/store.ts` owns login, registration, cookie hydration, and active-tenant selection.
 
 ## Configuration
@@ -100,9 +113,16 @@ pnpm --filter @agentmou/web build
 Use `pnpm dev` at the repo root when you want the web app to run together with
 other workspaces.
 
+After changing operational manifests, refresh the generated ID list:
+
+```bash
+pnpm demo-catalog:generate
+```
+
 ## Related Docs
 
 - [Web App Architecture](../../docs/architecture/apps-web.md)
 - [Current State](../../docs/architecture/current-state.md)
+- [Catalog, demo, and marketing](../../docs/catalog-and-demo.md)
 - [Honest UI Audit Map](./lib/honest-ui/audit.ts)
 - [Repository Map](../../docs/repo-map.md)

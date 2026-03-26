@@ -8,7 +8,8 @@ the versioned `catalog/` and `workflows/` directories.
 Provides a `CatalogSDK` class for loading and validating operational manifests
 from disk. The manifest schemas come from `@agentmou/contracts`, which keeps a
 clear boundary between repo-facing operational manifests and UI-facing catalog
-contracts.
+contracts. Demo-only marketing data lives in `apps/web/lib/demo-catalog/` and is
+**out of scope** for this package (see [Catalog, demo, and marketing](../../docs/catalog-and-demo.md)).
 
 ## Usage
 
@@ -38,6 +39,7 @@ pnpm --filter @agentmou/catalog-sdk lint
 
 ## Related Docs
 
+- [Catalog, demo, and marketing](../../docs/catalog-and-demo.md)
 - [Current State](../../docs/architecture/current-state.md)
 - [Repository Map](../../docs/repo-map.md)
 - [ADR-001: Monorepo Structure](../../docs/adr/001-monorepo-structure.md)

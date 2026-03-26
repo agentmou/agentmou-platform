@@ -13,6 +13,8 @@ historical logs.
   system and the most important supporting docs.
 - [AI Surfaces](./architecture/ai-surfaces.md) for the boundary between
   developer agents, product agents, workflows, and runtime ownership.
+- [Catalog, demo, and marketing](./catalog-and-demo.md) for operational vs
+  demo inventory, marketing featured cards, and ID sync.
 - [Template Library](./template-library.md) for reference skeletons that show
   how to start new agents, workflows, and hybrid assets without polluting the
   live catalog.

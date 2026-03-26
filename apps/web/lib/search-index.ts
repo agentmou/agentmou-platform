@@ -82,7 +82,7 @@ export async function buildSearchIndex(tenantId: string, provider: DataProvider)
     })
   }
   
-  // Workflow templates from marketplace (only public/utility visibility)
+  // Workflow templates from marketplace (listed independently of agents)
   for (const workflow of marketplaceWorkflows) {
     const keywords = [
       workflow.trigger, 
