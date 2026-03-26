@@ -34,4 +34,6 @@ EXPOSE 3003
 ENV PORT=3003
 ENV HOST=0.0.0.0
 
-CMD ["node", "dist/index.js"]
+# Workspace packages (e.g. @agentmou/contracts) publish TypeScript entrypoints.
+# Use tsx at runtime (same as api, worker, and internal-ops images) so imports resolve.
+CMD ["npx", "tsx", "dist/index.js"]
