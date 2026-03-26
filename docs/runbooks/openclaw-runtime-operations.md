@@ -98,6 +98,19 @@ curl -sk -X POST https://openclaw.DOMAIN/v1/internal-ops/agent-profiles/register
 
 ## Common Failure Modes
 
+### Container restarts with `Unknown file extension ".ts"` (`@agentmou/contracts`)
+
+Cause:
+
+- The image entrypoint used plain `node` while the deployed bundle still
+  resolves `@agentmou/contracts` to TypeScript sources via the workspace symlink.
+
+Fix:
+
+- Use an image built from `main` where the OpenClaw Dockerfile runs
+  `npx tsx dist/index.js` (same pattern as api, worker, and internal-ops).
+- Rebuild and redeploy: `bash infra/scripts/deploy-openclaw.sh`.
+
 ### `Unauthorized OpenClaw request`
 
 Cause:
