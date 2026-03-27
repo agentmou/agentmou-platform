@@ -5,6 +5,19 @@ workflow orchestration via n8n, and background execution infrastructure.
 
 The canonical documentation entrypoint is [`docs/README.md`](./docs/README.md).
 
+## Workspace Map
+
+- `apps/web`: public marketing site plus authenticated tenant control plane
+- `services/api`: Fastify control-plane API
+- `services/worker`: BullMQ worker for installs, executions, schedules, and
+  internal work orders
+- `services/internal-ops`: private Telegram/OpenClaw operating system
+- `services/openclaw-runtime`: dedicated reasoning runtime for internal ops
+- `services/agents`: narrow Python FastAPI sidecar for email analysis and deep
+  health
+- `packages/*`: shared contracts, DB, queueing, catalog SDK, connectors, auth,
+  observability, and runtime helpers
+
 ## Quick Start
 
 ```bash
@@ -22,15 +35,17 @@ pnpm dev
 | -------------------------------- | --------------------------------------------- |
 | `pnpm dev`                       | Run workspace development tasks through Turbo |
 | `pnpm build`                     | Build all workspaces                          |
-| `pnpm typecheck`                 | Run TypeScript checks across the repo         |
-| `pnpm lint`                      | Run lint across workspaces                    |
+| `pnpm typecheck`                 | Run TypeScript checks plus Python syntax validation for `services/agents` |
+| `pnpm lint`                      | Run workspace lint plus infrastructure shell and Compose validation |
+| `pnpm lint:infra`                | Validate `infra/scripts/*.sh` and all Compose manifests against tracked env examples |
 | `pnpm test`                      | Run tests across workspaces                   |
+| `pnpm test:agents`               | Run the Python unit tests for `services/agents` |
 | `pnpm db:generate`               | Generate Drizzle migrations                   |
 | `pnpm db:migrate`                | Run DB migrations                             |
 | `pnpm db:seed`                   | Seed the local database                       |
 | `pnpm cleanup:validation-tenant` | Preview or execute disposable tenant cleanup  |
-| `pnpm demo-catalog:generate`    | Regenerate `operational-ids.gen.json` after catalog changes |
-| `pnpm demo-catalog:check`       | Fail CI if operational ID snapshot is out of date           |
+| `pnpm demo-catalog:generate`     | Regenerate `operational-ids.gen.json` after catalog changes |
+| `pnpm demo-catalog:check`        | Fail CI if the operational ID snapshot is out of date |
 
 ## Local Endpoints
 

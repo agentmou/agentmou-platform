@@ -33,8 +33,9 @@ agentmou-platform/
 
 - `apps/web`
   - Role: public marketing site plus authenticated tenant UI.
-  - Main dependencies: `@agentmou/contracts`, the control-plane API, and local
-    provider abstractions under `lib/data/`.
+  - Main dependencies: `@agentmou/contracts`, the control-plane API, local
+    data providers under `lib/data/`, tenant-provider selectors under
+    `lib/providers/`, and the honest-surface audit under `lib/honest-ui/`.
   - Auth UI and client: `components/auth`, `lib/auth`, routes under `(auth)`,
     `/auth/callback`, and `/reset-password`.
 
@@ -57,9 +58,9 @@ agentmou-platform/
   - Important directories: `src/runtime/`, `src/routes/`.
 
 - `services/worker`
-  - Role: BullMQ jobs for installation, execution, scheduling, approvals, and
-    internal work orders, and future ingestion paths.
-  - Important directories: `src/jobs/`, `src/lib/`.
+  - Role: BullMQ jobs for installation, execution, scheduling, approval
+    timeout handling, and internal work orders.
+  - Important directories: `src/jobs/`, `src/jobs/runtime-support/`.
 
 - `services/agents`
   - Role: narrow Python service for LLM-backed email analysis and deep health
@@ -85,10 +86,10 @@ agentmou-platform/
 - `packages/n8n-client`
   - Thin adapter over the n8n REST API.
 - `packages/observability`
-  - Logging and tracing helpers.
-- `packages/ui`
-  - Minimal shared UI package; most current UI components still live in
-    `apps/web/components/ui/`.
+  - Logging and tracing helpers, including service-scoped logger helpers.
+
+`apps/web/components/ui/` is the current source of truth for shared UI
+primitives. There is no live `packages/ui` workspace boundary at the moment.
 
 ## Runtime Flow
 

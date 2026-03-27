@@ -9,21 +9,25 @@ services do not each invent their own logging or trace ID format.
 
 The package is intentionally small right now:
 - `logger.ts` exports a shared Pino logger.
+- `logger.ts` also exports `createServiceLogger()` and
+  `isTestEnvironment()` for runtime code that should avoid ad hoc logger setup.
 - `tracer.ts` exports lightweight trace and child-span helpers.
 
 ## Usage
 
 ```typescript
 import {
-  logger,
-  createChildLogger,
+  createServiceLogger,
   createTraceContext,
   createChildSpan,
 } from '@agentmou/observability';
 
 const trace = createTraceContext();
 const span = createChildSpan(trace);
-const log = createChildLogger({ traceId: trace.traceId, spanId: span.spanId });
+const log = createServiceLogger('worker', {
+  traceId: trace.traceId,
+  spanId: span.spanId,
+});
 
 log.info('worker started');
 ```
@@ -32,6 +36,8 @@ log.info('worker started');
 
 - `logger`
 - `createChildLogger(context)`
+- `createServiceLogger(service, context?)`
+- `isTestEnvironment()`
 - `TraceContext`
 - `createTraceContext()`
 - `createChildSpan(parent)`
@@ -41,6 +47,9 @@ log.info('worker started');
 | Variable | Purpose |
 | --- | --- |
 | `LOG_LEVEL` | Pino log level; defaults to `info` |
+
+Pretty-print transport is enabled only for interactive TTY sessions outside
+`NODE_ENV=test`, so CI and tests do not pay the readability overhead.
 
 ## Development
 
