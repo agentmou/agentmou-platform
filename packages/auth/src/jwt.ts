@@ -1,6 +1,9 @@
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
+import { getJwtSecret } from './config';
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'dev-secret');
+function getSecret() {
+  return new TextEncoder().encode(getJwtSecret());
+}
 
 /**
  * JWT claims carried by authenticated Agentmou sessions.
@@ -18,7 +21,7 @@ export async function createToken(payload: { userId: string; email: string }): P
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
-    .sign(secret);
+    .sign(getSecret());
 }
 
 /**
@@ -26,7 +29,7 @@ export async function createToken(payload: { userId: string; email: string }): P
  */
 export async function verifyToken(token: string): Promise<TokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, getSecret());
     return payload as TokenPayload;
   } catch {
     return null;

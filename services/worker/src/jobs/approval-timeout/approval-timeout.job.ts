@@ -10,6 +10,10 @@ import type { Job } from 'bullmq';
 import { db, approvalRequests, executionRuns, auditEvents } from '@agentmou/db';
 import { eq } from 'drizzle-orm';
 import { getQueue, QUEUE_NAMES } from '@agentmou/queue';
+import {
+  logRuntimeMessage,
+  warnRuntimeMessage,
+} from '../shared/job-log.js';
 
 export interface ApprovalTimeoutPayload {
   tenantId: string;
@@ -22,7 +26,7 @@ export interface ApprovalTimeoutPayload {
 export async function processApprovalTimeout(job: Job<ApprovalTimeoutPayload>) {
   const { tenantId, approvalId, runId, actionOnTimeout, escalationNote } = job.data;
 
-  console.log(
+  logRuntimeMessage(
     `[approval-timeout] Processing timeout for approval ${approvalId} (action: ${actionOnTimeout})`
   );
 
@@ -34,13 +38,13 @@ export async function processApprovalTimeout(job: Job<ApprovalTimeoutPayload>) {
     .limit(1);
 
   if (!approval) {
-    console.warn(`[approval-timeout] Approval ${approvalId} not found`);
+    warnRuntimeMessage(`[approval-timeout] Approval ${approvalId} not found`);
     return;
   }
 
   // 2. Skip if already resolved
   if (approval.status !== 'pending') {
-    console.log(
+    logRuntimeMessage(
       `[approval-timeout] Approval ${approvalId} already ${approval.status}, skipping`
     );
     return;
@@ -112,7 +116,7 @@ export async function processApprovalTimeout(job: Job<ApprovalTimeoutPayload>) {
     },
   });
 
-  console.log(
+  logRuntimeMessage(
     `[approval-timeout] Applied ${actionOnTimeout} to approval ${approvalId}`
   );
 }

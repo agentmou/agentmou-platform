@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { db, users, tenants, memberships, passwordResetTokens } from '@agentmou/db';
 import { createToken, verifyToken, hashPassword, verifyPassword } from '@agentmou/auth';
 import { eq } from 'drizzle-orm';
+import { getApiConfig } from '../../config.js';
 
 export class AuthService {
   /**
@@ -143,12 +144,14 @@ export class AuthService {
         expiresAt,
       });
 
-      const webBase =
-        process.env.WEB_APP_BASE_URL || 'http://localhost:3000';
+      const { webAppBaseUrl } = getApiConfig();
+      const webBase = webAppBaseUrl;
       const link = `${webBase.replace(/\/$/, '')}/reset-password?token=${plain}`;
 
       if (process.env.LOG_PASSWORD_RESET_LINK === '1' || process.env.NODE_ENV !== 'production') {
-        console.info(`[auth] password reset link for ${normalized}: ${link}`);
+        process.stdout.write(
+          `[auth] password reset link for ${normalized}: ${link}\n`,
+        );
       }
     }
 

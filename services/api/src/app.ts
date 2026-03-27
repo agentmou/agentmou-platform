@@ -19,18 +19,20 @@ import { publicChatRoutes } from './modules/public-chat/index.js';
 import { stripeWebhookRoutes } from './modules/webhooks/index.js';
 import { requireAuth, requireTenantAccess } from './middleware/index.js';
 import { zodValidatorCompiler } from './routes/zod-validator.js';
+import { getApiConfig } from './config.js';
 
 export function buildApp() {
+  const config = getApiConfig();
   const app = Fastify({
     logger: {
-      level: process.env.LOG_LEVEL || 'info',
+      level: config.logLevel,
     },
   });
 
   app.setValidatorCompiler(zodValidatorCompiler);
 
   app.register(cors, {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: config.corsOrigin,
   });
 
   app.get('/health', async () => {

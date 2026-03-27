@@ -1,3 +1,5 @@
+import { getApiConfig } from '../../config.js';
+
 const STRIPE_API_URL = 'https://api.stripe.com/v1';
 
 function getStripeSecretKey() {
@@ -173,13 +175,15 @@ export class StripeBillingClient {
   }
 
   async createCustomerPortalSession(customerId: string, returnUrl?: string) {
+    const { webAppBaseUrl } = getApiConfig();
+
     return stripeRequest<{ url: string }>(
       '/billing_portal/sessions',
       {
         method: 'POST',
         body: encodeForm({
           customer: customerId,
-          return_url: returnUrl ?? process.env.CORS_ORIGIN ?? 'http://localhost:3000',
+          return_url: returnUrl ?? webAppBaseUrl,
         }),
       },
     );

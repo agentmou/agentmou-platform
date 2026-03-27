@@ -6,6 +6,7 @@
  */
 
 import { Worker, type Job } from 'bullmq';
+import { createChildLogger } from '@agentmou/observability';
 import {
   getConnectionOptions,
   QUEUE_NAMES,
@@ -18,6 +19,7 @@ import {
 import { processInstallPack, processRunAgent, processRunWorkflow, processScheduleTrigger, processApprovalTimeout, processInternalWorkOrder, type ApprovalTimeoutPayload } from './jobs';
 
 const connection = getConnectionOptions();
+const logger = createChildLogger({ service: 'worker' });
 
 function startWorker<T>(
   queueName: string,
@@ -26,14 +28,14 @@ function startWorker<T>(
   const worker = new Worker<T>(queueName, processor, { connection });
 
   worker.on('completed', (job) => {
-    console.log(`[${queueName}] Job ${job.id} completed`);
+    logger.info(`[${queueName}] Job ${job.id} completed`);
   });
 
   worker.on('failed', (job, err) => {
-    console.error(`[${queueName}] Job ${job?.id} failed:`, err.message);
+    logger.error(err, `[${queueName}] Job ${job?.id} failed`);
   });
 
-  console.log(`Worker listening on queue: ${queueName}`);
+  logger.info(`Worker listening on queue: ${queueName}`);
   return worker;
 }
 
@@ -47,7 +49,7 @@ const workers = [
 ];
 
 async function shutdown() {
-  console.log('Shutting down workers...');
+  logger.info('Shutting down workers...');
   await Promise.all(workers.map((w) => w.close()));
   process.exit(0);
 }
@@ -55,4 +57,4 @@ async function shutdown() {
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
-console.log(`Agentmou Worker started with ${workers.length} queue(s)`);
+logger.info(`Agentmou Worker started with ${workers.length} queue(s)`);

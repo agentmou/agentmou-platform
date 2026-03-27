@@ -3,6 +3,7 @@ import {
   ConnectorsResponseSchema,
   ConnectorResponseSchema,
 } from '@agentmou/contracts';
+import { getApiConfig } from '../../config.js';
 import { ConnectorsService } from './connectors.service.js';
 import { OAuthService, OAuthError } from './oauth.service.js';
 
@@ -81,7 +82,7 @@ export async function connectorRoutes(fastify: FastifyInstance) {
  */
 export async function oauthCallbackRoutes(fastify: FastifyInstance) {
   const oauthService = new OAuthService();
-  const WEB_BASE_URL = process.env.CORS_ORIGIN || 'https://agentmou.io';
+  const { webAppBaseUrl: WEB_BASE_URL } = getApiConfig();
 
   fastify.get('/oauth/callback', async (request: FastifyRequest, reply: FastifyReply) => {
     const { code, state, error } = request.query as {
