@@ -41,7 +41,9 @@ historical logs.
   `apps/web` structure and constraints.
 - [Engineering Conventions](./architecture/conventions.md) captures repo-wide
   implementation rules.
-- [ADRs](./adr/) contains hard-to-reverse architectural decisions.
+- [ADRs](./adr/) contains hard-to-reverse architectural decisions, including
+  [013 — Enterprise auth / SSO strategy](./adr/013-enterprise-auth-sso-strategy.md)
+  for SAML/OIDC direction versus in-app B2C OAuth.
 
 ## Operations
 

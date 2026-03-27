@@ -16,6 +16,11 @@ The schema covers the full domain model:
 | Table                            | Purpose                                              |
 | -------------------------------- | ---------------------------------------------------- |
 | `users`                          | Platform users                                       |
+| `user_identities`                | Linked OAuth identities per user (B2C providers)     |
+| `user_oauth_states`              | CSRF/state rows for user-login OAuth (not connectors)|
+| `oauth_login_codes`              | One-time codes exchanged for JWT after OAuth success |
+| `password_reset_tokens`          | Hashed tokens for password reset flow                |
+| `tenant_sso_connections`         | Placeholder for future enterprise IdP bindings       |
 | `tenants`                        | Workspaces / organizations                           |
 | `memberships`                    | User-to-tenant membership with roles                 |
 | `connector_accounts`             | OAuth/integration connections per tenant             |

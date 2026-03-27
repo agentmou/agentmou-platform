@@ -35,6 +35,8 @@ agentmou-platform/
   - Role: public marketing site plus authenticated tenant UI.
   - Main dependencies: `@agentmou/contracts`, the control-plane API, and local
     provider abstractions under `lib/data/`.
+  - Auth UI and client: `components/auth`, `lib/auth`, routes under `(auth)`,
+    `/auth/callback`, and `/reset-password`.
 
 ### `services/`
 
@@ -78,7 +80,8 @@ agentmou-platform/
 - `packages/connectors`
   - Connector abstractions and provider implementations such as Gmail.
 - `packages/auth`
-  - JWT and password hashing helpers.
+  - JWT signing/verification and password hashing; API combines this with
+    `@agentmou/db` for OAuth identities and login state.
 - `packages/n8n-client`
   - Thin adapter over the n8n REST API.
 - `packages/observability`
