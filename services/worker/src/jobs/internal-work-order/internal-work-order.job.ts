@@ -21,7 +21,7 @@ import {
 } from '@agentmou/db';
 import { and, eq } from 'drizzle-orm';
 
-import { logJobMessage } from '../shared/job-log.js';
+import { logJobMessage } from '../runtime-support/job-log.js';
 
 type WorkOrderRow = typeof internalWorkOrders.$inferSelect;
 type ObjectiveRow = typeof internalObjectives.$inferSelect;

@@ -17,10 +17,10 @@ import { AgentEngine, type AgentPolicyConfig } from '@agentmou/agent-engine';
 import { resolveRepoRoot } from '@agentmou/catalog-sdk';
 import { loadTenantConnectors } from '@agentmou/connectors';
 
-import { logJobMessage } from '../shared/job-log.js';
-import { recordRunUsage } from '../shared/metering.js';
+import { logJobMessage } from '../runtime-support/job-log.js';
+import { recordRunUsage } from '../runtime-support/metering.js';
 import { syncInternalExecutionRunResult } from '../internal-work-order/internal-execution-sync.js';
-import { errorRuntimeMessage } from '../shared/job-log.js';
+import { errorRuntimeMessage } from '../runtime-support/job-log.js';
 
 const REPO_ROOT = resolveRepoRoot(import.meta.dirname, ['catalog/agents']);
 const CATALOG_DIR = path.join(REPO_ROOT, 'catalog');

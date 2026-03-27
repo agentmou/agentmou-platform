@@ -1,15 +1,11 @@
 /** Queue name constants shared between API (publisher) and worker (consumer). */
 export const QUEUE_NAMES = {
   INSTALL_PACK: 'install-pack',
-  INSTALL_AGENT: 'install-agent',
   RUN_AGENT: 'run-agent',
   RUN_WORKFLOW: 'run-workflow',
   SCHEDULE_TRIGGER: 'schedule-trigger',
   APPROVAL_TIMEOUT: 'approval-timeout',
   INTERNAL_WORK_ORDER: 'internal-work-order',
-  INGEST_DOCUMENT: 'ingest-document',
-  REBUILD_EMBEDDINGS: 'rebuild-embeddings',
-  DAILY_DIGEST: 'daily-digest',
 } as const;
 
 /** BullMQ job name used for persisted cron schedules. */

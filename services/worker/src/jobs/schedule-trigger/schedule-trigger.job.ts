@@ -15,7 +15,7 @@ import { eq } from 'drizzle-orm';
 import {
   logRuntimeMessage,
   warnRuntimeMessage,
-} from '../shared/job-log.js';
+} from '../runtime-support/job-log.js';
 
 export async function processScheduleTrigger(job: Job<ScheduleTriggerPayload>) {
   const { tenantId, scheduleId, targetType, installationId } = job.data;
