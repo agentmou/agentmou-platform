@@ -593,6 +593,7 @@ export const packTemplates: PackTemplate[] = [
     monthlyPrice: null,
     featured: true,
     tags: ['support', 'tickets', 'email', 'customer-success'],
+    availability: 'available',
   },
   {
     id: 'pack-sales-accelerator',
@@ -609,6 +610,7 @@ export const packTemplates: PackTemplate[] = [
     monthlyPrice: 49,
     featured: true,
     tags: ['sales', 'meetings', 'competitive-intel'],
+    availability: 'available',
   },
   {
     id: 'pack-research-intel',
@@ -625,6 +627,7 @@ export const packTemplates: PackTemplate[] = [
     monthlyPrice: null,
     featured: true,
     tags: ['research', 'monitoring', 'competitive-intel'],
+    availability: 'preview',
   },
   {
     id: 'pack-backoffice',
@@ -640,6 +643,7 @@ export const packTemplates: PackTemplate[] = [
     riskProfile: 'medium',
     monthlyPrice: 29,
     tags: ['ops', 'hr', 'documents', 'admin'],
+    availability: 'preview',
   },
   {
     id: 'pack-marketing-engine',
@@ -655,6 +659,7 @@ export const packTemplates: PackTemplate[] = [
     riskProfile: 'low',
     monthlyPrice: null,
     tags: ['marketing', 'content', 'research'],
+    availability: 'preview',
   },
   {
     id: 'pack-solo-founder',
@@ -671,6 +676,7 @@ export const packTemplates: PackTemplate[] = [
     monthlyPrice: null,
     featured: true,
     tags: ['personal', 'founder', 'productivity', 'solopreneur'],
+    availability: 'preview',
   },
 ]
 

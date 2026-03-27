@@ -9,29 +9,32 @@ import { mockProvider } from './mock-provider';
 
 /**
  * Demo workspace overlay: items that are not backed by an operational manifest
- * on disk are labeled "Coming soon". Operational assets stay unmarked so the UI
- * can show them as the real catalog slice inside the full demo inventory.
+ * on disk are labeled "Coming soon" and forced to `planned` availability so UI
+ * badges stay aligned with the repo catalog bar.
  */
 function markDemoAgent(agent: AgentTemplate): AgentTemplate {
   if (isOperationalAgent(agent.id)) {
     return { ...agent, statusNote: undefined };
   }
-  return { ...agent, statusNote: 'Coming soon' };
+  return { ...agent, availability: 'planned', statusNote: 'Coming soon' };
 }
 
 function markDemoWorkflow(workflow: WorkflowTemplate): WorkflowTemplate {
   if (isOperationalWorkflow(workflow.id)) {
     return { ...workflow, statusNote: undefined };
   }
-  return { ...workflow, statusNote: 'Coming soon' };
+  return { ...workflow, availability: 'planned', statusNote: 'Coming soon' };
 }
 
 function markDemoPack(pack: PackTemplate): PackTemplate {
   if (isOperationalPack(pack.id)) {
     return { ...pack };
   }
-  // PackTemplate has no statusNote in contracts; UI may ignore — still useful for future badges.
-  return { ...pack, statusNote: 'Coming soon' } as PackTemplate;
+  return {
+    ...pack,
+    availability: 'planned',
+    statusNote: 'Coming soon',
+  };
 }
 
 function markDemoAgentList(agents: AgentTemplate[]): AgentTemplate[] {

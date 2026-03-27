@@ -39,6 +39,12 @@ export interface MarketingCatalogPayload {
   agents: MarketingAgent[];
   workflows: MarketingWorkflow[];
   packs: MarketingPack[];
+  /** Present on `/api/public-catalog` responses built from `featured-from-demo.ts`. */
+  gaInventoryCounts?: {
+    agents: number;
+    workflows: number;
+    packs: number;
+  };
 }
 
 type MarketingCatalogSource = 'api' | 'filesystem' | 'empty';

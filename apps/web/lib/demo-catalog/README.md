@@ -33,7 +33,7 @@ pnpm demo-catalog:generate
 | `mock-data.ts` | Tenants, template arrays, installed fixtures, security/billing stubs |
 | `catalog/*.ts` | Extra agent/workflow slices merged into `mock-data` |
 | `operational-refs.ts` | Demo ID → operational ID (where they differ) |
-| `marketing-featured.ts` | Ordered IDs for marketing hero sections |
+| `marketing-featured.ts` | Ordered IDs for marketing hero sections (each must be operational + `availability: available`) |
 | `operational-ids.gen.json` | Generated operational ID lists (committed) |
 
 See [docs/catalog-and-demo.md](../../../../docs/catalog-and-demo.md) for the full model.

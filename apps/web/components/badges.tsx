@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import type { Availability } from '@agentmou/contracts'
 import { Shield, AlertTriangle, CheckCircle2, Info, Zap, Clock, Beaker } from 'lucide-react'
 
 // Unified badge styling - outline fine, no strong backgrounds
@@ -249,37 +250,45 @@ export function StatusPill({ status, label, showDot = true, className }: StatusP
   )
 }
 
-// Availability Badge: available / planned
-type AvailabilityType = 'available' | 'planned'
-
+// Availability Badge: planned / preview / available
 interface AvailabilityBadgeProps extends BadgeProps {
-  status: AvailabilityType
+  status: Availability
   showLabel?: boolean
 }
 
-const availabilityConfig: Record<AvailabilityType, { label: string; className: string }> = {
+const availabilityConfig: Record<
+  Availability,
+  { label: string; className: string; dotClass: string }
+> = {
   available: {
     label: 'Available',
     className: 'border-accent/40 text-foreground bg-transparent',
+    dotClass: 'bg-accent',
+  },
+  preview: {
+    label: 'In catalog',
+    className: 'border-muted-foreground/35 text-foreground bg-transparent',
+    dotClass: 'bg-chart-2/80',
   },
   planned: {
     label: 'Coming soon',
     className: 'border-muted-foreground/20 text-muted-foreground bg-transparent',
+    dotClass: 'bg-muted-foreground/50',
   },
 }
 
 export function AvailabilityBadge({ status, showLabel = true, className }: AvailabilityBadgeProps) {
   const config = availabilityConfig[status]
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
         'text-[10px] uppercase tracking-wide font-medium px-2 py-0.5',
         config.className,
         className
       )}
     >
-      <span className={cn('h-1.5 w-1.5 rounded-full mr-1.5', status === 'available' ? 'bg-accent' : 'bg-muted-foreground/50')} />
+      <span className={cn('h-1.5 w-1.5 rounded-full mr-1.5', config.dotClass)} />
       {showLabel && config.label}
     </Badge>
   )

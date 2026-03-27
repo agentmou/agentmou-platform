@@ -57,19 +57,97 @@ function packToMarketing(pack: PackTemplate): MarketingPack {
   };
 }
 
-function byIdOrThrow<T extends { id: string }>(
-  items: T[],
-  ids: readonly string[],
-  label: string,
-): T[] {
-  const map = new Map(items.map((item) => [item.id, item]));
-  return ids.map((id) => {
-    const found = map.get(id);
-    if (!found) {
-      throw new Error(`Marketing featured ${label} id not found in demo catalog: ${id}`);
+function assertGaOperationalAgent(agent: AgentTemplate): void {
+  if (!isOperationalAgent(agent.id)) {
+    throw new Error(
+      `Marketing featured agent ${agent.id} must map to an operational manifest on disk`,
+    );
+  }
+  if (agent.availability !== 'available') {
+    throw new Error(
+      `Marketing featured agent ${agent.id} must have catalog availability "available" (generally available); got ${agent.availability ?? 'undefined'}`,
+    );
+  }
+}
+
+function assertGaOperationalWorkflow(workflow: WorkflowTemplate): void {
+  if (!isOperationalWorkflow(workflow.id)) {
+    throw new Error(
+      `Marketing featured workflow ${workflow.id} must map to an operational public workflow manifest`,
+    );
+  }
+  if (workflow.availability !== 'available') {
+    throw new Error(
+      `Marketing featured workflow ${workflow.id} must have catalog availability "available" (generally available); got ${workflow.availability ?? 'undefined'}`,
+    );
+  }
+}
+
+function assertGaOperationalPack(pack: PackTemplate): void {
+  if (!isOperationalPack(pack.id)) {
+    throw new Error(
+      `Marketing featured pack ${pack.id} must map to an operational pack manifest on disk`,
+    );
+  }
+  if (pack.availability !== 'available') {
+    throw new Error(
+      `Marketing featured pack ${pack.id} must have catalog availability "available" (generally available); got ${pack.availability ?? 'undefined'}`,
+    );
+  }
+}
+
+function pickFeaturedAgents(): AgentTemplate[] {
+  const map = new Map(agentTemplates.map((a) => [a.id, a]));
+  return marketingFeaturedAgentIds.map((id) => {
+    const agent = map.get(id);
+    if (!agent) {
+      throw new Error(`Marketing featured agent id not found in demo catalog: ${id}`);
     }
-    return found;
+    assertGaOperationalAgent(agent);
+    return agent;
   });
+}
+
+function pickFeaturedWorkflows(): WorkflowTemplate[] {
+  const map = new Map(workflowTemplates.map((w) => [w.id, w]));
+  return marketingFeaturedWorkflowIds.map((id) => {
+    const workflow = map.get(id);
+    if (!workflow) {
+      throw new Error(`Marketing featured workflow id not found in demo catalog: ${id}`);
+    }
+    assertGaOperationalWorkflow(workflow);
+    return workflow;
+  });
+}
+
+function pickFeaturedPacks(): PackTemplate[] {
+  const map = new Map(packTemplates.map((p) => [p.id, p]));
+  return marketingFeaturedPackIds.map((id) => {
+    const pack = map.get(id);
+    if (!pack) {
+      throw new Error(`Marketing featured pack id not found in demo catalog: ${id}`);
+    }
+    assertGaOperationalPack(pack);
+    return pack;
+  });
+}
+
+function countGaInventory(): {
+  agents: number;
+  workflows: number;
+  packs: number;
+} {
+  return {
+    agents: agentTemplates.filter(
+      (a) => isOperationalAgent(a.id) && a.availability === 'available',
+    ).length,
+    workflows: workflowTemplates.filter(
+      (w) => isOperationalWorkflow(w.id) && w.availability === 'available',
+    ).length,
+    packs: packTemplates.filter(
+      (p) => isOperationalPack(p.id) && p.availability === 'available',
+    ).length,
+  };
 }
 
 export interface MarketingCatalogWithStats extends MarketingCatalogPayload {
@@ -79,8 +157,17 @@ export interface MarketingCatalogWithStats extends MarketingCatalogPayload {
     workflows: number;
     packs: number;
   };
-  /** Count of featured items backed by operational manifests (subset check). */
+  /**
+   * Featured rows that are operational and generally available (matches returned
+   * featured arrays after validation).
+   */
   operationalFeaturedCounts: {
+    agents: number;
+    workflows: number;
+    packs: number;
+  };
+  /** Operational manifest on disk + `availability: available` across the full demo inventory. */
+  gaInventoryCounts: {
     agents: number;
     workflows: number;
     packs: number;
@@ -89,41 +176,29 @@ export interface MarketingCatalogWithStats extends MarketingCatalogPayload {
 
 /**
  * Builds the marketing homepage catalog from the demo inventory + featured ID lists.
+ * Every featured id must be operational and marked `available` (GA), or the build throws.
  */
 export function buildMarketingFeaturedCatalog(): MarketingCatalogWithStats {
-  const agents = byIdOrThrow(
-    agentTemplates,
-    marketingFeaturedAgentIds,
-    'agent',
-  ).map(agentToMarketing);
+  const agentRows = pickFeaturedAgents();
+  const workflowRows = pickFeaturedWorkflows();
+  const packRows = pickFeaturedPacks();
 
-  const workflows = byIdOrThrow(
-    workflowTemplates,
-    marketingFeaturedWorkflowIds,
-    'workflow',
-  ).map(workflowToMarketing);
-
-  const packs = byIdOrThrow(packTemplates, marketingFeaturedPackIds, 'pack').map(
-    packToMarketing,
-  );
-
-  const operationalFeaturedCounts = {
-    agents: marketingFeaturedAgentIds.filter((id) => isOperationalAgent(id)).length,
-    workflows: marketingFeaturedWorkflowIds.filter((id) =>
-      isOperationalWorkflow(id),
-    ).length,
-    packs: marketingFeaturedPackIds.filter((id) => isOperationalPack(id)).length,
-  };
+  const gaInventoryCounts = countGaInventory();
 
   return {
-    agents,
-    workflows,
-    packs,
+    agents: agentRows.map(agentToMarketing),
+    workflows: workflowRows.map(workflowToMarketing),
+    packs: packRows.map(packToMarketing),
     demoTotals: {
       agents: agentTemplates.length,
       workflows: workflowTemplates.length,
       packs: packTemplates.length,
     },
-    operationalFeaturedCounts,
+    operationalFeaturedCounts: {
+      agents: agentRows.length,
+      workflows: workflowRows.length,
+      packs: packRows.length,
+    },
+    gaInventoryCounts,
   };
 }

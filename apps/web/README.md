@@ -20,11 +20,13 @@ or workflows itself.
 - Consume the control-plane API through typed client helpers in `lib/api/`.
 - Serve marketing homepage cards from `/api/public-catalog`, built from the
   **curated demo featured list** (`lib/demo-catalog/marketing-featured.ts`) plus
-  honest `demoTotals` / `operationalFeaturedCounts` (see `docs/catalog-and-demo.md`).
+  `demoTotals`, `operationalFeaturedCounts`, and `gaInventoryCounts` (see
+  `docs/catalog-and-demo.md`). Featured ids must be operational and marked
+  `availability: available` in demo data.
 - Switch between `apiProvider` and `demoProvider`: real tenants use the API
-  catalog; `demo-workspace` uses the full demo inventory with **Coming soon** on
-  items not backed by operational manifests (`operational-ids.gen.json` +
-  `operational-refs.ts`).
+  catalog; `demo-workspace` uses the full demo inventory with **planned** +
+  **Coming soon** on items not backed by operational manifests
+  (`operational-ids.gen.json` + `operational-refs.ts`).
 - Apply honest product labels for tenant surfaces that are still preview,
   read-only, demo, or not yet available.
 
@@ -81,7 +83,8 @@ pnpm --filter @agentmou/web start
 - `lib/api/client.ts` contains typed fetchers for tenants, catalog, runs, approvals, connectors, and installations.
 - `lib/data/api-provider.ts` adapts the real API to the `DataProvider` interface.
 - `lib/data/demo-provider.ts` powers `demo-workspace` with read-only demo data
-  and operational vs preview labels.
+  and operational vs non-operational availability (`planned` + status note).
+- `lib/catalog/availability.ts` centralizes default listing tier resolution for UI.
 - `lib/demo-catalog/` owns the demo inventory, marketing featured IDs, and
   generated operational ID index.
 - `lib/honest-ui/audit.ts` is the authoritative audit map for placeholder,
