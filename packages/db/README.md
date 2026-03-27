@@ -64,6 +64,37 @@ pnpm --filter @agentmou/db studio     # Open Drizzle Studio
 pnpm --filter @agentmou/db typecheck
 ```
 
+## Drizzle Kit and transitive dependencies
+
+`drizzle-kit` is a **dev-only** CLI (generate, migrate, studio). It currently
+pulls the deprecated npm packages `@esbuild-kit/esm-loader` and
+`@esbuild-kit/core-utils`. That does **not** ship in API/worker/web production
+bundles; it only affects installs and environments where you run the kit.
+
+**What we do today:** the monorepo root [`package.json`](../../package.json)
+defines a `pnpm.overrides` entry for `@esbuild-kit/core-utils>esbuild` so the
+transitive `esbuild` version is pinned for advisory coverage. See
+[Security dependencies](../../docs/runbooks/security-dependencies.md) for
+audit and override review.
+
+**Removing the deprecated packages entirely** requires an upstream
+`drizzle-kit` release that drops `@esbuild-kit/*`. Until then:
+
+1. When touching dependencies, check the latest `drizzle-kit` on npm and read
+   [Drizzle ORM releases](https://github.com/drizzle-team/drizzle-orm/releases).
+2. Bump `drizzle-kit` in this package when a new version ships, run
+   `pnpm install`, `pnpm audit`, and re-check whether overrides are still
+   needed.
+3. Track upstream work (subscribe or add a thumbs-up) on Drizzle issues such as
+   [#5304](https://github.com/drizzle-team/drizzle-orm/issues/5304) and
+   [#5481](https://github.com/drizzle-team/drizzle-orm/issues/5481).
+
+To see why the loader is present after an install:
+
+```bash
+pnpm --filter @agentmou/db why @esbuild-kit/esm-loader
+```
+
 ## Related Docs
 
 - [Current State](../../docs/architecture/current-state.md)
