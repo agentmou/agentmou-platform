@@ -12,7 +12,7 @@ import {
 } from '@agentmou/contracts';
 
 interface OpenClawRunnerOptions {
-  baseUrl?: string;
+  baseUrl: string;
   apiKey?: string;
   timeoutMs?: number;
 }
@@ -46,14 +46,10 @@ export class HttpOpenClawAdapter implements OpenClawRunner {
   private readonly apiKey?: string;
   private readonly timeoutMs: number;
 
-  constructor(options: OpenClawRunnerOptions = {}) {
-    this.baseUrl = (
-      options.baseUrl ??
-      process.env.OPENCLAW_API_URL ??
-      ''
-    ).replace(/\/$/, '');
-    this.apiKey = options.apiKey ?? process.env.OPENCLAW_API_KEY;
-    this.timeoutMs = options.timeoutMs ?? Number(process.env.OPENCLAW_TIMEOUT_MS ?? 15000);
+  constructor(options: OpenClawRunnerOptions) {
+    this.baseUrl = options.baseUrl.replace(/\/$/, '');
+    this.apiKey = options.apiKey;
+    this.timeoutMs = options.timeoutMs ?? 15000;
   }
 
   async registerAgentProfiles(tenantId: string, profiles: AgentProfile[]) {

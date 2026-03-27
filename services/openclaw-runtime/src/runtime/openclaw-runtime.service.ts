@@ -14,21 +14,33 @@ import {
 
 import {
   FileStateStore,
-  type StoredRemoteSession,
-  type StoredTenantRegistry,
-  type StoredTraceEvent,
-  type StoredTurnRecord,
 } from './file-state-store.js';
 import { OpenClawPlanner } from './openclaw-planner.js';
+import { getOpenClawRuntimeConfig } from '../config.js';
+import type {
+  OpenClawStateStore,
+  StoredRemoteSession,
+  StoredTenantRegistry,
+  StoredTraceEvent,
+  StoredTurnRecord,
+} from './state-store.js';
 
 export class OpenClawRuntimeService {
-  private readonly store: FileStateStore;
+  private readonly store: OpenClawStateStore;
   private readonly planner: OpenClawPlanner;
   private initialized = false;
 
-  constructor(options?: { store?: FileStateStore; planner?: OpenClawPlanner }) {
-    this.store = options?.store ?? new FileStateStore();
-    this.planner = options?.planner ?? new OpenClawPlanner();
+  constructor(options?: { store?: OpenClawStateStore; planner?: OpenClawPlanner }) {
+    const config = getOpenClawRuntimeConfig();
+    this.store =
+      options?.store ??
+      new FileStateStore(config.storage);
+    this.planner =
+      options?.planner ??
+      new OpenClawPlanner({
+        apiKey: config.openAiApiKey,
+        model: config.model,
+      });
   }
 
   async registerAgentProfiles(tenantId: string, profiles: AgentProfile[]) {

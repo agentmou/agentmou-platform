@@ -40,9 +40,9 @@ export class OpenClawPlanner {
   private readonly model: string;
 
   constructor(options?: { apiKey?: string; model?: string }) {
-    const apiKey = options?.apiKey ?? process.env.OPENAI_API_KEY;
+    const apiKey = options?.apiKey;
     this.openai = apiKey ? new OpenAI({ apiKey }) : null;
-    this.model = options?.model ?? process.env.OPENCLAW_MODEL ?? 'gpt-4o-mini';
+    this.model = options?.model ?? 'gpt-4o-mini';
   }
 
   async planTurn(options: PlanTurnOptions): Promise<OpenClawTurnResult> {
