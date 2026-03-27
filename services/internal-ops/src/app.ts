@@ -4,16 +4,18 @@ import cors from '@fastify/cors';
 import { InternalOpsService } from './orchestrator/internal-ops.service.js';
 import { internalRoutes } from './routes/internal.routes.js';
 import { telegramRoutes } from './routes/telegram.routes.js';
+import { getInternalOpsConfig } from './config.js';
 
 export function buildApp(options?: { service?: InternalOpsService }) {
+  const config = getInternalOpsConfig();
   const app = Fastify({
     logger: {
-      level: process.env.LOG_LEVEL || 'info',
+      level: config.logLevel,
     },
   });
 
   app.register(cors, {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: config.corsOrigin,
   });
 
   app.get('/health', async () => ({

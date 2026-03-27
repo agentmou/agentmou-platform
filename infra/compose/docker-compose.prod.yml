@@ -183,7 +183,8 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET}
-      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - WEB_APP_BASE_URL=${WEB_APP_BASE_URL}
       - N8N_API_URL=${N8N_API_URL:-http://n8n:5678/api/v1}
       - N8N_API_KEY=${N8N_API_KEY}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
@@ -228,7 +229,7 @@ services:
       - OPENCLAW_API_URL=${OPENCLAW_API_URL}
       - OPENCLAW_API_KEY=${OPENCLAW_API_KEY}
       - OPENCLAW_TIMEOUT_MS=${OPENCLAW_TIMEOUT_MS:-15000}
-      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - CORS_ORIGIN=${CORS_ORIGIN}
       - NODE_ENV=production
     depends_on:
       postgres:

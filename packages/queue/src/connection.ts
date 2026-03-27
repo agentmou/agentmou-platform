@@ -1,14 +1,15 @@
 import { Queue, type ConnectionOptions } from 'bullmq';
+import { getRedisUrl } from './config';
 
 let _connectionOpts: ConnectionOptions | null = null;
 
 /**
  * Returns shared Redis connection options for BullMQ.
- * Uses REDIS_URL env var or defaults to localhost:6379.
+ * Uses the validated REDIS_URL env var or a stable test URL during Vitest runs.
  */
 export function getConnectionOptions(): ConnectionOptions {
   if (!_connectionOpts) {
-    const url = process.env.REDIS_URL || 'redis://localhost:6379';
+    const url = getRedisUrl();
     const parsed = new URL(url);
     _connectionOpts = {
       host: parsed.hostname || 'localhost',

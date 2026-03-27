@@ -20,6 +20,7 @@ import { loadTenantConnectors } from '@agentmou/connectors';
 import { logJobMessage } from '../shared/job-log.js';
 import { recordRunUsage } from '../shared/metering.js';
 import { syncInternalExecutionRunResult } from '../internal-work-order/internal-execution-sync.js';
+import { errorRuntimeMessage } from '../shared/job-log.js';
 
 const REPO_ROOT = resolveRepoRoot(import.meta.dirname, ['catalog/agents']);
 const CATALOG_DIR = path.join(REPO_ROOT, 'catalog');
@@ -127,7 +128,9 @@ export async function processRunAgent(job: Job<RunAgentPayload>) {
   await job.updateProgress(100);
 
   if (!result.success) {
-    console.error(`[run-agent] Failed run ${runId}: ${result.error}`);
+    errorRuntimeMessage(
+      `[run-agent] Failed run ${runId}: ${result.error ?? 'unknown error'}`,
+    );
     throw new Error(result.error ?? 'Agent execution failed');
   }
 

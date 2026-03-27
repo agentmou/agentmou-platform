@@ -8,15 +8,19 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
+import { getDatabaseUrl } from './config';
 
-const DATABASE_URL =
-  process.env.DATABASE_URL || 'postgres://agentmou:changeme@localhost:5432/agentmou';
+const DATABASE_URL = getDatabaseUrl();
+
+function print(message: string) {
+  process.stdout.write(`${message}\n`);
+}
 
 async function seed() {
   const client = postgres(DATABASE_URL, { max: 1 });
   const db = drizzle(client, { schema });
 
-  console.log('Seeding database...');
+  print('Seeding database...');
 
   // 1. User
   const [user] = await db
@@ -31,7 +35,7 @@ async function seed() {
 
   const userId = user?.id;
   if (!userId) {
-    console.log('User already exists, looking up...');
+    print('User already exists, looking up...');
     const existing = await db.query.users.findFirst({
       where: (u, { eq }) => eq(u.email, 'admin@agentmou.dev'),
     });
@@ -83,9 +87,9 @@ async function finish(
     });
   }
 
-  console.log(`Seed complete.`);
-  console.log(`  User:   ${userId} (admin@agentmou.dev)`);
-  console.log(`  Tenant: ${tenant.id} (${tenant.name})`);
+  print('Seed complete.');
+  print(`  User:   ${userId} (admin@agentmou.dev)`);
+  print(`  Tenant: ${tenant.id} (${tenant.name})`);
 
   await client.end();
 }

@@ -1,6 +1,11 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [".env"],
+  "globalDependencies": [
+    ".env",
+    "infra/compose/.env.example",
+    "infra/compose/.env.openclaw.example",
+    ".github/workflows/ci.yml"
+  ],
   "globalEnv": [
     "NODE_ENV",
     "DATABASE_URL",
@@ -16,14 +21,9 @@
       "cache": false,
       "persistent": true
     },
-    "lint": {
-      "dependsOn": ["^build"]
-    },
-    "typecheck": {
-      "dependsOn": ["^build"]
-    },
+    "lint": {},
+    "typecheck": {},
     "test": {
-      "dependsOn": ["^build"],
       "cache": false
     },
     "clean": {

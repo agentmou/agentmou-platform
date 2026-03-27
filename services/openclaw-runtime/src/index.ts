@@ -1,13 +1,15 @@
 import { buildApp } from './app.js';
+import { getOpenClawRuntimeConfig } from './config.js';
 
 async function start() {
+  const config = getOpenClawRuntimeConfig();
   const app = buildApp();
 
   try {
-    const port = Number.parseInt(process.env.PORT || '3003', 10);
-    const host = process.env.HOST || '0.0.0.0';
-    await app.listen({ port, host });
-    console.log(`OpenClaw runtime running at http://${host}:${port}`);
+    await app.listen({ port: config.port, host: config.host });
+    app.log.info(
+      `OpenClaw runtime running at http://${config.host}:${config.port}`,
+    );
   } catch (error) {
     app.log.error(error);
     process.exit(1);

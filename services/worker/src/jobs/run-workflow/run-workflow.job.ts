@@ -14,6 +14,7 @@ import { N8nClient } from '@agentmou/n8n-client';
 import { logJobMessage } from '../shared/job-log.js';
 import { recordRunUsage } from '../shared/metering.js';
 import { syncInternalExecutionRunResult } from '../internal-work-order/internal-execution-sync.js';
+import { errorRuntimeMessage } from '../shared/job-log.js';
 
 const N8N_API_URL = process.env.N8N_API_URL || 'http://n8n:5678/api/v1';
 const N8N_API_KEY = process.env.N8N_API_KEY || '';
@@ -128,7 +129,7 @@ export async function processRunWorkflow(job: Job<RunWorkflowPayload>) {
     );
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    console.error(`[run-workflow] Failed run ${runId}:`, msg);
+    errorRuntimeMessage(`[run-workflow] Failed run ${runId}: ${msg}`, error);
 
     await db
       .update(executionRuns)

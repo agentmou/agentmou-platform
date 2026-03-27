@@ -1,15 +1,16 @@
 // Control Plane API - Fastify server
 import { buildApp } from './app.js';
+import { getApiConfig } from './config.js';
 
 const start = async () => {
+  const config = getApiConfig();
   const app = buildApp();
 
   try {
-    const port = parseInt(process.env.PORT || '3001', 10);
-    const host = process.env.HOST || '0.0.0.0';
-
-    await app.listen({ port, host });
-    console.log(`Control Plane API running at http://${host}:${port}`);
+    await app.listen({ port: config.port, host: config.host });
+    app.log.info(
+      `Control Plane API running at http://${config.host}:${config.port}`,
+    );
   } catch (err) {
     app.log.error(err);
     process.exit(1);

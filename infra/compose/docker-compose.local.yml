@@ -56,6 +56,9 @@ services:
     environment:
       - DATABASE_URL=postgresql://${DB_USER:-agentmou}:${DB_PASSWORD:-changeme}@postgres:5432/${DB_NAME:-agentmou}
       - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-local-jwt-secret}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:${WEB_PORT:-3000}}
+      - WEB_APP_BASE_URL=${WEB_APP_BASE_URL:-http://localhost:${WEB_PORT:-3000}}
       - NODE_ENV=local
     ports:
       - '${API_PORT:-3001}:3001'

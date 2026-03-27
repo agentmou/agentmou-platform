@@ -14,6 +14,10 @@ env:
   DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/agentmou
   REDIS_URL: redis://127.0.0.1:6379
   NEXT_PUBLIC_API_URL: http://127.0.0.1:3001
+  CORS_ORIGIN: http://localhost:3000
+  JWT_SECRET: test-jwt-secret
+  WEB_APP_BASE_URL: http://localhost:3000
+  LOG_LEVEL: silent
   NODE_ENV: test
   TURBO_TELEMETRY_DISABLED: '1'
 
@@ -48,3 +52,23 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+  agents:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: python -m pip install -r services/agents/requirements.txt
+
+      - name: Validate agents service
+        run: |
+          python -m py_compile services/agents/main.py
+          python -m unittest discover -s services/agents -p 'test_*.py'

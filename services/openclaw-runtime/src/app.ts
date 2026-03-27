@@ -3,11 +3,13 @@ import cors from '@fastify/cors';
 
 import { OpenClawRuntimeService } from './runtime/openclaw-runtime.service.js';
 import { internalOpsRoutes } from './routes/internal-ops.routes.js';
+import { getOpenClawRuntimeConfig } from './config.js';
 
 export function buildApp(options?: { service?: OpenClawRuntimeService; apiKey?: string }) {
+  const config = getOpenClawRuntimeConfig();
   const app = Fastify({
     logger: {
-      level: process.env.LOG_LEVEL || 'info',
+      level: config.logLevel,
     },
   });
 
