@@ -52,7 +52,39 @@ describe('catalog.mapper', () => {
       workflows: ['wf-01-auto-label-gmail'],
       domain: 'support',
       catalogGroup: 'support',
+      availability: 'available',
     });
+  });
+
+  it('defaults agent availability to preview when catalog omits availability', () => {
+    const agent = mapAgentManifest({
+      id: 'preview-agent',
+      name: 'Preview Agent',
+      version: '0.1.0',
+      description: 'Listed but not GA',
+      category: 'core',
+      runtime: {
+        requiredConnectors: [],
+        credentialStrategy: 'platform_managed',
+        installStrategy: 'platform_managed_installation',
+        runtimeOwner: 'agent_engine',
+        linkedWorkflows: [],
+      },
+      catalog: {
+        outcome: 'Do things',
+        domain: 'core',
+        inputs: [],
+        outputs: [],
+        riskLevel: 'low',
+        hitl: 'optional',
+        kpis: [{ name: 'k', description: 'd' }],
+        complexity: 'S',
+        channel: 'stable',
+        setupTimeMinutes: 10,
+        monthlyPrice: null,
+      },
+    });
+    expect(agent.availability).toBe('preview');
   });
 
   it('maps an operational workflow manifest and normalizes workflow trigger labels', () => {
@@ -109,7 +141,37 @@ describe('catalog.mapper', () => {
       trigger: 'email',
       integrations: ['gmail'],
       catalogGroups: ['support'],
+      availability: 'available',
     });
+  });
+
+  it('defaults workflow availability to preview when catalog omits availability', () => {
+    const workflow = mapWorkflowManifest({
+      id: 'wf-preview',
+      name: 'Preview Workflow',
+      version: '0.1.0',
+      description: 'Preview workflow',
+      type: 'n8n',
+      status: 'public',
+      category: 'core',
+      trigger: { type: 'manual' },
+      runtime: {
+        requiredConnectors: [],
+        credentialStrategy: 'platform_managed',
+        installStrategy: 'platform_managed_installation',
+        runtimeOwner: 'n8n',
+      },
+      catalog: {
+        summary: 'S',
+        integrations: [],
+        output: 'O',
+        useCase: 'U',
+        riskLevel: 'low',
+        changelog: ['0.1.0: Initial'],
+        nodesOverview: [{ id: '1', type: 'action', name: 'Step' }],
+      },
+    });
+    expect(workflow.availability).toBe('preview');
   });
 
   it('maps an operational pack manifest to the shared pack template shape', () => {
@@ -138,6 +200,7 @@ describe('catalog.mapper', () => {
       slug: 'support-starter',
       includedAgents: ['inbox-triage'],
       includedWorkflows: ['wf-01-auto-label-gmail'],
+      availability: 'preview',
     });
   });
 });
