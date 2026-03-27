@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useDataProvider, type DataProvider } from './index';
+import { useDataProvider } from '@/lib/providers/context';
+import type { DataProvider } from './provider';
 
 type ProviderFn<T> = (provider: DataProvider) => Promise<T>;
 

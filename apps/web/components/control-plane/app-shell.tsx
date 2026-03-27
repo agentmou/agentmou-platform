@@ -47,7 +47,7 @@ import {
 import { Logo } from '@/components/brand'
 import { CommandPalette } from '@/components/control-plane/command-palette'
 import { useAuthStore } from '@/lib/auth/store'
-import { useDataProvider } from '@/lib/data'
+import { useDataProvider } from '@/lib/providers/context'
 
 const navSections = [
   {

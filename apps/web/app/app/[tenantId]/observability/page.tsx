@@ -46,7 +46,7 @@ import {
 } from '@/components/ui/chart'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
-import { useDataProvider } from '@/lib/data'
+import { useDataProvider } from '@/lib/providers/context'
 import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
 import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 import type { AgentTemplate, WorkflowTemplate, ExecutionRun, DashboardMetrics } from '@agentmou/contracts'

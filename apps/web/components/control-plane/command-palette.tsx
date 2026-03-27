@@ -31,7 +31,7 @@ import {
   Clock,
 } from 'lucide-react'
 import { buildSearchIndex, searchItems, groupSearchItems, type SearchItem } from '@/lib/search-index'
-import { useDataProvider } from '@/lib/data'
+import { useDataProvider } from '@/lib/providers/context'
 
 const iconMap: Record<string, React.ElementType> = {
   'activity': Activity,
