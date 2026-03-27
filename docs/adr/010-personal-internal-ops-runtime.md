@@ -5,7 +5,7 @@
 
 ## Context
 
-AgentMou now includes a private multi-agent operating system for running the
+Agentmou now includes a private multi-agent operating system for running the
 company itself. This created several architectural questions that are hard to
 reverse later:
 
@@ -70,7 +70,7 @@ The internal operating system follows:
 
 - `services/internal-ops` does not directly perform side effects.
 - Worker-executable work orders are the contract for deterministic execution.
-- Optional use of the main AgentMou tenant substrate is controlled through
+- Optional use of the main Agentmou tenant substrate is controlled through
   `internal_capability_bindings`.
 
 ### Product-surface boundary
@@ -99,7 +99,7 @@ coupling tighter than necessary for the current system shape.
 Rejected because the intended operator behavior is lightweight conversational
 control, approval handling, and proactive requests from Telegram.
 
-### Expose the full AgentMou tenant surface directly
+### Expose the full Agentmou tenant surface directly
 
 Rejected because the internal org chart needs bounded execution surfaces and
 auditable capability routing, not implicit access to everything installed in the
@@ -113,7 +113,7 @@ tenant.
   delivery path.
 - OpenClaw deployment is a separate operational concern even though its adapter
   lives in this repo.
-- Internal capability bindings become the control point for reusing AgentMou's
+- Internal capability bindings become the control point for reusing Agentmou's
   own tenant substrate.
 - Docs must explicitly distinguish:
   - developer agents

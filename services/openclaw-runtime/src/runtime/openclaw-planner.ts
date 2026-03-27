@@ -87,7 +87,7 @@ export class OpenClawPlanner {
           {
             role: 'system',
             content: [
-              'You are OpenClaw, the remote reasoning runtime for AgentMou internal ops.',
+              'You are OpenClaw, the remote reasoning runtime for Agentmou internal ops.',
               'Return a single JSON object only.',
               'Use only the agent ids and capability keys provided.',
               'Prefer a CEO -> chief -> subagent delegation chain.',

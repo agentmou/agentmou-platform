@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# AgentMou Stack - Initial Setup
+# Agentmou Stack - Initial Setup
 # ---------------------------------------------------------------------------
 # Run once after cloning the repo on a fresh VPS.
 #
@@ -12,7 +12,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
-echo "=== AgentMou Stack — Setup ==="
+echo "=== Agentmou Stack — Setup ==="
 
 # --- Check prerequisites ---------------------------------------------------
 if ! command -v docker &>/dev/null; then

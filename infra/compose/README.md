@@ -1,7 +1,7 @@
 # Compose Files
 
 This directory contains the Docker Compose definitions for local development,
-the main AgentMou production stack, and the dedicated OpenClaw runtime VPS.
+the main Agentmou production stack, and the dedicated OpenClaw runtime VPS.
 
 ## Files
 
@@ -12,7 +12,7 @@ the main AgentMou production stack, and the dedicated OpenClaw runtime VPS.
 - `docker-compose.local.yml`
   - Local infrastructure stack for development workflows.
 - `docker-compose.prod.yml`
-  - Production stack definition for the main AgentMou VPS.
+  - Production stack definition for the main Agentmou VPS.
 - `docker-compose.openclaw.yml`
   - Separate production stack definition for the OpenClaw runtime VPS.
 

@@ -55,4 +55,4 @@ async function shutdown() {
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
-console.log(`AgentMou Worker started with ${workers.length} queue(s)`);
+console.log(`Agentmou Worker started with ${workers.length} queue(s)`);

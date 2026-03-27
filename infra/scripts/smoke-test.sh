@@ -2,7 +2,7 @@
 set -uo pipefail
 
 # ===========================================================================
-# AgentMou — Smoke Test
+# Agentmou — Smoke Test
 # ===========================================================================
 # Quick verification that the public API is responding and serving the minimum
 # expected production inventory.

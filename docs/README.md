@@ -36,7 +36,7 @@ historical logs.
   product agents, developer agents, manifests, and runtime state belong.
 - [Internal Ops Personal Operating System](./architecture/internal-ops-personal-os.md)
   documents the private Telegram/OpenClaw orchestration layer used to run
-  AgentMou itself.
+  Agentmou itself.
 - [Web App Architecture](./architecture/apps-web.md) describes the current
   `apps/web` structure and constraints.
 - [Engineering Conventions](./architecture/conventions.md) captures repo-wide

@@ -1,6 +1,6 @@
 # @agentmou/openclaw-runtime
 
-Remote reasoning runtime for the private AgentMou internal operating system.
+Remote reasoning runtime for the private Agentmou internal operating system.
 
 ## Purpose
 
@@ -9,7 +9,7 @@ that powers `services/internal-ops`. It stores tenant agent registries, keeps
 minimal remote session state, plans the next turn, and exposes trace retrieval
 for auditability.
 
-The service is meant to run on a separate VPS from the main AgentMou stack.
+The service is meant to run on a separate VPS from the main Agentmou stack.
 `services/internal-ops` remains the control plane and this service remains the
 reasoning runtime.
 
@@ -74,7 +74,7 @@ api, worker, and internal-ops container images.
 ## Boundaries
 
 - This service is a remote reasoning runtime, not a shell agent.
-- It does not directly mutate the AgentMou repository or call Git on your
+- It does not directly mutate the Agentmou repository or call Git on your
   behalf.
 - Real side effects still happen through `services/internal-ops` and
   `services/worker`.

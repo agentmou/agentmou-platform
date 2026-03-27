@@ -1,12 +1,12 @@
 # @agentmou/internal-ops
 
-Personal internal operating system for running AgentMou through a Telegram
+Personal internal operating system for running Agentmou through a Telegram
 operator interface, the separately deployed `services/openclaw-runtime`, and
 worker-driven execution.
 
 ## Purpose
 
-`services/internal-ops` is the private control plane for AgentMou's own company
+`services/internal-ops` is the private control plane for Agentmou's own company
 operations. It is not a tenant-facing product surface. The service receives
 Telegram updates, turns them into internal objectives, asks a remote OpenClaw
 runtime to plan the next turn, validates the turn through `hc-coherence`,
@@ -23,7 +23,7 @@ worker execute the deterministic parts.
   envelope for auditability.
 - Translate OpenClaw output into typed internal work orders.
 - Reuse the main platform worker, approval system, execution runs, and optional
-  tenant-installed AgentMou assets.
+  tenant-installed Agentmou assets.
 
 ## How It Fits Into The System
 
@@ -177,7 +177,7 @@ pnpm --filter @agentmou/internal-ops build
 
 - This service expects the OpenClaw runtime to be deployed separately, even
   though the reference implementation now lives in `services/openclaw-runtime`.
-- Default capability bindings are native-only. AgentMou-backed capabilities
+- Default capability bindings are native-only. Agentmou-backed capabilities
   require rows in `internal_capability_bindings`.
 - Telegram is the human operator surface. The internal callback route is a
   system surface, not the intended human entrypoint.

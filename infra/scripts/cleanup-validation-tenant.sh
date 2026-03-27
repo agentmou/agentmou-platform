@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# AgentMou Stack - Validation Fixture Cleanup Wrapper
+# Agentmou Stack - Validation Fixture Cleanup Wrapper
 # ---------------------------------------------------------------------------
 # VPS-friendly wrapper around scripts/cleanup-validation-tenant.ts.
 # It derives the host-shell env vars that the TypeScript implementation needs

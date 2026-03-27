@@ -173,13 +173,13 @@ async function buildKnowledgeDocuments(): Promise<KnowledgeDocumentInput[]> {
   return [
     {
       slug: 'public-pricing',
-      title: 'AgentMou pricing',
+      title: 'Agentmou pricing',
       sourcePath: 'apps/web/app/(marketing)/pricing/page.tsx',
       sourceType: 'marketing',
       summary: 'Starter and Pro plans with included runs plus soft overage.',
       keywords: ['pricing', 'plans', 'billing', 'starter', 'pro', 'scale'],
       content: [
-        'AgentMou pricing is plan-based rather than pass-through LLM billing.',
+        'Agentmou pricing is plan-based rather than pass-through LLM billing.',
         'Starter is $29/month and includes 3 agents, 1,000 runs per month, 5 integrations, email support, basic analytics, and 7-day log retention.',
         'Pro is $99/month and includes 10 agents, 10,000 runs per month, unlimited integrations, priority support, advanced analytics, and 30-day log retention.',
         'Scale is custom and intended for enterprise requirements, including SSO/SAML, SLA commitments, and unlimited runs.',
@@ -188,26 +188,26 @@ async function buildKnowledgeDocuments(): Promise<KnowledgeDocumentInput[]> {
     },
     {
       slug: 'public-product-overview',
-      title: 'AgentMou product overview',
+      title: 'Agentmou product overview',
       sourcePath: 'apps/web/app/(marketing)/docs/page.tsx',
       sourceType: 'marketing',
       summary: 'AI agent fleet plus n8n orchestration with observability and approvals.',
       keywords: ['product', 'overview', 'agents', 'workflows', 'observability', 'approvals'],
       content: [
-        'AgentMou combines installable AI agents, workflow packs, integrations, and n8n-backed orchestration.',
+        'Agentmou combines installable AI agents, workflow packs, integrations, and n8n-backed orchestration.',
         'The product emphasizes human-in-the-loop approvals, observability for runs and token usage, and a catalog of reusable operational automations.',
         'The marketing site and demo workspace explain the current product shape, while tenant surfaces are explicitly labeled when they are preview, read-only, or not yet available.',
       ].join('\n\n'),
     },
     {
       slug: 'public-security',
-      title: 'AgentMou security messaging',
+      title: 'Agentmou security messaging',
       sourcePath: 'apps/web/app/(marketing)/security/page.tsx',
       sourceType: 'marketing',
       summary: 'Public security claims focus on approvals, access, and operational transparency.',
       keywords: ['security', 'privacy', 'data', 'approvals', 'audit', 'access'],
       content: [
-        'AgentMou presents role-based access patterns, human-in-the-loop approvals, and observability as part of its operating model.',
+        'Agentmou presents role-based access patterns, human-in-the-loop approvals, and observability as part of its operating model.',
         'Public security messaging should be read together with honest UI labels so unsupported enterprise claims are not implied before the backend exists.',
         'Tenant security pages are expected to show real secret inventory, audit activity, team membership, and operational connector issues rather than placeholder enterprise claims.',
       ].join('\n\n'),
@@ -220,7 +220,7 @@ async function buildKnowledgeDocuments(): Promise<KnowledgeDocumentInput[]> {
       summary: agent.description,
       keywords: [agent.id, agent.name, ...(agent.tags ?? [])],
       content: [
-        `${agent.name} is an AgentMou catalog agent.`,
+        `${agent.name} is an Agentmou catalog agent.`,
         `Description: ${agent.description}`,
         agent.category ? `Category: ${agent.category}` : '',
         agent.tags?.length ? `Tags: ${agent.tags.join(', ')}` : '',
@@ -236,7 +236,7 @@ async function buildKnowledgeDocuments(): Promise<KnowledgeDocumentInput[]> {
       summary: workflow.description,
       keywords: [workflow.id, workflow.name, workflow.category ?? 'workflow'],
       content: [
-        `${workflow.name} is an AgentMou workflow template powered by n8n.`,
+        `${workflow.name} is an Agentmou workflow template powered by n8n.`,
         `Description: ${workflow.description}`,
         workflow.category ? `Category: ${workflow.category}` : '',
         workflow.status ? `Status: ${workflow.status}` : '',
@@ -252,7 +252,7 @@ async function buildKnowledgeDocuments(): Promise<KnowledgeDocumentInput[]> {
       summary: pack.description,
       keywords: [pack.id, pack.name, ...(pack.connectors ?? [])],
       content: [
-        `${pack.name} bundles AgentMou agents and workflows for a shared outcome.`,
+        `${pack.name} bundles Agentmou agents and workflows for a shared outcome.`,
         `Description: ${pack.description}`,
         pack.agents.length ? `Agents: ${pack.agents.join(', ')}` : '',
         pack.workflows?.length

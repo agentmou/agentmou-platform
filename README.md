@@ -1,6 +1,6 @@
-# AgentMou Platform
+# Agentmou Platform
 
-AgentMou is a monorepo for an AI agents platform with a tenant control plane,
+Agentmou is a monorepo for an AI agents platform with a tenant control plane,
 workflow orchestration via n8n, and background execution infrastructure.
 
 The canonical documentation entrypoint is [`docs/README.md`](./docs/README.md).

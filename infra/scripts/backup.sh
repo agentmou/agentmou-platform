@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# AgentMou Stack - Backup Script
+# Agentmou Stack - Backup Script
 # ---------------------------------------------------------------------------
 # Backs up PostgreSQL, Redis, n8n workflows, and bind-mounted state.
 #
@@ -61,7 +61,7 @@ cleanup_lock_dir() {
   fi
 }
 
-echo "=== AgentMou backup — $TIMESTAMP ==="
+echo "=== Agentmou backup — $TIMESTAMP ==="
 ensure_writable_directory "$BACKUP_DIR" "BACKUP_DIR"
 cleanup_lock_dir
 

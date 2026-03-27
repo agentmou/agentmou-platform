@@ -28,14 +28,14 @@ this architecture. The OpenClaw deployment is the service already living in
 Current capability boundary:
 
 - The system can receive Telegram messages, plan, validate, persist state,
-  request approval, and dispatch bound AgentMou assets.
+  request approval, and dispatch bound Agentmou assets.
 - The system does not have direct shell, Git, or repository mutation
   capability. If you want that later, it must be added as an explicit new
   capability path.
 
 ## Target Topology
 
-- Main AgentMou VPS:
+- Main Agentmou VPS:
   - `services/api`
   - `services/worker`
   - `services/internal-ops`
@@ -146,7 +146,7 @@ Important:
 
 - `OPENCLAW_API_KEY` must exactly match the value later used by
   `services/internal-ops` on the main VPS.
-- This VPS does not need the main AgentMou PostgreSQL, Redis, or n8n stack.
+- This VPS does not need the main Agentmou PostgreSQL, Redis, or n8n stack.
 - Runtime state is stored under `OPENCLAW_STATE_DIR`.
 
 ### 4. Deploy the runtime
@@ -174,7 +174,7 @@ curl -sk -X POST "https://openclaw.<DOMAIN>/v1/internal-ops/agent-profiles/regis
 
 Expected result: a successful JSON response with `ok: true`.
 
-## Phase 3: Update The Main AgentMou VPS
+## Phase 3: Update The Main Agentmou VPS
 
 This is the existing product stack host.
 
@@ -249,7 +249,7 @@ If you want a single-operator setup, configure one or both of:
 Send a simple Telegram message to the bot, such as:
 
 ```text
-Prepare a weekly executive summary of open priorities for AgentMou.
+Prepare a weekly executive summary of open priorities for Agentmou.
 ```
 
 Confirm the following:
@@ -260,7 +260,7 @@ Confirm the following:
 - one or more work orders are queued
 - the worker sends an operator acknowledgement or status reply
 
-## Phase 5: Enable Optional AgentMou Execution
+## Phase 5: Enable Optional Agentmou Execution
 
 Do not start here. First prove the base native loop:
 
@@ -272,7 +272,7 @@ Do not start here. First prove the base native loop:
 - Telegram
 
 Only after that should you add rows to `internal_capability_bindings` so the
-internal org chart can use your own AgentMou tenant as execution substrate.
+internal org chart can use your own Agentmou tenant as execution substrate.
 
 Typical examples:
 
@@ -292,7 +292,7 @@ See the binding examples in
 
 1. Validate the local loop.
 2. Bring up the OpenClaw VPS.
-3. Update and deploy the main AgentMou VPS.
+3. Update and deploy the main Agentmou VPS.
 4. Register the Telegram webhook.
 5. Send a real operator message.
 6. Add capability bindings only after the native loop is stable.

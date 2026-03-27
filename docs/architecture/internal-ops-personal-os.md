@@ -1,7 +1,7 @@
 # Internal Ops Personal Operating System
 
 This document is the canonical architecture reference for the private
-multi-agent system that runs AgentMou itself. It describes the code that now
+multi-agent system that runs Agentmou itself. It describes the code that now
 lives under `services/internal-ops`, the shared contracts and tables it uses,
 and the way it plugs into the existing API, worker, and execution substrate.
 
@@ -9,13 +9,13 @@ and the way it plugs into the existing API, worker, and execution substrate.
 
 This subsystem is intentionally separate from tenant-facing product agents.
 
-- It is a personal operating system for running AgentMou as a company through
+- It is a personal operating system for running Agentmou as a company through
   an internal org chart.
 - Telegram is the only human operator interface.
 - OpenClaw is the reasoning runtime.
 - `hc-coherence` is the governance layer that validates real turn state before
   execution continues.
-- The existing AgentMou tenant stack is optional execution substrate, not the
+- The existing Agentmou tenant stack is optional execution substrate, not the
   defining architecture of the system.
 
 ## Architectural Boundaries
@@ -134,7 +134,7 @@ The internal worker path can:
 - write native artifacts and memory summaries
 - synchronize external execution outcomes back into the objective
 
-### Optional AgentMou Execution Substrate
+### Optional Agentmou Execution Substrate
 
 The personal operating system can call into the existing tenant substrate when a
 capability is bound in `internal_capability_bindings`.
@@ -145,7 +145,7 @@ Supported target types:
 - `agent_installation`
 - `workflow_installation`
 
-If a requested AgentMou capability is not bound, the orchestrator degrades to a
+If a requested Agentmou capability is not bound, the orchestrator degrades to a
 native brief instead of pretending the external execution happened.
 
 ## Org Chart Model
@@ -325,7 +325,7 @@ depending on vector search.
 | `internal_memory_entries`        | Structured memory across session, objective, and agent scopes               |
 | `internal_openclaw_sessions`     | Bound remote OpenClaw session state and trace references                    |
 | `internal_telegram_messages`     | Inbound/outbound Telegram ledger and dedupe keys                            |
-| `internal_capability_bindings`   | Tenant-scoped capability bindings into AgentMou installations               |
+| `internal_capability_bindings`   | Tenant-scoped capability bindings into Agentmou installations               |
 
 ## Capability Binding Model
 
@@ -338,10 +338,10 @@ Current capability groups:
 
 - native internal capabilities such as brief preparation, approval requests,
   and state sync
-- optional AgentMou-backed capabilities for engineering, marketing, sales, and
+- optional Agentmou-backed capabilities for engineering, marketing, sales, and
   finance
 
-The default bootstrap only inserts native bindings. External AgentMou
+The default bootstrap only inserts native bindings. External Agentmou
 capabilities must be bound to an existing `agent_installations` or
 `workflow_installations` row before OpenClaw work orders can dispatch into the
 main platform runtime.
@@ -368,7 +368,7 @@ The intended deployment model is hybrid:
 - `services/internal-ops` lives in this monorepo and owns persistence plus
   governance
 - the OpenClaw runtime is remote and addressed through `OPENCLAW_API_URL`
-- the worker, DB, queues, and optional AgentMou tenant substrate remain part of
+- the worker, DB, queues, and optional Agentmou tenant substrate remain part of
   the main platform stack
 
 Important current state:

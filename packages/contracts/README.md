@@ -1,6 +1,6 @@
 # @agentmou/contracts
 
-Shared Zod schemas and TypeScript types for the AgentMou platform.
+Shared Zod schemas and TypeScript types for the Agentmou platform.
 
 ## Purpose
 

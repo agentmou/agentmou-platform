@@ -40,7 +40,7 @@ has been intentionally removed from the active documentation surface.
 
 ## Executive Status
 
-AgentMou is no longer at the purely aspirational stage described in the initial
+Agentmou is no longer at the purely aspirational stage described in the initial
 context. The repository now contains a real monorepo structure, a working
 control-plane API, a background worker, a first runtime slice, Gmail OAuth, and
 versioned catalog/workflow assets. At the same time, it still carries demo
@@ -102,7 +102,7 @@ truth that was actually verified during this epic.
 The canonical live statement supported by current evidence is:
 
 > As of March 20, 2026, the VPS host `vps-n8n-agents` is actively running the
-> AgentMou production stack from `/srv/agentmou-platform`. `api`, `worker`,
+> Agentmou production stack from `/srv/agentmou-platform`. `api`, `worker`,
 > the edge, the root backup cron, protected public routes, Gmail OAuth, the
 > real queued n8n provisioning path, temporary-fixture cleanup, normal
 > installation uninstall cleanup, and the OpenAI-backed `agents` deep-health
@@ -172,7 +172,7 @@ The private internal operating system lives in `services/internal-ops`.
 | Remote OpenClaw boundary          | `implemented` | Uses a typed HTTP adapter for remote turn start, continue, cancel, trace, agent registration, and capability registration                            |
 | `hc-coherence` governance         | `implemented` | Builds an execution snapshot from real turn state and persists official coherence artifacts in `internal_protocol_events`                            |
 | Private org chart                 | `implemented` | Internal agent profiles, relationships, and default native capability bindings are bootstrapped into the DB and registered with OpenClaw             |
-| Optional AgentMou substrate reuse | `partial`     | Can dispatch installed agents and workflows through tenant-scoped capability bindings, but only native bindings are bootstrapped automatically       |
+| Optional Agentmou substrate reuse | `partial`     | Can dispatch installed agents and workflows through tenant-scoped capability bindings, but only native bindings are bootstrapped automatically       |
 | Deployment packaging              | `partial`     | Service is real and documented, but there is no checked-in Compose service for it yet and the OpenClaw runtime is expected to live outside this repo |
 
 #### Auth and Tenant Boundaries
@@ -322,7 +322,7 @@ repository has since moved from proposal to implementation in several areas.
 | Marketplace backed by versioned assets              | `partial`; real manifests exist, but the demo catalog is much broader than the installable catalog             |
 | Memory/RAG/usage/billing/security enterprise layers | `planned` or `stub`, not real platform capabilities yet                                                        |
 
-The biggest change since the initial context is that AgentMou now has a real
+The biggest change since the initial context is that Agentmou now has a real
 vertical slice. The biggest remaining gap is that the repository still presents
 some surfaces as more complete than their runtime truth.
 
@@ -383,7 +383,7 @@ clear.
 **Conservative correction**
 
 - Treat manifest-backed assets as the installable source of truth.
-- Keep `apps/web/lib/fleetops/*` demo inventory only for marketing and
+- Keep `apps/web/lib/control-plane/*` demo inventory only for marketing and
   `demo-workspace`.
 - Do not let tenant-scoped business logic depend on demo inventory again.
 

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# AgentMou Stack - Production Deploy
+# Agentmou Stack - Production Deploy
 # ---------------------------------------------------------------------------
 # Canonical production deploy entrypoint for the VPS checkout.
 #

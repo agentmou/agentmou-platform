@@ -1,7 +1,7 @@
 # Agent Authoring and Promotion
 
 Use this runbook when creating or updating an installable product-agent
-template that should become a real AgentMou asset.
+template that should become a real Agentmou asset.
 
 ## Outcome
 

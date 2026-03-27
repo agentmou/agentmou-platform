@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# AgentMou — Verify Production Image Assets
+# Agentmou — Verify Production Image Assets
 # ---------------------------------------------------------------------------
 # Builds the API and worker production images and asserts that repo-backed
 # catalog/workflow assets are present inside the runner filesystem at /prod.

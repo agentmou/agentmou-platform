@@ -39,7 +39,7 @@ export class PublicChatService {
     if (matches.length === 0) {
       return {
         reply:
-          'I could not find enough public evidence for that in the current AgentMou marketing and catalog corpus. Try asking about pricing, supported workflows, integrations, or the demo workspace.',
+          'I could not find enough public evidence for that in the current Agentmou marketing and catalog corpus. Try asking about pricing, supported workflows, integrations, or the demo workspace.',
         citations: [],
         actions: defaultActions(),
         provider: 'retrieval',
@@ -119,7 +119,7 @@ function buildRetrievalReply(question: string, matches: KnowledgeMatch[]) {
     .map((match) => `- **${match.title}:** ${match.excerpt}`)
     .join('\n');
 
-  return `${intro}\n\n${bullets}\n\nI am only using the public AgentMou corpus here, so I will say when something is not documented publicly.`;
+  return `${intro}\n\n${bullets}\n\nI am only using the public Agentmou corpus here, so I will say when something is not documented publicly.`;
 }
 
 function extractN8nReply(result: unknown) {
@@ -151,18 +151,18 @@ function intentIntro(question: string) {
   const value = question.toLowerCase();
 
   if (/\b(price|pricing|plan|billing|cost)\b/.test(value)) {
-    return 'Here is what AgentMou publishes today about pricing and billing:';
+    return 'Here is what Agentmou publishes today about pricing and billing:';
   }
 
   if (/\b(security|privacy|data|compliance)\b/.test(value)) {
-    return 'Here is what the public AgentMou corpus confirms about security and product boundaries:';
+    return 'Here is what the public Agentmou corpus confirms about security and product boundaries:';
   }
 
   if (/\b(agent|workflow|pack|catalog|integration)\b/.test(value)) {
     return 'Here is what the public catalog says today:';
   }
 
-  return 'Here is what I can confirm from AgentMou’s public product corpus:';
+  return 'Here is what I can confirm from Agentmou’s public product corpus:';
 }
 
 function actionsForQuestion(question: string): PublicChatAction[] {

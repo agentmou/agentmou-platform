@@ -5,7 +5,7 @@ from fastapi import FastAPI, Header, HTTPException
 from openai import AsyncOpenAI, OpenAIError
 from pydantic import BaseModel
 
-app = FastAPI(title="AgentMou Agents", version="0.2.0")
+app = FastAPI(title="Agentmou Agents", version="0.2.0")
 
 # ---------------------------------------------------------------------------
 # Auth helper

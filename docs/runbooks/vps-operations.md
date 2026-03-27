@@ -1,6 +1,6 @@
 # VPS Operations
 
-This runbook documents the main AgentMou production VPS. Pair it with the
+This runbook documents the main Agentmou production VPS. Pair it with the
 [OpenClaw Runtime Operations](./openclaw-runtime-operations.md) runbook for the
 separate reasoning-runtime host used by internal ops. Also pair it with the
 [current-state operational verification snapshot](../architecture/current-state.md#operational-verification-snapshot-on-march-19-20-2026)
@@ -141,7 +141,7 @@ Use the scripts below in this order so the VPS workflow stays coherent:
 | `infra/scripts/cleanup-validation-tenant.sh` | Disposable OAuth or E2E fixture cleanup on the VPS | Wraps the TypeScript cleanup implementation with the host-shell `DATABASE_URL`, `REDIS_URL`, and `N8N_API_URL` values that production cleanup needs                                                                 |
 
 `infra/scripts/deploy-prod.sh` is the tracked deploy command for the main
-AgentMou VPS. `infra/scripts/deploy-openclaw.sh` is the tracked deploy command
+Agentmou VPS. `infra/scripts/deploy-openclaw.sh` is the tracked deploy command
 for the separate OpenClaw runtime VPS. If an operator wants a shortcut, keep it
 as a shell alias outside the repo instead of a duplicate tracked script.
 

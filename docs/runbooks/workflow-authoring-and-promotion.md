@@ -1,7 +1,7 @@
 # Workflow Authoring and Promotion
 
 Use this runbook when creating or updating an n8n-backed workflow template that
-should become a real AgentMou asset.
+should become a real Agentmou asset.
 
 ## Outcome
 

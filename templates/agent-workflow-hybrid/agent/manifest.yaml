@@ -3,7 +3,7 @@ name: <Agent Display Name>
 version: 0.1.0
 description: <Decision-making agent that hands off deterministic execution>
 category: ops
-author: AgentMou Team
+author: Agentmou Team
 tags:
   - hybrid
   - orchestration

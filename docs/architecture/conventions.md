@@ -43,11 +43,11 @@ import { AgentTemplateSchema } from '@agentmou/contracts';
 
 ## Imports and Layering
 
-- Page/components in `apps/web` should import FleetOps data through
-  `lib/fleetops/read-model` (or `useDataProvider` for async catalog calls).
-- Avoid importing `lib/demo-catalog/mock-data` or `lib/fleetops/mock-data`
+- Page/components in `apps/web` should import control-plane data through
+  `lib/control-plane/read-model` (or `useDataProvider` for async catalog calls).
+- Avoid importing `lib/demo-catalog/mock-data` or `lib/control-plane/mock-data`
   directly from pages; keep demo data behind the read model or data providers.
-- Domain types are imported from `@/lib/fleetops/types` (which
+- Domain types are imported from `@/lib/control-plane/types` (which
   re-exports from `@agentmou/contracts`).
 - Keep cross-domain imports explicit and minimal.
 
@@ -68,8 +68,8 @@ import { AgentTemplateSchema } from '@agentmou/contracts';
 
 ## Shared vs Local Logic
 
-- Put reusable FleetOps business selectors in
-  `lib/fleetops/read-model.ts`.
+- Put reusable control-plane business selectors in
+  `lib/control-plane/read-model.ts`.
 - Keep one-off page formatting/filter details local to the page.
 - Only extract when logic is reused or central to domain correctness.
 

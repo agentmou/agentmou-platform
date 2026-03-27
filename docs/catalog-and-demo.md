@@ -29,7 +29,7 @@ linked from there.
 ## Demo catalog (`apps/web/lib/demo-catalog`)
 
 - **`mock-data.ts`**: Tenants, template arrays, demo installs, billing/security
-  stubs used by the FleetOps read model.
+  stubs used by the control-plane read model.
 - **`catalog/*.ts`**: Additional agent and workflow slices merged into the main
   arrays.
 - **`operational-refs.ts`**: Maps demo template IDs to operational manifest IDs

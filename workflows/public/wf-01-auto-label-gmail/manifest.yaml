@@ -59,7 +59,7 @@ catalog:
     - id: analyze-message
       type: action
       name: Analyze Message
-      description: Call the AgentMou agents helper service for classification
+      description: Call the Agentmou agents helper service for classification
     - id: apply-labels
       type: action
       name: Apply Labels
@@ -80,7 +80,7 @@ catalog:
   visibility: public
 
 metadata:
-  author: AgentMou Team
+  author: Agentmou Team
   createdAt: '2026-03-07'
   updatedAt: '2026-03-07'
   executionCount: 0
