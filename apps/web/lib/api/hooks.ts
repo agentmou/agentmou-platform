@@ -25,10 +25,7 @@ interface UseApiResult<T> {
  * Generic hook for fetching data from the API.
  * Re-fetches when deps change.
  */
-export function useApiData<T>(
-  fetcher: FetchFn<T>,
-  deps: unknown[] = [],
-): UseApiResult<T> {
+export function useApiData<T>(fetcher: FetchFn<T>, deps: unknown[] = []): UseApiResult<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);

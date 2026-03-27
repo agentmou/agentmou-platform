@@ -1,26 +1,29 @@
-'use client'
+'use client';
 
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
-import type { Availability } from '@agentmou/contracts'
-import { Shield, AlertTriangle, CheckCircle2, Info, Zap, Clock, Beaker } from 'lucide-react'
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import type { Availability } from '@agentmou/contracts';
+import { Shield, AlertTriangle, CheckCircle2, Info, Zap, Clock, Beaker } from 'lucide-react';
 
 // Unified badge styling - outline fine, no strong backgrounds
 // Mint ONLY for: success/connected/healthy/low (very subtle)
 
 interface BadgeProps {
-  className?: string
+  className?: string;
 }
 
 // Risk Badge: low / medium / high
-type RiskLevel = 'low' | 'medium' | 'high'
+type RiskLevel = 'low' | 'medium' | 'high';
 
 interface RiskBadgeProps extends BadgeProps {
-  level: RiskLevel
-  showIcon?: boolean
+  level: RiskLevel;
+  showIcon?: boolean;
 }
 
-const riskConfig: Record<RiskLevel, { label: string; className: string; icon: typeof AlertTriangle }> = {
+const riskConfig: Record<
+  RiskLevel,
+  { label: string; className: string; icon: typeof AlertTriangle }
+> = {
   low: {
     label: 'Low',
     className: 'border-accent/40 text-foreground bg-transparent',
@@ -36,14 +39,14 @@ const riskConfig: Record<RiskLevel, { label: string; className: string; icon: ty
     className: 'border-foreground/40 text-foreground bg-transparent',
     icon: AlertTriangle,
   },
-}
+};
 
 export function RiskBadge({ level, showIcon = true, className }: RiskBadgeProps) {
-  const config = riskConfig[level]
-  const Icon = config.icon
+  const config = riskConfig[level];
+  const Icon = config.icon;
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
         'text-[10px] uppercase tracking-wide font-medium px-2 py-0.5',
         config.className,
@@ -53,15 +56,15 @@ export function RiskBadge({ level, showIcon = true, className }: RiskBadgeProps)
       {showIcon && <Icon className="h-3 w-3 mr-1" />}
       {config.label}
     </Badge>
-  )
+  );
 }
 
 // HITL Badge: optional / recommended / required
-type HitlLevel = 'optional' | 'recommended' | 'required'
+type HitlLevel = 'optional' | 'recommended' | 'required';
 
 interface HitlBadgeProps extends BadgeProps {
-  level: HitlLevel
-  showIcon?: boolean
+  level: HitlLevel;
+  showIcon?: boolean;
 }
 
 const hitlConfig: Record<HitlLevel, { label: string; className: string }> = {
@@ -77,13 +80,13 @@ const hitlConfig: Record<HitlLevel, { label: string; className: string }> = {
     label: 'HITL Required',
     className: 'border-foreground/30 text-foreground bg-transparent',
   },
-}
+};
 
 export function HitlBadge({ level, showIcon = true, className }: HitlBadgeProps) {
-  const config = hitlConfig[level]
+  const config = hitlConfig[level];
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
         'text-[10px] uppercase tracking-wide font-medium px-2 py-0.5',
         config.className,
@@ -93,15 +96,15 @@ export function HitlBadge({ level, showIcon = true, className }: HitlBadgeProps)
       {showIcon && <Shield className="h-3 w-3 mr-1" />}
       {config.label}
     </Badge>
-  )
+  );
 }
 
 // Complexity Badge: S / M / L
-type ComplexityLevel = 'S' | 'M' | 'L'
+type ComplexityLevel = 'S' | 'M' | 'L';
 
 interface ComplexityBadgeProps extends BadgeProps {
-  level: ComplexityLevel
-  showIcon?: boolean
+  level: ComplexityLevel;
+  showIcon?: boolean;
 }
 
 const complexityConfig: Record<ComplexityLevel, { label: string; className: string }> = {
@@ -117,13 +120,13 @@ const complexityConfig: Record<ComplexityLevel, { label: string; className: stri
     label: 'Large',
     className: 'border-foreground/30 text-foreground bg-transparent',
   },
-}
+};
 
 export function ComplexityBadge({ level, showIcon = true, className }: ComplexityBadgeProps) {
-  const config = complexityConfig[level]
+  const config = complexityConfig[level];
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
         'text-[10px] uppercase tracking-wide font-medium px-2 py-0.5',
         config.className,
@@ -133,14 +136,14 @@ export function ComplexityBadge({ level, showIcon = true, className }: Complexit
       {showIcon && <Zap className="h-3 w-3 mr-1" />}
       {config.label}
     </Badge>
-  )
+  );
 }
 
 // Channel Badge: stable / beta
-type Channel = 'stable' | 'beta'
+type Channel = 'stable' | 'beta';
 
 interface ChannelBadgeProps extends BadgeProps {
-  channel: Channel
+  channel: Channel;
 }
 
 const channelConfig: Record<Channel, { label: string; className: string }> = {
@@ -152,13 +155,13 @@ const channelConfig: Record<Channel, { label: string; className: string }> = {
     label: 'Beta',
     className: 'border-muted-foreground/30 text-muted-foreground bg-transparent',
   },
-}
+};
 
 export function ChannelBadge({ channel, className }: ChannelBadgeProps) {
-  const config = channelConfig[channel]
+  const config = channelConfig[channel];
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
         'text-[10px] uppercase tracking-wide font-medium px-2 py-0.5',
         config.className,
@@ -168,19 +171,32 @@ export function ChannelBadge({ channel, className }: ChannelBadgeProps) {
       {channel === 'beta' && <Beaker className="h-3 w-3 mr-1" />}
       {config.label}
     </Badge>
-  )
+  );
 }
 
 // Status Pill: unified status indicator
-type StatusType = 'success' | 'error' | 'warning' | 'pending' | 'running' | 'disabled' | 'connected' | 'disconnected' | 'active' | 'paused'
+type StatusType =
+  | 'success'
+  | 'error'
+  | 'warning'
+  | 'pending'
+  | 'running'
+  | 'disabled'
+  | 'connected'
+  | 'disconnected'
+  | 'active'
+  | 'paused';
 
 interface StatusPillProps extends BadgeProps {
-  status: StatusType
-  label?: string
-  showDot?: boolean
+  status: StatusType;
+  label?: string;
+  showDot?: boolean;
 }
 
-const statusConfig: Record<StatusType, { defaultLabel: string; className: string; dotColor: string }> = {
+const statusConfig: Record<
+  StatusType,
+  { defaultLabel: string; className: string; dotColor: string }
+> = {
   success: {
     defaultLabel: 'Success',
     className: 'border-accent/40 text-foreground bg-transparent',
@@ -231,13 +247,13 @@ const statusConfig: Record<StatusType, { defaultLabel: string; className: string
     className: 'border-muted-foreground/30 text-muted-foreground bg-transparent',
     dotColor: 'bg-muted-foreground',
   },
-}
+};
 
 export function StatusPill({ status, label, showDot = true, className }: StatusPillProps) {
-  const config = statusConfig[status]
+  const config = statusConfig[status];
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
         'text-[10px] uppercase tracking-wide font-medium px-2 py-0.5',
         config.className,
@@ -247,13 +263,13 @@ export function StatusPill({ status, label, showDot = true, className }: StatusP
       {showDot && <span className={cn('h-1.5 w-1.5 rounded-full mr-1.5', config.dotColor)} />}
       {label || config.defaultLabel}
     </Badge>
-  )
+  );
 }
 
 // Availability Badge: planned / preview / available
 interface AvailabilityBadgeProps extends BadgeProps {
-  status: Availability
-  showLabel?: boolean
+  status: Availability;
+  showLabel?: boolean;
 }
 
 const availabilityConfig: Record<
@@ -275,10 +291,10 @@ const availabilityConfig: Record<
     className: 'border-muted-foreground/20 text-muted-foreground bg-transparent',
     dotClass: 'bg-muted-foreground/50',
   },
-}
+};
 
 export function AvailabilityBadge({ status, showLabel = true, className }: AvailabilityBadgeProps) {
-  const config = availabilityConfig[status]
+  const config = availabilityConfig[status];
   return (
     <Badge
       variant="outline"
@@ -291,14 +307,14 @@ export function AvailabilityBadge({ status, showLabel = true, className }: Avail
       <span className={cn('h-1.5 w-1.5 rounded-full mr-1.5', config.dotClass)} />
       {showLabel && config.label}
     </Badge>
-  )
+  );
 }
 
 // Audience Badge: business / personal / both
-type AudienceType = 'business' | 'personal' | 'both'
+type AudienceType = 'business' | 'personal' | 'both';
 
 interface AudienceBadgeProps extends BadgeProps {
-  audience: AudienceType
+  audience: AudienceType;
 }
 
 const audienceConfig: Record<AudienceType, { label: string; className: string }> = {
@@ -314,13 +330,13 @@ const audienceConfig: Record<AudienceType, { label: string; className: string }>
     label: 'All',
     className: 'border-muted-foreground/20 text-muted-foreground bg-transparent',
   },
-}
+};
 
 export function AudienceBadge({ audience, className }: AudienceBadgeProps) {
-  const config = audienceConfig[audience]
+  const config = audienceConfig[audience];
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
         'text-[10px] uppercase tracking-wide font-medium px-2 py-0.5',
         config.className,
@@ -329,18 +345,18 @@ export function AudienceBadge({ audience, className }: AudienceBadgeProps) {
     >
       {config.label}
     </Badge>
-  )
+  );
 }
 
 // Domain Badge
 interface DomainBadgeProps extends BadgeProps {
-  domain: string
+  domain: string;
 }
 
 export function DomainBadge({ domain, className }: DomainBadgeProps) {
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
         'text-[10px] uppercase tracking-wide font-medium px-2 py-0.5 border-border text-muted-foreground bg-transparent capitalize',
         className
@@ -348,18 +364,18 @@ export function DomainBadge({ domain, className }: DomainBadgeProps) {
     >
       {domain}
     </Badge>
-  )
+  );
 }
 
 // Setup Time Badge
 interface SetupTimeBadgeProps extends BadgeProps {
-  minutes: number
+  minutes: number;
 }
 
 export function SetupTimeBadge({ minutes, className }: SetupTimeBadgeProps) {
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
         'text-[10px] uppercase tracking-wide font-medium px-2 py-0.5 border-muted-foreground/20 text-muted-foreground bg-transparent',
         className
@@ -368,18 +384,18 @@ export function SetupTimeBadge({ minutes, className }: SetupTimeBadgeProps) {
       <Clock className="h-3 w-3 mr-1" />
       {minutes}min
     </Badge>
-  )
+  );
 }
 
 // Integration Chip
 interface IntegrationChipProps extends BadgeProps {
-  name: string
+  name: string;
 }
 
 export function IntegrationChip({ name, className }: IntegrationChipProps) {
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
         'text-[10px] tracking-wide font-normal px-2 py-0.5 border-border text-muted-foreground bg-transparent',
         className
@@ -387,21 +403,29 @@ export function IntegrationChip({ name, className }: IntegrationChipProps) {
     >
       {name}
     </Badge>
-  )
+  );
 }
 
 // Spec Line - compact display of agent/workflow specs
 interface SpecLineProps {
-  risk?: RiskLevel
-  hitl?: HitlLevel
-  complexity?: ComplexityLevel
-  setupMinutes?: number
-  version?: string
-  channel?: Channel
-  className?: string
+  risk?: RiskLevel;
+  hitl?: HitlLevel;
+  complexity?: ComplexityLevel;
+  setupMinutes?: number;
+  version?: string;
+  channel?: Channel;
+  className?: string;
 }
 
-export function SpecLine({ risk, hitl, complexity, setupMinutes, version, channel, className }: SpecLineProps) {
+export function SpecLine({
+  risk,
+  hitl,
+  complexity,
+  setupMinutes,
+  version,
+  channel,
+  className,
+}: SpecLineProps) {
   return (
     <div className={cn('flex flex-wrap items-center gap-1.5', className)}>
       {risk && <RiskBadge level={risk} showIcon={false} />}
@@ -409,11 +433,14 @@ export function SpecLine({ risk, hitl, complexity, setupMinutes, version, channe
       {complexity && <ComplexityBadge level={complexity} showIcon={false} />}
       {setupMinutes && <SetupTimeBadge minutes={setupMinutes} />}
       {version && (
-        <Badge variant="outline" className="text-[10px] tracking-wide font-medium px-2 py-0.5 border-muted-foreground/20 text-muted-foreground bg-transparent">
+        <Badge
+          variant="outline"
+          className="text-[10px] tracking-wide font-medium px-2 py-0.5 border-muted-foreground/20 text-muted-foreground bg-transparent"
+        >
           v{version}
         </Badge>
       )}
       {channel && <ChannelBadge channel={channel} />}
     </div>
-  )
+  );
 }

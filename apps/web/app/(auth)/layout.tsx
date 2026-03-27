@@ -1,11 +1,7 @@
-import Link from 'next/link'
-import { Logo } from '@/components/brand'
+import Link from 'next/link';
+import { Logo } from '@/components/brand';
 
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex h-14 items-center px-6">
@@ -18,5 +14,5 @@ export default function AuthLayout({
         {children}
       </main>
     </div>
-  )
+  );
 }

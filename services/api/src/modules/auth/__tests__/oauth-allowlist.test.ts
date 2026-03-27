@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  isAllowedAuthCallbackUrl,
-  parseWebOriginAllowlist,
-} from '../oauth-allowlist.js';
+import { isAllowedAuthCallbackUrl, parseWebOriginAllowlist } from '../oauth-allowlist.js';
 
 describe('parseWebOriginAllowlist', () => {
   it('parses comma-separated origins', () => {
@@ -21,32 +18,21 @@ describe('isAllowedAuthCallbackUrl', () => {
   const allow = ['http://localhost:3000', 'https://app.example.com'];
 
   it('accepts exact /auth/callback on allowlisted origin', () => {
+    expect(isAllowedAuthCallbackUrl('http://localhost:3000/auth/callback', allow)).toBe(true);
     expect(
-      isAllowedAuthCallbackUrl('http://localhost:3000/auth/callback', allow),
-    ).toBe(true);
-    expect(
-      isAllowedAuthCallbackUrl(
-        'http://localhost:3000/auth/callback?redirect=%2Fapp%2Fx',
-        allow,
-      ),
+      isAllowedAuthCallbackUrl('http://localhost:3000/auth/callback?redirect=%2Fapp%2Fx', allow)
     ).toBe(true);
   });
 
   it('rejects wrong path', () => {
-    expect(
-      isAllowedAuthCallbackUrl('http://localhost:3000/login', allow),
-    ).toBe(false);
+    expect(isAllowedAuthCallbackUrl('http://localhost:3000/login', allow)).toBe(false);
   });
 
   it('rejects unknown origin', () => {
-    expect(
-      isAllowedAuthCallbackUrl('https://evil.com/auth/callback', allow),
-    ).toBe(false);
+    expect(isAllowedAuthCallbackUrl('https://evil.com/auth/callback', allow)).toBe(false);
   });
 
   it('rejects empty allowlist', () => {
-    expect(isAllowedAuthCallbackUrl('http://localhost:3000/auth/callback', [])).toBe(
-      false,
-    );
+    expect(isAllowedAuthCallbackUrl('http://localhost:3000/auth/callback', [])).toBe(false);
   });
 });

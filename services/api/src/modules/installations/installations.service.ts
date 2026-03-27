@@ -11,9 +11,7 @@ import {
   mapWorkflowInstallation,
 } from './installations.mapper.js';
 
-const REPO_ROOT = resolveRepoRoot(import.meta.dirname, [
-  'workflows/public',
-]);
+const REPO_ROOT = resolveRepoRoot(import.meta.dirname, ['workflows/public']);
 const WORKFLOWS_PUBLIC_DIR = path.join(REPO_ROOT, 'workflows', 'public');
 const TEMPLATE_ID_PATTERN = /^[a-zA-Z0-9-_]+$/;
 
@@ -36,11 +34,7 @@ export class InstallationsService {
     return installations.map(mapWorkflowInstallation);
   }
 
-  async installAgent(
-    tenantId: string,
-    templateId: string,
-    config?: Record<string, unknown>
-  ) {
+  async installAgent(tenantId: string, templateId: string, config?: Record<string, unknown>) {
     const [installation] = await db
       .insert(agentInstallations)
       .values({
@@ -61,15 +55,14 @@ export class InstallationsService {
     tenantId: string,
     templateId: string,
     config?: Record<string, unknown>,
-    workflowJson?: Record<string, unknown>,
+    workflowJson?: Record<string, unknown>
   ) {
-    const workflowDefinition = workflowJson ?? await loadWorkflowDefinition(templateId);
+    const workflowDefinition = workflowJson ?? (await loadWorkflowDefinition(templateId));
 
     if (!workflowDefinition) {
-      throw Object.assign(
-        new Error(`Workflow template "${templateId}" is not installable`),
-        { statusCode: 404 },
-      );
+      throw Object.assign(new Error(`Workflow template "${templateId}" is not installable`), {
+        statusCode: 404,
+      });
     }
 
     const [installation] = await db
@@ -102,10 +95,9 @@ export class InstallationsService {
         .update(workflowInstallations)
         .set({ status: 'error' })
         .where(eq(workflowInstallations.id, installation.id));
-      throw Object.assign(
-        new Error(`Workflow installation failed for template "${templateId}"`),
-        { statusCode: getStatusCode(error) || 502 },
-      );
+      throw Object.assign(new Error(`Workflow installation failed for template "${templateId}"`), {
+        statusCode: getStatusCode(error) || 502,
+      });
     }
   }
 
@@ -114,10 +106,7 @@ export class InstallationsService {
       .select()
       .from(agentInstallations)
       .where(
-        and(
-          eq(agentInstallations.tenantId, tenantId),
-          eq(agentInstallations.id, installationId)
-        )
+        and(eq(agentInstallations.tenantId, tenantId), eq(agentInstallations.id, installationId))
       );
     if (agent) {
       return mapInstallationRecord({ ...agent, type: 'agent' as const });
@@ -148,10 +137,7 @@ export class InstallationsService {
         })
         .from(agentInstallations)
         .where(
-          and(
-            eq(agentInstallations.tenantId, tenantId),
-            eq(agentInstallations.id, installationId)
-          )
+          and(eq(agentInstallations.tenantId, tenantId), eq(agentInstallations.id, installationId))
         ),
       db
         .select({
@@ -174,12 +160,7 @@ export class InstallationsService {
           cron: schedules.cron,
         })
         .from(schedules)
-        .where(
-          and(
-            eq(schedules.tenantId, tenantId),
-            eq(schedules.installationId, installationId)
-          )
-        ),
+        .where(and(eq(schedules.tenantId, tenantId), eq(schedules.installationId, installationId))),
     ]);
 
     const agent = agentRows[0];
@@ -212,10 +193,7 @@ export class InstallationsService {
         await tx
           .delete(schedules)
           .where(
-            and(
-              eq(schedules.tenantId, tenantId),
-              eq(schedules.installationId, installationId)
-            )
+            and(eq(schedules.tenantId, tenantId), eq(schedules.installationId, installationId))
           );
 
         if (agent) {
@@ -243,9 +221,9 @@ export class InstallationsService {
     } catch (error) {
       throw Object.assign(
         new Error(
-          `External cleanup succeeded but local uninstall failed for installation ${installationId}. Rerun is safe because missing external resources are treated as already cleaned.`,
+          `External cleanup succeeded but local uninstall failed for installation ${installationId}. Rerun is safe because missing external resources are treated as already cleaned.`
         ),
-        { statusCode: 500, cause: error },
+        { statusCode: 500, cause: error }
       );
     }
   }
@@ -263,9 +241,7 @@ function getStatusCode(error: unknown): number | undefined {
   return undefined;
 }
 
-async function loadWorkflowDefinition(
-  templateId: string,
-): Promise<Record<string, unknown> | null> {
+async function loadWorkflowDefinition(templateId: string): Promise<Record<string, unknown> | null> {
   if (!TEMPLATE_ID_PATTERN.test(templateId)) {
     return null;
   }

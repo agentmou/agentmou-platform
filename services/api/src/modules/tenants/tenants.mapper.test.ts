@@ -1,17 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  mapTenant,
-  mergeTenantSettings,
-  normalizeTenantSettings,
-} from './tenants.mapper.js';
+import { mapTenant, mergeTenantSettings, normalizeTenantSettings } from './tenants.mapper.js';
 
 describe('tenants.mapper', () => {
   it('normalizes partial settings with canonical defaults', () => {
     expect(
       normalizeTenantSettings({
         timezone: 'Europe/Madrid',
-      }),
+      })
     ).toEqual({
       timezone: 'Europe/Madrid',
       defaultHITL: false,
@@ -29,8 +25,8 @@ describe('tenants.mapper', () => {
         },
         {
           logRetentionDays: 14,
-        },
-      ),
+        }
+      )
     ).toEqual({
       timezone: 'Europe/Madrid',
       defaultHITL: true,

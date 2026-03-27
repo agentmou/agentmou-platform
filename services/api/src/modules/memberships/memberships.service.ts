@@ -29,11 +29,7 @@ export class MembershipsService {
     return members.map(mapMembership);
   }
 
-  async addMember(
-    tenantId: string,
-    data: { userId: string; role: string },
-    actorId?: string,
-  ) {
+  async addMember(tenantId: string, data: { userId: string; role: string }, actorId?: string) {
     const [membership] = await db
       .insert(memberships)
       .values({
@@ -68,24 +64,15 @@ export class MembershipsService {
       .select(membershipSelection)
       .from(memberships)
       .leftJoin(users, eq(memberships.userId, users.id))
-      .where(
-        and(eq(memberships.id, memberId), eq(memberships.tenantId, tenantId)),
-      );
+      .where(and(eq(memberships.id, memberId), eq(memberships.tenantId, tenantId)));
     return membership ? mapMembership(membership) : null;
   }
 
-  async updateMemberRole(
-    tenantId: string,
-    memberId: string,
-    role: string,
-    actorId?: string,
-  ) {
+  async updateMemberRole(tenantId: string, memberId: string, role: string, actorId?: string) {
     const [membership] = await db
       .update(memberships)
       .set({ role })
-      .where(
-        and(eq(memberships.id, memberId), eq(memberships.tenantId, tenantId)),
-      )
+      .where(and(eq(memberships.id, memberId), eq(memberships.tenantId, tenantId)))
       .returning();
 
     if (!membership) {
@@ -109,9 +96,7 @@ export class MembershipsService {
   async removeMember(tenantId: string, memberId: string, actorId?: string) {
     const [deleted] = await db
       .delete(memberships)
-      .where(
-        and(eq(memberships.id, memberId), eq(memberships.tenantId, tenantId)),
-      )
+      .where(and(eq(memberships.id, memberId), eq(memberships.tenantId, tenantId)))
       .returning({ id: memberships.id });
 
     if (deleted) {

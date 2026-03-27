@@ -62,7 +62,7 @@ describe('runs.mapper', () => {
             completedAt: null,
           },
         ],
-      },
+      }
     );
 
     expect(run).toMatchObject({
@@ -76,9 +76,7 @@ describe('runs.mapper', () => {
       tags: [],
     });
     expect(run.timeline).toHaveLength(1);
-    expect(run.logs).toEqual([
-      '[2024-01-01T00:00:00.000Z] RUNNING TOOL_CALL Read inbox',
-    ]);
+    expect(run.logs).toEqual(['[2024-01-01T00:00:00.000Z] RUNNING TOOL_CALL Read inbox']);
   });
 
   it('builds readable execution logs from steps', () => {

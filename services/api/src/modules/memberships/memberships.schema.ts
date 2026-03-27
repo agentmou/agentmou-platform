@@ -1,12 +1,6 @@
 import { z } from 'zod';
 
-const membershipRoleSchema = z.enum([
-  'owner',
-  'admin',
-  'member',
-  'operator',
-  'viewer',
-]);
+const membershipRoleSchema = z.enum(['owner', 'admin', 'member', 'operator', 'viewer']);
 
 export const addMemberSchema = z.object({
   userId: z.string().uuid('User ID must be a valid UUID'),

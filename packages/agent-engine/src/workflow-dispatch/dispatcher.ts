@@ -108,7 +108,10 @@ export class WorkflowDispatcher {
     return { result: 'success' };
   }
 
-  private evaluateCondition(node: WorkflowNode, context: ExecutionContext): Promise<{ branch: string }> {
+  private evaluateCondition(
+    node: WorkflowNode,
+    context: ExecutionContext
+  ): Promise<{ branch: string }> {
     // Evaluate condition and return branch
     return Promise.resolve({ branch: 'true' });
   }
@@ -118,11 +121,15 @@ export class WorkflowDispatcher {
     return { triggered: true };
   }
 
-  private getNextNode(definition: WorkflowDefinition, current: WorkflowNode, output: any): WorkflowNode | undefined {
+  private getNextNode(
+    definition: WorkflowDefinition,
+    current: WorkflowNode,
+    output: any
+  ): WorkflowNode | undefined {
     if (!current.next) return undefined;
 
     const nextIds = Array.isArray(current.next) ? current.next : [current.next];
-    return definition.nodes.find(n => nextIds.includes(n.id));
+    return definition.nodes.find((n) => nextIds.includes(n.id));
   }
 }
 

@@ -56,7 +56,7 @@ describe('cleanupInstallationExternalResources', () => {
     expect(mockRemoveRepeatable).toHaveBeenCalledWith(
       'schedule-trigger',
       { pattern: '*/15 * * * *' },
-      'schedule-sched-1',
+      'schedule-sched-1'
     );
   });
 
@@ -79,13 +79,14 @@ describe('cleanupInstallationExternalResources', () => {
           },
         ],
         schedules: [],
-      }),
+      })
     ).resolves.toBeUndefined();
   });
 
   it('aborts on real n8n failures before touching BullMQ', async () => {
-    const { cleanupInstallationExternalResources, ExternalInstallationCleanupError } =
-      await import('./external-installation-cleanup.js');
+    const { cleanupInstallationExternalResources, ExternalInstallationCleanupError } = await import(
+      './external-installation-cleanup.js'
+    );
 
     mockDeleteWorkflow.mockRejectedValueOnce({
       response: { status: 500 },
@@ -109,15 +110,16 @@ describe('cleanupInstallationExternalResources', () => {
             cron: '*/15 * * * *',
           },
         ],
-      }),
+      })
     ).rejects.toBeInstanceOf(ExternalInstallationCleanupError);
 
     expect(mockRemoveRepeatable).not.toHaveBeenCalled();
   });
 
   it('aborts on BullMQ failures', async () => {
-    const { cleanupInstallationExternalResources, ExternalInstallationCleanupError } =
-      await import('./external-installation-cleanup.js');
+    const { cleanupInstallationExternalResources, ExternalInstallationCleanupError } = await import(
+      './external-installation-cleanup.js'
+    );
 
     mockRemoveRepeatable.mockRejectedValueOnce(new Error('redis down'));
 
@@ -132,7 +134,7 @@ describe('cleanupInstallationExternalResources', () => {
             cron: '*/15 * * * *',
           },
         ],
-      }),
+      })
     ).rejects.toBeInstanceOf(ExternalInstallationCleanupError);
   });
 });

@@ -27,7 +27,7 @@ export class WebhooksService {
 
   async createWebhook(
     tenantId: string,
-    config: { url: string; events: string[]; secret?: string },
+    config: { url: string; events: string[]; secret?: string }
   ) {
     return {
       id: `webhook-${Date.now()}`,
@@ -38,11 +38,7 @@ export class WebhooksService {
     };
   }
 
-  async updateWebhook(
-    tenantId: string,
-    webhookId: string,
-    updates: Record<string, unknown>,
-  ) {
+  async updateWebhook(tenantId: string, webhookId: string, updates: Record<string, unknown>) {
     return {
       id: webhookId,
       tenantId,
@@ -71,11 +67,7 @@ export class WebhooksService {
     return [];
   }
 
-  async triggerWebhook(
-    _tenantId: string,
-    _event: string,
-    _payload: Record<string, unknown>,
-  ) {
+  async triggerWebhook(_tenantId: string, _event: string, _payload: Record<string, unknown>) {
     return { triggered: 0 };
   }
 
@@ -159,11 +151,7 @@ export class WebhooksService {
     return null;
   }
 
-  private async syncStripeObject(
-    tenantId: string | null,
-    type: string,
-    object: StripeEventObject,
-  ) {
+  private async syncStripeObject(tenantId: string | null, type: string, object: StripeEventObject) {
     if (!tenantId) {
       return;
     }
@@ -218,19 +206,13 @@ export class WebhooksService {
         status: typeof object.status === 'string' ? object.status : 'open',
         currency: typeof object.currency === 'string' ? object.currency : 'usd',
         amount: normalizeStripeAmount(object.amount_paid ?? object.amount_due),
-        periodKey: fromStripeTimestamp(object.period_start)
-          ?.toISOString()
-          .slice(0, 7) ?? null,
+        periodKey: fromStripeTimestamp(object.period_start)?.toISOString().slice(0, 7) ?? null,
         periodStart: fromStripeTimestamp(object.period_start),
         periodEnd: fromStripeTimestamp(object.period_end),
-        invoiceDate:
-          fromStripeTimestamp(object.created) ?? new Date(),
+        invoiceDate: fromStripeTimestamp(object.created) ?? new Date(),
         hostedInvoiceUrl:
-          typeof object.hosted_invoice_url === 'string'
-            ? object.hosted_invoice_url
-            : null,
-        pdfUrl:
-          typeof object.invoice_pdf === 'string' ? object.invoice_pdf : null,
+          typeof object.hosted_invoice_url === 'string' ? object.hosted_invoice_url : null,
+        pdfUrl: typeof object.invoice_pdf === 'string' ? object.invoice_pdf : null,
         items: [],
         updatedAt: new Date(),
       };
@@ -242,10 +224,7 @@ export class WebhooksService {
         .limit(1);
 
       if (existing) {
-        await db
-          .update(billingInvoices)
-          .set(values)
-          .where(eq(billingInvoices.id, existing.id));
+        await db.update(billingInvoices).set(values).where(eq(billingInvoices.id, existing.id));
       } else {
         await db.insert(billingInvoices).values(values);
       }
@@ -271,9 +250,7 @@ type StripeEventObject = Record<string, unknown> & {
   invoice_pdf?: unknown;
 };
 
-function isStripeEvent(
-  value: unknown,
-): value is {
+function isStripeEvent(value: unknown): value is {
   id: string;
   type: string;
   data: {

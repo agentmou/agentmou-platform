@@ -9,10 +9,7 @@ export function parseWebOriginAllowlist(raw: string | undefined): string[] {
     .filter(Boolean);
 }
 
-export function isAllowedAuthCallbackUrl(
-  urlString: string,
-  allowlist: string[],
-): boolean {
+export function isAllowedAuthCallbackUrl(urlString: string, allowlist: string[]): boolean {
   if (allowlist.length === 0) return false;
   let parsed: URL;
   try {

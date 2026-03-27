@@ -133,9 +133,7 @@ export const BillingSubscriptionStatusSchema = z.enum([
 ]);
 
 /** TypeScript view of billing subscription statuses. */
-export type BillingSubscriptionStatus = z.infer<
-  typeof BillingSubscriptionStatusSchema
->;
+export type BillingSubscriptionStatus = z.infer<typeof BillingSubscriptionStatusSchema>;
 
 /** Subscription record returned by billing endpoints. */
 export const BillingSubscriptionSchema = z.object({

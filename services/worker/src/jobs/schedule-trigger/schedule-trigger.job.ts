@@ -12,10 +12,7 @@ import type { ScheduleTriggerPayload } from '@agentmou/queue';
 import { getQueue, QUEUE_NAMES } from '@agentmou/queue';
 import { db, schedules, executionRuns } from '@agentmou/db';
 import { eq } from 'drizzle-orm';
-import {
-  logRuntimeMessage,
-  warnRuntimeMessage,
-} from '../runtime-support/job-log.js';
+import { logRuntimeMessage, warnRuntimeMessage } from '../runtime-support/job-log.js';
 
 export async function processScheduleTrigger(job: Job<ScheduleTriggerPayload>) {
   const { tenantId, scheduleId, targetType, installationId } = job.data;
@@ -25,11 +22,7 @@ export async function processScheduleTrigger(job: Job<ScheduleTriggerPayload>) {
   );
 
   // 1. Load schedule from DB and check if still enabled
-  const [schedule] = await db
-    .select()
-    .from(schedules)
-    .where(eq(schedules.id, scheduleId))
-    .limit(1);
+  const [schedule] = await db.select().from(schedules).where(eq(schedules.id, scheduleId)).limit(1);
 
   if (!schedule) {
     warnRuntimeMessage(`[schedule-trigger] Schedule ${scheduleId} not found, skipping`);
@@ -86,7 +79,5 @@ export async function processScheduleTrigger(job: Job<ScheduleTriggerPayload>) {
     .set({ lastTriggeredAt: new Date() })
     .where(eq(schedules.id, scheduleId));
 
-  logRuntimeMessage(
-    `[schedule-trigger] Created run ${runId} for ${targetType} ${installationId}`
-  );
+  logRuntimeMessage(`[schedule-trigger] Created run ${runId} for ${targetType} ${installationId}`);
 }

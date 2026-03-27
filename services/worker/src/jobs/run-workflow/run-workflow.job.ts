@@ -27,13 +27,11 @@ export async function processRunWorkflow(job: Job<RunWorkflowPayload>) {
 
   await logJobMessage(
     job,
-    `[run-workflow] Running workflow installation ${workflowInstallationId} for tenant ${tenantId} [${runId}]`,
+    `[run-workflow] Running workflow installation ${workflowInstallationId} for tenant ${tenantId} [${runId}]`
   );
 
   const startedAt = new Date();
-  let installation:
-    | typeof workflowInstallations.$inferSelect
-    | undefined;
+  let installation: typeof workflowInstallations.$inferSelect | undefined;
 
   try {
     await job.updateProgress(10);
@@ -48,7 +46,9 @@ export async function processRunWorkflow(job: Job<RunWorkflowPayload>) {
     }
 
     if (!installation.n8nWorkflowId) {
-      throw new Error(`Workflow installation ${workflowInstallationId} has no n8nWorkflowId — was it provisioned?`);
+      throw new Error(
+        `Workflow installation ${workflowInstallationId} has no n8nWorkflowId — was it provisioned?`
+      );
     }
 
     await db.insert(executionSteps).values({
@@ -108,10 +108,7 @@ export async function processRunWorkflow(job: Job<RunWorkflowPayload>) {
 
     await job.updateProgress(100);
 
-    await logJobMessage(
-      job,
-      `[run-workflow] Completed run ${runId} in ${durationMs}ms`,
-    );
+    await logJobMessage(job, `[run-workflow] Completed run ${runId} in ${durationMs}ms`);
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     errorRuntimeMessage(`[run-workflow] Failed run ${runId}: ${msg}`, error);

@@ -50,7 +50,7 @@ async function seed() {
 async function finish(
   db: ReturnType<typeof drizzle<typeof schema>>,
   userId: string,
-  client: ReturnType<typeof postgres>,
+  client: ReturnType<typeof postgres>
 ) {
   // 2. Tenant
   const [tenant] = await db

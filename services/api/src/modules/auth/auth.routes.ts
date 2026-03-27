@@ -28,7 +28,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       const body = request.body as RegisterInput;
       const result = await service.register(body);
       return reply.status(201).send(result);
-    },
+    }
   );
 
   fastify.post(
@@ -42,7 +42,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       const body = request.body as LoginInput;
       const result = await service.login(body);
       return reply.send(result);
-    },
+    }
   );
 
   fastify.get('/me', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -61,7 +61,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       const body = request.body as ForgotPasswordInput;
       const result = await service.forgotPassword(body.email);
       return reply.send(result);
-    },
+    }
   );
 
   fastify.post(
@@ -75,6 +75,6 @@ export async function authRoutes(fastify: FastifyInstance) {
       const body = request.body as ResetPasswordInput;
       const result = await service.resetPassword(body.token, body.password);
       return reply.send(result);
-    },
+    }
   );
 }

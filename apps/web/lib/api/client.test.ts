@@ -40,8 +40,8 @@ describe('api client runtime parsing', () => {
             },
           ],
         }),
-        { status: 200 },
-      ),
+        { status: 200 }
+      )
     ) as typeof fetch;
 
     const { fetchTenants } = await import('./client');
@@ -73,8 +73,8 @@ describe('api client runtime parsing', () => {
             workflows: [],
           },
         }),
-        { status: 200 },
-      ),
+        { status: 200 }
+      )
     ) as typeof fetch;
 
     const { fetchInstalledAgents } = await import('./client');
@@ -112,8 +112,8 @@ describe('api client runtime parsing', () => {
               },
             ],
           }),
-          { status: 200 },
-        ),
+          { status: 200 }
+        )
       )
       .mockResolvedValueOnce(
         new Response(
@@ -135,8 +135,8 @@ describe('api client runtime parsing', () => {
               },
             ],
           }),
-          { status: 200 },
-        ),
+          { status: 200 }
+        )
       )
       .mockResolvedValueOnce(
         new Response(
@@ -158,16 +158,14 @@ describe('api client runtime parsing', () => {
               },
             ],
           }),
-          { status: 200 },
-        ),
+          { status: 200 }
+        )
       );
     globalThis.fetch = fetchMock as typeof fetch;
 
-    const {
-      fetchCatalogAgents,
-      fetchCatalogWorkflows,
-      fetchCatalogPacks,
-    } = await import('./client');
+    const { fetchCatalogAgents, fetchCatalogWorkflows, fetchCatalogPacks } = await import(
+      './client'
+    );
 
     await expect(fetchCatalogAgents()).resolves.toHaveLength(1);
     await expect(fetchCatalogWorkflows()).resolves.toHaveLength(1);
@@ -188,25 +186,21 @@ describe('api client runtime parsing', () => {
             },
           ],
         }),
-        { status: 200 },
-      ),
+        { status: 200 }
+      )
     ) as typeof fetch;
 
     const { ApiContractError, fetchTenantMembers } = await import('./client');
     const promise = fetchTenantMembers('tenant-1');
 
     await expect(promise).rejects.toBeInstanceOf(ApiContractError);
-    await expect(promise).rejects.toThrow(
-      '/api/v1/tenants/tenant-1/members',
-    );
+    await expect(promise).rejects.toThrow('/api/v1/tenants/tenant-1/members');
   });
 
   it('returns null for 404 run lookups but rejects malformed run payloads', async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce(
-        new Response('Not found', { status: 404, statusText: 'Not Found' }),
-      )
+      .mockResolvedValueOnce(new Response('Not found', { status: 404, statusText: 'Not Found' }))
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
@@ -214,17 +208,15 @@ describe('api client runtime parsing', () => {
               id: 'run-1',
             },
           }),
-          { status: 200 },
-        ),
+          { status: 200 }
+        )
       );
     globalThis.fetch = fetchMock as typeof fetch;
 
     const { ApiContractError, fetchTenantRun } = await import('./client');
 
     await expect(fetchTenantRun('tenant-1', 'missing-run')).resolves.toBeNull();
-    await expect(fetchTenantRun('tenant-1', 'run-1')).rejects.toBeInstanceOf(
-      ApiContractError,
-    );
+    await expect(fetchTenantRun('tenant-1', 'run-1')).rejects.toBeInstanceOf(ApiContractError);
   });
 
   it('parses approval decisions through the shared response schema', async () => {
@@ -250,17 +242,15 @@ describe('api client runtime parsing', () => {
             decisionReason: 'Looks good',
           },
         }),
-        { status: 200 },
-      ),
+        { status: 200 }
+      )
     ) as typeof fetch;
 
     const { approveRequest } = await import('./client');
     const result = await approveRequest('tenant-1', 'approval-1', 'Looks good');
 
     expect(result.approval.status).toBe('approved');
-    expect(result.approval.agentInstallationId).toBe(
-      '3fa85f64-5717-4562-b3fc-2c963f66afa6',
-    );
+    expect(result.approval.agentInstallationId).toBe('3fa85f64-5717-4562-b3fc-2c963f66afa6');
   });
 
   it('parses install responses with explicit installation types', async () => {
@@ -281,8 +271,8 @@ describe('api client runtime parsing', () => {
             type: 'agent',
           },
         }),
-        { status: 201 },
-      ),
+        { status: 201 }
+      )
     ) as typeof fetch;
 
     const { installAgent } = await import('./client');
@@ -349,8 +339,8 @@ describe('api client runtime parsing', () => {
               paymentMethods: [],
             },
           }),
-          { status: 200 },
-        ),
+          { status: 200 }
+        )
       )
       .mockResolvedValueOnce(
         new Response(
@@ -366,8 +356,8 @@ describe('api client runtime parsing', () => {
               platformManaged: true,
             },
           }),
-          { status: 200 },
-        ),
+          { status: 200 }
+        )
       );
     globalThis.fetch = fetchMock as typeof fetch;
 

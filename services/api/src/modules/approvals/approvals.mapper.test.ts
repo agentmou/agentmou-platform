@@ -35,7 +35,7 @@ describe('mapApproval', () => {
         decidedBy: 'user-1',
         decisionReason: 'LGTM',
       },
-      'agent-template-1',
+      'agent-template-1'
     );
 
     expect(approval).toEqual({
@@ -85,9 +85,7 @@ describe('mapApproval', () => {
       decisionReason: null,
     });
 
-    expect(approval.agentInstallationId).toBe(
-      '3fa85f64-5717-4562-b3fc-2c963f66afa7',
-    );
+    expect(approval.agentInstallationId).toBe('3fa85f64-5717-4562-b3fc-2c963f66afa7');
     expect(approval.agentId).toBeUndefined();
     expect(approval.status).toBe('pending');
   });

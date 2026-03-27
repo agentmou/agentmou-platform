@@ -75,12 +75,12 @@ export async function tenantRoutes(fastify: FastifyInstance) {
       const { id } = request.params as { id: string };
       const settings = await tenantsService.updateTenantSettings(
         id,
-        request.body as TenantSettingsInput,
+        request.body as TenantSettingsInput
       );
       if (settings === null) {
         return reply.status(404).send({ error: 'Tenant not found' });
       }
       return reply.send(TenantSettingsResponseSchema.parse({ settings }));
-    },
+    }
   );
 }

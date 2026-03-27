@@ -35,9 +35,7 @@ export function registerB2cOAuthRoutes(fastify: FastifyInstance) {
       return reply.redirect(redirectUrl);
     } catch (e: unknown) {
       const err = e as { statusCode?: number; message?: string };
-      return reply
-        .status(err.statusCode ?? 500)
-        .send({ message: err.message ?? 'OAuth error' });
+      return reply.status(err.statusCode ?? 500).send({ message: err.message ?? 'OAuth error' });
     }
   });
 
@@ -61,11 +59,7 @@ export function registerB2cOAuthRoutes(fastify: FastifyInstance) {
       return reply.status(400).send({ message: 'Missing code or state' });
     }
     try {
-      const { redirectTo } = await completeB2cOAuthCallback(
-        provider,
-        code,
-        state,
-      );
+      const { redirectTo } = await completeB2cOAuthCallback(provider, code, state);
       return reply.redirect(redirectTo);
     } catch (e: unknown) {
       const err = e as { statusCode?: number; message?: string };
@@ -95,6 +89,6 @@ export function registerB2cOAuthRoutes(fastify: FastifyInstance) {
           .status(err.statusCode ?? 500)
           .send({ message: err.message ?? 'Exchange failed' });
       }
-    },
+    }
   );
 }

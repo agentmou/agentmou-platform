@@ -52,14 +52,14 @@ describe('RunLogger', () => {
         runId: 'run-1',
         status: 'running',
         type: 'tool_call',
-      }),
+      })
     );
     expect(mockUpdateSet).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
         status: 'success',
         output: { ok: true },
-      }),
+      })
     );
     expect(mockUpdateSet).toHaveBeenNthCalledWith(
       2,
@@ -67,7 +67,7 @@ describe('RunLogger', () => {
         status: 'success',
         tokensUsed: 12,
         costEstimate: 0.01,
-      }),
+      })
     );
   });
 });

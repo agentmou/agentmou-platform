@@ -49,7 +49,7 @@ export function isBillableRun(run: ExecutionRunRow) {
 
 export async function computeTenantUsage(
   tenantId: string,
-  date = new Date(),
+  date = new Date()
 ): Promise<TenantUsageSnapshot> {
   const period = getCurrentBillingPeriod(date);
   const [tenant] = await db
@@ -71,8 +71,8 @@ export async function computeTenantUsage(
         and(
           eq(executionRuns.tenantId, tenantId),
           gte(executionRuns.startedAt, period.start),
-          lt(executionRuns.startedAt, period.end),
-        ),
+          lt(executionRuns.startedAt, period.end)
+        )
       ),
     db
       .select()
@@ -80,32 +80,24 @@ export async function computeTenantUsage(
       .where(
         and(
           eq(billableUsageLedger.tenantId, tenantId),
-          eq(billableUsageLedger.periodKey, period.key),
-        ),
+          eq(billableUsageLedger.periodKey, period.key)
+        )
       ),
   ]);
 
   const totalTokens = runs.reduce((sum, run) => sum + (run.tokensUsed ?? 0), 0);
-  const totalCostEstimate = runs.reduce(
-    (sum, run) => sum + (run.costEstimate ?? 0),
-    0,
-  );
+  const totalCostEstimate = runs.reduce((sum, run) => sum + (run.costEstimate ?? 0), 0);
 
   const billableRunsFromLedger = ledger
     .filter((entry) => entry.metric === 'billable_run' && entry.billable)
     .reduce((sum, entry) => sum + entry.quantity, 0);
 
   const billableRuns =
-    billableRunsFromLedger > 0
-      ? billableRunsFromLedger
-      : runs.filter(isBillableRun).length;
+    billableRunsFromLedger > 0 ? billableRunsFromLedger : runs.filter(isBillableRun).length;
 
   const includedRuns = entitlements.includedRuns;
-  const overageRuns =
-    includedRuns === null ? 0 : Math.max(billableRuns - includedRuns, 0);
-  const overageAmount = Number(
-    (overageRuns * entitlements.overageRunPrice).toFixed(4),
-  );
+  const overageRuns = includedRuns === null ? 0 : Math.max(billableRuns - includedRuns, 0);
+  const overageAmount = Number((overageRuns * entitlements.overageRunPrice).toFixed(4));
 
   const metrics: UsageMetric[] = [
     {
@@ -159,16 +151,12 @@ export async function computeTenantUsage(
 export async function buildUsageBreakdown(tenantId: string, runs: ExecutionRunRow[]) {
   const agentInstallationIds = [
     ...new Set(
-      runs
-        .map((run) => run.agentInstallationId)
-        .filter((id): id is string => Boolean(id)),
+      runs.map((run) => run.agentInstallationId).filter((id): id is string => Boolean(id))
     ),
   ];
   const workflowInstallationIds = [
     ...new Set(
-      runs
-        .map((run) => run.workflowInstallationId)
-        .filter((id): id is string => Boolean(id)),
+      runs.map((run) => run.workflowInstallationId).filter((id): id is string => Boolean(id))
     ),
   ];
 
@@ -194,9 +182,7 @@ export async function buildUsageBreakdown(tenantId: string, runs: ExecutionRunRo
   ]);
 
   const agentMap = new Map(agents.map((agent) => [agent.id, agent.templateId]));
-  const workflowMap = new Map(
-    workflows.map((workflow) => [workflow.id, workflow.templateId]),
-  );
+  const workflowMap = new Map(workflows.map((workflow) => [workflow.id, workflow.templateId]));
 
   return {
     byAgent: summarizeCounts(
@@ -205,7 +191,7 @@ export async function buildUsageBreakdown(tenantId: string, runs: ExecutionRunRo
         .filter((id): id is string => Boolean(id))
         .map((id) => agentMap.get(id) ?? id),
       'agentId',
-      'runs',
+      'runs'
     ),
     byWorkflow: summarizeCounts(
       runs
@@ -213,20 +199,17 @@ export async function buildUsageBreakdown(tenantId: string, runs: ExecutionRunRo
         .filter((id): id is string => Boolean(id))
         .map((id) => workflowMap.get(id) ?? id),
       'workflowId',
-      'executions',
+      'executions'
     ),
     byUser: summarizeCounts(
       runs.map((run) => run.triggeredBy),
       'userId',
-      'runs',
+      'runs'
     ),
   };
 }
 
-export function buildUsageHistory(
-  runs: ExecutionRunRow[],
-  days = 30,
-): UsageHistoryPoint[] {
+export function buildUsageHistory(runs: ExecutionRunRow[], days = 30): UsageHistoryPoint[] {
   const end = new Date();
   end.setUTCHours(0, 0, 0, 0);
 
@@ -234,9 +217,7 @@ export function buildUsageHistory(
     const current = new Date(end);
     current.setUTCDate(end.getUTCDate() - (days - 1 - index));
     const dateKey = current.toISOString().slice(0, 10);
-    const dayRuns = runs.filter(
-      (run) => run.startedAt.toISOString().slice(0, 10) === dateKey,
-    );
+    const dayRuns = runs.filter((run) => run.startedAt.toISOString().slice(0, 10) === dateKey);
 
     return {
       date: dateKey,
@@ -244,11 +225,7 @@ export function buildUsageHistory(
       successRuns: dayRuns.filter((run) => run.status === 'success').length,
       failedRuns: dayRuns.filter((run) => run.status === 'failed').length,
       tokens: dayRuns.reduce((sum, run) => sum + (run.tokensUsed ?? 0), 0),
-      cost: Number(
-        dayRuns
-          .reduce((sum, run) => sum + (run.costEstimate ?? 0), 0)
-          .toFixed(4),
-      ),
+      cost: Number(dayRuns.reduce((sum, run) => sum + (run.costEstimate ?? 0), 0).toFixed(4)),
     };
   });
 }
@@ -257,11 +234,7 @@ function summarizeCounts<
   TItem extends Record<string, string | number>,
   TLabel extends string,
   TValue extends string,
->(
-  values: string[],
-  labelKey: TLabel,
-  valueKey: TValue,
-) {
+>(values: string[], labelKey: TLabel, valueKey: TValue) {
   const counts = new Map<string, number>();
 
   for (const value of values) {

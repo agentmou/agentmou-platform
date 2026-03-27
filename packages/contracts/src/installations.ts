@@ -98,9 +98,7 @@ export const InstallPackQueuedResponseSchema = z.object({
   message: z.string(),
 });
 
-export type InstallPackQueuedResponse = z.infer<
-  typeof InstallPackQueuedResponseSchema
->;
+export type InstallPackQueuedResponse = z.infer<typeof InstallPackQueuedResponseSchema>;
 
 // ---------------------------------------------------------------------------
 // Installation process

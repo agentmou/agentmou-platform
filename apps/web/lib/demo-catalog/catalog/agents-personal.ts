@@ -1,4 +1,4 @@
-import type { AgentTemplate } from '../../control-plane/types'
+import type { AgentTemplate } from '../../control-plane/types';
 
 // Personal / Creator / Productivity agents (10)
 export const personalAgentTemplates: AgentTemplate[] = [
@@ -7,7 +7,8 @@ export const personalAgentTemplates: AgentTemplate[] = [
     name: 'Read-Later to Action',
     outcome: 'Turn saved articles into actions',
     domain: 'productivity',
-    description: 'Processes articles from your read-later queue and extracts actionable insights and tasks.',
+    description:
+      'Processes articles from your read-later queue and extracts actionable insights and tasks.',
     inputs: ['article_url', 'context', 'action_types'],
     outputs: ['summary', 'action_items', 'key_takeaways'],
     requiredIntegrations: ['apify', 'openai'],
@@ -56,7 +57,8 @@ export const personalAgentTemplates: AgentTemplate[] = [
     name: 'Personal Inbox Zero',
     outcome: 'Achieve inbox zero automatically',
     domain: 'productivity',
-    description: 'Personal email assistant that categorizes, prioritizes, and drafts responses for your inbox.',
+    description:
+      'Personal email assistant that categorizes, prioritizes, and drafts responses for your inbox.',
     inputs: ['email_content', 'priorities', 'response_style'],
     outputs: ['category', 'priority', 'suggested_action', 'draft_reply'],
     requiredIntegrations: ['gmail', 'openai'],
@@ -139,7 +141,8 @@ export const personalAgentTemplates: AgentTemplate[] = [
     name: 'Research to Newsletter Draft',
     outcome: 'Turn research into newsletter content',
     domain: 'creator',
-    description: 'Transforms research findings into newsletter-ready content with your writing style.',
+    description:
+      'Transforms research findings into newsletter-ready content with your writing style.',
     inputs: ['research_topic', 'style_guide', 'newsletter_format'],
     outputs: ['newsletter_draft', 'subject_lines', 'key_points'],
     requiredIntegrations: ['perplexity'],
@@ -188,7 +191,8 @@ export const personalAgentTemplates: AgentTemplate[] = [
     name: 'Creator Analytics Copilot',
     outcome: 'Understand your content performance',
     domain: 'creator',
-    description: 'Aggregates analytics from multiple platforms and provides AI-powered content insights.',
+    description:
+      'Aggregates analytics from multiple platforms and provides AI-powered content insights.',
     inputs: ['platform_data', 'content_type', 'time_period'],
     outputs: ['performance_report', 'top_content', 'recommendations', 'trends'],
     requiredIntegrations: ['google-analytics', 'baserow'],
@@ -212,7 +216,8 @@ export const personalAgentTemplates: AgentTemplate[] = [
     name: 'Reviews Tracker',
     outcome: 'Monitor your reviews and reputation',
     domain: 'creator',
-    description: 'Tracks reviews across platforms and alerts on new feedback with sentiment analysis.',
+    description:
+      'Tracks reviews across platforms and alerts on new feedback with sentiment analysis.',
     inputs: ['review_sources', 'alert_threshold'],
     outputs: ['reviews', 'sentiment_summary', 'alerts', 'response_suggestions'],
     requiredIntegrations: ['trustpilot', 'google-sheets'],
@@ -241,7 +246,8 @@ export const personalAgentTemplates: AgentTemplate[] = [
     name: 'Meeting Prep Mini-Brief',
     outcome: 'Quick meeting prep for personal use',
     domain: 'productivity',
-    description: 'Lightweight meeting prep that researches attendees and provides quick talking points.',
+    description:
+      'Lightweight meeting prep that researches attendees and provides quick talking points.',
     inputs: ['meeting_info', 'attendees'],
     outputs: ['mini_brief', 'talking_points', 'questions'],
     requiredIntegrations: ['google-calendar', 'apify'],
@@ -265,4 +271,4 @@ export const personalAgentTemplates: AgentTemplate[] = [
     visibility: 'variant',
     variantOf: 'agent-meeting-prep',
   },
-]
+];

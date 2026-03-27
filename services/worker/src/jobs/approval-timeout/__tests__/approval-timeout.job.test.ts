@@ -75,9 +75,9 @@ describe('processApprovalTimeout', () => {
 
   it('should auto-approve and resume the run', async () => {
     mockSelectWhere.mockReturnValue({
-      limit: vi.fn().mockResolvedValue([
-        { id: 'a1', status: 'pending', agentInstallationId: 'inst-1' },
-      ]),
+      limit: vi
+        .fn()
+        .mockResolvedValue([{ id: 'a1', status: 'pending', agentInstallationId: 'inst-1' }]),
     });
 
     await processApprovalTimeout(
@@ -89,12 +89,10 @@ describe('processApprovalTimeout', () => {
       })
     );
 
-    expect(mockUpdateSet).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'approved' })
-    );
+    expect(mockUpdateSet).toHaveBeenCalledWith(expect.objectContaining({ status: 'approved' }));
     expect(mockQueueAdd).toHaveBeenCalledWith(
       'run-agent',
-      expect.objectContaining({ agentInstallationId: 'inst-1' }),
+      expect.objectContaining({ agentInstallationId: 'inst-1' })
     );
     expect(mockInsertValues).toHaveBeenCalled(); // audit event
   });
@@ -113,9 +111,7 @@ describe('processApprovalTimeout', () => {
       })
     );
 
-    expect(mockUpdateSet).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'rejected' })
-    );
+    expect(mockUpdateSet).toHaveBeenCalledWith(expect.objectContaining({ status: 'rejected' }));
     expect(mockInsertValues).toHaveBeenCalled();
   });
 

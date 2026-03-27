@@ -1,44 +1,47 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { Copy, Check, User, Bot, ArrowRight, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import type { ChatMessage } from '@/lib/chat/types'
-import { motion } from 'framer-motion'
+import { useState } from 'react';
+import Link from 'next/link';
+import { Copy, Check, User, Bot, ArrowRight, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import type { ChatMessage } from '@/lib/chat/types';
+import { motion } from 'framer-motion';
 
 interface ChatMessageBubbleProps {
-  message: ChatMessage
+  message: ChatMessage;
 }
 
 export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
-  const [copied, setCopied] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
-  const isUser = message.role === 'user'
+  const [copied, setCopied] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const isUser = message.role === 'user';
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(message.content)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    await navigator.clipboard.writeText(message.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   // Parse markdown-like formatting (bold, bullets, code)
   const formatContent = (content: string) => {
-    const lines = content.split('\n')
+    const lines = content.split('\n');
     return lines.map((line, i) => {
       // Inline code
-      let formatted = line.replace(/`([^`]+)`/g, '<code class="rounded bg-muted-foreground/10 px-1 py-0.5 text-[13px] font-mono">$1</code>')
+      let formatted = line.replace(
+        /`([^`]+)`/g,
+        '<code class="rounded bg-muted-foreground/10 px-1 py-0.5 text-[13px] font-mono">$1</code>'
+      );
       // Bold text
-      formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+      formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>');
       // Bullet points
       if (formatted.startsWith('- ')) {
-        formatted = `<span class="flex gap-2"><span class="text-emerald-500 font-medium">•</span><span>${formatted.slice(2)}</span></span>`
+        formatted = `<span class="flex gap-2"><span class="text-emerald-500 font-medium">•</span><span>${formatted.slice(2)}</span></span>`;
       }
       // Numbered lists
-      const numberMatch = formatted.match(/^(\d+)\.\s/)
+      const numberMatch = formatted.match(/^(\d+)\.\s/);
       if (numberMatch) {
-        formatted = `<span class="flex gap-2"><span class="text-emerald-500 font-medium min-w-[1rem]">${numberMatch[1]}.</span><span>${formatted.slice(numberMatch[0].length)}</span></span>`
+        formatted = `<span class="flex gap-2"><span class="text-emerald-500 font-medium min-w-[1rem]">${numberMatch[1]}.</span><span>${formatted.slice(numberMatch[0].length)}</span></span>`;
       }
       return (
         <span
@@ -46,9 +49,9 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
           className={cn(line === '' && 'block h-3')}
           dangerouslySetInnerHTML={{ __html: formatted || '&nbsp;' }}
         />
-      )
-    })
-  }
+      );
+    });
+  };
 
   return (
     <motion.div
@@ -68,11 +71,7 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
             : 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-sm shadow-emerald-500/20'
         )}
       >
-        {isUser ? (
-          <User className="h-4 w-4" />
-        ) : (
-          <Bot className="h-4 w-4" />
-        )}
+        {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
       </div>
 
       {/* Message */}
@@ -89,7 +88,7 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
           {!isUser && (
             <Sparkles className="absolute -left-1 -top-1 h-3 w-3 text-emerald-500 opacity-60" />
           )}
-          
+
           <div className="space-y-1">{formatContent(message.content)}</div>
         </div>
 
@@ -160,5 +159,5 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
         )}
       </div>
     </motion.div>
-  )
+  );
 }

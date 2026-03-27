@@ -33,7 +33,7 @@ export function mapExecutionRun(
     workflowId?: string;
     steps?: ExecutionStepRow[];
     logs?: string[];
-  } = {},
+  } = {}
 ): ExecutionRun {
   const timeline = (resolved.steps ?? []).map(mapExecutionStep);
 
@@ -87,7 +87,5 @@ function normalizeStatus(status: string): string {
 }
 
 function normalizeTags(tags: unknown): string[] {
-  return Array.isArray(tags)
-    ? tags.filter((tag): tag is string => typeof tag === 'string')
-    : [];
+  return Array.isArray(tags) ? tags.filter((tag): tag is string => typeof tag === 'string') : [];
 }

@@ -1,12 +1,17 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { Check, ArrowRight } from 'lucide-react'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { MinimalButton } from '@/components/ui/minimal-button'
-import { HalftoneBackground } from '@/components/brand/halftone-background'
-import { FadeContent } from '@/components/reactbits/fade-content'
-import { TiltedCard } from '@/components/reactbits/tilted-card'
+import Link from 'next/link';
+import { Check, ArrowRight } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { MinimalButton } from '@/components/ui/minimal-button';
+import { HalftoneBackground } from '@/components/brand/halftone-background';
+import { FadeContent } from '@/components/reactbits/fade-content';
+import { TiltedCard } from '@/components/reactbits/tilted-card';
 const plans = [
   {
     name: 'Starter',
@@ -59,7 +64,7 @@ const plans = [
     cta: 'Contact sales',
     highlight: false,
   },
-]
+];
 
 const comparisonFeatures = [
   { feature: 'Agents', starter: '3', pro: '10', scale: 'Unlimited' },
@@ -72,16 +77,18 @@ const comparisonFeatures = [
   { feature: 'SSO/SAML', starter: '-', pro: '-', scale: 'Yes' },
   { feature: 'SLA', starter: '-', pro: '-', scale: '99.9%' },
   { feature: 'Support', starter: 'Email', pro: 'Priority', scale: 'Dedicated' },
-]
+];
 
 const faqs = [
   {
     question: 'What is a run?',
-    answer: 'A run is a single execution of an agent or workflow. Each time an agent processes a request or a workflow triggers, it counts as one run.',
+    answer:
+      'A run is a single execution of an agent or workflow. Each time an agent processes a request or a workflow triggers, it counts as one run.',
   },
   {
     question: 'Can I change plans at any time?',
-    answer: 'Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and billing is prorated.',
+    answer:
+      'Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and billing is prorated.',
   },
   {
     question: 'Do you offer a free trial?',
@@ -97,9 +104,10 @@ const faqs = [
   },
   {
     question: 'What happens if I exceed my run limit?',
-    answer: 'We will notify you when you reach 80% of your limit. If you exceed it, additional runs are billed at $0.01 per run for Starter and $0.005 for Pro.',
+    answer:
+      'We will notify you when you reach 80% of your limit. If you exceed it, additional runs are billed at $0.01 per run for Starter and $0.005 for Pro.',
   },
-]
+];
 
 export default function PricingPage() {
   return (
@@ -109,9 +117,7 @@ export default function PricingPage() {
           <FadeContent>
             <div className="text-center">
               <p className="text-editorial-tiny mb-4">Pricing</p>
-              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
-                Simple, transparent
-              </h1>
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">Simple, transparent</h1>
               <p className="mt-6 text-muted-foreground max-w-lg mx-auto">
                 Choose the plan that fits your needs. All plans include a 14-day free trial.
               </p>
@@ -121,56 +127,55 @@ export default function PricingPage() {
       </HalftoneBackground>
 
       <div className="mx-auto max-w-7xl px-6 lg:px-8 pb-24">
-
         <div className="mt-20 grid gap-8 lg:grid-cols-3">
           {plans.map((plan, i) => (
             <FadeContent key={plan.name} delay={i * 0.1}>
               <TiltedCard className="h-full">
-              <div
-                className={`relative h-full rounded-md border bg-card ${
-                  plan.highlight ? 'border-foreground' : 'border-border/50'
-                }`}
-              >
-                <div className="p-8">
-                  {plan.highlight && (
-                    <div className="absolute -top-3 left-6">
-                      <span className="bg-foreground text-background px-3 py-1 text-[10px] uppercase tracking-wide font-medium">
-                        Most popular
-                      </span>
-                    </div>
-                  )}
-                  
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold">{plan.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
-                  </div>
-                  
-                  <div className="mb-8">
-                    <span className="text-4xl font-bold tracking-tight">{plan.price}</span>
-                    {plan.price !== 'Custom' && (
-                      <span className="text-muted-foreground text-sm">/month</span>
+                <div
+                  className={`relative h-full rounded-md border bg-card ${
+                    plan.highlight ? 'border-foreground' : 'border-border/50'
+                  }`}
+                >
+                  <div className="p-8">
+                    {plan.highlight && (
+                      <div className="absolute -top-3 left-6">
+                        <span className="bg-foreground text-background px-3 py-1 text-[10px] uppercase tracking-wide font-medium">
+                          Most popular
+                        </span>
+                      </div>
                     )}
+
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold">{plan.name}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
+                    </div>
+
+                    <div className="mb-8">
+                      <span className="text-4xl font-bold tracking-tight">{plan.price}</span>
+                      {plan.price !== 'Custom' && (
+                        <span className="text-muted-foreground text-sm">/month</span>
+                      )}
+                    </div>
+
+                    <ul className="space-y-3 mb-8">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex items-start gap-3">
+                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                          <span className="text-sm">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Link href="/app/demo-workspace/dashboard" className="block">
+                      <MinimalButton
+                        className="w-full"
+                        variant={plan.highlight ? 'default' : 'outline'}
+                      >
+                        {plan.cta}
+                      </MinimalButton>
+                    </Link>
                   </div>
-                  
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-3">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <Link href="/app/demo-workspace/dashboard" className="block">
-                    <MinimalButton
-                      className="w-full"
-                      variant={plan.highlight ? 'default' : 'outline'}
-                    >
-                      {plan.cta}
-                    </MinimalButton>
-                  </Link>
                 </div>
-              </div>
               </TiltedCard>
             </FadeContent>
           ))}
@@ -196,9 +201,7 @@ export default function PricingPage() {
                       <td className="py-4 text-center text-sm text-muted-foreground">
                         {row.starter}
                       </td>
-                      <td className="py-4 text-center text-sm text-muted-foreground">
-                        {row.pro}
-                      </td>
+                      <td className="py-4 text-center text-sm text-muted-foreground">{row.pro}</td>
                       <td className="py-4 text-center text-sm text-muted-foreground">
                         {row.scale}
                       </td>
@@ -246,5 +249,5 @@ export default function PricingPage() {
         </FadeContent>
       </div>
     </div>
-  )
+  );
 }

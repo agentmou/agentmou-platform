@@ -120,9 +120,7 @@ describe('GmailConnector', () => {
 
       await connector.listMessages({ query: 'is:unread' });
 
-      expect(mockMessagesList).toHaveBeenCalledWith(
-        expect.objectContaining({ q: 'is:unread' })
-      );
+      expect(mockMessagesList).toHaveBeenCalledWith(expect.objectContaining({ q: 'is:unread' }));
     });
   });
 

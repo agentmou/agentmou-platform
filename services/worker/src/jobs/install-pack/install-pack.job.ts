@@ -26,10 +26,7 @@ import {
   warnRuntimeMessage,
 } from '../runtime-support/job-log.js';
 
-const REPO_ROOT = resolveRepoRoot(import.meta.dirname, [
-  'catalog/agents',
-  'workflows/public',
-]);
+const REPO_ROOT = resolveRepoRoot(import.meta.dirname, ['catalog/agents', 'workflows/public']);
 const CATALOG_DIR = path.join(REPO_ROOT, 'catalog');
 const WORKFLOWS_PUBLIC_DIR = path.join(REPO_ROOT, 'workflows', 'public');
 const N8N_API_URL = process.env.N8N_API_URL || 'http://n8n:5678/api/v1';
@@ -42,9 +39,7 @@ export async function processInstallPack(job: Job<InstallPackPayload>) {
   const { tenantId, packId, config } = job.data;
   const n8n = createN8nClient();
 
-  logRuntimeMessage(
-    `[install-pack] Installing pack "${packId}" for tenant ${tenantId}`,
-  );
+  logRuntimeMessage(`[install-pack] Installing pack "${packId}" for tenant ${tenantId}`);
 
   await job.updateProgress(10);
 
@@ -63,9 +58,7 @@ export async function processInstallPack(job: Job<InstallPackPayload>) {
   for (const templateId of agentIds) {
     const manifest = await loadAgentManifest(templateId);
     if (!manifest) {
-      warnRuntimeMessage(
-        `[install-pack] Skipping unknown agent template "${templateId}"`,
-      );
+      warnRuntimeMessage(`[install-pack] Skipping unknown agent template "${templateId}"`);
       continue;
     }
 
@@ -97,22 +90,23 @@ export async function processInstallPack(job: Job<InstallPackPayload>) {
   for (const templateId of workflowIds) {
     const workflowJson = await loadWorkflowDefinition(templateId);
     if (!workflowJson) {
-      warnRuntimeMessage(
-        `[install-pack] Skipping unknown workflow template "${templateId}"`,
-      );
+      warnRuntimeMessage(`[install-pack] Skipping unknown workflow template "${templateId}"`);
       continue;
     }
 
-    const [installation] = await db.insert(workflowInstallations).values({
-      tenantId,
-      templateId,
-      status: 'configuring',
-      config: config || {},
-    }).returning();
+    const [installation] = await db
+      .insert(workflowInstallations)
+      .values({
+        tenantId,
+        templateId,
+        status: 'configuring',
+        config: config || {},
+      })
+      .returning();
 
     if (!n8n) {
       warnRuntimeMessage(
-        '[install-pack] N8N_API_KEY missing; marking workflow installation as error',
+        '[install-pack] N8N_API_KEY missing; marking workflow installation as error'
       );
       await db
         .update(workflowInstallations)
@@ -134,7 +128,7 @@ export async function processInstallPack(job: Job<InstallPackPayload>) {
     } catch (error) {
       errorRuntimeMessage(
         `[install-pack] Failed to provision workflow "${templateId}" in n8n`,
-        error,
+        error
       );
       await db
         .update(workflowInstallations)
@@ -146,7 +140,7 @@ export async function processInstallPack(job: Job<InstallPackPayload>) {
   await job.updateProgress(100);
 
   logRuntimeMessage(
-    `[install-pack] Pack "${packId}" installed: ${installedAgents} agents, ${installedWorkflows} workflows`,
+    `[install-pack] Pack "${packId}" installed: ${installedAgents} agents, ${installedWorkflows} workflows`
   );
 }
 
@@ -167,9 +161,7 @@ async function loadAgentManifest(templateId: string) {
   }
 }
 
-async function loadWorkflowDefinition(
-  templateId: string,
-): Promise<Record<string, unknown> | null> {
+async function loadWorkflowDefinition(templateId: string): Promise<Record<string, unknown> | null> {
   if (!TEMPLATE_ID_PATTERN.test(templateId)) {
     return null;
   }
@@ -203,7 +195,7 @@ async function createSchedule(
   tenantId: string,
   installationId: string,
   targetType: 'agent' | 'workflow',
-  cron: string,
+  cron: string
 ) {
   const [schedule] = await db
     .insert(schedules)
@@ -228,10 +220,10 @@ async function createSchedule(
     {
       repeat: { pattern: cron },
       jobId: getScheduleTriggerJobId(schedule.id),
-    },
+    }
   );
 
   logRuntimeMessage(
-    `[install-pack] Created schedule ${schedule.id} (${cron}) for ${targetType} ${installationId}`,
+    `[install-pack] Created schedule ${schedule.id} (${cron}) for ${targetType} ${installationId}`
   );
 }

@@ -108,19 +108,15 @@ describe('OAuthService', () => {
     });
 
     it('should throw for unsupported providers', async () => {
-      await expect(
-        service.getAuthorizeUrl('tenant-123', 'slack')
-      ).rejects.toThrow('Unsupported OAuth provider');
+      await expect(service.getAuthorizeUrl('tenant-123', 'slack')).rejects.toThrow(
+        'Unsupported OAuth provider'
+      );
     });
 
     it('should include redirect_url when provided', async () => {
       mockValues.mockResolvedValue(undefined);
 
-      await service.getAuthorizeUrl(
-        'tenant-123',
-        'gmail',
-        'https://app.test.io/settings'
-      );
+      await service.getAuthorizeUrl('tenant-123', 'gmail', 'https://app.test.io/settings');
 
       expect(mockValues).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -168,11 +164,13 @@ describe('OAuthService', () => {
     });
 
     it('should throw OAuthError for invalid state', async () => {
-      mockFrom.mockReturnValue({ where: vi.fn().mockReturnValue({ limit: vi.fn().mockResolvedValue([]) }) });
+      mockFrom.mockReturnValue({
+        where: vi.fn().mockReturnValue({ limit: vi.fn().mockResolvedValue([]) }),
+      });
 
-      await expect(
-        service.handleCallback('some-code', 'invalid-state')
-      ).rejects.toThrow(OAuthError);
+      await expect(service.handleCallback('some-code', 'invalid-state')).rejects.toThrow(
+        OAuthError
+      );
     });
 
     it('should throw OAuthError for expired state', async () => {
@@ -187,9 +185,7 @@ describe('OAuthService', () => {
         }),
       });
 
-      await expect(
-        service.handleCallback('some-code', 'expired-state')
-      ).rejects.toThrow('expired');
+      await expect(service.handleCallback('some-code', 'expired-state')).rejects.toThrow('expired');
     });
 
     it('should exchange code for tokens and call fetch', async () => {
@@ -205,18 +201,16 @@ describe('OAuthService', () => {
         }),
       });
 
-      const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(
-        async (url) => {
-          const urlStr = typeof url === 'string' ? url : url.toString();
-          if (urlStr.includes('oauth2.googleapis.com/token')) {
-            return new Response(JSON.stringify(tokenResponse), { status: 200 });
-          }
-          if (urlStr.includes('googleapis.com/oauth2/v2/userinfo')) {
-            return new Response(JSON.stringify(userInfoResponse), { status: 200 });
-          }
-          return new Response('Not found', { status: 404 });
+      const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+        const urlStr = typeof url === 'string' ? url : url.toString();
+        if (urlStr.includes('oauth2.googleapis.com/token')) {
+          return new Response(JSON.stringify(tokenResponse), { status: 200 });
         }
-      );
+        if (urlStr.includes('googleapis.com/oauth2/v2/userinfo')) {
+          return new Response(JSON.stringify(userInfoResponse), { status: 200 });
+        }
+        return new Response('Not found', { status: 404 });
+      });
 
       const result = await service.handleCallback('auth-code', 'valid-state-token');
 

@@ -1,71 +1,66 @@
-'use client'
+'use client';
 
-import { Suspense, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { resetPasswordApi } from '@/lib/auth/api'
-import { PasswordInput } from '@/components/auth/password-input'
-import { Spinner } from '@/components/ui/spinner'
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { resetPasswordApi } from '@/lib/auth/api';
+import { PasswordInput } from '@/components/auth/password-input';
+import { Spinner } from '@/components/ui/spinner';
 
 function ResetPasswordForm() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const token = searchParams.get('token') ?? ''
-  const [password, setPassword] = useState('')
-  const [confirm, setConfirm] = useState('')
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token') ?? '';
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!token) {
-      toast.error('Invalid reset link.')
-      return
+      toast.error('Invalid reset link.');
+      return;
     }
     if (password.length < 8) {
-      toast.error('Password must be at least 8 characters.')
-      return
+      toast.error('Password must be at least 8 characters.');
+      return;
     }
     if (password !== confirm) {
-      toast.error('Passwords do not match.')
-      return
+      toast.error('Passwords do not match.');
+      return;
     }
-    setLoading(true)
+    setLoading(true);
     try {
-      await resetPasswordApi(token, password)
-      toast.success('Password updated. You can sign in.')
-      router.replace('/login')
+      await resetPasswordApi(token, password);
+      toast.success('Password updated. You can sign in.');
+      router.replace('/login');
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : 'Reset failed. Try again.'
-      toast.error(msg)
+      const msg = err instanceof Error ? err.message : 'Reset failed. Try again.';
+      toast.error(msg);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (!token) {
     return (
       <div className="w-full max-w-md space-y-4 text-center">
-        <p className="text-sm text-muted-foreground">
-          This reset link is invalid or expired.
-        </p>
+        <p className="text-sm text-muted-foreground">This reset link is invalid or expired.</p>
         <Button asChild variant="outline">
           <Link href="/login">Back to sign in</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Set new password</h1>
-        <p className="text-sm text-muted-foreground">
-          Choose a strong password for your account.
-        </p>
+        <p className="text-sm text-muted-foreground">Choose a strong password for your account.</p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="new-password">New password</Label>
@@ -107,7 +102,7 @@ function ResetPasswordForm() {
         </Link>
       </p>
     </form>
-  )
+  );
 }
 
 export default function ResetPasswordPage() {
@@ -121,5 +116,5 @@ export default function ResetPasswordPage() {
     >
       <ResetPasswordForm />
     </Suspense>
-  )
+  );
 }

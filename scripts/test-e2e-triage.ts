@@ -81,17 +81,14 @@ const steps: Step[] = [
   {
     name: '4. Install Support Starter pack',
     fn: async () => {
-      const res = await fetch(
-        `${API_URL}/api/v1/tenants/${tenantId}/installations/packs`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ packId: 'support-starter' }),
+      const res = await fetch(`${API_URL}/api/v1/tenants/${tenantId}/installations/packs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({ packId: 'support-starter' }),
+      });
       assert(res.status === 201 || res.ok, `Install pack failed: ${res.status}`);
       const body = await res.json();
       console.log('   → pack install queued');
@@ -108,10 +105,9 @@ const steps: Step[] = [
   {
     name: '6. Verify agent installations exist',
     fn: async () => {
-      const res = await fetch(
-        `${API_URL}/api/v1/tenants/${tenantId}/installations/agents`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      const res = await fetch(`${API_URL}/api/v1/tenants/${tenantId}/installations/agents`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       assert(res.ok, `List agents failed: ${res.status}`);
       const body = await res.json();
       const agents = body.agents || body.installations || [];
@@ -125,7 +121,7 @@ const steps: Step[] = [
     fn: async () => {
       const res = await fetch(
         `${API_URL}/api/v1/tenants/${tenantId}/connectors/oauth/gmail/authorize`,
-        { headers: { Authorization: `Bearer ${token}` } },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       assert(res.ok, `OAuth authorize failed: ${res.status}`);
       const body = await res.json();
@@ -137,20 +133,17 @@ const steps: Step[] = [
   {
     name: '8. Trigger manual run',
     fn: async () => {
-      const res = await fetch(
-        `${API_URL}/api/v1/tenants/${tenantId}/runs`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            type: 'agent',
-            triggeredBy: 'manual',
-          }),
+      const res = await fetch(`${API_URL}/api/v1/tenants/${tenantId}/runs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({
+          type: 'agent',
+          triggeredBy: 'manual',
+        }),
+      });
       if (res.ok || res.status === 201) {
         const body = await res.json();
         runId = body.run?.id || body.id || '';
@@ -164,10 +157,9 @@ const steps: Step[] = [
   {
     name: '9. List connectors',
     fn: async () => {
-      const res = await fetch(
-        `${API_URL}/api/v1/tenants/${tenantId}/connectors`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      const res = await fetch(`${API_URL}/api/v1/tenants/${tenantId}/connectors`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       assert(res.ok, `List connectors failed: ${res.status}`);
       const body = await res.json();
       console.log(`   → ${body.connectors?.length ?? 0} connector(s)`);
@@ -177,10 +169,9 @@ const steps: Step[] = [
   {
     name: '10. List runs',
     fn: async () => {
-      const res = await fetch(
-        `${API_URL}/api/v1/tenants/${tenantId}/runs`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      const res = await fetch(`${API_URL}/api/v1/tenants/${tenantId}/runs`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       assert(res.ok, `List runs failed: ${res.status}`);
       const body = await res.json();
       const runs = body.runs || [];

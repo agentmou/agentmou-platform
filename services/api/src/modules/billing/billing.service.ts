@@ -18,10 +18,7 @@ import { and, eq } from 'drizzle-orm';
 import { recordAuditEvent } from '../../lib/audit.js';
 import { computeTenantUsage } from '../usage/usage.helpers.js';
 import { getPlanEntitlements } from './plan-config.js';
-import {
-  hasStripeBillingConfig,
-  StripeBillingClient,
-} from './stripe-billing.client.js';
+import { hasStripeBillingConfig, StripeBillingClient } from './stripe-billing.client.js';
 
 const PRICE_ID_BY_PLAN: Record<string, string | undefined> = {
   starter: process.env.STRIPE_PRICE_STARTER_MONTHLY,
@@ -42,13 +39,12 @@ export class BillingService {
   }
 
   async getOverview(tenantId: string): Promise<BillingOverview> {
-    const [subscription, paymentMethods, invoices, usageSnapshot] =
-      await Promise.all([
-        this.getSubscription(tenantId),
-        this.getPaymentMethods(tenantId),
-        this.getInvoices(tenantId),
-        computeTenantUsage(tenantId),
-      ]);
+    const [subscription, paymentMethods, invoices, usageSnapshot] = await Promise.all([
+      this.getSubscription(tenantId),
+      this.getPaymentMethods(tenantId),
+      this.getInvoices(tenantId),
+      computeTenantUsage(tenantId),
+    ]);
 
     return {
       subscription,
@@ -65,18 +61,12 @@ export class BillingService {
     let localSubscription = await this.ensureLocalSubscription(
       tenantId,
       account?.id ?? null,
-      tenant.plan,
+      tenant.plan
     );
 
-    if (
-      this.stripe &&
-      localSubscription.providerSubscriptionId &&
-      account?.providerCustomerId
-    ) {
+    if (this.stripe && localSubscription.providerSubscriptionId && account?.providerCustomerId) {
       try {
-        const remote = await this.stripe.getSubscription(
-          localSubscription.providerSubscriptionId,
-        );
+        const remote = await this.stripe.getSubscription(localSubscription.providerSubscriptionId);
         localSubscription = await this.syncLocalSubscription({
           tenantId,
           billingAccountId: account.id,
@@ -100,8 +90,7 @@ export class BillingService {
       tenantId,
       provider: account?.provider ?? 'stripe',
       providerCustomerId: account?.providerCustomerId ?? undefined,
-      providerSubscriptionId:
-        localSubscription.providerSubscriptionId ?? undefined,
+      providerSubscriptionId: localSubscription.providerSubscriptionId ?? undefined,
       plan: localSubscription.plan,
       status: normalizeSubscriptionStatus(localSubscription.status),
       currentPeriodStart: localSubscription.currentPeriodStart?.toISOString(),
@@ -126,17 +115,13 @@ export class BillingService {
     const currentSubscription = await this.ensureLocalSubscription(
       tenantId,
       account?.id ?? null,
-      tenant.plan,
+      tenant.plan
     );
 
-    if (
-      this.stripe &&
-      currentSubscription.providerSubscriptionId &&
-      PRICE_ID_BY_PLAN[plan]
-    ) {
+    if (this.stripe && currentSubscription.providerSubscriptionId && PRICE_ID_BY_PLAN[plan]) {
       await this.stripe.updateSubscription(
         currentSubscription.providerSubscriptionId,
-        PRICE_ID_BY_PLAN[plan]!,
+        PRICE_ID_BY_PLAN[plan]!
       );
     }
 
@@ -156,8 +141,7 @@ export class BillingService {
       status: this.stripe ? 'active' : currentSubscription.status,
       providerSubscriptionId: currentSubscription.providerSubscriptionId ?? null,
       currentPeriodStart: currentSubscription.currentPeriodStart ?? new Date(),
-      currentPeriodEnd:
-        currentSubscription.currentPeriodEnd ?? addDays(new Date(), 30),
+      currentPeriodEnd: currentSubscription.currentPeriodEnd ?? addDays(new Date(), 30),
       cancelAtPeriodEnd: false,
     });
 
@@ -181,9 +165,7 @@ export class BillingService {
       try {
         const invoices = await this.stripe.listInvoices(account.providerCustomerId);
         await Promise.all(
-          invoices.data.map((invoice) =>
-            this.upsertInvoice(tenantId, account.id, invoice),
-          ),
+          invoices.data.map((invoice) => this.upsertInvoice(tenantId, account.id, invoice))
         );
       } catch (error) {
         this.fastify.log.warn(error, 'Failed to sync Stripe invoices');
@@ -196,10 +178,7 @@ export class BillingService {
       .where(eq(billingInvoices.tenantId, tenantId));
 
     return rows
-      .sort(
-        (a, b) =>
-          b.invoiceDate.getTime() - a.invoiceDate.getTime(),
-      )
+      .sort((a, b) => b.invoiceDate.getTime() - a.invoiceDate.getTime())
       .map((row) => ({
         id: row.providerInvoiceId ?? row.id,
         tenantId: row.tenantId,
@@ -222,8 +201,8 @@ export class BillingService {
       .where(
         and(
           eq(billingInvoices.tenantId, tenantId),
-          eq(billingInvoices.providerInvoiceId, invoiceId),
-        ),
+          eq(billingInvoices.providerInvoiceId, invoiceId)
+        )
       )
       .limit(1);
 
@@ -238,9 +217,7 @@ export class BillingService {
       return [];
     }
 
-    const response = await this.stripe.listPaymentMethods(
-      account.providerCustomerId,
-    );
+    const response = await this.stripe.listPaymentMethods(account.providerCustomerId);
 
     return response.data.map((method, index) => ({
       id: method.id,
@@ -253,23 +230,15 @@ export class BillingService {
     }));
   }
 
-  async addPaymentMethod(
-    tenantId: string,
-    paymentMethodId: string,
-    actorId?: string,
-  ) {
+  async addPaymentMethod(tenantId: string, paymentMethodId: string, actorId?: string) {
     const account = await this.ensureBillingAccount(tenantId);
     if (!this.stripe || !account?.providerCustomerId) {
-      throw Object.assign(
-        new Error('Stripe billing is not configured for this tenant'),
-        { statusCode: 409 },
-      );
+      throw Object.assign(new Error('Stripe billing is not configured for this tenant'), {
+        statusCode: 409,
+      });
     }
 
-    await this.stripe.attachPaymentMethod(
-      account.providerCustomerId,
-      paymentMethodId,
-    );
+    await this.stripe.attachPaymentMethod(account.providerCustomerId, paymentMethodId);
 
     await recordAuditEvent({
       tenantId,
@@ -289,7 +258,7 @@ export class BillingService {
     const subscription = await this.ensureLocalSubscription(
       tenantId,
       account?.id ?? null,
-      (await this.getTenantRecord(tenantId)).plan,
+      (await this.getTenantRecord(tenantId)).plan
     );
 
     if (this.stripe && subscription.providerSubscriptionId) {
@@ -304,8 +273,7 @@ export class BillingService {
       status: 'canceled',
       providerSubscriptionId: subscription.providerSubscriptionId ?? null,
       currentPeriodStart: subscription.currentPeriodStart ?? new Date(),
-      currentPeriodEnd:
-        subscription.currentPeriodEnd ?? addDays(new Date(), 30),
+      currentPeriodEnd: subscription.currentPeriodEnd ?? addDays(new Date(), 30),
       cancelAtPeriodEnd: true,
     });
 
@@ -400,7 +368,7 @@ export class BillingService {
   private async ensureLocalSubscription(
     tenantId: string,
     billingAccountId: string | null,
-    plan: string,
+    plan: string
   ) {
     const [existing] = await db
       .select()
@@ -472,10 +440,9 @@ export class BillingService {
       .returning();
 
     if (!updated) {
-      throw Object.assign(
-        new Error(`Billing subscription ${input.subscriptionId} not found`),
-        { statusCode: 404 },
-      );
+      throw Object.assign(new Error(`Billing subscription ${input.subscriptionId} not found`), {
+        statusCode: 404,
+      });
     }
 
     return updated;
@@ -501,7 +468,7 @@ export class BillingService {
           amount: number;
         }>;
       };
-    },
+    }
   ) {
     const [existing] = await db
       .select()
@@ -519,9 +486,7 @@ export class BillingService {
       periodKey: invoice.period_start
         ? fromEpochSeconds(invoice.period_start).toISOString().slice(0, 7)
         : null,
-      periodStart: invoice.period_start
-        ? fromEpochSeconds(invoice.period_start)
-        : null,
+      periodStart: invoice.period_start ? fromEpochSeconds(invoice.period_start) : null,
       periodEnd: invoice.period_end ? fromEpochSeconds(invoice.period_end) : null,
       invoiceDate: fromEpochSeconds(invoice.created),
       hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
@@ -535,10 +500,7 @@ export class BillingService {
     };
 
     if (existing) {
-      await db
-        .update(billingInvoices)
-        .set(values)
-        .where(eq(billingInvoices.id, existing.id));
+      await db.update(billingInvoices).set(values).where(eq(billingInvoices.id, existing.id));
       return;
     }
 
@@ -585,13 +547,10 @@ function normalizeInvoiceItems(items: unknown) {
   return items
     .filter(
       (item): item is { description?: unknown; amount?: unknown } =>
-        typeof item === 'object' && item !== null,
+        typeof item === 'object' && item !== null
     )
     .map((item) => ({
-      description:
-        typeof item.description === 'string'
-          ? item.description
-          : 'Usage charge',
+      description: typeof item.description === 'string' ? item.description : 'Usage charge',
       amount: typeof item.amount === 'number' ? item.amount : 0,
     }));
 }

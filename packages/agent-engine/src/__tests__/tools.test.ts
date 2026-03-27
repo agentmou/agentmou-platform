@@ -37,7 +37,7 @@ describe('analyzeEmailTool', () => {
         runId: 'run-1',
         agentsApiUrl: 'http://agents:8000',
         agentsApiKey: 'secret-key',
-      },
+      }
     );
 
     expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -47,7 +47,7 @@ describe('analyzeEmailTool', () => {
           'Content-Type': 'application/json',
           'x-api-key': 'secret-key',
         }),
-      }),
+      })
     );
 
     expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -58,7 +58,7 @@ describe('analyzeEmailTool', () => {
           subject: 'Server issue',
           content: 'Production is down',
         }),
-      }),
+      })
     );
 
     expect(result).toEqual({

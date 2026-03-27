@@ -1,11 +1,7 @@
 import 'server-only';
 
 import type { AgentTemplate, PackTemplate, WorkflowTemplate } from '@agentmou/contracts';
-import {
-  agentTemplates,
-  packTemplates,
-  workflowTemplates,
-} from '@/lib/demo-catalog/mock-data';
+import { agentTemplates, packTemplates, workflowTemplates } from '@/lib/demo-catalog/mock-data';
 import {
   marketingFeaturedAgentIds,
   marketingFeaturedPackIds,
@@ -60,12 +56,12 @@ function packToMarketing(pack: PackTemplate): MarketingPack {
 function assertGaOperationalAgent(agent: AgentTemplate): void {
   if (!isOperationalAgent(agent.id)) {
     throw new Error(
-      `Marketing featured agent ${agent.id} must map to an operational manifest on disk`,
+      `Marketing featured agent ${agent.id} must map to an operational manifest on disk`
     );
   }
   if (agent.availability !== 'available') {
     throw new Error(
-      `Marketing featured agent ${agent.id} must have catalog availability "available" (generally available); got ${agent.availability ?? 'undefined'}`,
+      `Marketing featured agent ${agent.id} must have catalog availability "available" (generally available); got ${agent.availability ?? 'undefined'}`
     );
   }
 }
@@ -73,12 +69,12 @@ function assertGaOperationalAgent(agent: AgentTemplate): void {
 function assertGaOperationalWorkflow(workflow: WorkflowTemplate): void {
   if (!isOperationalWorkflow(workflow.id)) {
     throw new Error(
-      `Marketing featured workflow ${workflow.id} must map to an operational public workflow manifest`,
+      `Marketing featured workflow ${workflow.id} must map to an operational public workflow manifest`
     );
   }
   if (workflow.availability !== 'available') {
     throw new Error(
-      `Marketing featured workflow ${workflow.id} must have catalog availability "available" (generally available); got ${workflow.availability ?? 'undefined'}`,
+      `Marketing featured workflow ${workflow.id} must have catalog availability "available" (generally available); got ${workflow.availability ?? 'undefined'}`
     );
   }
 }
@@ -86,12 +82,12 @@ function assertGaOperationalWorkflow(workflow: WorkflowTemplate): void {
 function assertGaOperationalPack(pack: PackTemplate): void {
   if (!isOperationalPack(pack.id)) {
     throw new Error(
-      `Marketing featured pack ${pack.id} must map to an operational pack manifest on disk`,
+      `Marketing featured pack ${pack.id} must map to an operational pack manifest on disk`
     );
   }
   if (pack.availability !== 'available') {
     throw new Error(
-      `Marketing featured pack ${pack.id} must have catalog availability "available" (generally available); got ${pack.availability ?? 'undefined'}`,
+      `Marketing featured pack ${pack.id} must have catalog availability "available" (generally available); got ${pack.availability ?? 'undefined'}`
     );
   }
 }
@@ -138,15 +134,13 @@ function countGaInventory(): {
   packs: number;
 } {
   return {
-    agents: agentTemplates.filter(
-      (a) => isOperationalAgent(a.id) && a.availability === 'available',
-    ).length,
+    agents: agentTemplates.filter((a) => isOperationalAgent(a.id) && a.availability === 'available')
+      .length,
     workflows: workflowTemplates.filter(
-      (w) => isOperationalWorkflow(w.id) && w.availability === 'available',
+      (w) => isOperationalWorkflow(w.id) && w.availability === 'available'
     ).length,
-    packs: packTemplates.filter(
-      (p) => isOperationalPack(p.id) && p.availability === 'available',
-    ).length,
+    packs: packTemplates.filter((p) => isOperationalPack(p.id) && p.availability === 'available')
+      .length,
   };
 }
 

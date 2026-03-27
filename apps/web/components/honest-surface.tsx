@@ -1,17 +1,11 @@
-'use client'
+'use client';
 
-import {
-  Beaker,
-  Clock3,
-  EyeOff,
-  Lock,
-  type LucideIcon,
-} from 'lucide-react'
+import { Beaker, Clock3, EyeOff, Lock, type LucideIcon } from 'lucide-react';
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
-import type { HonestSurfaceState, HonestSurfaceTone } from '@/lib/honest-ui'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import type { HonestSurfaceState, HonestSurfaceTone } from '@/lib/honest-ui';
 
 interface HonestSurfaceBadgeProps {
   state: HonestSurfaceState;
@@ -35,20 +29,17 @@ const toneConfig: Record<
 > = {
   preview: {
     icon: Beaker,
-    badgeClassName:
-      'border-muted-foreground/30 text-foreground bg-transparent',
+    badgeClassName: 'border-muted-foreground/30 text-foreground bg-transparent',
     noticeClassName: 'border-muted-foreground/20 bg-muted/20',
   },
   'read-only': {
     icon: Lock,
-    badgeClassName:
-      'border-muted-foreground/25 text-muted-foreground bg-transparent',
+    badgeClassName: 'border-muted-foreground/25 text-muted-foreground bg-transparent',
     noticeClassName: 'border-muted-foreground/15 bg-muted/10',
   },
   'not-yet-available': {
     icon: Clock3,
-    badgeClassName:
-      'border-foreground/20 text-foreground bg-transparent',
+    badgeClassName: 'border-foreground/20 text-foreground bg-transparent',
     noticeClassName: 'border-foreground/10 bg-muted/10',
   },
   demo: {
@@ -56,13 +47,10 @@ const toneConfig: Record<
     badgeClassName: 'border-accent/35 text-foreground bg-transparent',
     noticeClassName: 'border-accent/20 bg-accent/5',
   },
-}
+};
 
-export function HonestSurfaceBadge({
-  state,
-  className,
-}: HonestSurfaceBadgeProps) {
-  const config = toneConfig[state.tone]
+export function HonestSurfaceBadge({ state, className }: HonestSurfaceBadgeProps) {
+  const config = toneConfig[state.tone];
 
   return (
     <Badge
@@ -70,12 +58,12 @@ export function HonestSurfaceBadge({
       className={cn(
         'text-[10px] uppercase tracking-wide font-medium px-2 py-0.5',
         config.badgeClassName,
-        className,
+        className
       )}
     >
       {state.label}
     </Badge>
-  )
+  );
 }
 
 export function HonestSurfaceNotice({
@@ -84,8 +72,8 @@ export function HonestSurfaceNotice({
   title,
   description,
 }: HonestSurfaceNoticeProps) {
-  const config = toneConfig[state.tone]
-  const Icon = config.icon
+  const config = toneConfig[state.tone];
+  const Icon = config.icon;
 
   return (
     <Alert className={cn(config.noticeClassName, className)}>
@@ -98,5 +86,5 @@ export function HonestSurfaceNotice({
         <p>{description || state.description}</p>
       </AlertDescription>
     </Alert>
-  )
+  );
 }

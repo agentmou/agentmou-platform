@@ -19,20 +19,13 @@ interface AuthState {
   isLoading: boolean;
   isHydrated: boolean;
 
-  login: (
-    email: string,
-    password: string,
-    rememberMe?: boolean,
-  ) => Promise<string>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<string>;
   register: (email: string, password: string, name: string) => Promise<string>;
   logout: () => void;
   hydrate: () => Promise<void>;
   setActiveTenant: (tenantId: string) => void;
   /** After OAuth exchange — same session shape as password login. */
-  applyOAuthExchange: (
-    res: LoginResponse,
-    rememberMe?: boolean,
-  ) => string;
+  applyOAuthExchange: (res: LoginResponse, rememberMe?: boolean) => string;
 }
 
 /**

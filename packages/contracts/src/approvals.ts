@@ -33,17 +33,16 @@ export type ApprovalActionType = z.infer<typeof ApprovalActionTypeSchema>;
 export const ApprovalStatusSchema = z.enum(['pending', 'approved', 'rejected']);
 
 /** Channel or subsystem that originated the approval request. */
-export const ApprovalSourceSchema = z.enum([
-  'web',
-  'telegram',
-]);
+export const ApprovalSourceSchema = z.enum(['web', 'telegram']);
 
 /** Structured context captured alongside an approval request. */
-export const ApprovalContextSchema = z.object({
-  inputs: z.record(z.string(), z.unknown()).optional(),
-  sources: z.array(z.string()).optional(),
-  previousMessages: z.array(z.string()).optional(),
-}).catchall(z.unknown());
+export const ApprovalContextSchema = z
+  .object({
+    inputs: z.record(z.string(), z.unknown()).optional(),
+    sources: z.array(z.string()).optional(),
+    previousMessages: z.array(z.string()).optional(),
+  })
+  .catchall(z.unknown());
 
 /** Full approval request contract shared across API, web, and worker. */
 export const ApprovalRequestSchema = z.object({
@@ -80,9 +79,7 @@ export const ApprovalRequestsResponseSchema = z.object({
 });
 
 /** TypeScript shape for an approval list response. */
-export type ApprovalRequestsResponse = z.infer<
-  typeof ApprovalRequestsResponseSchema
->;
+export type ApprovalRequestsResponse = z.infer<typeof ApprovalRequestsResponseSchema>;
 
 /** Single-item response returned by approval detail endpoints. */
 export const ApprovalResponseSchema = z.object({

@@ -69,10 +69,7 @@ export class SecurityService {
     };
   }
 
-  async getAuditLogs(
-    tenantId: string,
-    filters?: { category?: string },
-  ): Promise<AuditEvent[]> {
+  async getAuditLogs(tenantId: string, filters?: { category?: string }): Promise<AuditEvent[]> {
     const query = db
       .select({
         id: auditEvents.id,
@@ -89,11 +86,8 @@ export class SecurityService {
       .leftJoin(users, eq(auditEvents.actorId, users.id))
       .where(
         filters?.category && filters.category !== 'all'
-          ? and(
-              eq(auditEvents.tenantId, tenantId),
-              eq(auditEvents.category, filters.category),
-            )
-          : eq(auditEvents.tenantId, tenantId),
+          ? and(eq(auditEvents.tenantId, tenantId), eq(auditEvents.category, filters.category))
+          : eq(auditEvents.tenantId, tenantId)
       )
       .orderBy(desc(auditEvents.timestamp));
 
@@ -103,8 +97,7 @@ export class SecurityService {
       id: row.id,
       tenantId: row.tenantId,
       actorId: row.actorId ?? undefined,
-      actorLabel:
-        row.actorName ?? row.actorEmail ?? row.actorId ?? 'system',
+      actorLabel: row.actorName ?? row.actorEmail ?? row.actorId ?? 'system',
       action: row.action,
       category: normalizeAuditCategory(row.category),
       details: isRecord(row.details) ? row.details : {},
@@ -124,31 +117,18 @@ export class SecurityService {
   }
 
   async listFindings(tenantId: string): Promise<SecurityFinding[]> {
-    const [secrets, connectors, members, pendingApprovals, recentAuditLogs] =
-      await Promise.all([
-        db
-          .select()
-          .from(secretEnvelopes)
-          .where(eq(secretEnvelopes.tenantId, tenantId)),
-        db
-          .select()
-          .from(connectorAccounts)
-          .where(eq(connectorAccounts.tenantId, tenantId)),
-        db
-          .select()
-          .from(memberships)
-          .where(eq(memberships.tenantId, tenantId)),
-        db
-          .select()
-          .from(approvalRequests)
-          .where(
-            and(
-              eq(approvalRequests.tenantId, tenantId),
-              eq(approvalRequests.status, 'pending'),
-            ),
-          ),
-        this.getAuditLogs(tenantId),
-      ]);
+    const [secrets, connectors, members, pendingApprovals, recentAuditLogs] = await Promise.all([
+      db.select().from(secretEnvelopes).where(eq(secretEnvelopes.tenantId, tenantId)),
+      db.select().from(connectorAccounts).where(eq(connectorAccounts.tenantId, tenantId)),
+      db.select().from(memberships).where(eq(memberships.tenantId, tenantId)),
+      db
+        .select()
+        .from(approvalRequests)
+        .where(
+          and(eq(approvalRequests.tenantId, tenantId), eq(approvalRequests.status, 'pending'))
+        ),
+      this.getAuditLogs(tenantId),
+    ]);
 
     const findings: SecurityFinding[] = [];
     const now = Date.now();
@@ -165,17 +145,14 @@ export class SecurityService {
         severity: 'medium',
         title: 'Credential rotation is overdue',
         description: `${staleSecrets.length} secret(s) have not been rotated in the last 90 days.`,
-        remediation:
-          'Rotate old credentials and verify each dependent connector still works.',
+        remediation: 'Rotate old credentials and verify each dependent connector still works.',
         detectedAt: new Date(now).toISOString(),
         category: 'credentials',
       });
     }
 
     const expiredConnectors = connectors.filter(
-      (connector) =>
-        connector.tokenExpiresAt &&
-        connector.tokenExpiresAt.getTime() < now,
+      (connector) => connector.tokenExpiresAt && connector.tokenExpiresAt.getTime() < now
     );
     if (expiredConnectors.length > 0) {
       findings.push({
@@ -184,16 +161,14 @@ export class SecurityService {
         severity: 'high',
         title: 'Connector credentials have expired',
         description: `${expiredConnectors.length} connector(s) need re-authentication before runs can rely on them.`,
-        remediation:
-          'Reconnect the affected providers and confirm required scopes are present.',
+        remediation: 'Reconnect the affected providers and confirm required scopes are present.',
         detectedAt: new Date(now).toISOString(),
         category: 'credentials',
       });
     }
 
     const unhealthyConnectors = connectors.filter(
-      (connector) =>
-        connector.status === 'disconnected' || connector.status === 'error',
+      (connector) => connector.status === 'disconnected' || connector.status === 'error'
     );
     if (unhealthyConnectors.length > 0) {
       findings.push({
@@ -210,7 +185,7 @@ export class SecurityService {
     }
 
     const overdueApprovals = pendingApprovals.filter(
-      (approval) => now - approval.requestedAt.getTime() > 1000 * 60 * 60 * 24,
+      (approval) => now - approval.requestedAt.getTime() > 1000 * 60 * 60 * 24
     );
     if (overdueApprovals.length > 0) {
       findings.push({
@@ -227,7 +202,7 @@ export class SecurityService {
     }
 
     const privilegedMembers = members.filter(
-      (member) => member.role === 'owner' || member.role === 'admin',
+      (member) => member.role === 'owner' || member.role === 'admin'
     );
     if (privilegedMembers.length === 0) {
       findings.push({
@@ -250,8 +225,7 @@ export class SecurityService {
         tenantId,
         severity: 'info',
         title: 'Security-specific audit activity is still sparse',
-        description:
-          'No security audit events have been recorded yet for this workspace.',
+        description: 'No security audit events have been recorded yet for this workspace.',
         remediation:
           'Review integrations, secrets, and memberships to confirm audit coverage is reaching the expected paths.',
         detectedAt: new Date(now).toISOString(),
@@ -271,14 +245,8 @@ export class SecurityService {
         .from(tenants)
         .where(eq(tenants.id, tenantId))
         .limit(1),
-      db
-        .select()
-        .from(memberships)
-        .where(eq(memberships.tenantId, tenantId)),
-      db
-        .select()
-        .from(approvalRequests)
-        .where(eq(approvalRequests.tenantId, tenantId)),
+      db.select().from(memberships).where(eq(memberships.tenantId, tenantId)),
+      db.select().from(approvalRequests).where(eq(approvalRequests.tenantId, tenantId)),
       this.getAuditLogs(tenantId),
     ]);
 
@@ -351,8 +319,7 @@ export class SecurityService {
     return {
       tenantId,
       rotated: false,
-      message:
-        'Workspace API key rotation is not wired to a live secret manager yet.',
+      message: 'Workspace API key rotation is not wired to a live secret manager yet.',
     };
   }
 

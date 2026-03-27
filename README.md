@@ -33,11 +33,13 @@ pnpm dev
 | -------------------------------- | --------------------------------------------- |
 | `pnpm dev`                       | Run workspace development tasks through Turbo |
 | `pnpm build`                     | Build all workspaces                          |
+| `pnpm format`                    | Format supported code and JSON files with Biome |
 | `pnpm typecheck`                 | Run TypeScript checks plus Python syntax validation for `services/agents` |
 | `pnpm lint`                      | Run workspace lint plus infrastructure shell and Compose validation |
 | `pnpm lint:infra`                | Validate `infra/scripts/*.sh` and all Compose manifests against tracked env examples |
 | `pnpm test`                      | Run tests across workspaces                   |
 | `pnpm test:agents`               | Run the Python unit tests for `services/agents` |
+| `make validate-content`          | Run relaxed Markdown and YAML validation for docs and config |
 | `pnpm db:generate`               | Generate Drizzle migrations                   |
 | `pnpm db:migrate`                | Run DB migrations                             |
 | `pnpm db:seed`                   | Seed the local database                       |

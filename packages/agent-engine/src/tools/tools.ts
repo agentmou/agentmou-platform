@@ -55,11 +55,7 @@ export class Toolkit {
     return Array.from(this.tools.values());
   }
 
-  async executeTool(
-    toolId: string,
-    input: unknown,
-    context?: ToolContext
-  ): Promise<unknown> {
+  async executeTool(toolId: string, input: unknown, context?: ToolContext): Promise<unknown> {
     const tool = this.getTool(toolId);
     if (!tool) {
       throw new Error(`Tool ${toolId} not found`);
@@ -104,9 +100,7 @@ export const gmailReadTool: Tool = {
 
     const stubs = await gmail.listMessages({ query, maxResults: maxResults ?? 20 });
 
-    const messages = await Promise.all(
-      stubs.map((stub) => gmail.getMessage(stub.id))
-    );
+    const messages = await Promise.all(stubs.map((stub) => gmail.getMessage(stub.id)));
 
     return { emails: messages };
   },

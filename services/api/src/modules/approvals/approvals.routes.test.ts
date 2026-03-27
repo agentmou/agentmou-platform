@@ -87,7 +87,7 @@ describe('approvalRoutes', () => {
       'tenant-1',
       'approval-1',
       'user-123',
-      'Looks safe',
+      'Looks safe'
     );
 
     await app.close();
@@ -117,7 +117,7 @@ describe('approvalRoutes', () => {
       'tenant-1',
       'approval-1',
       'user-123',
-      'Needs more review',
+      'Needs more review'
     );
 
     await app.close();

@@ -1,20 +1,27 @@
-import { Card, CardContent } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
-import type { LucideIcon } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import type { LucideIcon } from 'lucide-react';
 
 interface StatCardProps {
-  title: string
-  value: string | number
-  description?: string
-  icon?: LucideIcon
+  title: string;
+  value: string | number;
+  description?: string;
+  icon?: LucideIcon;
   trend?: {
-    value: number
-    label: string
-  }
-  className?: string
+    value: number;
+    label: string;
+  };
+  className?: string;
 }
 
-export function StatCard({ title, value, description, icon: Icon, trend, className }: StatCardProps) {
+export function StatCard({
+  title,
+  value,
+  description,
+  icon: Icon,
+  trend,
+  className,
+}: StatCardProps) {
   return (
     <Card className={cn('border-border/50', className)}>
       <CardContent className="p-5">
@@ -25,19 +32,18 @@ export function StatCard({ title, value, description, icon: Icon, trend, classNa
               {title}
             </p>
             {/* Value - large number */}
-            <p className="text-2xl font-semibold tracking-tight text-foreground">
-              {value}
-            </p>
-            {description && (
-              <p className="text-xs text-muted-foreground">{description}</p>
-            )}
+            <p className="text-2xl font-semibold tracking-tight text-foreground">{value}</p>
+            {description && <p className="text-xs text-muted-foreground">{description}</p>}
             {trend && (
-              <p className={cn(
-                'text-xs font-medium',
-                trend.value >= 0 ? 'text-accent' : 'text-foreground'
-              )}>
+              <p
+                className={cn(
+                  'text-xs font-medium',
+                  trend.value >= 0 ? 'text-accent' : 'text-foreground'
+                )}
+              >
                 {/* Fixed spacing: "+2.5% from last week" */}
-                {trend.value >= 0 ? '+' : ''}{trend.value}% {trend.label}
+                {trend.value >= 0 ? '+' : ''}
+                {trend.value}% {trend.label}
               </p>
             )}
           </div>
@@ -50,5 +56,5 @@ export function StatCard({ title, value, description, icon: Icon, trend, classNa
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

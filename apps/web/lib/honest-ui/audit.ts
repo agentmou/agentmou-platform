@@ -30,8 +30,7 @@ export const HONEST_UI_FOLLOW_ON_DEPENDENCIES = {
     'Add a real tenant dashboard metrics endpoint instead of apiProvider empty defaults.',
   securityUi:
     'Wire secrets, audit, policies, and team-management actions to real backend behavior.',
-  billingUi:
-    'Wire billing and usage screens to real billing data instead of stub modules.',
+  billingUi: 'Wire billing and usage screens to real billing data instead of stub modules.',
   n8nProductDecision:
     'Decide whether tenants ever need a first-class n8n surface beyond platform-managed status.',
 } as const;
@@ -72,8 +71,7 @@ export const honestSurfaceAudit: HonestSurfaceAuditEntry[] = [
     section: 'general',
     classification: 'read-only',
     currentSource: 'getTenant()',
-    currentTruth:
-      'Workspace identity is real, but the screen does not persist edits yet.',
+    currentTruth: 'Workspace identity is real, but the screen does not persist edits yet.',
     honestTreatment: 'read-only',
     followOnDependencies: [],
   },
@@ -131,9 +129,7 @@ export const honestSurfaceAudit: HonestSurfaceAuditEntry[] = [
 
 export function findHonestSurfaceAuditEntry(
   surface: string,
-  section: string,
+  section: string
 ): HonestSurfaceAuditEntry | undefined {
-  return honestSurfaceAudit.find(
-    (entry) => entry.surface === surface && entry.section === section,
-  );
+  return honestSurfaceAudit.find((entry) => entry.surface === surface && entry.section === section);
 }

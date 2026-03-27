@@ -8,10 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
-const OUT_FILE = path.join(
-  REPO_ROOT,
-  'apps/web/lib/demo-catalog/operational-ids.gen.json',
-);
+const OUT_FILE = path.join(REPO_ROOT, 'apps/web/lib/demo-catalog/operational-ids.gen.json');
 
 async function readDirSafe(dir: string) {
   try {

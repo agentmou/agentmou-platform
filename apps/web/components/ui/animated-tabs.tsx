@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import * as TabsPrimitive from '@radix-ui/react-tabs'
-import { motion } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import * as React from 'react';
+import * as TabsPrimitive from '@radix-ui/react-tabs';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
-const AnimatedTabs = TabsPrimitive.Root
+const AnimatedTabs = TabsPrimitive.Root;
 
 const AnimatedTabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
@@ -13,45 +13,42 @@ const AnimatedTabsList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
-    className={cn(
-      'inline-flex items-center gap-6 border-b border-border',
-      className
-    )}
+    className={cn('inline-flex items-center gap-6 border-b border-border', className)}
     {...props}
   />
-))
-AnimatedTabsList.displayName = TabsPrimitive.List.displayName
+));
+AnimatedTabsList.displayName = TabsPrimitive.List.displayName;
 
 interface AnimatedTabsTriggerProps
   extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> {
-  layoutId?: string
+  layoutId?: string;
 }
 
 const AnimatedTabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Trigger>,
   AnimatedTabsTriggerProps
 >(({ className, children, ...props }, ref) => {
-  const [isSelected, setIsSelected] = React.useState(false)
-  const triggerRef = React.useRef<HTMLButtonElement>(null)
+  const [isSelected, setIsSelected] = React.useState(false);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => {
-    const trigger = triggerRef.current
-    if (!trigger) return
+    const trigger = triggerRef.current;
+    if (!trigger) return;
 
     const observer = new MutationObserver(() => {
-      setIsSelected(trigger.getAttribute('data-state') === 'active')
-    })
-    observer.observe(trigger, { attributes: true })
-    setIsSelected(trigger.getAttribute('data-state') === 'active')
-    return () => observer.disconnect()
-  }, [])
+      setIsSelected(trigger.getAttribute('data-state') === 'active');
+    });
+    observer.observe(trigger, { attributes: true });
+    setIsSelected(trigger.getAttribute('data-state') === 'active');
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <TabsPrimitive.Trigger
       ref={(node) => {
-        if (typeof ref === 'function') ref(node)
-        else if (ref) ref.current = node
-        ;(triggerRef as React.MutableRefObject<HTMLButtonElement | null>).current = node
+        if (typeof ref === 'function') ref(node);
+        else if (ref) ref.current = node;
+        (triggerRef as React.MutableRefObject<HTMLButtonElement | null>).current = node;
       }}
       className={cn(
         'relative pb-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground',
@@ -69,9 +66,9 @@ const AnimatedTabsTrigger = React.forwardRef<
         />
       )}
     </TabsPrimitive.Trigger>
-  )
-})
-AnimatedTabsTrigger.displayName = TabsPrimitive.Trigger.displayName
+  );
+});
+AnimatedTabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
 
 const AnimatedTabsContent = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Content>,
@@ -90,7 +87,7 @@ const AnimatedTabsContent = React.forwardRef<
       {children}
     </motion.div>
   </TabsPrimitive.Content>
-))
-AnimatedTabsContent.displayName = TabsPrimitive.Content.displayName
+));
+AnimatedTabsContent.displayName = TabsPrimitive.Content.displayName;
 
-export { AnimatedTabs, AnimatedTabsList, AnimatedTabsTrigger, AnimatedTabsContent }
+export { AnimatedTabs, AnimatedTabsList, AnimatedTabsTrigger, AnimatedTabsContent };

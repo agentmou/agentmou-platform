@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import { useRef, useState, useCallback } from 'react'
-import { cn } from '@/lib/utils'
+import { useRef, useState, useCallback } from 'react';
+import { cn } from '@/lib/utils';
 
 interface TiltedCardProps {
-  children: React.ReactNode
-  className?: string
+  children: React.ReactNode;
+  className?: string;
   /** Max tilt angle in degrees (default 3 for very subtle effect) */
-  tiltIntensity?: number
+  tiltIntensity?: number;
   /** Scale on hover (default 1.005 for very subtle) */
-  scaleOnHover?: number
+  scaleOnHover?: number;
 }
 
 /**
@@ -21,31 +21,31 @@ export function TiltedCard({
   tiltIntensity = 1,
   scaleOnHover = 1.002,
 }: TiltedCardProps) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [transform, setTransform] = useState('')
-  const [isHovered, setIsHovered] = useState(false)
+  const ref = useRef<HTMLDivElement>(null);
+  const [transform, setTransform] = useState('');
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      const el = ref.current
-      if (!el) return
-      const rect = el.getBoundingClientRect()
-      const x = (e.clientX - rect.left) / rect.width - 0.5
-      const y = (e.clientY - rect.top) / rect.height - 0.5
-      const rotateX = -y * tiltIntensity
-      const rotateY = x * tiltIntensity
+      const el = ref.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      const rotateX = -y * tiltIntensity;
+      const rotateY = x * tiltIntensity;
       setTransform(
         `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(${scaleOnHover}, ${scaleOnHover}, ${scaleOnHover})`
-      )
-      setIsHovered(true)
+      );
+      setIsHovered(true);
     },
     [tiltIntensity, scaleOnHover]
-  )
+  );
 
   const handleMouseLeave = useCallback(() => {
-    setTransform('')
-    setIsHovered(false)
-  }, [])
+    setTransform('');
+    setIsHovered(false);
+  }, []);
 
   return (
     <div
@@ -60,5 +60,5 @@ export function TiltedCard({
     >
       {children}
     </div>
-  )
+  );
 }

@@ -1,9 +1,5 @@
 import { z } from 'zod';
-import {
-  TenantPlanSchema,
-  TenantSettingsSchema,
-  TenantTypeSchema,
-} from '@agentmou/contracts';
+import { TenantPlanSchema, TenantSettingsSchema, TenantTypeSchema } from '@agentmou/contracts';
 
 export const createTenantSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),

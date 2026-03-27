@@ -51,7 +51,11 @@ export class N8nService {
     try {
       const start = Date.now();
       await getClient().listWorkflows();
-      return { success: true, message: 'Connection to n8n successful', latency: Date.now() - start };
+      return {
+        success: true,
+        message: 'Connection to n8n successful',
+        latency: Date.now() - start,
+      };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       return { success: false, message: `n8n connection failed: ${msg}`, latency: 0 };

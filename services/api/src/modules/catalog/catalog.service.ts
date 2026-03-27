@@ -1,7 +1,4 @@
-import {
-  CatalogSDK,
-  resolveRepoRoot,
-} from '@agentmou/catalog-sdk';
+import { CatalogSDK, resolveRepoRoot } from '@agentmou/catalog-sdk';
 import {
   CATEGORIES,
   type AgentTemplate,
@@ -15,16 +12,9 @@ import {
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-import {
-  mapAgentManifest,
-  mapPackManifest,
-  mapWorkflowManifest,
-} from './catalog.mapper.js';
+import { mapAgentManifest, mapPackManifest, mapWorkflowManifest } from './catalog.mapper.js';
 
-const REPO_ROOT = resolveRepoRoot(import.meta.dirname, [
-  'catalog/agents',
-  'workflows/public',
-]);
+const REPO_ROOT = resolveRepoRoot(import.meta.dirname, ['catalog/agents', 'workflows/public']);
 const CATALOG_DIR = path.join(REPO_ROOT, 'catalog');
 const WORKFLOWS_DIR = path.join(REPO_ROOT, 'workflows');
 
@@ -122,17 +112,12 @@ export class CatalogService {
       result = result.filter((agent) => agent.category === filters.category);
     }
     if (filters?.tags?.length) {
-      result = result.filter((agent) =>
-        filters.tags!.some((tag) => agent.tags?.includes(tag)),
-      );
+      result = result.filter((agent) => filters.tags!.some((tag) => agent.tags?.includes(tag)));
     }
     return result;
   }
 
-  async listAgents(filters?: {
-    category?: string;
-    tags?: string[];
-  }): Promise<AgentTemplate[]> {
+  async listAgents(filters?: { category?: string; tags?: string[] }): Promise<AgentTemplate[]> {
     const agents = await this.listOperationalAgents(filters);
     return agents.map(mapAgentManifest);
   }
@@ -147,9 +132,7 @@ export class CatalogService {
     return agent ? mapAgentManifest(agent) : undefined;
   }
 
-  async listOperationalPacks(filters?: {
-    category?: string;
-  }): Promise<OperationalPackManifest[]> {
+  async listOperationalPacks(filters?: { category?: string }): Promise<OperationalPackManifest[]> {
     await this.ensureLoaded();
     let result = this.packs;
 
@@ -159,9 +142,7 @@ export class CatalogService {
     return result;
   }
 
-  async listPacks(filters?: {
-    category?: string;
-  }): Promise<PackTemplate[]> {
+  async listPacks(filters?: { category?: string }): Promise<PackTemplate[]> {
     const packs = await this.listOperationalPacks(filters);
     return packs.map(mapPackManifest);
   }
@@ -221,7 +202,7 @@ export class CatalogService {
 
   async searchCatalog(
     query: string,
-    filters?: { type?: 'agent' | 'pack' | 'workflow' },
+    filters?: { type?: 'agent' | 'pack' | 'workflow' }
   ): Promise<{
     agents: AgentTemplate[];
     packs: PackTemplate[];
@@ -235,23 +216,21 @@ export class CatalogService {
 
     const matchingAgents =
       !filters?.type || filters.type === 'agent'
-        ? this.agents.filter((a) =>
-            matchText([a.name, a.description, a.id, ...(a.tags ?? [])]),
-          ).map(mapAgentManifest)
+        ? this.agents
+            .filter((a) => matchText([a.name, a.description, a.id, ...(a.tags ?? [])]))
+            .map(mapAgentManifest)
         : [];
 
     const matchingPacks =
       !filters?.type || filters.type === 'pack'
-        ? this.packs
-            .filter((p) => matchText([p.name, p.description, p.id]))
-            .map(mapPackManifest)
+        ? this.packs.filter((p) => matchText([p.name, p.description, p.id])).map(mapPackManifest)
         : [];
 
     const matchingWorkflows =
       !filters?.type || filters.type === 'workflow'
-        ? this.workflows.filter((w) =>
-            matchText([w.name, w.description, w.id]),
-          ).map(mapWorkflowManifest)
+        ? this.workflows
+            .filter((w) => matchText([w.name, w.description, w.id]))
+            .map(mapWorkflowManifest)
         : [];
 
     return {

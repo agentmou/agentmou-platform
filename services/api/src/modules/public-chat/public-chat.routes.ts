@@ -18,10 +18,8 @@ export async function publicChatRoutes(fastify: FastifyInstance) {
       },
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const response = await publicChatService.reply(
-        request.body as PublicChatRequest,
-      );
+      const response = await publicChatService.reply(request.body as PublicChatRequest);
       return reply.send(PublicChatResponseSchema.parse(response));
-    },
+    }
   );
 }

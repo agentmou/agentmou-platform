@@ -1,4 +1,4 @@
-import type { AgentTemplate } from '../../control-plane/types'
+import type { AgentTemplate } from '../../control-plane/types';
 
 // Support / Customer Ops agents (20)
 export const supportAgentTemplates: AgentTemplate[] = [
@@ -7,7 +7,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'Slack Ticket Factory',
     outcome: 'Turn Slack messages into trackable tickets',
     domain: 'support',
-    description: 'Converts Slack messages (via emoji reactions or commands) into properly formatted support tickets with context preservation.',
+    description:
+      'Converts Slack messages (via emoji reactions or commands) into properly formatted support tickets with context preservation.',
     inputs: ['slack_message', 'channel', 'user'],
     outputs: ['ticket_id', 'ticket_url', 'confirmation'],
     requiredIntegrations: ['slack', 'linear'],
@@ -36,7 +37,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'SLA Sentinel',
     outcome: 'Never miss an SLA deadline',
     domain: 'support',
-    description: 'Monitors ticket SLAs, sends alerts before breaches, and escalates overdue items automatically.',
+    description:
+      'Monitors ticket SLAs, sends alerts before breaches, and escalates overdue items automatically.',
     inputs: ['ticket_data', 'sla_rules'],
     outputs: ['alerts', 'escalations', 'sla_report'],
     requiredIntegrations: ['linear', 'slack'],
@@ -65,7 +67,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'Bug Report Normalizer',
     outcome: 'Standardize bug reports automatically',
     domain: 'support',
-    description: 'Takes unstructured bug reports and normalizes them into a standard format with reproduction steps and severity.',
+    description:
+      'Takes unstructured bug reports and normalizes them into a standard format with reproduction steps and severity.',
     inputs: ['bug_report', 'product_context'],
     outputs: ['normalized_report', 'severity', 'affected_area'],
     requiredIntegrations: ['linear', 'openai'],
@@ -94,7 +97,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'Refund Triage Assistant',
     outcome: 'Streamline refund request handling',
     domain: 'support',
-    description: 'Evaluates refund requests against policy, gathers necessary information, and routes to approval.',
+    description:
+      'Evaluates refund requests against policy, gathers necessary information, and routes to approval.',
     inputs: ['refund_request', 'customer_data', 'policy_rules'],
     outputs: ['recommendation', 'required_info', 'approval_queue'],
     requiredIntegrations: ['gmail', 'google-sheets'],
@@ -119,7 +123,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'KB Answer Drafter',
     outcome: 'Draft KB-backed responses instantly',
     domain: 'support',
-    description: 'Searches knowledge base and drafts responses to customer questions with source citations.',
+    description:
+      'Searches knowledge base and drafts responses to customer questions with source citations.',
     inputs: ['customer_question', 'kb_context'],
     outputs: ['draft_response', 'sources', 'confidence'],
     requiredIntegrations: ['notion', 'openai'],
@@ -144,7 +149,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'Duplicate Issue Linker',
     outcome: 'Automatically link duplicate issues',
     domain: 'support',
-    description: 'Detects duplicate support tickets and automatically links them to existing issues.',
+    description:
+      'Detects duplicate support tickets and automatically links them to existing issues.',
     inputs: ['new_ticket', 'existing_tickets'],
     outputs: ['is_duplicate', 'linked_ticket', 'similarity_score'],
     requiredIntegrations: ['linear'],
@@ -169,7 +175,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'Escalation Router',
     outcome: 'Smart escalation to the right expert',
     domain: 'support',
-    description: 'Routes escalated issues to the most appropriate expert based on topic, urgency, and team availability.',
+    description:
+      'Routes escalated issues to the most appropriate expert based on topic, urgency, and team availability.',
     inputs: ['escalation_request', 'team_roster', 'expertise_map'],
     outputs: ['assigned_expert', 'context_summary', 'handoff_notes'],
     requiredIntegrations: ['slack', 'linear'],
@@ -219,7 +226,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'Weekly Support Digest',
     outcome: 'Comprehensive weekly support summary',
     domain: 'support',
-    description: 'Compiles weekly support metrics, trends, and highlights into an executive summary.',
+    description:
+      'Compiles weekly support metrics, trends, and highlights into an executive summary.',
     inputs: ['ticket_data', 'metrics', 'date_range'],
     outputs: ['digest', 'key_metrics', 'trends', 'recommendations'],
     requiredIntegrations: ['slack', 'google-sheets'],
@@ -243,7 +251,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'Voice of Customer Miner',
     outcome: 'Extract insights from customer feedback',
     domain: 'support',
-    description: 'Analyzes support tickets, reviews, and feedback to surface recurring themes and customer pain points.',
+    description:
+      'Analyzes support tickets, reviews, and feedback to surface recurring themes and customer pain points.',
     inputs: ['feedback_data', 'time_period'],
     outputs: ['themes', 'sentiment_trends', 'priority_issues'],
     requiredIntegrations: ['google-sheets', 'openai'],
@@ -268,7 +277,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'Attachment Collector',
     outcome: 'Gather and organize ticket attachments',
     domain: 'support',
-    description: 'Collects attachments from support tickets and organizes them for easy access and analysis.',
+    description:
+      'Collects attachments from support tickets and organizes them for easy access and analysis.',
     inputs: ['ticket_id', 'attachment_types'],
     outputs: ['collected_files', 'organized_folder', 'metadata'],
     requiredIntegrations: ['linear', 'google-drive'],
@@ -318,7 +328,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'Outage Comms Coordinator',
     outcome: 'Coordinate outage communications',
     domain: 'support',
-    description: 'Manages customer communications during outages with templated updates and status page integration.',
+    description:
+      'Manages customer communications during outages with templated updates and status page integration.',
     inputs: ['outage_details', 'affected_customers', 'status'],
     outputs: ['communication_sent', 'status_update', 'escalation_log'],
     requiredIntegrations: ['slack', 'gmail'],
@@ -343,7 +354,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'Macro Suggestion Bot',
     outcome: 'Suggest optimal response macros',
     domain: 'support',
-    description: 'Analyzes incoming tickets and suggests the most relevant response macros to agents.',
+    description:
+      'Analyzes incoming tickets and suggests the most relevant response macros to agents.',
     inputs: ['ticket_content', 'macro_library'],
     outputs: ['suggested_macros', 'confidence_scores', 'personalization_hints'],
     requiredIntegrations: ['openai'],
@@ -368,7 +380,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'Churn Risk Early Warning',
     outcome: 'Identify at-risk customers early',
     domain: 'support',
-    description: 'Analyzes support patterns and behavior signals to identify customers at risk of churning.',
+    description:
+      'Analyzes support patterns and behavior signals to identify customers at risk of churning.',
     inputs: ['customer_activity', 'support_history', 'usage_data'],
     outputs: ['risk_score', 'warning_signals', 'recommended_actions'],
     requiredIntegrations: ['google-sheets'],
@@ -393,7 +406,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'Feature Request Pipeline',
     outcome: 'Organize and prioritize feature requests',
     domain: 'support',
-    description: 'Captures feature requests from support tickets, deduplicates, and helps prioritize by impact.',
+    description:
+      'Captures feature requests from support tickets, deduplicates, and helps prioritize by impact.',
     inputs: ['request_content', 'customer_context'],
     outputs: ['categorized_request', 'linked_requests', 'impact_score'],
     requiredIntegrations: ['linear', 'notion'],
@@ -418,7 +432,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'Customer Onboarding Nudger',
     outcome: 'Guide new customers to success',
     domain: 'support',
-    description: 'Monitors new customer progress and sends personalized nudges to help them complete onboarding.',
+    description:
+      'Monitors new customer progress and sends personalized nudges to help them complete onboarding.',
     inputs: ['customer_id', 'onboarding_steps', 'progress'],
     outputs: ['nudge_sent', 'next_action', 'health_score'],
     requiredIntegrations: ['gmail', 'slack'],
@@ -493,7 +508,8 @@ export const supportAgentTemplates: AgentTemplate[] = [
     name: 'Escalation Postmortem Builder',
     outcome: 'Learn from every escalation',
     domain: 'support',
-    description: 'Automatically generates postmortem reports for resolved escalations with learnings.',
+    description:
+      'Automatically generates postmortem reports for resolved escalations with learnings.',
     inputs: ['escalation_data', 'resolution_notes'],
     outputs: ['postmortem_report', 'learnings', 'action_items'],
     requiredIntegrations: ['notion', 'slack'],
@@ -513,4 +529,4 @@ export const supportAgentTemplates: AgentTemplate[] = [
     audience: 'business',
     statusNote: 'Coming soon',
   },
-]
+];

@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import * as path from 'path';
-import { CatalogSDK, AgentManifestSchema, PackManifestSchema, WorkflowManifestSchema } from '../index';
+import {
+  CatalogSDK,
+  AgentManifestSchema,
+  PackManifestSchema,
+  WorkflowManifestSchema,
+} from '../index';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../../../..');
 
@@ -10,7 +15,7 @@ describe('CatalogSDK', () => {
   describe('loadAgentManifest', () => {
     it('loads inbox-triage agent manifest', async () => {
       const manifest = await sdk.loadAgentManifest(
-        path.join(REPO_ROOT, 'catalog/agents/inbox-triage/manifest.yaml'),
+        path.join(REPO_ROOT, 'catalog/agents/inbox-triage/manifest.yaml')
       );
       expect(manifest.id).toBe('inbox-triage');
       expect(manifest.name).toBe('Inbox Triage');
@@ -21,7 +26,7 @@ describe('CatalogSDK', () => {
 
     it('throws on missing file', async () => {
       await expect(
-        sdk.loadAgentManifest(path.join(REPO_ROOT, 'catalog/agents/nonexistent/manifest.yaml')),
+        sdk.loadAgentManifest(path.join(REPO_ROOT, 'catalog/agents/nonexistent/manifest.yaml'))
       ).rejects.toThrow();
     });
   });
@@ -29,7 +34,7 @@ describe('CatalogSDK', () => {
   describe('loadPackManifest', () => {
     it('loads support-starter pack manifest', async () => {
       const manifest = await sdk.loadPackManifest(
-        path.join(REPO_ROOT, 'catalog/packs/support-starter.yaml'),
+        path.join(REPO_ROOT, 'catalog/packs/support-starter.yaml')
       );
       expect(manifest.id).toBe('support-starter');
       expect(manifest.agents).toContain('inbox-triage');
@@ -40,7 +45,7 @@ describe('CatalogSDK', () => {
   describe('loadWorkflowManifest', () => {
     it('loads wf-01 workflow manifest', async () => {
       const manifest = await sdk.loadWorkflowManifest(
-        path.join(REPO_ROOT, 'workflows/public/wf-01-auto-label-gmail/manifest.yaml'),
+        path.join(REPO_ROOT, 'workflows/public/wf-01-auto-label-gmail/manifest.yaml')
       );
       expect(manifest.id).toBe('wf-01-auto-label-gmail');
       expect(manifest.type).toBe('n8n');

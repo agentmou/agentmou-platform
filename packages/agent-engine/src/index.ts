@@ -11,10 +11,20 @@ import { RunLogger } from './run-logger';
 import { TemplatesManager } from './templates';
 
 export { Planner, type ExecutionPlan, type PlanStep } from './planner';
-export { PolicyEngine, type Policy, type PolicyRule, type Constraint, type AgentPolicyConfig } from './policies';
+export {
+  PolicyEngine,
+  type Policy,
+  type PolicyRule,
+  type Constraint,
+  type AgentPolicyConfig,
+} from './policies';
 export { Toolkit, type Tool, type ToolContext, type ToolDefinition, builtinTools } from './tools';
 export { MemoryManager, type Memory, type ConversationTurn } from './memory';
-export { WorkflowDispatcher, type WorkflowDefinition, type WorkflowNode } from './workflow-dispatch';
+export {
+  WorkflowDispatcher,
+  type WorkflowDefinition,
+  type WorkflowNode,
+} from './workflow-dispatch';
 export { ApprovalGateManager, type ApprovalGate, type ApprovalRequest } from './approval-gates';
 export { RunLogger, type LogEntry, type RunMetrics, type RunStep } from './run-logger';
 export { TemplatesManager, type AgentTemplate } from './templates';
@@ -169,11 +179,7 @@ export class AgentEngine {
         try {
           if (step.type === 'tool_call' && step.toolName) {
             const toolInput = this.resolveToolInput(step, lastOutput);
-            lastOutput = await this.toolkit.executeTool(
-              step.toolName,
-              toolInput,
-              toolContext
-            );
+            lastOutput = await this.toolkit.executeTool(step.toolName, toolInput, toolContext);
           }
 
           stepsCompleted++;
@@ -243,11 +249,25 @@ export class AgentEngine {
   }
 
   // Component accessors
-  getPlanner(): Planner { return this.planner; }
-  getPolicyEngine(): PolicyEngine { return this.policyEngine; }
-  getToolkit(): Toolkit { return this.toolkit; }
-  getMemoryManager(): MemoryManager { return this.memoryManager; }
-  getWorkflowDispatcher(): WorkflowDispatcher { return this.workflowDispatcher; }
-  getApprovalManager(): ApprovalGateManager { return this.approvalManager; }
-  getLogger(): RunLogger { return this.logger; }
+  getPlanner(): Planner {
+    return this.planner;
+  }
+  getPolicyEngine(): PolicyEngine {
+    return this.policyEngine;
+  }
+  getToolkit(): Toolkit {
+    return this.toolkit;
+  }
+  getMemoryManager(): MemoryManager {
+    return this.memoryManager;
+  }
+  getWorkflowDispatcher(): WorkflowDispatcher {
+    return this.workflowDispatcher;
+  }
+  getApprovalManager(): ApprovalGateManager {
+    return this.approvalManager;
+  }
+  getLogger(): RunLogger {
+    return this.logger;
+  }
 }

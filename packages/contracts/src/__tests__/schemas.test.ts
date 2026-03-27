@@ -124,24 +124,16 @@ describe('AgentTemplateSchema', () => {
   });
 
   it('rejects invalid availability', () => {
-    expect(() =>
-      AgentTemplateSchema.parse({ ...validAgent, availability: 'soon' }),
-    ).toThrow();
+    expect(() => AgentTemplateSchema.parse({ ...validAgent, availability: 'soon' })).toThrow();
   });
 
   it('rejects invalid risk level', () => {
-    expect(() =>
-      AgentTemplateSchema.parse({ ...validAgent, riskLevel: 'extreme' }),
-    ).toThrow();
+    expect(() => AgentTemplateSchema.parse({ ...validAgent, riskLevel: 'extreme' })).toThrow();
   });
 
   it('parses catalog response envelopes', () => {
-    expect(
-      AgentTemplatesResponseSchema.parse({ agents: [validAgent] }).agents,
-    ).toHaveLength(1);
-    expect(
-      AgentTemplateResponseSchema.parse({ agent: validAgent }).agent.id,
-    ).toBe('inbox-triage');
+    expect(AgentTemplatesResponseSchema.parse({ agents: [validAgent] }).agents).toHaveLength(1);
+    expect(AgentTemplateResponseSchema.parse({ agent: validAgent }).agent.id).toBe('inbox-triage');
   });
 });
 
@@ -295,12 +287,10 @@ describe('WorkflowTemplateSchema', () => {
       monthlyPrice: null,
     };
 
-    expect(
-      WorkflowTemplatesResponseSchema.parse({ workflows: [workflow] }).workflows,
-    ).toHaveLength(1);
-    expect(
-      PackTemplatesResponseSchema.parse({ packs: [pack] }).packs,
-    ).toHaveLength(1);
+    expect(WorkflowTemplatesResponseSchema.parse({ workflows: [workflow] }).workflows).toHaveLength(
+      1
+    );
+    expect(PackTemplatesResponseSchema.parse({ packs: [pack] }).packs).toHaveLength(1);
   });
 });
 
@@ -324,15 +314,11 @@ describe('ExecutionRunSchema', () => {
   it('parses a valid execution run', () => {
     const result = ExecutionRunSchema.parse(validRun);
     expect(result.status).toBe('success');
-    expect(result.agentInstallationId).toBe(
-      '3fa85f64-5717-4562-b3fc-2c963f66afa6',
-    );
+    expect(result.agentInstallationId).toBe('3fa85f64-5717-4562-b3fc-2c963f66afa6');
   });
 
   it('rejects invalid status', () => {
-    expect(() =>
-      ExecutionRunSchema.parse({ ...validRun, status: 'unknown' }),
-    ).toThrow();
+    expect(() => ExecutionRunSchema.parse({ ...validRun, status: 'unknown' })).toThrow();
   });
 
   it('normalizes legacy execution values', () => {
@@ -356,21 +342,13 @@ describe('ExecutionRunSchema', () => {
       type: 'n8n_execution',
       status: 'success',
     });
-    expect(result.workflowInstallationId).toBe(
-      '3fa85f64-5717-4562-b3fc-2c963f66afa7',
-    );
+    expect(result.workflowInstallationId).toBe('3fa85f64-5717-4562-b3fc-2c963f66afa7');
   });
 
   it('parses execution response envelopes', () => {
-    expect(
-      ExecutionRunsResponseSchema.parse({ runs: [validRun] }).runs,
-    ).toHaveLength(1);
-    expect(
-      ExecutionRunResponseSchema.parse({ run: validRun }).run.id,
-    ).toBe('run-1');
-    expect(
-      ExecutionRunLogsResponseSchema.parse({ logs: ['log-1'] }).logs,
-    ).toEqual(['log-1']);
+    expect(ExecutionRunsResponseSchema.parse({ runs: [validRun] }).runs).toHaveLength(1);
+    expect(ExecutionRunResponseSchema.parse({ run: validRun }).run.id).toBe('run-1');
+    expect(ExecutionRunLogsResponseSchema.parse({ logs: ['log-1'] }).logs).toEqual(['log-1']);
   });
 });
 
@@ -463,9 +441,7 @@ describe('ApprovalRequestSchema', () => {
       requestedAt: '2024-01-01T00:00:00Z',
     });
     expect(result.status).toBe('pending');
-    expect(result.agentInstallationId).toBe(
-      '3fa85f64-5717-4562-b3fc-2c963f66afa6',
-    );
+    expect(result.agentInstallationId).toBe('3fa85f64-5717-4562-b3fc-2c963f66afa6');
   });
 
   it('normalizes optional approval fields without widening the contract', () => {

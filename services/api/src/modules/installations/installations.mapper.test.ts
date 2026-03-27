@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  mapAgentInstallation,
-  mapWorkflowInstallation,
-} from './installations.mapper.js';
+import { mapAgentInstallation, mapWorkflowInstallation } from './installations.mapper.js';
 
 describe('installations.mapper', () => {
   it('maps agent installations to the shared contract shape', () => {

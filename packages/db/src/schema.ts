@@ -79,11 +79,8 @@ export const userIdentities = pgTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [
-    uniqueIndex('user_identities_provider_subject_uidx').on(
-      table.provider,
-      table.providerSubject,
-    ),
-  ],
+    uniqueIndex('user_identities_provider_subject_uidx').on(table.provider, table.providerSubject),
+  ]
 );
 
 /** Short-lived OAuth state for B2C login (CSRF + return URL). */
@@ -188,9 +185,7 @@ export const secretEnvelopes = pgTable('secret_envelopes', {
     .references(() => tenants.id),
   key: text('key').notNull(),
   encryptedValue: text('encrypted_value').notNull(),
-  connectorAccountId: uuid('connector_account_id').references(
-    () => connectorAccounts.id
-  ),
+  connectorAccountId: uuid('connector_account_id').references(() => connectorAccounts.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   rotatedAt: timestamp('rotated_at'),
 });
@@ -245,9 +240,7 @@ export const executionRuns = pgTable('execution_runs', {
   tenantId: uuid('tenant_id')
     .notNull()
     .references(() => tenants.id),
-  agentInstallationId: uuid('agent_installation_id').references(
-    () => agentInstallations.id
-  ),
+  agentInstallationId: uuid('agent_installation_id').references(() => agentInstallations.id),
   workflowInstallationId: uuid('workflow_installation_id').references(
     () => workflowInstallations.id
   ),
@@ -297,9 +290,7 @@ export const approvalRequests = pgTable('approval_requests', {
   runId: uuid('run_id')
     .notNull()
     .references(() => executionRuns.id),
-  agentInstallationId: uuid('agent_installation_id').references(
-    () => agentInstallations.id
-  ),
+  agentInstallationId: uuid('agent_installation_id').references(() => agentInstallations.id),
   actionType: text('action_type').notNull(),
   riskLevel: text('risk_level').notNull(),
   title: text('title').notNull(),

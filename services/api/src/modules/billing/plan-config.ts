@@ -63,7 +63,5 @@ export function getPlanEntitlements(plan: string): PlanEntitlement {
 }
 
 export function normalizePlan(plan: string): TenantPlan {
-  return (plan as TenantPlan) in PLAN_ENTITLEMENTS
-    ? (plan as TenantPlan)
-    : 'free';
+  return (plan as TenantPlan) in PLAN_ENTITLEMENTS ? (plan as TenantPlan) : 'free';
 }

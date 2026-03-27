@@ -103,7 +103,7 @@ describe('validation fixture cleanup helpers', () => {
         tenantPlan: 'free',
         userEmail: 'oauth-check-1773956802@example.com',
         userName: 'OAuth Check',
-      }),
+      })
     ).toBe(true);
   });
 
@@ -114,7 +114,7 @@ describe('validation fixture cleanup helpers', () => {
         tenantPlan: 'pro',
         userEmail: 'tim@agentmou.io',
         userName: 'Tim',
-      }),
+      })
     ).toBe(false);
   });
 
@@ -125,7 +125,7 @@ describe('validation fixture cleanup helpers', () => {
         otherMemberships: 0,
         otherAuditEvents: 0,
         otherApprovalDecisions: 0,
-      }),
+      })
     ).toEqual({
       willDelete: true,
       blockers: [],
@@ -139,7 +139,7 @@ describe('validation fixture cleanup helpers', () => {
         otherMemberships: 2,
         otherAuditEvents: 0,
         otherApprovalDecisions: 1,
-      }),
+      })
     ).toEqual({
       willDelete: false,
       blockers: [
@@ -178,15 +178,13 @@ describe('validation fixture cleanup helpers', () => {
       ],
     });
 
-    mockCleanupInstallationExternalResources.mockRejectedValueOnce(
-      new Error('n8n offline'),
-    );
+    mockCleanupInstallationExternalResources.mockRejectedValueOnce(new Error('n8n offline'));
 
     await expect(
       executeValidationFixtureCleanup(db as never, {
         tenantId: 'tenant-1',
         userEmail: 'oauth-check-1773956802@example.com',
-      }),
+      })
     ).rejects.toThrow('n8n offline');
 
     expect(mockCleanupInstallationExternalResources).toHaveBeenCalledWith({
@@ -225,9 +223,9 @@ describe('validation fixture cleanup helpers', () => {
       executeValidationFixtureCleanup(db as never, {
         tenantId: 'tenant-1',
         userEmail: 'oauth-check-1773956802@example.com',
-      }),
+      })
     ).rejects.toThrow(
-      'External cleanup succeeded but database deletion failed for tenant tenant-1.',
+      'External cleanup succeeded but database deletion failed for tenant tenant-1.'
     );
 
     expect(mockCleanupInstallationExternalResources).toHaveBeenCalledTimes(1);

@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import Link from 'next/link'
-import { usePathname, useParams, useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+import * as React from 'react';
+import Link from 'next/link';
+import { usePathname, useParams, useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,16 +12,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '@/components/ui/dropdown-menu';
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/sheet'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Kbd } from '@/components/ui/kbd'
+} from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Kbd } from '@/components/ui/kbd';
 import {
   Activity,
   LayoutDashboard,
@@ -43,11 +43,11 @@ import {
   PanelLeftClose,
   PanelLeft,
   Command,
-} from 'lucide-react'
-import { Logo } from '@/components/brand'
-import { CommandPalette } from '@/components/control-plane/command-palette'
-import { useAuthStore } from '@/lib/auth/store'
-import { useDataProvider } from '@/lib/providers/context'
+} from 'lucide-react';
+import { Logo } from '@/components/brand';
+import { CommandPalette } from '@/components/control-plane/command-palette';
+import { useAuthStore } from '@/lib/auth/store';
+import { useDataProvider } from '@/lib/providers/context';
 
 const navSections = [
   {
@@ -76,29 +76,31 @@ const navSections = [
     label: 'Security',
     items: [{ href: '/security', label: 'Security', icon: Shield }],
   },
-]
+];
 
 interface AgentmouShellProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export function AgentmouShell({ children }: AgentmouShellProps) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const params = useParams()
-  const tenantId = params.tenantId as string
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useParams();
+  const tenantId = params.tenantId as string;
 
-  const authUser = useAuthStore((s) => s.user)
-  const authTenants = useAuthStore((s) => s.tenants)
-  const isHydrated = useAuthStore((s) => s.isHydrated)
-  const logout = useAuthStore((s) => s.logout)
-  const hydrate = useAuthStore((s) => s.hydrate)
+  const authUser = useAuthStore((s) => s.user);
+  const authTenants = useAuthStore((s) => s.tenants);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
+  const logout = useAuthStore((s) => s.logout);
+  const hydrate = useAuthStore((s) => s.hydrate);
 
-  React.useEffect(() => { hydrate() }, [hydrate])
+  React.useEffect(() => {
+    hydrate();
+  }, [hydrate]);
 
-  const provider = useDataProvider()
-  const isDemoWorkspace = tenantId === 'demo-workspace'
-  const hasTenantAccess = isDemoWorkspace || authTenants.some((tenant) => tenant.id === tenantId)
+  const provider = useDataProvider();
+  const isDemoWorkspace = tenantId === 'demo-workspace';
+  const hasTenantAccess = isDemoWorkspace || authTenants.some((tenant) => tenant.id === tenantId);
 
   const tenants = authTenants.map((t) => ({
     id: t.id,
@@ -107,8 +109,13 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
     plan: t.plan as 'free' | 'starter' | 'pro' | 'scale' | 'enterprise',
     createdAt: '',
     ownerId: authUser?.id ?? '',
-    settings: { timezone: 'UTC', defaultHITL: false, logRetentionDays: 30, memoryRetentionDays: 30 },
-  }))
+    settings: {
+      timezone: 'UTC',
+      defaultHITL: false,
+      logRetentionDays: 30,
+      memoryRetentionDays: 30,
+    },
+  }));
 
   const demoTenant = {
     id: 'demo-workspace',
@@ -117,92 +124,101 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
     plan: 'free' as const,
     createdAt: '',
     ownerId: '',
-    settings: { timezone: 'UTC', defaultHITL: false, logRetentionDays: 30, memoryRetentionDays: 30 },
-  }
-  
-  const [mobileOpen, setMobileOpen] = React.useState(false)
-  const [collapsed, setCollapsed] = React.useState(false)
-  const [commandOpen, setCommandOpen] = React.useState(false)
-  
+    settings: {
+      timezone: 'UTC',
+      defaultHITL: false,
+      logRetentionDays: 30,
+      memoryRetentionDays: 30,
+    },
+  };
+
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [collapsed, setCollapsed] = React.useState(false);
+  const [commandOpen, setCommandOpen] = React.useState(false);
+
   // Global keyboard shortcut for command palette
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault()
-        setCommandOpen(true)
+        e.preventDefault();
+        setCommandOpen(true);
       }
-    }
-    
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [])
-  
-  const currentTenant = tenants.find((tenant) => tenant.id === tenantId) ||
-    (isDemoWorkspace ? demoTenant : tenants[0] ?? null)
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const currentTenant =
+    tenants.find((tenant) => tenant.id === tenantId) ||
+    (isDemoWorkspace ? demoTenant : (tenants[0] ?? null));
 
   React.useEffect(() => {
-    if (isDemoWorkspace || !isHydrated) return
+    if (isDemoWorkspace || !isHydrated) return;
 
     if (authTenants.length === 0) {
-      router.replace('/app')
-      return
+      router.replace('/app');
+      return;
     }
 
     if (!hasTenantAccess) {
-      router.replace(`/app/${authTenants[0].id}/dashboard`)
+      router.replace(`/app/${authTenants[0].id}/dashboard`);
     }
-  }, [isDemoWorkspace, isHydrated, authTenants, hasTenantAccess, router])
+  }, [isDemoWorkspace, isHydrated, authTenants, hasTenantAccess, router]);
 
-  const [pendingApprovals, setPendingApprovals] = React.useState(0)
+  const [pendingApprovals, setPendingApprovals] = React.useState(0);
   React.useEffect(() => {
     if (!isDemoWorkspace && (!isHydrated || !hasTenantAccess)) {
-      return
+      return;
     }
-    provider.listTenantApprovals(tenantId).then((approvals) => {
-      setPendingApprovals(approvals.filter((a) => a.status === 'pending').length)
-    }).catch(() => setPendingApprovals(0))
-  }, [tenantId, provider, isDemoWorkspace, isHydrated, hasTenantAccess])
+    provider
+      .listTenantApprovals(tenantId)
+      .then((approvals) => {
+        setPendingApprovals(approvals.filter((a) => a.status === 'pending').length);
+      })
+      .catch(() => setPendingApprovals(0));
+  }, [tenantId, provider, isDemoWorkspace, isHydrated, hasTenantAccess]);
 
   if (!isDemoWorkspace && !isHydrated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <p className="text-sm text-muted-foreground">Loading workspace...</p>
       </div>
-    )
+    );
   }
 
   if (!currentTenant || (!isDemoWorkspace && !hasTenantAccess)) {
-    return null
+    return null;
   }
-  
+
   const isActive = (href: string) => {
-    const fullPath = `/app/${tenantId}${href}`
+    const fullPath = `/app/${tenantId}${href}`;
     if (href === '/dashboard') {
-      return pathname === `/app/${tenantId}` || pathname === `/app/${tenantId}/dashboard`
+      return pathname === `/app/${tenantId}` || pathname === `/app/${tenantId}/dashboard`;
     }
-    return pathname.startsWith(fullPath)
-  }
-  
+    return pathname.startsWith(fullPath);
+  };
+
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-sidebar">
       {/* Logo + Collapse toggle (desktop) - minimal editorial */}
       <div
-        role={collapsed ? "button" : undefined}
+        role={collapsed ? 'button' : undefined}
         tabIndex={collapsed ? 0 : undefined}
-        aria-label={collapsed ? "Expand sidebar" : undefined}
+        aria-label={collapsed ? 'Expand sidebar' : undefined}
         className={cn(
-          "flex h-14 items-center border-b border-border/50 relative",
+          'flex h-14 items-center border-b border-border/50 relative',
           collapsed
-            ? "justify-center group cursor-pointer hover:bg-muted/30 transition-colors"
-            : "justify-between gap-2 px-4"
+            ? 'justify-center group cursor-pointer hover:bg-muted/30 transition-colors'
+            : 'justify-between gap-2 px-4'
         )}
         onClick={collapsed ? () => setCollapsed(false) : undefined}
         onKeyDown={
           collapsed
             ? (e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault()
-                  setCollapsed(false)
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setCollapsed(false);
                 }
               }
             : undefined
@@ -210,9 +226,9 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
       >
         <Link
           href={`/app/${tenantId}/dashboard`}
-          className={cn("flex items-center min-w-0 shrink-0", collapsed && "pointer-events-none")}
+          className={cn('flex items-center min-w-0 shrink-0', collapsed && 'pointer-events-none')}
         >
-          <Logo variant={collapsed ? "sidebarCollapsed" : "sidebar"} />
+          <Logo variant={collapsed ? 'sidebarCollapsed' : 'sidebar'} />
         </Link>
         {!collapsed && (
           <Button
@@ -220,8 +236,8 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
             size="icon"
             className="hidden h-8 w-8 shrink-0 lg:flex"
             onClick={(e) => {
-              e.stopPropagation()
-              setCollapsed(true)
+              e.stopPropagation();
+              setCollapsed(true);
             }}
             aria-label="Collapse sidebar"
           >
@@ -235,7 +251,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
           />
         )}
       </div>
-      
+
       {/* Navigation - grouped by sections */}
       <ScrollArea className="flex-1 px-3 py-6">
         <nav className="flex flex-col gap-6">
@@ -247,26 +263,24 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                 </p>
               )}
               {section.items.map((item) => {
-                const active = isActive(item.href)
+                const active = isActive(item.href);
                 return (
                   <Link
                     key={item.href}
                     href={`/app/${tenantId}${item.href}`}
                     className={cn(
-                      "group flex items-center gap-3 rounded-sm px-3 py-2 text-[11px] uppercase tracking-[0.05em] font-medium transition-colors",
+                      'group flex items-center gap-3 rounded-sm px-3 py-2 text-[11px] uppercase tracking-[0.05em] font-medium transition-colors',
                       active
-                        ? "bg-accent/10 text-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                      collapsed && "justify-center px-2"
+                        ? 'bg-accent/10 text-foreground'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
+                      collapsed && 'justify-center px-2'
                     )}
                     onClick={() => setMobileOpen(false)}
                   >
                     <item.icon
                       className={cn(
-                        "h-4 w-4 shrink-0 transition-colors",
-                        active
-                          ? "text-accent"
-                          : "text-muted-foreground group-hover:text-foreground"
+                        'h-4 w-4 shrink-0 transition-colors',
+                        active ? 'text-accent' : 'text-muted-foreground group-hover:text-foreground'
                       )}
                     />
                     {!collapsed && (
@@ -280,21 +294,21 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                       </>
                     )}
                   </Link>
-                )
+                );
               })}
             </div>
           ))}
         </nav>
       </ScrollArea>
-      
+
       {/* Settings - bottom of sidebar */}
       <div className="border-t border-border/50 p-3 flex flex-col gap-2">
         <Link href={`/app/${tenantId}/settings`} onClick={() => setMobileOpen(false)}>
           <Button
             variant="outline"
             className={cn(
-              "w-full justify-start gap-2 text-[11px] uppercase tracking-[0.05em] font-medium",
-              collapsed && "justify-center px-0"
+              'w-full justify-start gap-2 text-[11px] uppercase tracking-[0.05em] font-medium',
+              collapsed && 'justify-center px-0'
             )}
           >
             <Settings className="h-4 w-4 shrink-0" />
@@ -303,18 +317,20 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
         </Link>
       </div>
     </div>
-  )
-  
+  );
+
   return (
     <div data-surface="app" className="surface-app flex min-h-screen bg-background">
       {/* Desktop Sidebar - fixed so it stays visible on scroll */}
-      <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 hidden lg:flex flex-col border-r border-border/50 bg-sidebar transition-all duration-300",
-        collapsed ? "w-16" : "w-56"
-      )}>
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-40 hidden lg:flex flex-col border-r border-border/50 bg-sidebar transition-all duration-300',
+          collapsed ? 'w-16' : 'w-56'
+        )}
+      >
         <SidebarContent />
       </aside>
-      
+
       {/* Mobile Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="w-56 p-0 bg-sidebar">
@@ -325,12 +341,9 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
           <SidebarContent />
         </SheetContent>
       </Sheet>
-      
+
       {/* Main Content - margin-left to avoid overlap with fixed sidebar */}
-      <div className={cn(
-        "flex flex-1 flex-col min-w-0",
-        collapsed ? "lg:ml-16" : "lg:ml-56"
-      )}>
+      <div className={cn('flex flex-1 flex-col min-w-0', collapsed ? 'lg:ml-16' : 'lg:ml-56')}>
         {/* Top Bar - minimal editorial */}
         <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border/50 bg-sidebar/95 backdrop-blur-sm px-4 lg:px-6">
           {/* Mobile menu button */}
@@ -342,7 +355,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
           >
             <Menu className="h-4 w-4" />
           </Button>
-          
+
           {/* Tenant Switcher */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -357,7 +370,9 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
-              <DropdownMenuLabel className="text-editorial-tiny">Switch Workspace</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-editorial-tiny">
+                Switch Workspace
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {tenants.map((tenant) => (
                 <DropdownMenuItem key={tenant.id} asChild>
@@ -380,7 +395,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           {/* Global Search / Command Palette Trigger */}
           <button
             onClick={() => setCommandOpen(true)}
@@ -392,7 +407,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
               <Command className="h-3 w-3" />K
             </Kbd>
           </button>
-          
+
           <div className="flex items-center gap-1 ml-auto">
             {/* Notifications */}
             <Button variant="ghost" size="icon" className="relative h-8 w-8">
@@ -403,7 +418,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                 </span>
               )}
             </Button>
-            
+
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -415,7 +430,9 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
                     <span className="text-sm">{authUser?.name ?? 'Admin User'}</span>
-                    <span className="text-xs font-normal text-muted-foreground">{authUser?.email ?? 'admin@acme.com'}</span>
+                    <span className="text-xs font-normal text-muted-foreground">
+                      {authUser?.email ?? 'admin@acme.com'}
+                    </span>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -428,8 +445,8 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {
-                    logout()
-                    window.location.href = '/login'
+                    logout();
+                    window.location.href = '/login';
                   }}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
@@ -439,15 +456,13 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
             </DropdownMenu>
           </div>
         </header>
-        
+
         {/* Page Content */}
-        <main className="flex-1">
-          {children}
-        </main>
+        <main className="flex-1">{children}</main>
       </div>
-      
+
       {/* Command Palette */}
       <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />
     </div>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import type { AgentTemplate } from '../../control-plane/types'
+import type { AgentTemplate } from '../../control-plane/types';
 
 // Operations, Finance, HR, and IT agents
 export const opsFinanceAgentTemplates: AgentTemplate[] = [
@@ -8,7 +8,8 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     name: 'Collections Nudger',
     outcome: 'Improve cash flow with automated collection follow-ups',
     domain: 'finance',
-    description: 'Tracks overdue invoices and sends intelligent, escalating reminders to encourage timely payment.',
+    description:
+      'Tracks overdue invoices and sends intelligent, escalating reminders to encourage timely payment.',
     inputs: ['invoice_data', 'payment_history', 'customer_context'],
     outputs: ['nudge_sent', 'status_update', 'escalation_flag'],
     requiredIntegrations: ['gmail', 'google-sheets'],
@@ -37,7 +38,8 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     name: 'Invoice & Expense Parser',
     outcome: 'Extract structured data from invoices and receipts',
     domain: 'finance',
-    description: 'Parses invoices and expense receipts using AI to extract amounts, dates, vendors, and line items.',
+    description:
+      'Parses invoices and expense receipts using AI to extract amounts, dates, vendors, and line items.',
     inputs: ['document', 'extraction_schema'],
     outputs: ['structured_data', 'confidence_scores', 'validation_flags'],
     requiredIntegrations: ['gmail', 'google-drive', 'openai'],
@@ -66,7 +68,8 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     name: 'Cash & Aging Snapshot',
     outcome: 'Weekly cash position and aging analysis',
     domain: 'finance',
-    description: 'Generates weekly reports on cash position, accounts receivable aging, and cash flow projections.',
+    description:
+      'Generates weekly reports on cash position, accounts receivable aging, and cash flow projections.',
     inputs: ['financial_data', 'report_config'],
     outputs: ['cash_report', 'aging_analysis', 'projections'],
     requiredIntegrations: ['google-sheets', 'slack'],
@@ -90,14 +93,15 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     tags: ['cash-flow', 'aging', 'reporting', 'finance'],
     visibility: 'public',
   },
-  
+
   // Operations & IT
   {
     id: 'agent-internal-request-router',
     name: 'Internal Request Router',
     outcome: 'Route internal team requests to the right handler',
     domain: 'ops',
-    description: 'Classifies internal requests (IT, facilities, HR) and routes to appropriate team with SLA tracking.',
+    description:
+      'Classifies internal requests (IT, facilities, HR) and routes to appropriate team with SLA tracking.',
     inputs: ['request_content', 'requester_info', 'request_type'],
     outputs: ['routed_destination', 'sla', 'ticket_created'],
     requiredIntegrations: ['slack', 'linear'],
@@ -127,7 +131,8 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     name: 'Employee Onboarding Orchestrator',
     outcome: 'Automate new hire onboarding tasks',
     domain: 'ops',
-    description: 'Coordinates new employee onboarding by triggering account setup, equipment requests, and training assignments.',
+    description:
+      'Coordinates new employee onboarding by triggering account setup, equipment requests, and training assignments.',
     inputs: ['new_hire_data', 'role_config', 'start_date'],
     outputs: ['tasks_created', 'accounts_requested', 'training_assigned'],
     requiredIntegrations: ['slack', 'gmail', 'google-sheets'],
@@ -156,7 +161,8 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     name: 'Incident Runbook Assistant',
     outcome: 'Guide teams through incident response procedures',
     domain: 'ops',
-    description: 'Provides step-by-step guidance during incidents, tracking progress and logging decisions.',
+    description:
+      'Provides step-by-step guidance during incidents, tracking progress and logging decisions.',
     inputs: ['incident_type', 'severity', 'affected_systems'],
     outputs: ['runbook_steps', 'progress_log', 'escalation_triggers'],
     requiredIntegrations: ['slack', 'notion'],
@@ -185,7 +191,8 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     name: 'Secrets & Access Auditor',
     outcome: 'Monitor and audit access to sensitive resources',
     domain: 'ops',
-    description: 'Tracks access to secrets, credentials, and sensitive systems with anomaly detection.',
+    description:
+      'Tracks access to secrets, credentials, and sensitive systems with anomaly detection.',
     inputs: ['access_logs', 'policy_rules', 'alert_thresholds'],
     outputs: ['audit_report', 'anomalies', 'compliance_status'],
     requiredIntegrations: ['google-sheets'],
@@ -209,14 +216,15 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     tags: ['security', 'audit', 'access', 'compliance'],
     visibility: 'public',
   },
-  
+
   // HR & Hiring
   {
     id: 'agent-candidate-pipeline-assistant',
     name: 'Candidate Pipeline Assistant',
     outcome: 'Track candidates and automate hiring workflow',
     domain: 'ops',
-    description: 'Manages candidate tracking through hiring stages with automated status updates and reminders.',
+    description:
+      'Manages candidate tracking through hiring stages with automated status updates and reminders.',
     inputs: ['candidate_data', 'pipeline_stages', 'hiring_team'],
     outputs: ['status_updates', 'next_actions', 'pipeline_metrics'],
     requiredIntegrations: ['gmail', 'google-sheets', 'slack'],
@@ -245,7 +253,8 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     name: 'Interview Coordinator',
     outcome: 'Automate interview scheduling and logistics',
     domain: 'ops',
-    description: 'Coordinates interview scheduling, sends calendar invites, and manages interviewer assignments.',
+    description:
+      'Coordinates interview scheduling, sends calendar invites, and manages interviewer assignments.',
     inputs: ['candidate_info', 'interviewer_pool', 'availability'],
     outputs: ['interview_scheduled', 'calendar_invites', 'prep_materials'],
     requiredIntegrations: ['google-calendar', 'gmail', 'slack'],
@@ -269,14 +278,15 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     tags: ['interviews', 'scheduling', 'hr', 'hiring'],
     visibility: 'public',
   },
-  
+
   // Inventory & Ecommerce
   {
     id: 'agent-ai-inventory-tracker',
     name: 'AI Inventory Tracker',
     outcome: 'Monitor inventory levels and predict stockouts',
     domain: 'ops',
-    description: 'Tracks inventory across locations, predicts stockouts, and alerts when reorder is needed.',
+    description:
+      'Tracks inventory across locations, predicts stockouts, and alerts when reorder is needed.',
     inputs: ['inventory_data', 'sales_history', 'lead_times'],
     outputs: ['stock_alerts', 'reorder_recommendations', 'forecast'],
     requiredIntegrations: ['google-sheets', 'slack'],
@@ -305,7 +315,8 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     name: 'Retention & Consent Guard',
     outcome: 'Enforce data retention policies automatically',
     domain: 'ops',
-    description: 'Monitors data retention compliance, tracks consent status, and triggers cleanup workflows.',
+    description:
+      'Monitors data retention compliance, tracks consent status, and triggers cleanup workflows.',
     inputs: ['data_inventory', 'retention_policies', 'consent_records'],
     outputs: ['compliance_report', 'cleanup_actions', 'consent_status'],
     requiredIntegrations: ['google-sheets'],
@@ -334,7 +345,8 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     name: 'Order Support Assistant',
     outcome: 'Handle order inquiries with automated lookups',
     domain: 'support',
-    description: 'Responds to order status inquiries, processes simple changes, and escalates complex issues.',
+    description:
+      'Responds to order status inquiries, processes simple changes, and escalates complex issues.',
     inputs: ['customer_inquiry', 'order_data', 'policy_rules'],
     outputs: ['status_response', 'action_taken', 'escalation_flag'],
     requiredIntegrations: ['gmail', 'google-sheets', 'slack'],
@@ -387,14 +399,15 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     tags: ['inventory', 'alerts', 'monitoring', 'ecommerce'],
     visibility: 'public',
   },
-  
+
   // Education & Learning
   {
     id: 'agent-study-plan-builder',
     name: 'Study Plan Builder',
     outcome: 'Create personalized study plans with AI',
     domain: 'education',
-    description: 'Analyzes learning goals and creates personalized study schedules with recommended resources.',
+    description:
+      'Analyzes learning goals and creates personalized study schedules with recommended resources.',
     inputs: ['learning_goals', 'available_time', 'preferences'],
     outputs: ['study_plan', 'resource_list', 'milestones'],
     requiredIntegrations: ['notion', 'openai'],
@@ -423,7 +436,8 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     name: 'Paper Summarizer',
     outcome: 'Summarize academic papers and research',
     domain: 'education',
-    description: 'Reads academic papers and generates structured summaries with key findings and methodology.',
+    description:
+      'Reads academic papers and generates structured summaries with key findings and methodology.',
     inputs: ['paper_url', 'summary_format', 'focus_areas'],
     outputs: ['summary', 'key_findings', 'methodology', 'citations'],
     requiredIntegrations: ['apify', 'openai'],
@@ -447,4 +461,4 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     tags: ['research', 'papers', 'summarization', 'education'],
     visibility: 'public',
   },
-]
+];

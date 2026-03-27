@@ -14,18 +14,18 @@ import type {
   Invoice,
   DashboardMetrics,
   N8nConnection,
-} from '../control-plane/types'
+} from '../control-plane/types';
 
 // Import catalog modules
-import { newWorkflowTemplates } from './catalog/workflows-public'
-import { plannedWorkflowTemplates } from './catalog/workflows-planned'
-import { coreAgentTemplates } from './catalog/agents-core'
-import { supportAgentTemplates } from './catalog/agents-support'
-import { salesAgentTemplates } from './catalog/agents-sales'
-import { researchAgentTemplates } from './catalog/agents-research'
-import { personalAgentTemplates } from './catalog/agents-personal'
-import { opsFinanceAgentTemplates } from './catalog/agents-ops-finance'
-import { newIntegrations } from './catalog/integrations'
+import { newWorkflowTemplates } from './catalog/workflows-public';
+import { plannedWorkflowTemplates } from './catalog/workflows-planned';
+import { coreAgentTemplates } from './catalog/agents-core';
+import { supportAgentTemplates } from './catalog/agents-support';
+import { salesAgentTemplates } from './catalog/agents-sales';
+import { researchAgentTemplates } from './catalog/agents-research';
+import { personalAgentTemplates } from './catalog/agents-personal';
+import { opsFinanceAgentTemplates } from './catalog/agents-ops-finance';
+import { newIntegrations } from './catalog/integrations';
 
 // Tenants
 export const tenants: Tenant[] = [
@@ -71,7 +71,7 @@ export const tenants: Tenant[] = [
       memoryRetentionDays: 0,
     },
   },
-]
+];
 
 // Workflow Templates (n8n assets) - MVP list from prompt
 export const workflowTemplates: WorkflowTemplate[] = [
@@ -85,7 +85,11 @@ export const workflowTemplates: WorkflowTemplate[] = [
     useCase: 'Reduce inbox clutter and enable smart filtering for high-priority emails',
     riskLevel: 'low',
     version: '1.2.0',
-    changelog: ['1.2.0: Added multi-label support', '1.1.0: Improved accuracy', '1.0.0: Initial release'],
+    changelog: [
+      '1.2.0: Added multi-label support',
+      '1.1.0: Improved accuracy',
+      '1.0.0: Initial release',
+    ],
     nodesOverview: [
       { id: 'n1', type: 'trigger', name: 'Gmail Trigger', description: 'New email received' },
       { id: 'n2', type: 'ai', name: 'OpenAI Classifier', description: 'Classify email content' },
@@ -267,7 +271,7 @@ export const workflowTemplates: WorkflowTemplate[] = [
   ...newWorkflowTemplates,
   // Merge in planned workflow placeholders
   ...plannedWorkflowTemplates,
-]
+];
 
 // Agent Templates - MVP list from prompt
 export const agentTemplates: AgentTemplate[] = [
@@ -276,7 +280,8 @@ export const agentTemplates: AgentTemplate[] = [
     name: 'Inbox Triage & Draft Reply',
     outcome: 'Reduce email response time by 70%',
     domain: 'support',
-    description: 'Automatically categorizes incoming emails, drafts appropriate responses, and flags urgent items for human review.',
+    description:
+      'Automatically categorizes incoming emails, drafts appropriate responses, and flags urgent items for human review.',
     inputs: ['email_content', 'sender_info', 'thread_history'],
     outputs: ['category', 'priority', 'draft_reply', 'suggested_action'],
     requiredIntegrations: ['gmail', 'openai'],
@@ -306,7 +311,8 @@ export const agentTemplates: AgentTemplate[] = [
     name: 'Support Ticket Router',
     outcome: 'Route 95% of tickets to the right team instantly',
     domain: 'support',
-    description: 'Analyzes incoming support tickets, categorizes by topic and urgency, and routes to the appropriate team with full context.',
+    description:
+      'Analyzes incoming support tickets, categorizes by topic and urgency, and routes to the appropriate team with full context.',
     inputs: ['ticket_subject', 'ticket_body', 'customer_context'],
     outputs: ['category', 'priority', 'assigned_team', 'suggested_response'],
     requiredIntegrations: ['slack', 'linear'],
@@ -336,7 +342,8 @@ export const agentTemplates: AgentTemplate[] = [
     name: 'Market Monitor Digest',
     outcome: 'Never miss industry news that matters',
     domain: 'research',
-    description: 'Monitors RSS feeds and news sources, filters for relevance, and delivers a daily digest with AI-generated summaries.',
+    description:
+      'Monitors RSS feeds and news sources, filters for relevance, and delivers a daily digest with AI-generated summaries.',
     inputs: ['rss_feeds', 'keywords', 'competitors'],
     outputs: ['digest', 'highlights', 'action_items'],
     requiredIntegrations: ['rss', 'google-sheets', 'slack'],
@@ -366,7 +373,8 @@ export const agentTemplates: AgentTemplate[] = [
     name: 'Meeting Prep Briefing',
     outcome: 'Walk into every meeting fully prepared',
     domain: 'sales',
-    description: 'Researches upcoming meeting attendees, compiles relevant information, and delivers a briefing before your meeting.',
+    description:
+      'Researches upcoming meeting attendees, compiles relevant information, and delivers a briefing before your meeting.',
     inputs: ['calendar_event', 'attendee_emails'],
     outputs: ['briefing_doc', 'talking_points', 'potential_questions'],
     requiredIntegrations: ['google-calendar', 'apify', 'whatsapp'],
@@ -396,7 +404,8 @@ export const agentTemplates: AgentTemplate[] = [
     name: 'Competitor Intel to Notion',
     outcome: 'Automated competitive intelligence on autopilot',
     domain: 'research',
-    description: 'Continuously monitors competitors using search APIs and AI, updating a structured Notion database with insights.',
+    description:
+      'Continuously monitors competitors using search APIs and AI, updating a structured Notion database with insights.',
     inputs: ['competitor_list', 'tracking_keywords'],
     outputs: ['intel_report', 'trend_analysis', 'alerts'],
     requiredIntegrations: ['exa', 'serpapi', 'notion'],
@@ -455,7 +464,8 @@ export const agentTemplates: AgentTemplate[] = [
     name: 'Trustpilot Sentiment Tracker',
     outcome: 'Track customer sentiment trends automatically',
     domain: 'support',
-    description: 'Monitors Trustpilot reviews, analyzes sentiment, and tracks trends over time with alerts for negative spikes.',
+    description:
+      'Monitors Trustpilot reviews, analyzes sentiment, and tracks trends over time with alerts for negative spikes.',
     inputs: ['trustpilot_url'],
     outputs: ['sentiment_score', 'trend', 'alerts', 'summary'],
     requiredIntegrations: ['trustpilot', 'google-sheets'],
@@ -485,7 +495,8 @@ export const agentTemplates: AgentTemplate[] = [
     name: 'Calendar Conflict Resolver',
     outcome: 'Never double-book again',
     domain: 'sales',
-    description: 'Monitors calendar for conflicts, suggests resolutions, and can automatically reschedule with approval.',
+    description:
+      'Monitors calendar for conflicts, suggests resolutions, and can automatically reschedule with approval.',
     inputs: ['calendar_events'],
     outputs: ['conflicts', 'suggestions', 'auto_resolved'],
     requiredIntegrations: ['gmail', 'google-calendar'],
@@ -514,7 +525,8 @@ export const agentTemplates: AgentTemplate[] = [
     name: 'Resume/Attachment Evaluator',
     outcome: 'Screen documents 10x faster',
     domain: 'support',
-    description: 'Evaluates email attachments (resumes, applications, documents) against criteria and logs results.',
+    description:
+      'Evaluates email attachments (resumes, applications, documents) against criteria and logs results.',
     inputs: ['attachment', 'evaluation_criteria'],
     outputs: ['score', 'highlights', 'concerns', 'recommendation'],
     requiredIntegrations: ['gmail', 'google-sheets'],
@@ -543,7 +555,8 @@ export const agentTemplates: AgentTemplate[] = [
     name: 'Attachment Archiver',
     outcome: 'Never lose an important attachment',
     domain: 'support',
-    description: 'Automatically archives email attachments to organized Google Drive folders based on sender and content.',
+    description:
+      'Automatically archives email attachments to organized Google Drive folders based on sender and content.',
     inputs: ['email_attachments'],
     outputs: ['archived_files', 'folder_path'],
     requiredIntegrations: ['gmail', 'google-drive'],
@@ -574,7 +587,7 @@ export const agentTemplates: AgentTemplate[] = [
   ...researchAgentTemplates,
   ...personalAgentTemplates,
   ...opsFinanceAgentTemplates,
-]
+];
 
 // Packs - 6 outcome-based packs covering key use cases
 export const packTemplates: PackTemplate[] = [
@@ -583,9 +596,15 @@ export const packTemplates: PackTemplate[] = [
     name: 'Support Starter',
     slug: 'support-starter',
     vertical: 'support',
-    description: 'Everything you need to automate tier-1 support: email triage, ticket routing, sentiment tracking, and attachment management.',
+    description:
+      'Everything you need to automate tier-1 support: email triage, ticket routing, sentiment tracking, and attachment management.',
     includedCategories: ['support'],
-    includedAgents: ['agent-inbox-triage', 'agent-ticket-router', 'agent-sentiment-tracker', 'agent-attachment-archiver'],
+    includedAgents: [
+      'agent-inbox-triage',
+      'agent-ticket-router',
+      'agent-sentiment-tracker',
+      'agent-attachment-archiver',
+    ],
     includedWorkflows: ['wf-01', 'wf-02', 'wf-10', 'wf-26'],
     setupTimeEstimate: '30 minutes',
     kpis: ['70% faster response time', '95% ticket routing accuracy', 'Real-time sentiment alerts'],
@@ -600,7 +619,8 @@ export const packTemplates: PackTemplate[] = [
     name: 'Sales Accelerator',
     slug: 'sales-accelerator',
     vertical: 'sales',
-    description: 'Close more deals with meeting prep, calendar optimization, competitive intelligence, and outbound automation.',
+    description:
+      'Close more deals with meeting prep, calendar optimization, competitive intelligence, and outbound automation.',
     includedCategories: ['sales', 'research'],
     includedAgents: ['agent-meeting-prep', 'agent-calendar-resolver', 'agent-competitor-intel'],
     includedWorkflows: ['wf-04', 'wf-24', 'wf-05'],
@@ -617,7 +637,8 @@ export const packTemplates: PackTemplate[] = [
     name: 'Research & Intel',
     slug: 'research-intel',
     vertical: 'research',
-    description: 'Automated market monitoring, competitive research, web summarization, and knowledge synthesis.',
+    description:
+      'Automated market monitoring, competitive research, web summarization, and knowledge synthesis.',
     includedCategories: ['research'],
     includedAgents: ['agent-market-monitor', 'agent-competitor-intel', 'agent-webpage-summarizer'],
     includedWorkflows: ['wf-03', 'wf-05', 'wf-09'],
@@ -634,7 +655,8 @@ export const packTemplates: PackTemplate[] = [
     name: 'Backoffice',
     slug: 'backoffice',
     vertical: 'ops',
-    description: 'Streamline operations with document processing, attachment archival, inbox management, and HR screening.',
+    description:
+      'Streamline operations with document processing, attachment archival, inbox management, and HR screening.',
     includedCategories: ['ops', 'finance'],
     includedAgents: ['agent-resume-evaluator', 'agent-attachment-archiver', 'agent-inbox-triage'],
     includedWorkflows: ['wf-25', 'wf-26', 'wf-01'],
@@ -650,7 +672,8 @@ export const packTemplates: PackTemplate[] = [
     name: 'Marketing Engine',
     slug: 'marketing-engine',
     vertical: 'marketing',
-    description: 'Power your marketing with content research, competitive analysis, and trend monitoring.',
+    description:
+      'Power your marketing with content research, competitive analysis, and trend monitoring.',
     includedCategories: ['marketing', 'research'],
     includedAgents: ['agent-market-monitor', 'agent-webpage-summarizer', 'agent-competitor-intel'],
     includedWorkflows: ['wf-03', 'wf-09', 'wf-05'],
@@ -666,9 +689,15 @@ export const packTemplates: PackTemplate[] = [
     name: 'Solo Founder',
     slug: 'solo-founder',
     vertical: 'personal',
-    description: 'Everything a solo founder needs: inbox zero, file management, research tools, and market intelligence.',
+    description:
+      'Everything a solo founder needs: inbox zero, file management, research tools, and market intelligence.',
     includedCategories: ['personal', 'research'],
-    includedAgents: ['agent-inbox-triage', 'agent-attachment-archiver', 'agent-webpage-summarizer', 'agent-market-monitor'],
+    includedAgents: [
+      'agent-inbox-triage',
+      'agent-attachment-archiver',
+      'agent-webpage-summarizer',
+      'agent-market-monitor',
+    ],
     includedWorkflows: ['wf-01', 'wf-26', 'wf-09', 'wf-03'],
     setupTimeEstimate: '25 minutes',
     kpis: ['Inbox under control', 'Files always organized', 'Stay informed effortlessly'],
@@ -678,7 +707,7 @@ export const packTemplates: PackTemplate[] = [
     tags: ['personal', 'founder', 'productivity', 'solopreneur'],
     availability: 'preview',
   },
-]
+];
 
 // Integrations
 export const integrations: Integration[] = [
@@ -822,7 +851,7 @@ export const integrations: Integration[] = [
   },
   // Merge in new integrations from catalog
   ...newIntegrations,
-]
+];
 
 // Installed Agents
 export const installedAgents: InstalledAgent[] = [
@@ -859,7 +888,10 @@ export const installedAgents: InstalledAgent[] = [
     templateId: 'agent-market-monitor',
     status: 'active',
     installedAt: '2024-02-05T09:00:00Z',
-    config: { feeds: ['techcrunch', 'hackernews', 'producthunt'], keywords: ['AI', 'agents', 'automation'] },
+    config: {
+      feeds: ['techcrunch', 'hackernews', 'producthunt'],
+      keywords: ['AI', 'agents', 'automation'],
+    },
     hitlEnabled: false,
     lastRunAt: '2024-03-02T10:00:00Z',
     runsTotal: 56,
@@ -906,7 +938,7 @@ export const installedAgents: InstalledAgent[] = [
     runsSuccess: 45,
     kpiValues: { 'Relevance Score': 4.2, 'Time Saved': 8 },
   },
-]
+];
 
 // Installed Workflows
 export const installedWorkflows: InstalledWorkflow[] = [
@@ -978,7 +1010,7 @@ export const installedWorkflows: InstalledWorkflow[] = [
     runsTotal: 45,
     runsSuccess: 45,
   },
-]
+];
 
 // Approval Requests
 export const approvalRequests: ApprovalRequest[] = [
@@ -991,14 +1023,18 @@ export const approvalRequests: ApprovalRequest[] = [
     actionType: 'send_email',
     riskLevel: 'medium',
     title: 'Send follow-up email to prospect',
-    description: 'The Inbox Triage agent wants to send a follow-up email to a prospect who inquired about enterprise features.',
+    description:
+      'The Inbox Triage agent wants to send a follow-up email to a prospect who inquired about enterprise features.',
     payloadPreview: {
       to: 'enterprise@company.com',
       subject: 'Re: Enterprise features inquiry',
       body: 'Thank you for your interest in our enterprise plan. I would be happy to schedule a call to discuss your specific needs...',
     },
     context: {
-      inputs: { email_content: 'We are evaluating AI agent platforms for our team...', sender_info: { email: 'enterprise@company.com', name: 'Sarah Chen' } },
+      inputs: {
+        email_content: 'We are evaluating AI agent platforms for our team...',
+        sender_info: { email: 'enterprise@company.com', name: 'Sarah Chen' },
+      },
       sources: ['enterprise-pricing', 'case-studies'],
       previousMessages: ['Initial inquiry received yesterday'],
     },
@@ -1013,7 +1049,8 @@ export const approvalRequests: ApprovalRequest[] = [
     actionType: 'update_calendar',
     riskLevel: 'low',
     title: 'Add meeting prep notes to calendar event',
-    description: 'The Meeting Prep agent wants to add preparation notes and talking points to an upcoming customer call.',
+    description:
+      'The Meeting Prep agent wants to add preparation notes and talking points to an upcoming customer call.',
     payloadPreview: {
       action: 'update_event',
       eventId: 'cal-demo-1',
@@ -1035,14 +1072,18 @@ export const approvalRequests: ApprovalRequest[] = [
     actionType: 'send_email',
     riskLevel: 'medium',
     title: 'Send auto-reply to customer inquiry',
-    description: 'The Inbox Triage agent wants to send an automated response to a customer asking about pricing.',
+    description:
+      'The Inbox Triage agent wants to send an automated response to a customer asking about pricing.',
     payloadPreview: {
       to: 'customer@example.com',
       subject: 'Re: Pricing inquiry',
       body: 'Thank you for your interest in our products. Our pricing starts at $29/month for the Starter plan...',
     },
     context: {
-      inputs: { email_content: 'Hi, I wanted to know about your pricing...', sender_info: { email: 'customer@example.com', name: 'John Doe' } },
+      inputs: {
+        email_content: 'Hi, I wanted to know about your pricing...',
+        sender_info: { email: 'customer@example.com', name: 'John Doe' },
+      },
       sources: ['pricing-page', 'faq'],
       previousMessages: ['Initial inquiry received at 2:30 PM'],
     },
@@ -1088,7 +1129,10 @@ export const approvalRequests: ApprovalRequest[] = [
       labels: ['outage', 'urgent'],
     },
     context: {
-      inputs: { ticket_subject: 'Service is down!', ticket_body: 'We cannot access the dashboard since 2pm...' },
+      inputs: {
+        ticket_subject: 'Service is down!',
+        ticket_body: 'We cannot access the dashboard since 2pm...',
+      },
       sources: ['support-email'],
     },
     status: 'approved',
@@ -1096,7 +1140,7 @@ export const approvalRequests: ApprovalRequest[] = [
     decidedAt: '2024-03-02T14:22:00Z',
     decidedBy: 'admin@acme.com',
   },
-]
+];
 
 // Execution Runs
 export const executionRuns: ExecutionRun[] = [
@@ -1120,10 +1164,40 @@ export const executionRuns: ExecutionRun[] = [
       '[15:00:02] Run completed successfully',
     ],
     timeline: [
-      { id: 's1', type: 'tool_call', name: 'Email Received', status: 'success', startedAt: '2024-03-02T15:00:00Z', durationMs: 50 },
-      { id: 's2', type: 'tool_call', name: 'Parse Email', status: 'success', startedAt: '2024-03-02T15:00:00Z', durationMs: 150 },
-      { id: 's3', type: 'agent_invoke', name: 'Classify & Draft', status: 'success', startedAt: '2024-03-02T15:00:00Z', durationMs: 1600, tokenUsage: 1250, cost: 0.0021 },
-      { id: 's4', type: 'tool_call', name: 'Return Result', status: 'success', startedAt: '2024-03-02T15:00:02Z', durationMs: 50 },
+      {
+        id: 's1',
+        type: 'tool_call',
+        name: 'Email Received',
+        status: 'success',
+        startedAt: '2024-03-02T15:00:00Z',
+        durationMs: 50,
+      },
+      {
+        id: 's2',
+        type: 'tool_call',
+        name: 'Parse Email',
+        status: 'success',
+        startedAt: '2024-03-02T15:00:00Z',
+        durationMs: 150,
+      },
+      {
+        id: 's3',
+        type: 'agent_invoke',
+        name: 'Classify & Draft',
+        status: 'success',
+        startedAt: '2024-03-02T15:00:00Z',
+        durationMs: 1600,
+        tokenUsage: 1250,
+        cost: 0.0021,
+      },
+      {
+        id: 's4',
+        type: 'tool_call',
+        name: 'Return Result',
+        status: 'success',
+        startedAt: '2024-03-02T15:00:02Z',
+        durationMs: 50,
+      },
     ],
     triggeredBy: 'webhook',
     tags: ['email', 'triage', 'auto-response'],
@@ -1147,11 +1221,48 @@ export const executionRuns: ExecutionRun[] = [
       '[14:00:05] Prep notes sent to Slack',
     ],
     timeline: [
-      { id: 's1', type: 'tool_call', name: 'Calendar Event', status: 'success', startedAt: '2024-03-02T14:00:00Z', durationMs: 100 },
-      { id: 's2', type: 'tool_call', name: 'CRM Lookup', status: 'success', startedAt: '2024-03-02T14:00:00Z', durationMs: 800 },
-      { id: 's3', type: 'tool_call', name: 'Previous Meetings', status: 'success', startedAt: '2024-03-02T14:00:01Z', durationMs: 600 },
-      { id: 's4', type: 'agent_invoke', name: 'Generate Brief', status: 'success', startedAt: '2024-03-02T14:00:02Z', durationMs: 2800, tokenUsage: 1850, cost: 0.0035 },
-      { id: 's5', type: 'tool_call', name: 'Post to Slack', status: 'success', startedAt: '2024-03-02T14:00:05Z', durationMs: 200 },
+      {
+        id: 's1',
+        type: 'tool_call',
+        name: 'Calendar Event',
+        status: 'success',
+        startedAt: '2024-03-02T14:00:00Z',
+        durationMs: 100,
+      },
+      {
+        id: 's2',
+        type: 'tool_call',
+        name: 'CRM Lookup',
+        status: 'success',
+        startedAt: '2024-03-02T14:00:00Z',
+        durationMs: 800,
+      },
+      {
+        id: 's3',
+        type: 'tool_call',
+        name: 'Previous Meetings',
+        status: 'success',
+        startedAt: '2024-03-02T14:00:01Z',
+        durationMs: 600,
+      },
+      {
+        id: 's4',
+        type: 'agent_invoke',
+        name: 'Generate Brief',
+        status: 'success',
+        startedAt: '2024-03-02T14:00:02Z',
+        durationMs: 2800,
+        tokenUsage: 1850,
+        cost: 0.0035,
+      },
+      {
+        id: 's5',
+        type: 'tool_call',
+        name: 'Post to Slack',
+        status: 'success',
+        startedAt: '2024-03-02T14:00:05Z',
+        durationMs: 200,
+      },
     ],
     triggeredBy: 'cron',
     tags: ['meeting', 'prep', 'slack'],
@@ -1174,8 +1285,23 @@ export const executionRuns: ExecutionRun[] = [
       '[10:00:08] Run failed after 3 retries',
     ],
     timeline: [
-      { id: 's1', type: 'tool_call', name: 'Daily Cron', status: 'success', startedAt: '2024-03-02T10:00:00Z', durationMs: 50 },
-      { id: 's2', type: 'tool_call', name: 'Fetch Feeds', status: 'error', startedAt: '2024-03-02T10:00:00Z', durationMs: 8000, error: 'Rate limit exceeded' },
+      {
+        id: 's1',
+        type: 'tool_call',
+        name: 'Daily Cron',
+        status: 'success',
+        startedAt: '2024-03-02T10:00:00Z',
+        durationMs: 50,
+      },
+      {
+        id: 's2',
+        type: 'tool_call',
+        name: 'Fetch Feeds',
+        status: 'error',
+        startedAt: '2024-03-02T10:00:00Z',
+        durationMs: 8000,
+        error: 'Rate limit exceeded',
+      },
     ],
     triggeredBy: 'cron',
     tags: ['market', 'monitor', 'error'],
@@ -1201,11 +1327,48 @@ export const executionRuns: ExecutionRun[] = [
       '[14:30:03] Run completed - awaiting approval',
     ],
     timeline: [
-      { id: 's1', type: 'tool_call', name: 'Email Received', status: 'success', startedAt: '2024-03-02T14:30:00Z', durationMs: 50 },
-      { id: 's2', type: 'tool_call', name: 'Parse Email', status: 'success', startedAt: '2024-03-02T14:30:00Z', durationMs: 200 },
-      { id: 's3', type: 'agent_invoke', name: 'Classify & Draft', status: 'success', startedAt: '2024-03-02T14:30:01Z', durationMs: 1800, tokenUsage: 1420, cost: 0.0024 },
-      { id: 's4', type: 'approval', name: 'HITL Check', status: 'pending_approval', startedAt: '2024-03-02T14:30:02Z', durationMs: 100 },
-      { id: 's5', type: 'tool_call', name: 'Return Result', status: 'success', startedAt: '2024-03-02T14:30:03Z', durationMs: 50 },
+      {
+        id: 's1',
+        type: 'tool_call',
+        name: 'Email Received',
+        status: 'success',
+        startedAt: '2024-03-02T14:30:00Z',
+        durationMs: 50,
+      },
+      {
+        id: 's2',
+        type: 'tool_call',
+        name: 'Parse Email',
+        status: 'success',
+        startedAt: '2024-03-02T14:30:00Z',
+        durationMs: 200,
+      },
+      {
+        id: 's3',
+        type: 'agent_invoke',
+        name: 'Classify & Draft',
+        status: 'success',
+        startedAt: '2024-03-02T14:30:01Z',
+        durationMs: 1800,
+        tokenUsage: 1420,
+        cost: 0.0024,
+      },
+      {
+        id: 's4',
+        type: 'approval',
+        name: 'HITL Check',
+        status: 'pending_approval',
+        startedAt: '2024-03-02T14:30:02Z',
+        durationMs: 100,
+      },
+      {
+        id: 's5',
+        type: 'tool_call',
+        name: 'Return Result',
+        status: 'success',
+        startedAt: '2024-03-02T14:30:03Z',
+        durationMs: 50,
+      },
     ],
     triggeredBy: 'webhook',
     tags: ['email', 'triage', 'pending-approval'],
@@ -1230,10 +1393,40 @@ export const executionRuns: ExecutionRun[] = [
       '[14:25:02] Run completed successfully',
     ],
     timeline: [
-      { id: 's1', type: 'tool_call', name: 'Slack Event', status: 'success', startedAt: '2024-03-02T14:25:00Z', durationMs: 30 },
-      { id: 's2', type: 'tool_call', name: 'Dedupe Check', status: 'success', startedAt: '2024-03-02T14:25:00Z', durationMs: 300 },
-      { id: 's3', type: 'agent_invoke', name: 'Classify Ticket', status: 'success', startedAt: '2024-03-02T14:25:01Z', durationMs: 1200, tokenUsage: 980, cost: 0.0018 },
-      { id: 's4', type: 'tool_call', name: 'Create Linear Ticket', status: 'success', startedAt: '2024-03-02T14:25:02Z', durationMs: 320 },
+      {
+        id: 's1',
+        type: 'tool_call',
+        name: 'Slack Event',
+        status: 'success',
+        startedAt: '2024-03-02T14:25:00Z',
+        durationMs: 30,
+      },
+      {
+        id: 's2',
+        type: 'tool_call',
+        name: 'Dedupe Check',
+        status: 'success',
+        startedAt: '2024-03-02T14:25:00Z',
+        durationMs: 300,
+      },
+      {
+        id: 's3',
+        type: 'agent_invoke',
+        name: 'Classify Ticket',
+        status: 'success',
+        startedAt: '2024-03-02T14:25:01Z',
+        durationMs: 1200,
+        tokenUsage: 980,
+        cost: 0.0018,
+      },
+      {
+        id: 's4',
+        type: 'tool_call',
+        name: 'Create Linear Ticket',
+        status: 'success',
+        startedAt: '2024-03-02T14:25:02Z',
+        durationMs: 320,
+      },
     ],
     triggeredBy: 'webhook',
     tags: ['slack', 'linear', 'ticket'],
@@ -1260,11 +1453,48 @@ export const executionRuns: ExecutionRun[] = [
       '[09:02:30] Run completed successfully',
     ],
     timeline: [
-      { id: 's1', type: 'tool_call', name: 'Cron Trigger', status: 'success', startedAt: '2024-03-02T09:00:00Z', durationMs: 10 },
-      { id: 's2', type: 'tool_call', name: 'Fetch RSS', status: 'success', startedAt: '2024-03-02T09:00:05Z', durationMs: 25000 },
-      { id: 's3', type: 'tool_call', name: 'Dedupe', status: 'success', startedAt: '2024-03-02T09:00:35Z', durationMs: 5000 },
-      { id: 's4', type: 'agent_invoke', name: 'Summarize', status: 'success', startedAt: '2024-03-02T09:01:00Z', durationMs: 60000, tokenUsage: 8500, cost: 0.0156 },
-      { id: 's5', type: 'tool_call', name: 'Post to Slack', status: 'success', startedAt: '2024-03-02T09:02:00Z', durationMs: 30000 },
+      {
+        id: 's1',
+        type: 'tool_call',
+        name: 'Cron Trigger',
+        status: 'success',
+        startedAt: '2024-03-02T09:00:00Z',
+        durationMs: 10,
+      },
+      {
+        id: 's2',
+        type: 'tool_call',
+        name: 'Fetch RSS',
+        status: 'success',
+        startedAt: '2024-03-02T09:00:05Z',
+        durationMs: 25000,
+      },
+      {
+        id: 's3',
+        type: 'tool_call',
+        name: 'Dedupe',
+        status: 'success',
+        startedAt: '2024-03-02T09:00:35Z',
+        durationMs: 5000,
+      },
+      {
+        id: 's4',
+        type: 'agent_invoke',
+        name: 'Summarize',
+        status: 'success',
+        startedAt: '2024-03-02T09:01:00Z',
+        durationMs: 60000,
+        tokenUsage: 8500,
+        cost: 0.0156,
+      },
+      {
+        id: 's5',
+        type: 'tool_call',
+        name: 'Post to Slack',
+        status: 'success',
+        startedAt: '2024-03-02T09:02:00Z',
+        durationMs: 30000,
+      },
     ],
     triggeredBy: 'cron',
     tags: ['digest', 'rss', 'slack'],
@@ -1288,8 +1518,23 @@ export const executionRuns: ExecutionRun[] = [
       '[13:15:05] Max retries exceeded. Run failed.',
     ],
     timeline: [
-      { id: 's1', type: 'tool_call', name: 'Email Received', status: 'success', startedAt: '2024-03-02T13:15:00Z', durationMs: 50 },
-      { id: 's2', type: 'tool_call', name: 'Parse Email', status: 'failed', startedAt: '2024-03-02T13:15:01Z', durationMs: 4950, error: 'Gmail API rate limit exceeded' },
+      {
+        id: 's1',
+        type: 'tool_call',
+        name: 'Email Received',
+        status: 'success',
+        startedAt: '2024-03-02T13:15:00Z',
+        durationMs: 50,
+      },
+      {
+        id: 's2',
+        type: 'tool_call',
+        name: 'Parse Email',
+        status: 'failed',
+        startedAt: '2024-03-02T13:15:01Z',
+        durationMs: 4950,
+        error: 'Gmail API rate limit exceeded',
+      },
     ],
     triggeredBy: 'webhook',
     tags: ['email', 'error', 'rate-limit'],
@@ -1303,18 +1548,28 @@ export const executionRuns: ExecutionRun[] = [
     durationMs: 0,
     costEstimate: 0,
     tokensUsed: 0,
-    logs: [
-      '[14:45:00] Triggered by Slack reaction',
-      '[14:45:01] Processing...',
-    ],
+    logs: ['[14:45:00] Triggered by Slack reaction', '[14:45:01] Processing...'],
     timeline: [
-      { id: 's1', type: 'tool_call', name: 'Slack Event', status: 'success', startedAt: '2024-03-02T14:45:00Z', durationMs: 30 },
-      { id: 's2', type: 'tool_call', name: 'Dedupe Check', status: 'running', startedAt: '2024-03-02T14:45:01Z' },
+      {
+        id: 's1',
+        type: 'tool_call',
+        name: 'Slack Event',
+        status: 'success',
+        startedAt: '2024-03-02T14:45:00Z',
+        durationMs: 30,
+      },
+      {
+        id: 's2',
+        type: 'tool_call',
+        name: 'Dedupe Check',
+        status: 'running',
+        startedAt: '2024-03-02T14:45:01Z',
+      },
     ],
     triggeredBy: 'webhook',
     tags: ['slack', 'running'],
   },
-]
+];
 
 // Security
 export const securityFindings: SecurityFinding[] = [
@@ -1323,8 +1578,10 @@ export const securityFindings: SecurityFinding[] = [
     tenantId: 'tenant-acme',
     severity: 'high',
     title: 'Webhook endpoint without authentication',
-    description: 'The workflow wf-02 has a public webhook endpoint that accepts requests without API key validation.',
-    remediation: 'Enable webhook authentication in workflow settings or use the command center pattern.',
+    description:
+      'The workflow wf-02 has a public webhook endpoint that accepts requests without API key validation.',
+    remediation:
+      'Enable webhook authentication in workflow settings or use the command center pattern.',
     detectedAt: '2024-03-01T10:00:00Z',
     category: 'webhook',
   },
@@ -1348,7 +1605,7 @@ export const securityFindings: SecurityFinding[] = [
     detectedAt: '2024-03-01T10:00:00Z',
     category: 'pii',
   },
-]
+];
 
 export const securityPolicies: SecurityPolicy[] = [
   {
@@ -1383,7 +1640,7 @@ export const securityPolicies: SecurityPolicy[] = [
     enabled: true,
     category: 'data',
   },
-]
+];
 
 // Members
 export const tenantMembers: TenantMember[] = [
@@ -1414,7 +1671,7 @@ export const tenantMembers: TenantMember[] = [
     joinedAt: '2024-02-01T14:00:00Z',
     lastActiveAt: '2024-03-01T10:00:00Z',
   },
-]
+];
 
 // Invoices
 export const invoices: Invoice[] = [
@@ -1425,9 +1682,7 @@ export const invoices: Invoice[] = [
     amount: 99,
     status: 'paid',
     currency: 'usd',
-    items: [
-      { description: 'Pro Plan - March 2024', amount: 99 },
-    ],
+    items: [{ description: 'Pro Plan - March 2024', amount: 99 }],
   },
   {
     id: 'inv-2',
@@ -1436,11 +1691,9 @@ export const invoices: Invoice[] = [
     amount: 99,
     status: 'paid',
     currency: 'usd',
-    items: [
-      { description: 'Pro Plan - February 2024', amount: 99 },
-    ],
+    items: [{ description: 'Pro Plan - February 2024', amount: 99 }],
   },
-]
+];
 
 // Dashboard Metrics
 export const dashboardMetrics: DashboardMetrics = {
@@ -1450,7 +1703,7 @@ export const dashboardMetrics: DashboardMetrics = {
   runsSuccess: 2050,
   runsFailed: 135,
   avgLatencyMs: 2450,
-  totalCost: 42.50,
+  totalCost: 42.5,
   topAgents: [
     { agentId: 'agent-inbox-triage', runs: 1250 },
     { agentId: 'agent-ticket-router', runs: 890 },
@@ -1462,13 +1715,13 @@ export const dashboardMetrics: DashboardMetrics = {
     { workflowId: 'wf-03', runs: 45 },
   ],
   costByDay: [
-    { date: '2024-02-25', cost: 5.20 },
-    { date: '2024-02-26', cost: 6.10 },
-    { date: '2024-02-27', cost: 5.80 },
-    { date: '2024-02-28', cost: 7.20 },
-    { date: '2024-02-29', cost: 6.50 },
-    { date: '2024-03-01', cost: 5.90 },
-    { date: '2024-03-02', cost: 5.80 },
+    { date: '2024-02-25', cost: 5.2 },
+    { date: '2024-02-26', cost: 6.1 },
+    { date: '2024-02-27', cost: 5.8 },
+    { date: '2024-02-28', cost: 7.2 },
+    { date: '2024-02-29', cost: 6.5 },
+    { date: '2024-03-01', cost: 5.9 },
+    { date: '2024-03-02', cost: 5.8 },
   ],
   runsByDay: [
     { date: '2024-02-25', count: 285 },
@@ -1486,7 +1739,7 @@ export const dashboardMetrics: DashboardMetrics = {
     { type: 'Validation', count: 20 },
     { type: 'Other', count: 10 },
   ],
-}
+};
 
 // n8n Connection
 export const n8nConnections: N8nConnection[] = [
@@ -1506,45 +1759,115 @@ export const n8nConnections: N8nConnection[] = [
     lastTestStatus: 'success',
     executionCount: 1234,
   },
-]
+];
 
 // Aliased exports for pages
-export const mockTenants = tenants
-export const mockAgents = agentTemplates
-export const mockWorkflows = workflowTemplates
-export const mockPacks = packTemplates
-export const mockIntegrations = integrations
-export const mockInstalledAgents = installedAgents
-export const mockInstalledWorkflows = installedWorkflows
-export const mockApprovalRequests = approvalRequests
-export const mockRuns = executionRuns
-export const mockSecurityFindings = securityFindings
-export const mockSecurityPolicies = securityPolicies
-export const mockTeamMembers = tenantMembers
-export const mockInvoices = invoices
-export const mockMetrics = dashboardMetrics
-export const mockN8nConnections = n8nConnections
+export const mockTenants = tenants;
+export const mockAgents = agentTemplates;
+export const mockWorkflows = workflowTemplates;
+export const mockPacks = packTemplates;
+export const mockIntegrations = integrations;
+export const mockInstalledAgents = installedAgents;
+export const mockInstalledWorkflows = installedWorkflows;
+export const mockApprovalRequests = approvalRequests;
+export const mockRuns = executionRuns;
+export const mockSecurityFindings = securityFindings;
+export const mockSecurityPolicies = securityPolicies;
+export const mockTeamMembers = tenantMembers;
+export const mockInvoices = invoices;
+export const mockMetrics = dashboardMetrics;
+export const mockN8nConnections = n8nConnections;
 
 // Additional mock data for security page
 export const mockSecrets = [
-  { id: 'secret-1', key: 'OPENAI_API_KEY', value: 'sk-proj-xxxx...xxxx', createdAt: '2024-01-15T10:00:00Z', lastRotated: '2024-02-28T10:00:00Z', usedBy: ['Email Classifier', 'Content Writer'] },
-  { id: 'secret-2', key: 'SLACK_BOT_TOKEN', value: 'xoxb-xxxx...xxxx', createdAt: '2024-01-15T10:00:00Z', lastRotated: '2024-02-15T10:00:00Z', usedBy: ['Slack Notifier', 'Support Triage'] },
-  { id: 'secret-3', key: 'LINEAR_API_KEY', value: 'lin_api_xxxx...xxxx', createdAt: '2024-01-20T10:00:00Z', lastRotated: '2024-02-20T10:00:00Z', usedBy: ['Linear Sync'] },
-  { id: 'secret-4', key: 'STRIPE_SECRET_KEY', value: 'sk_live_xxxx...xxxx', createdAt: '2024-02-01T10:00:00Z', lastRotated: '2024-03-01T10:00:00Z', usedBy: ['Invoice Processor'] },
-]
+  {
+    id: 'secret-1',
+    key: 'OPENAI_API_KEY',
+    value: 'sk-proj-xxxx...xxxx',
+    createdAt: '2024-01-15T10:00:00Z',
+    lastRotated: '2024-02-28T10:00:00Z',
+    usedBy: ['Email Classifier', 'Content Writer'],
+  },
+  {
+    id: 'secret-2',
+    key: 'SLACK_BOT_TOKEN',
+    value: 'xoxb-xxxx...xxxx',
+    createdAt: '2024-01-15T10:00:00Z',
+    lastRotated: '2024-02-15T10:00:00Z',
+    usedBy: ['Slack Notifier', 'Support Triage'],
+  },
+  {
+    id: 'secret-3',
+    key: 'LINEAR_API_KEY',
+    value: 'lin_api_xxxx...xxxx',
+    createdAt: '2024-01-20T10:00:00Z',
+    lastRotated: '2024-02-20T10:00:00Z',
+    usedBy: ['Linear Sync'],
+  },
+  {
+    id: 'secret-4',
+    key: 'STRIPE_SECRET_KEY',
+    value: 'sk_live_xxxx...xxxx',
+    createdAt: '2024-02-01T10:00:00Z',
+    lastRotated: '2024-03-01T10:00:00Z',
+    usedBy: ['Invoice Processor'],
+  },
+];
 
 export const mockAuditEvents = [
-  { id: 'audit-1', timestamp: '2024-03-02T14:30:00Z', action: 'Agent installed', actor: 'john@acme.com', category: 'agent', details: 'Installed "Lead Qualifier" agent' },
-  { id: 'audit-2', timestamp: '2024-03-02T14:15:00Z', action: 'Workflow enabled', actor: 'john@acme.com', category: 'workflow', details: 'Enabled "Slack to Linear" workflow' },
-  { id: 'audit-3', timestamp: '2024-03-02T13:45:00Z', action: 'Secret rotated', actor: 'system', category: 'security', details: 'Auto-rotated OPENAI_API_KEY' },
-  { id: 'audit-4', timestamp: '2024-03-02T12:00:00Z', action: 'Member invited', actor: 'john@acme.com', category: 'security', details: 'Invited sarah@acme.com as Editor' },
-  { id: 'audit-5', timestamp: '2024-03-02T11:30:00Z', action: 'Approval granted', actor: 'john@acme.com', category: 'agent', details: 'Approved send_email action for Lead Qualifier' },
-  { id: 'audit-6', timestamp: '2024-03-02T10:00:00Z', action: 'Plan upgraded', actor: 'john@acme.com', category: 'billing', details: 'Upgraded from Starter to Pro plan' },
-]
+  {
+    id: 'audit-1',
+    timestamp: '2024-03-02T14:30:00Z',
+    action: 'Agent installed',
+    actor: 'john@acme.com',
+    category: 'agent',
+    details: 'Installed "Lead Qualifier" agent',
+  },
+  {
+    id: 'audit-2',
+    timestamp: '2024-03-02T14:15:00Z',
+    action: 'Workflow enabled',
+    actor: 'john@acme.com',
+    category: 'workflow',
+    details: 'Enabled "Slack to Linear" workflow',
+  },
+  {
+    id: 'audit-3',
+    timestamp: '2024-03-02T13:45:00Z',
+    action: 'Secret rotated',
+    actor: 'system',
+    category: 'security',
+    details: 'Auto-rotated OPENAI_API_KEY',
+  },
+  {
+    id: 'audit-4',
+    timestamp: '2024-03-02T12:00:00Z',
+    action: 'Member invited',
+    actor: 'john@acme.com',
+    category: 'security',
+    details: 'Invited sarah@acme.com as Editor',
+  },
+  {
+    id: 'audit-5',
+    timestamp: '2024-03-02T11:30:00Z',
+    action: 'Approval granted',
+    actor: 'john@acme.com',
+    category: 'agent',
+    details: 'Approved send_email action for Lead Qualifier',
+  },
+  {
+    id: 'audit-6',
+    timestamp: '2024-03-02T10:00:00Z',
+    action: 'Plan upgraded',
+    actor: 'john@acme.com',
+    category: 'billing',
+    details: 'Upgraded from Starter to Pro plan',
+  },
+];
 
 export const mockBillingInfo = {
   plan: 'pro',
-  monthlySpend: 149.00,
+  monthlySpend: 149.0,
   agentsInstalled: 8,
   runsThisMonth: 12500,
-}
+};

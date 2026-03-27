@@ -1,59 +1,73 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import Link from 'next/link'
-import { ArrowRight, Mail, MessageSquare, TrendingUp, Calendar, Users, Zap, Shield, Bot, Workflow, Lock, Eye, Key } from 'lucide-react'
-import { Threads } from '@/components/reactbits/threads'
-import { HalftoneBackground } from '@/components/brand/halftone-background'
-import { BrandFrame, BrandStrip } from '@/components/brand/brand-frame'
-import { MinimalButton } from '@/components/ui/minimal-button'
-import { FadeContent } from '@/components/reactbits/fade-content'
-import { GradientText } from '@/components/reactbits/gradient-text'
-import { SpotlightCard } from '@/components/reactbits/spotlight-card'
-import { TiltedCard } from '@/components/reactbits/tilted-card'
-import { LogoLoop } from '@/components/reactbits/logo-loop'
-import { AgentmouBotAnimation } from '@/components/reactbits/agentmou-bot-animation'
-import { INTEGRATION_LOGO_LOOP } from '@/lib/integrations-logo-loop'
+import * as React from 'react';
+import Link from 'next/link';
+import {
+  ArrowRight,
+  Mail,
+  MessageSquare,
+  TrendingUp,
+  Calendar,
+  Users,
+  Zap,
+  Shield,
+  Bot,
+  Workflow,
+  Lock,
+  Eye,
+  Key,
+} from 'lucide-react';
+import { Threads } from '@/components/reactbits/threads';
+import { HalftoneBackground } from '@/components/brand/halftone-background';
+import { BrandFrame, BrandStrip } from '@/components/brand/brand-frame';
+import { MinimalButton } from '@/components/ui/minimal-button';
+import { FadeContent } from '@/components/reactbits/fade-content';
+import { GradientText } from '@/components/reactbits/gradient-text';
+import { SpotlightCard } from '@/components/reactbits/spotlight-card';
+import { TiltedCard } from '@/components/reactbits/tilted-card';
+import { LogoLoop } from '@/components/reactbits/logo-loop';
+import { AgentmouBotAnimation } from '@/components/reactbits/agentmou-bot-animation';
+import { INTEGRATION_LOGO_LOOP } from '@/lib/integrations-logo-loop';
 
 interface MarketingCatalogPayload {
   agents: Array<{
-    id: string
-    name: string
-    category: string
-    description: string
-    timeSaved: string
-    accuracy: string
-  }>
+    id: string;
+    name: string;
+    category: string;
+    description: string;
+    timeSaved: string;
+    accuracy: string;
+  }>;
   workflows: Array<{
-    id: string
-    name: string
-    trigger: string
-    action: string
-  }>
+    id: string;
+    name: string;
+    trigger: string;
+    action: string;
+  }>;
   packs: Array<{
-    id: string
-    name: string
-    description: string
-    agents: number
-    workflows: number
-    outcome: string
-  }>
+    id: string;
+    name: string;
+    description: string;
+    agents: number;
+    workflows: number;
+    outcome: string;
+  }>;
   demoTotals?: {
-    agents: number
-    workflows: number
-    packs: number
-  }
+    agents: number;
+    workflows: number;
+    packs: number;
+  };
   operationalFeaturedCounts?: {
-    agents: number
-    workflows: number
-    packs: number
-  }
+    agents: number;
+    workflows: number;
+    packs: number;
+  };
   /** Operational manifest on disk + generally available (`availability: available`). */
   gaInventoryCounts?: {
-    agents: number
-    workflows: number
-    packs: number
-  }
+    agents: number;
+    workflows: number;
+    packs: number;
+  };
 }
 
 const iconMap: Record<string, typeof Mail> = {
@@ -63,7 +77,7 @@ const iconMap: Record<string, typeof Mail> = {
   'agent-ticket-router': MessageSquare,
   'agent-market-monitor': TrendingUp,
   'agent-meeting-prep': Calendar,
-}
+};
 
 const emptyCatalog: MarketingCatalogPayload = {
   agents: [],
@@ -72,61 +86,77 @@ const emptyCatalog: MarketingCatalogPayload = {
   demoTotals: { agents: 0, workflows: 0, packs: 0 },
   operationalFeaturedCounts: { agents: 0, workflows: 0, packs: 0 },
   gaInventoryCounts: { agents: 0, workflows: 0, packs: 0 },
-}
+};
 
 const securityFeatures = [
-  { icon: Shield, title: 'Workspace isolation', description: 'Multi-tenant architecture with complete data isolation.' },
-  { icon: Lock, title: 'Human-in-the-Loop', description: 'Require approvals for high-risk actions before execution.' },
-  { icon: Eye, title: 'Full observability', description: 'Detailed logs, run history, and token usage tracking.' },
-  { icon: Key, title: 'Secrets vault', description: 'Encrypted API keys with automatic rotation support.' },
-]
+  {
+    icon: Shield,
+    title: 'Workspace isolation',
+    description: 'Multi-tenant architecture with complete data isolation.',
+  },
+  {
+    icon: Lock,
+    title: 'Human-in-the-Loop',
+    description: 'Require approvals for high-risk actions before execution.',
+  },
+  {
+    icon: Eye,
+    title: 'Full observability',
+    description: 'Detailed logs, run history, and token usage tracking.',
+  },
+  {
+    icon: Key,
+    title: 'Secrets vault',
+    description: 'Encrypted API keys with automatic rotation support.',
+  },
+];
 
 export default function HomePage() {
-  const [catalog, setCatalog] = React.useState<MarketingCatalogPayload>(emptyCatalog)
+  const [catalog, setCatalog] = React.useState<MarketingCatalogPayload>(emptyCatalog);
 
   React.useEffect(() => {
-    let isActive = true
+    let isActive = true;
     fetch('/api/public-catalog')
       .then(async (res) => {
-        if (!res.ok) throw new Error(`public-catalog ${res.status}`)
-        return res.json() as Promise<MarketingCatalogPayload>
+        if (!res.ok) throw new Error(`public-catalog ${res.status}`);
+        return res.json() as Promise<MarketingCatalogPayload>;
       })
       .then((data) => {
         if (isActive) {
-          setCatalog(data)
+          setCatalog(data);
         }
       })
       .catch(() => {
         if (isActive) {
-          setCatalog(emptyCatalog)
+          setCatalog(emptyCatalog);
         }
-      })
+      });
 
     return () => {
-      isActive = false
-    }
-  }, [])
+      isActive = false;
+    };
+  }, []);
 
   const featuredAgents = catalog.agents.map((agent) => ({
     ...agent,
     icon: iconMap[agent.id] || Bot,
     metrics: { timeSaved: agent.timeSaved, accuracy: agent.accuracy },
-  }))
+  }));
 
-  const featuredWorkflows = catalog.workflows
-  const packs = catalog.packs
+  const featuredWorkflows = catalog.workflows;
+  const packs = catalog.packs;
 
   const totals = catalog.demoTotals ?? {
     agents: catalog.agents.length,
     workflows: catalog.workflows.length,
     packs: catalog.packs.length,
-  }
+  };
   const ga = catalog.gaInventoryCounts ?? {
     agents: 0,
     workflows: 0,
     packs: 0,
-  }
-  const gaTotal = ga.agents + ga.workflows + ga.packs
+  };
+  const gaTotal = ga.agents + ga.workflows + ga.packs;
 
   const stats = [
     { value: `${totals.agents}+`, label: 'Demo catalog agents' },
@@ -136,7 +166,7 @@ export default function HomePage() {
       value: `${gaTotal}`,
       label: 'Generally available in repo catalog',
     },
-  ]
+  ];
 
   return (
     <div className="relative">
@@ -157,18 +187,24 @@ export default function HomePage() {
               <p className="text-editorial-tiny mb-6">
                 <GradientText>AI Agent Fleet + n8n Orchestration</GradientText>
               </p>
-              
+
               <h1 className="text-editorial-headline">
-                <GradientText className="block" animationDelay={0}>Your business,</GradientText>
-                <GradientText className="block" animationDelay={2}>running on</GradientText>
-                <GradientText className="block" animationDelay={4}>agents.</GradientText>
+                <GradientText className="block" animationDelay={0}>
+                  Your business,
+                </GradientText>
+                <GradientText className="block" animationDelay={2}>
+                  running on
+                </GradientText>
+                <GradientText className="block" animationDelay={4}>
+                  agents.
+                </GradientText>
               </h1>
-              
+
               <p className="mt-8 text-editorial-subhead max-w-lg">
-                Install AI agents for support, sales, marketing, research, finance, and ops. 
-                Connect to n8n workflows. Measure outcomes.
+                Install AI agents for support, sales, marketing, research, finance, and ops. Connect
+                to n8n workflows. Measure outcomes.
               </p>
-              
+
               <div className="mt-10 flex flex-col sm:flex-row gap-4">
                 <Link href="/app/demo-workspace/dashboard">
                   <MinimalButton size="lg" className="w-full sm:w-auto">
@@ -183,7 +219,7 @@ export default function HomePage() {
                 </Link>
               </div>
             </FadeContent>
-            
+
             <FadeContent delay={0.3}>
               <div className="mt-16 flex gap-12">
                 {stats.map((stat) => (
@@ -205,12 +241,12 @@ export default function HomePage() {
             <p className="text-editorial-tiny mb-4">Choose your path</p>
             <h2 className="text-3xl font-bold tracking-tight mb-16">Two tracks, one platform</h2>
           </FadeContent>
-          
+
           <div className="grid md:grid-cols-2 gap-8">
             <FadeContent delay={0.1}>
               <TiltedCard className="h-full">
                 <SpotlightCard className="h-full rounded-md border-[0.5px] border-muted-foreground/30">
-                  <Link 
+                  <Link
                     href="/app/demo-workspace/marketplace?track=business"
                     className="group block p-8 h-full"
                   >
@@ -230,11 +266,11 @@ export default function HomePage() {
                 </SpotlightCard>
               </TiltedCard>
             </FadeContent>
-            
+
             <FadeContent delay={0.2}>
               <TiltedCard className="h-full">
                 <SpotlightCard className="h-full rounded-md border-[0.5px] border-muted-foreground/30">
-                  <Link 
+                  <Link
                     href="/app/demo-workspace/marketplace?track=personal"
                     className="group block p-8 h-full"
                   >
@@ -244,7 +280,8 @@ export default function HomePage() {
                     </div>
                     <h3 className="text-2xl font-semibold mb-2">For individuals</h3>
                     <p className="text-muted-foreground mb-6">
-                      Personal productivity. Inbox management, file archiving, research, and more. Start free.
+                      Personal productivity. Inbox management, file archiving, research, and more.
+                      Start free.
                     </p>
                     <span className="text-sm font-medium group-hover:underline">
                       Explore personal agents
@@ -285,12 +322,12 @@ export default function HomePage() {
               </Link>
             </div>
           </FadeContent>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredAgents.map((agent, i) => (
               <FadeContent key={agent.id} delay={i * 0.1}>
                 <SpotlightCard className="h-full rounded-md border border-border/50 bg-background">
-                  <Link 
+                  <Link
                     href={`/app/demo-workspace/marketplace/agents/${agent.id}`}
                     className="group block p-6 h-full transition-all hover:-translate-y-0.5"
                   >
@@ -301,7 +338,9 @@ export default function HomePage() {
                       <span className="text-editorial-tiny">{agent.category}</span>
                     </div>
                     <h3 className="font-semibold mb-2">{agent.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{agent.description}</p>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                      {agent.description}
+                    </p>
                     <div className="flex gap-4 text-xs text-muted-foreground">
                       {Object.entries(agent.metrics).map(([key, value]) => (
                         <span key={key}>{value}</span>
@@ -323,13 +362,13 @@ export default function HomePage() {
               <p className="text-editorial-tiny mb-4">n8n Integration</p>
               <h2 className="text-3xl font-bold tracking-tight mb-6">Pre-built workflows</h2>
               <p className="text-muted-foreground mb-8">
-                Connect agents to n8n workflows. Trigger on events. Transform data. 
-                Take actions across your stack.
+                Connect agents to n8n workflows. Trigger on events. Transform data. Take actions
+                across your stack.
               </p>
-              
+
               <div className="space-y-3">
                 {featuredWorkflows.map((wf) => (
-                  <div 
+                  <div
                     key={wf.id}
                     className="flex items-center justify-between p-4 border border-border/50 rounded-md"
                   >
@@ -345,7 +384,7 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-              
+
               <Link href="/app/demo-workspace/marketplace" className="inline-block mt-8">
                 <MinimalButton variant="outline">
                   Browse all workflows
@@ -369,7 +408,7 @@ export default function HomePage() {
               </p>
             </div>
           </FadeContent>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {packs.map((pack, i) => (
               <FadeContent key={pack.id} delay={i * 0.1}>
@@ -377,7 +416,7 @@ export default function HomePage() {
                   <div className="p-8">
                     <h3 className="text-xl font-semibold mb-2">{pack.name}</h3>
                     <p className="text-sm text-muted-foreground mb-6">{pack.description}</p>
-                    
+
                     <div className="flex gap-6 mb-6">
                       <div>
                         <p className="text-2xl font-bold">{pack.agents}</p>
@@ -388,7 +427,7 @@ export default function HomePage() {
                         <p className="text-editorial-tiny">Workflows</p>
                       </div>
                     </div>
-                    
+
                     <div className="p-3 bg-accent/10 rounded text-sm">
                       <Zap className="inline-block h-4 w-4 mr-2 text-accent" />
                       {pack.outcome}
@@ -409,10 +448,10 @@ export default function HomePage() {
               <p className="text-editorial-tiny mb-4">Enterprise-ready</p>
               <h2 className="text-3xl font-bold tracking-tight mb-6">Human in the loop</h2>
               <p className="text-muted-foreground mb-8">
-                Keep humans in control. Approve high-risk actions. Audit everything. 
-                Set policies per agent.
+                Keep humans in control. Approve high-risk actions. Audit everything. Set policies
+                per agent.
               </p>
-              
+
               <div className="space-y-4">
                 {securityFeatures.map((feature) => (
                   <div key={feature.title} className="flex items-start gap-3">
@@ -424,7 +463,7 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-              
+
               <Link href="/security" className="inline-block mt-8">
                 <MinimalButton variant="text">
                   Learn about security
@@ -437,7 +476,11 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <HalftoneBackground variant="mintTop" intensity="med" className="py-24 pb-4 border-t border-border/50">
+      <HalftoneBackground
+        variant="mintTop"
+        intensity="med"
+        className="py-24 pb-4 border-t border-border/50"
+      >
         <FadeContent>
           <div className="mx-auto max-w-7xl px-6 lg:px-8 text-center">
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
@@ -466,5 +509,5 @@ export default function HomePage() {
         </FadeContent>
       </HalftoneBackground>
     </div>
-  )
+  );
 }

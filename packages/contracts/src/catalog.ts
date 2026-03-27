@@ -109,13 +109,7 @@ export const AgentDomainSchema = z.enum([
 export type AgentDomain = z.infer<typeof AgentDomainSchema>;
 
 /** Trigger types supported by workflow templates. */
-export const WorkflowTriggerTypeSchema = z.enum([
-  'webhook',
-  'cron',
-  'manual',
-  'email',
-  'event',
-]);
+export const WorkflowTriggerTypeSchema = z.enum(['webhook', 'cron', 'manual', 'email', 'event']);
 
 /** TypeScript view of workflow trigger types. */
 export type WorkflowTriggerType = z.infer<typeof WorkflowTriggerTypeSchema>;
@@ -142,21 +136,13 @@ export type WorkflowNode = z.infer<typeof WorkflowNodeSchema>;
 // ---------------------------------------------------------------------------
 
 /** Runtime owner responsible for executing an installed catalog asset. */
-export const RuntimeOwnerSchema = z.enum([
-  'agent_engine',
-  'n8n',
-  'agents_service',
-  'platform_api',
-]);
+export const RuntimeOwnerSchema = z.enum(['agent_engine', 'n8n', 'agents_service', 'platform_api']);
 
 /** TypeScript view of supported runtime owners. */
 export type RuntimeOwner = z.infer<typeof RuntimeOwnerSchema>;
 
 /** Strategy describing where runtime credentials are expected to live. */
-export const CredentialStrategySchema = z.enum([
-  'platform_managed',
-  'n8n_native_exception',
-]);
+export const CredentialStrategySchema = z.enum(['platform_managed', 'n8n_native_exception']);
 
 /** TypeScript view of supported credential strategies. */
 export type CredentialStrategy = z.infer<typeof CredentialStrategySchema>;

@@ -53,10 +53,7 @@ export interface RunStep {
 export class RunLogger {
   private steps: Map<string, RunStep[]> = new Map();
 
-  async startRun(
-    runId: string,
-    metadata?: Record<string, unknown>
-  ): Promise<RunMetrics> {
+  async startRun(runId: string, metadata?: Record<string, unknown>): Promise<RunMetrics> {
     this.steps.set(runId, []);
 
     return {
@@ -70,10 +67,7 @@ export class RunLogger {
   /**
    * Records a step starting — persists to the `execution_steps` table.
    */
-  async startStep(
-    runId: string,
-    step: Omit<RunStep, 'status' | 'startedAt'>
-  ): Promise<RunStep> {
+  async startStep(runId: string, step: Omit<RunStep, 'status' | 'startedAt'>): Promise<RunStep> {
     const newStep: RunStep = {
       ...step,
       status: 'running',
@@ -138,11 +132,7 @@ export class RunLogger {
   /**
    * Marks a step as failed and persists the error to the DB.
    */
-  async failStep(
-    runId: string,
-    stepId: string,
-    error: string
-  ): Promise<RunStep | undefined> {
+  async failStep(runId: string, stepId: string, error: string): Promise<RunStep | undefined> {
     const runSteps = this.steps.get(runId);
     const step = runSteps?.find((s) => s.id === stepId);
     if (!step) return;
@@ -241,10 +231,7 @@ export class RunLogger {
     return [];
   }
 
-  async getLogs(
-    runId: string,
-    _filters?: { level?: LogEntry['level'] }
-  ): Promise<LogEntry[]> {
+  async getLogs(runId: string, _filters?: { level?: LogEntry['level'] }): Promise<LogEntry[]> {
     return [];
   }
 }

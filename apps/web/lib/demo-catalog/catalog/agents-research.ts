@@ -1,4 +1,4 @@
-import type { AgentTemplate } from '../../control-plane/types'
+import type { AgentTemplate } from '../../control-plane/types';
 
 // Research / Content / Marketing agents (16)
 export const researchAgentTemplates: AgentTemplate[] = [
@@ -7,7 +7,8 @@ export const researchAgentTemplates: AgentTemplate[] = [
     name: 'No-RSS News Scraper',
     outcome: 'Monitor news sites without RSS feeds',
     domain: 'research',
-    description: 'Scrapes news from websites that do not provide RSS feeds and stores articles in a structured database.',
+    description:
+      'Scrapes news from websites that do not provide RSS feeds and stores articles in a structured database.',
     inputs: ['target_sites', 'keywords', 'frequency'],
     outputs: ['articles', 'summaries', 'stored_records'],
     requiredIntegrations: ['apify', 'openai', 'nocodb'],
@@ -31,7 +32,8 @@ export const researchAgentTemplates: AgentTemplate[] = [
     name: 'SEO Pulse Reporter',
     outcome: 'Weekly SEO health and ranking report',
     domain: 'marketing',
-    description: 'Monitors keyword rankings and SEO metrics, delivering AI-analyzed insights weekly.',
+    description:
+      'Monitors keyword rankings and SEO metrics, delivering AI-analyzed insights weekly.',
     inputs: ['keywords', 'competitors', 'site_url'],
     outputs: ['ranking_report', 'trend_analysis', 'recommendations'],
     requiredIntegrations: ['serpbear', 'openrouter', 'baserow'],
@@ -55,7 +57,8 @@ export const researchAgentTemplates: AgentTemplate[] = [
     name: 'GA Insight Bot',
     outcome: 'AI-powered Google Analytics insights',
     domain: 'marketing',
-    description: 'Fetches Google Analytics data and generates AI-powered insights and recommendations.',
+    description:
+      'Fetches Google Analytics data and generates AI-powered insights and recommendations.',
     inputs: ['ga_property', 'date_range', 'focus_areas'],
     outputs: ['insights', 'anomalies', 'recommendations'],
     requiredIntegrations: ['google-analytics', 'openai', 'baserow'],
@@ -79,7 +82,8 @@ export const researchAgentTemplates: AgentTemplate[] = [
     name: 'Perplexity Research to HTML Publisher',
     outcome: 'Research any topic and publish HTML',
     domain: 'marketing',
-    description: 'Uses Perplexity AI to research topics and outputs publication-ready HTML content.',
+    description:
+      'Uses Perplexity AI to research topics and outputs publication-ready HTML content.',
     inputs: ['research_topic', 'output_format', 'depth'],
     outputs: ['html_content', 'sources', 'summary'],
     requiredIntegrations: ['perplexity'],
@@ -103,7 +107,8 @@ export const researchAgentTemplates: AgentTemplate[] = [
     name: 'Survey Insights Analyst',
     outcome: 'Deep insights from survey responses',
     domain: 'research',
-    description: 'Processes survey data with vector embeddings to extract themes and actionable insights.',
+    description:
+      'Processes survey data with vector embeddings to extract themes and actionable insights.',
     inputs: ['survey_responses', 'questions', 'analysis_focus'],
     outputs: ['themes', 'sentiment', 'recommendations', 'visualizations'],
     requiredIntegrations: ['qdrant', 'python'],
@@ -127,7 +132,8 @@ export const researchAgentTemplates: AgentTemplate[] = [
     name: 'Recipe Recommender Demo',
     outcome: 'Semantic recipe search and recommendations',
     domain: 'research',
-    description: 'Demo agent showcasing vector search for recipe recommendations based on preferences.',
+    description:
+      'Demo agent showcasing vector search for recipe recommendations based on preferences.',
     inputs: ['preferences', 'ingredients', 'dietary_restrictions'],
     outputs: ['recipes', 'similarity_scores', 'substitutions'],
     requiredIntegrations: ['qdrant', 'mistral'],
@@ -155,7 +161,8 @@ export const researchAgentTemplates: AgentTemplate[] = [
     name: 'Scraper Swiss Army Knife',
     outcome: 'Versatile web scraping on demand',
     domain: 'research',
-    description: 'Flexible web scraping agent that extracts structured data from any webpage via API.',
+    description:
+      'Flexible web scraping agent that extracts structured data from any webpage via API.',
     inputs: ['url', 'extraction_schema', 'options'],
     outputs: ['extracted_data', 'raw_content', 'metadata'],
     requiredIntegrations: ['apify', 'openai'],
@@ -203,7 +210,8 @@ export const researchAgentTemplates: AgentTemplate[] = [
     name: 'Workplace Pattern Detector',
     outcome: 'Identify patterns in workplace data',
     domain: 'ops',
-    description: 'Analyzes workplace data to detect behavioral patterns, trends, and potential issues.',
+    description:
+      'Analyzes workplace data to detect behavioral patterns, trends, and potential issues.',
     inputs: ['workplace_data', 'analysis_type'],
     outputs: ['patterns', 'anomalies', 'recommendations'],
     requiredIntegrations: ['openai'],
@@ -251,7 +259,8 @@ export const researchAgentTemplates: AgentTemplate[] = [
     name: 'Vector Analytics Lab',
     outcome: 'Advanced analytics with vector databases',
     domain: 'research',
-    description: 'Multi-part analytics suite for big data analysis and anomaly detection using vector embeddings.',
+    description:
+      'Multi-part analytics suite for big data analysis and anomaly detection using vector embeddings.',
     inputs: ['dataset', 'analysis_type', 'parameters'],
     outputs: ['analysis_results', 'visualizations', 'anomalies'],
     requiredIntegrations: ['qdrant'],
@@ -279,7 +288,8 @@ export const researchAgentTemplates: AgentTemplate[] = [
     name: 'Review Theme Miner',
     outcome: 'Extract themes from customer reviews',
     domain: 'marketing',
-    description: 'Analyzes customer reviews to extract recurring themes, sentiment patterns, and improvement areas.',
+    description:
+      'Analyzes customer reviews to extract recurring themes, sentiment patterns, and improvement areas.',
     inputs: ['reviews', 'time_period', 'focus_areas'],
     outputs: ['themes', 'sentiment_breakdown', 'priority_issues'],
     requiredIntegrations: ['trustpilot', 'openai'],
@@ -304,7 +314,8 @@ export const researchAgentTemplates: AgentTemplate[] = [
     name: 'Content Calendar Builder',
     outcome: 'Plan content with AI assistance',
     domain: 'marketing',
-    description: 'Generates content calendar suggestions based on trends, events, and audience insights.',
+    description:
+      'Generates content calendar suggestions based on trends, events, and audience insights.',
     inputs: ['topics', 'channels', 'frequency', 'events'],
     outputs: ['calendar', 'content_ideas', 'optimal_timing'],
     requiredIntegrations: ['notion', 'openai'],
@@ -329,7 +340,8 @@ export const researchAgentTemplates: AgentTemplate[] = [
     name: 'Repurposing Machine',
     outcome: 'Transform content across formats',
     domain: 'marketing',
-    description: 'Repurposes long-form content into multiple formats (social posts, summaries, threads).',
+    description:
+      'Repurposes long-form content into multiple formats (social posts, summaries, threads).',
     inputs: ['source_content', 'target_formats', 'tone'],
     outputs: ['repurposed_content', 'format_variants', 'scheduling_suggestions'],
     requiredIntegrations: ['openai'],
@@ -379,7 +391,8 @@ export const researchAgentTemplates: AgentTemplate[] = [
     name: 'Community Reply Drafter',
     outcome: 'Draft community responses at scale',
     domain: 'marketing',
-    description: 'Drafts responses to community posts, comments, and discussions in your brand voice.',
+    description:
+      'Drafts responses to community posts, comments, and discussions in your brand voice.',
     inputs: ['post_content', 'brand_voice', 'response_type'],
     outputs: ['draft_reply', 'tone_check', 'suggested_resources'],
     requiredIntegrations: ['openai'],
@@ -399,4 +412,4 @@ export const researchAgentTemplates: AgentTemplate[] = [
     audience: 'both',
     statusNote: 'Buildable on request',
   },
-]
+];

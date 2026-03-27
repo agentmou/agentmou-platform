@@ -135,7 +135,7 @@ async function loadCatalogFromApi(): Promise<MarketingCatalogPayload | null> {
 
     if (!agentsResponse.ok || !workflowsResponse.ok || !packsResponse.ok) {
       throw new Error(
-        `Catalog API HTTP status mismatch: agents=${agentsResponse.status}, workflows=${workflowsResponse.status}, packs=${packsResponse.status}`,
+        `Catalog API HTTP status mismatch: agents=${agentsResponse.status}, workflows=${workflowsResponse.status}, packs=${packsResponse.status}`
       );
     }
 
@@ -412,7 +412,7 @@ function mapApiAgents(agents: ApiAgentManifest[] | undefined): MarketingAgent[] 
     const category = normalizeMarketingCategory(
       toStringValue(agent.catalogGroup) ??
         toStringValue(agent.category) ??
-        toStringValue(agent.domain),
+        toStringValue(agent.domain)
     );
 
     return {
@@ -430,9 +430,7 @@ function mapApiWorkflows(workflows: ApiWorkflowManifest[] | undefined): Marketin
   return asArray(workflows).map((workflow) => {
     const id = toStringValue(workflow.id) || 'unknown-workflow';
     const name = toStringValue(workflow.name) || humanizeId(id);
-    const description =
-      toStringValue(workflow.summary) ??
-      toStringValue(workflow.description);
+    const description = toStringValue(workflow.summary) ?? toStringValue(workflow.description);
     const trigger = readWorkflowTrigger(workflow.trigger) || 'manual';
 
     return {
@@ -482,9 +480,7 @@ function asArray<T>(value: T[] | undefined): T[] {
 
 function toStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => toStringValue(item))
-    .filter((item): item is string => Boolean(item));
+  return value.map((item) => toStringValue(item)).filter((item): item is string => Boolean(item));
 }
 
 function toStringValue(value: unknown): string | undefined {

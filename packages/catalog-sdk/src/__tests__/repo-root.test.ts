@@ -19,9 +19,7 @@ afterEach(() => {
 
 describe('resolveRepoRoot', () => {
   it('resolves /prod when the service runs from dist inside a container', () => {
-    const fixtureRoot = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'agentmou-repo-root-dist-'),
-    );
+    const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agentmou-repo-root-dist-'));
     tempDirs.push(fixtureRoot);
 
     const prodRoot = path.join(fixtureRoot, 'prod');
@@ -33,26 +31,15 @@ describe('resolveRepoRoot', () => {
     });
     fs.mkdirSync(moduleDir, { recursive: true });
 
-    expect(
-      resolveRepoRoot(moduleDir, ['catalog/agents', 'workflows/public']),
-    ).toBe(prodRoot);
+    expect(resolveRepoRoot(moduleDir, ['catalog/agents', 'workflows/public'])).toBe(prodRoot);
   });
 
   it('resolves the repo root when the service runs directly from src', () => {
-    const fixtureRoot = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'agentmou-repo-root-src-'),
-    );
+    const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agentmou-repo-root-src-'));
     tempDirs.push(fixtureRoot);
 
     const repoRoot = path.join(fixtureRoot, 'repo');
-    const moduleDir = path.join(
-      repoRoot,
-      'services',
-      'api',
-      'src',
-      'modules',
-      'catalog',
-    );
+    const moduleDir = path.join(repoRoot, 'services', 'api', 'src', 'modules', 'catalog');
 
     fs.mkdirSync(path.join(repoRoot, 'catalog', 'agents'), { recursive: true });
     fs.mkdirSync(path.join(repoRoot, 'workflows', 'public'), {
@@ -60,26 +47,15 @@ describe('resolveRepoRoot', () => {
     });
     fs.mkdirSync(moduleDir, { recursive: true });
 
-    expect(
-      resolveRepoRoot(moduleDir, ['catalog/agents', 'workflows/public']),
-    ).toBe(repoRoot);
+    expect(resolveRepoRoot(moduleDir, ['catalog/agents', 'workflows/public'])).toBe(repoRoot);
   });
 
   it('honors AGENTMOU_REPO_ROOT when it points at a valid asset root', () => {
-    const fixtureRoot = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'agentmou-repo-root-env-'),
-    );
+    const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agentmou-repo-root-env-'));
     tempDirs.push(fixtureRoot);
 
     const overrideRoot = path.join(fixtureRoot, 'override');
-    const moduleDir = path.join(
-      fixtureRoot,
-      'prod',
-      'api',
-      'dist',
-      'modules',
-      'catalog',
-    );
+    const moduleDir = path.join(fixtureRoot, 'prod', 'api', 'dist', 'modules', 'catalog');
 
     fs.mkdirSync(path.join(overrideRoot, 'catalog', 'agents'), {
       recursive: true,
@@ -91,8 +67,6 @@ describe('resolveRepoRoot', () => {
 
     process.env.AGENTMOU_REPO_ROOT = overrideRoot;
 
-    expect(
-      resolveRepoRoot(moduleDir, ['catalog/agents', 'workflows/public']),
-    ).toBe(overrideRoot);
+    expect(resolveRepoRoot(moduleDir, ['catalog/agents', 'workflows/public'])).toBe(overrideRoot);
   });
 });

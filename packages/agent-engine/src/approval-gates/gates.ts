@@ -88,11 +88,7 @@ export class ApprovalGateManager {
     return { requiresApproval: matchesCondition.length > 0, gate };
   }
 
-  async requestApproval(
-    gateId: string,
-    runId: string,
-    context: any
-  ): Promise<ApprovalRequest> {
+  async requestApproval(gateId: string, runId: string, context: any): Promise<ApprovalRequest> {
     const gate = this.getGate(gateId);
     if (!gate) {
       throw new Error(`Gate ${gateId} not found`);
@@ -120,10 +116,7 @@ export class ApprovalGateManager {
     return request;
   }
 
-  async respondToApproval(
-    requestId: string,
-    response: ApprovalResponse
-  ): Promise<ApprovalRequest> {
+  async respondToApproval(requestId: string, response: ApprovalResponse): Promise<ApprovalRequest> {
     const request = this.requests.get(requestId);
     if (!request) {
       throw new Error(`Approval request ${requestId} not found`);
@@ -153,7 +146,7 @@ export class ApprovalGateManager {
         gateId: gate.id,
         requestId: request.id,
       },
-      'Notifying approvers for approval request',
+      'Notifying approvers for approval request'
     );
   }
 
@@ -172,6 +165,6 @@ export class ApprovalGateManager {
   }
 
   async getRequestsByRun(runId: string): Promise<ApprovalRequest[]> {
-    return Array.from(this.requests.values()).filter(r => r.runId === runId);
+    return Array.from(this.requests.values()).filter((r) => r.runId === runId);
   }
 }

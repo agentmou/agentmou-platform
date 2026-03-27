@@ -22,7 +22,7 @@ export class SecretsService {
   async createSecret(
     tenantId: string,
     body: { key: string; encryptedValue: string; connectorAccountId?: string },
-    actorId?: string,
+    actorId?: string
   ) {
     const [secret] = await db
       .insert(secretEnvelopes)
@@ -56,21 +56,11 @@ export class SecretsService {
         key: secretEnvelopes.key,
       })
       .from(secretEnvelopes)
-      .where(
-        and(
-          eq(secretEnvelopes.tenantId, tenantId),
-          eq(secretEnvelopes.id, secretId)
-        )
-      );
+      .where(and(eq(secretEnvelopes.tenantId, tenantId), eq(secretEnvelopes.id, secretId)));
 
     await db
       .delete(secretEnvelopes)
-      .where(
-        and(
-          eq(secretEnvelopes.tenantId, tenantId),
-          eq(secretEnvelopes.id, secretId)
-        )
-      );
+      .where(and(eq(secretEnvelopes.tenantId, tenantId), eq(secretEnvelopes.id, secretId)));
 
     if (secret) {
       await recordAuditEvent({

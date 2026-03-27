@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  mapAgentManifest,
-  mapPackManifest,
-  mapWorkflowManifest,
-} from './catalog.mapper.js';
+import { mapAgentManifest, mapPackManifest, mapWorkflowManifest } from './catalog.mapper.js';
 
 describe('catalog.mapper', () => {
   it('maps an operational agent manifest to the shared catalog template shape', () => {

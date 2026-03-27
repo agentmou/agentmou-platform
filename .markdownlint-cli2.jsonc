@@ -1,10 +1,25 @@
 {
-  "config": {
-    "defaultConfig": {
-      "MD060": { "style": "compact" },
-      "MD013": false,
-      "MD040": false,
-      "MD036": false
-    }
-  }
+  "globs": [
+    "README.md",
+    "AGENTS.md",
+    "apps/**/*.md",
+    "catalog/**/*.md",
+    "docs/**/*.md",
+    "infra/**/*.md",
+    "packages/**/*.md",
+    "services/**/*.md",
+    "skills/**/*.md",
+    "templates/**/*.md",
+    "workflows/**/*.md",
+    ".codex/**/*.mdc",
+    ".cursor/rules/**/*.mdc"
+  ],
+  "ignores": [
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/.turbo/**",
+    "**/.pnpm-store/**",
+    "**/coverage/**",
+    "**/dist/**"
+  ]
 }

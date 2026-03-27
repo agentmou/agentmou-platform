@@ -1,8 +1,5 @@
 import type { Job } from 'bullmq';
-import {
-  createServiceLogger,
-  isTestEnvironment,
-} from '@agentmou/observability';
+import { createServiceLogger, isTestEnvironment } from '@agentmou/observability';
 
 const logger = createServiceLogger('worker');
 

@@ -1,28 +1,24 @@
 // Mock Chat Engine for Agentmou Assistant
 // This file is designed to be easily replaced with OpenAI integration
 
-import type {
-  ActionSuggestion,
-  ChatMode,
-  WorkspaceContextSnapshot,
-} from './types'
+import type { ActionSuggestion, ChatMode, WorkspaceContextSnapshot } from './types';
 
 interface EngineInput {
-  mode: ChatMode
-  userMessage: string
-  context?: WorkspaceContextSnapshot
+  mode: ChatMode;
+  userMessage: string;
+  context?: WorkspaceContextSnapshot;
 }
 
 interface EngineOutput {
-  content: string
-  actions?: ActionSuggestion[]
+  content: string;
+  actions?: ActionSuggestion[];
 }
 
-const DEMO_WORKSPACE_ID = 'demo-workspace'
+const DEMO_WORKSPACE_ID = 'demo-workspace';
 
 function workspaceHref(workspaceId: string | undefined, path: string): string {
-  const tenantId = workspaceId || DEMO_WORKSPACE_ID
-  return `/app/${tenantId}${path}`
+  const tenantId = workspaceId || DEMO_WORKSPACE_ID;
+  return `/app/${tenantId}${path}`;
 }
 
 function formatWorkspaceStatus(status: string): string {
@@ -30,11 +26,12 @@ function formatWorkspaceStatus(status: string): string {
     .toLowerCase()
     .split('_')
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
+    .join(' ');
 }
 
 const INTENT_PATTERNS = {
-  nextSteps: /\b(next|what.*do|after|start|begin|get.*started|help.*setup|readiness|status|progress)\b/i,
+  nextSteps:
+    /\b(next|what.*do|after|start|begin|get.*started|help.*setup|readiness|status|progress)\b/i,
   whyBlocked: /\b(why|blocked|not.*activ|can't|cannot|error|issue|problem|stuck)\b/i,
   recommendAgents: /\b(recommend|suggest|agents?|which.*agent|best.*for)\b/i,
   recommendWorkflows: /\b(workflow|automat|connect|sequence)\b/i,
@@ -44,19 +41,19 @@ const INTENT_PATTERNS = {
   pricing: /\b(pric|cost|plan|tier|pay|billing|subscription)\b/i,
   security: /\b(secur\w*|safe|data|privacy|encrypt|compliance)\b/i,
   howItWorks: /\b(how.*work|what.*is|explain|overview|tour|preview)\b/i,
-}
+};
 
 function detectIntent(message: string): keyof typeof INTENT_PATTERNS | 'unknown' {
   for (const [intent, pattern] of Object.entries(INTENT_PATTERNS)) {
     if (pattern.test(message)) {
-      return intent as keyof typeof INTENT_PATTERNS
+      return intent as keyof typeof INTENT_PATTERNS;
     }
   }
-  return 'unknown'
+  return 'unknown';
 }
 
 function generatePublicResponse(userMessage: string): EngineOutput {
-  const intent = detectIntent(userMessage)
+  const intent = detectIntent(userMessage);
 
   switch (intent) {
     case 'nextSteps':
@@ -75,7 +72,7 @@ Would you like to open the demo workspace or compare plans?`,
           { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
           { label: 'View Pricing', href: '/pricing' },
         ],
-      }
+      };
 
     case 'pricing':
       return {
@@ -90,7 +87,7 @@ The pricing page is part of the live marketing site, while billing inside tenant
           { label: 'Compare Plans', href: '/pricing' },
           { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
         ],
-      }
+      };
 
     case 'recommendAgents':
       return {
@@ -113,7 +110,7 @@ The marketplace is the best place to compare them side by side.`,
           { label: 'Browse Agents', href: workspaceHref(undefined, '/marketplace') },
           { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
         ],
-      }
+      };
 
     case 'integrations':
       return {
@@ -130,7 +127,7 @@ The catalog and demo show what the product aims to support, while tenant-facing 
           { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
           { label: 'View Security Page', href: '/security' },
         ],
-      }
+      };
 
     case 'security':
       return {
@@ -146,7 +143,7 @@ I can point you to the marketing security page or the demo workspace if you want
           { label: 'Security Details', href: '/security' },
           { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
         ],
-      }
+      };
 
     case 'goLive':
       return {
@@ -157,7 +154,7 @@ I can help you explore the demo, review pricing, and explain which tenant surfac
           { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
           { label: 'View Docs', href: '/docs' },
         ],
-      }
+      };
 
     default:
       return {
@@ -174,29 +171,29 @@ What would you like to know?`,
           { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
           { label: 'View Docs', href: '/docs' },
         ],
-      }
+      };
   }
 }
 
 function generateCopilotResponse(
   userMessage: string,
-  context: WorkspaceContextSnapshot,
+  context: WorkspaceContextSnapshot
 ): EngineOutput {
-  const intent = detectIntent(userMessage)
-  const readinessStatus = formatWorkspaceStatus(context.workspaceStatus)
-  const blockedAgents = context.installedAgents.filter((agent) => agent.reasons.length > 0)
+  const intent = detectIntent(userMessage);
+  const readinessStatus = formatWorkspaceStatus(context.workspaceStatus);
+  const blockedAgents = context.installedAgents.filter((agent) => agent.reasons.length > 0);
   const missingIntegrations = context.integrations.filter(
-    (integration) => integration.status === 'disconnected',
-  )
+    (integration) => integration.status === 'disconnected'
+  );
   const incompleteIntegrations = context.integrations.filter(
-    (integration) => integration.missingScopes.length > 0,
-  )
-  const incompleteTasks = context.pendingTasks.filter((task) => !task.completed)
+    (integration) => integration.missingScopes.length > 0
+  );
+  const incompleteTasks = context.pendingTasks.filter((task) => !task.completed);
 
   switch (intent) {
     case 'nextSteps':
       if (incompleteTasks.length > 0) {
-        const nextTask = incompleteTasks[0]
+        const nextTask = incompleteTasks[0];
         return {
           content: `**Next review step: ${nextTask.label}**
 
@@ -204,7 +201,7 @@ ${nextTask.description}
 
 You've reviewed ${context.checklistProgress} of ${context.checklistTotal} checklist items in this preview.`,
           actions: getActionsForTask(nextTask.label, context.workspaceId),
-        }
+        };
       }
       if (context.workspaceStatus === 'GO_LIVE_READY') {
         return {
@@ -215,7 +212,7 @@ This snapshot does not show remaining blockers, but the assistant cannot activat
             { label: 'Review Fleet', href: workspaceHref(context.workspaceId, '/fleet') },
             { label: 'Open Runs', href: workspaceHref(context.workspaceId, '/runs') },
           ],
-        }
+        };
       }
       return {
         content: `**Current readiness status: ${readinessStatus}**
@@ -227,16 +224,16 @@ Your checklist is ${context.checklistProgress}/${context.checklistTotal} complet
             href: workspaceHref(context.workspaceId, '/installer/new'),
           },
         ],
-      }
+      };
 
     case 'whyBlocked':
       if (blockedAgents.length > 0) {
         const agentIssues = blockedAgents
           .map((agent) => {
-            const reasons = agent.reasons.map((reason) => formatReason(reason)).join(', ')
-            return `- **${agent.name}**: ${reasons}`
+            const reasons = agent.reasons.map((reason) => formatReason(reason)).join(', ');
+            return `- **${agent.name}**: ${reasons}`;
           })
-          .join('\n')
+          .join('\n');
 
         return {
           content: `**${blockedAgents.length} agent(s) need follow-up in this snapshot:**
@@ -245,7 +242,7 @@ ${agentIssues}
 
 I can point you to the surfaces that describe the missing pieces.`,
           actions: getActionsForReasons(blockedAgents[0].reasons, context.workspaceId),
-        }
+        };
       }
       if (missingIntegrations.length > 0) {
         return {
@@ -260,7 +257,7 @@ This assistant cannot connect them for you, but it can point you to the relevant
               href: workspaceHref(context.workspaceId, '/security'),
             },
           ],
-        }
+        };
       }
       if (incompleteIntegrations.length > 0) {
         return {
@@ -275,7 +272,7 @@ Re-authorize these integrations from the connection surface when that workflow i
               href: workspaceHref(context.workspaceId, '/security'),
             },
           ],
-        }
+        };
       }
       return {
         content: `This preview snapshot does not show an active blocker right now.
@@ -284,7 +281,7 @@ If you want, I can point you to dashboard, runs, or security for a more specific
         actions: [
           { label: 'View Dashboard', href: workspaceHref(context.workspaceId, '/dashboard') },
         ],
-      }
+      };
 
     case 'recommendAgents':
       return {
@@ -300,7 +297,7 @@ You currently have ${context.installedAgents.length} installed agent(s) in the s
         actions: [
           { label: 'Browse All Agents', href: workspaceHref(context.workspaceId, '/marketplace') },
         ],
-      }
+      };
 
     case 'goLive':
       if (context.workspaceStatus === 'GO_LIVE_READY') {
@@ -312,13 +309,16 @@ I cannot activate production from chat, but I can point you to the surfaces you 
             { label: 'Review Fleet', href: workspaceHref(context.workspaceId, '/fleet') },
             { label: 'Open Runs', href: workspaceHref(context.workspaceId, '/runs') },
           ],
-        }
+        };
       }
       if (incompleteTasks.length > 0) {
         return {
           content: `**Readiness blockers remain: ${incompleteTasks.length} item(s) still need review.**
 
-${incompleteTasks.slice(0, 3).map((task) => `- ${task.label}`).join('\n')}${incompleteTasks.length > 3 ? `\n- ...and ${incompleteTasks.length - 3} more` : ''}
+${incompleteTasks
+  .slice(0, 3)
+  .map((task) => `- ${task.label}`)
+  .join('\n')}${incompleteTasks.length > 3 ? `\n- ...and ${incompleteTasks.length - 3} more` : ''}
 
 Complete these review steps before treating the workspace as production-ready.`,
           actions: [
@@ -327,7 +327,7 @@ Complete these review steps before treating the workspace as production-ready.`,
               href: workspaceHref(context.workspaceId, '/installer/new'),
             },
           ],
-        }
+        };
       }
       return {
         content: `I can summarize readiness, but I cannot activate a workspace from this assistant. Current status: **${readinessStatus}**.`,
@@ -337,7 +337,7 @@ Complete these review steps before treating the workspace as production-ready.`,
             href: workspaceHref(context.workspaceId, '/installer/new'),
           },
         ],
-      }
+      };
 
     case 'approvals':
       if (context.pendingApprovalsCount > 0) {
@@ -351,7 +351,7 @@ Agent runs that require human review are waiting for your action. Review them fr
               href: workspaceHref(context.workspaceId, '/approvals?status=pending'),
             },
           ],
-        }
+        };
       }
       return {
         content: `No pending approvals appear in this snapshot.
@@ -363,13 +363,13 @@ Human-in-the-loop controls are part of the workflow model, but related policy su
             href: workspaceHref(context.workspaceId, '/security'),
           },
         ],
-      }
+      };
 
     case 'integrations': {
       const connected = context.integrations.filter(
-        (integration) => integration.status === 'connected',
-      ).length
-      const total = context.integrations.length
+        (integration) => integration.status === 'connected'
+      ).length;
+      const total = context.integrations.length;
 
       return {
         content: `**Integration snapshot: ${connected}/${total} marked connected**
@@ -383,7 +383,7 @@ This assistant cannot create or repair those connections from chat.`,
             href: workspaceHref(context.workspaceId, '/security'),
           },
         ],
-      }
+      };
     }
 
     case 'pricing':
@@ -394,7 +394,7 @@ You can review the current plan label from Settings, but spend, payment methods,
         actions: [
           { label: 'Open Settings', href: workspaceHref(context.workspaceId, '/settings') },
         ],
-      }
+      };
 
     case 'security':
       return {
@@ -408,7 +408,7 @@ I can point you to the current surface, but not execute security changes from ch
         actions: [
           { label: 'Open Security', href: workspaceHref(context.workspaceId, '/security') },
         ],
-      }
+      };
 
     default:
       return {
@@ -429,34 +429,31 @@ What would you like help with?`,
             href: workspaceHref(context.workspaceId, '/installer/new'),
           },
         ],
-      }
+      };
   }
 }
 
 function formatReason(reason: { type: string; [key: string]: unknown }): string {
   switch (reason.type) {
     case 'missing_integrations':
-      return `needs ${(reason.integrations as string[]).join(', ')}`
+      return `needs ${(reason.integrations as string[]).join(', ')}`;
     case 'missing_scopes':
-      return 'missing OAuth scopes'
+      return 'missing OAuth scopes';
     case 'missing_secrets':
-      return `needs secrets: ${(reason.secrets as string[]).join(', ')}`
+      return `needs secrets: ${(reason.secrets as string[]).join(', ')}`;
     case 'missing_fields':
-      return `needs config: ${(reason.fields as string[]).join(', ')}`
+      return `needs config: ${(reason.fields as string[]).join(', ')}`;
     case 'blocked_by_policy':
-      return `blocked by policy: ${reason.policy}`
+      return `blocked by policy: ${reason.policy}`;
     case 'degraded_error_rate':
-      return `high error rate (${reason.errorRate}%)`
+      return `high error rate (${reason.errorRate}%)`;
     default:
-      return reason.type.replace(/_/g, ' ')
+      return reason.type.replace(/_/g, ' ');
   }
 }
 
-function getActionsForTask(
-  taskLabel: string,
-  workspaceId: string,
-): ActionSuggestion[] {
-  const lower = taskLabel.toLowerCase()
+function getActionsForTask(taskLabel: string, workspaceId: string): ActionSuggestion[] {
+  const lower = taskLabel.toLowerCase();
 
   if (lower.includes('integration')) {
     return [
@@ -464,13 +461,13 @@ function getActionsForTask(
         label: 'Review Security Surface',
         href: workspaceHref(workspaceId, '/security'),
       },
-    ]
+    ];
   }
   if (lower.includes('agent') || lower.includes('install')) {
-    return [{ label: 'Open Marketplace', href: workspaceHref(workspaceId, '/marketplace') }]
+    return [{ label: 'Open Marketplace', href: workspaceHref(workspaceId, '/marketplace') }];
   }
   if (lower.includes('config')) {
-    return [{ label: 'Review Fleet', href: workspaceHref(workspaceId, '/fleet') }]
+    return [{ label: 'Review Fleet', href: workspaceHref(workspaceId, '/fleet') }];
   }
   if (lower.includes('polic')) {
     return [
@@ -478,10 +475,10 @@ function getActionsForTask(
         label: 'Review Security Surface',
         href: workspaceHref(workspaceId, '/security'),
       },
-    ]
+    ];
   }
   if (lower.includes('test')) {
-    return [{ label: 'Open Runs', href: workspaceHref(workspaceId, '/runs') }]
+    return [{ label: 'Open Runs', href: workspaceHref(workspaceId, '/runs') }];
   }
   if (lower.includes('secret')) {
     return [
@@ -489,7 +486,7 @@ function getActionsForTask(
         label: 'Review Security Surface',
         href: workspaceHref(workspaceId, '/security'),
       },
-    ]
+    ];
   }
 
   return [
@@ -497,76 +494,76 @@ function getActionsForTask(
       label: 'Open Installer Preview',
       href: workspaceHref(workspaceId, '/installer/new'),
     },
-  ]
+  ];
 }
 
 function getActionsForReasons(
   reasons: Array<{ type: string; [key: string]: unknown }>,
-  workspaceId: string,
+  workspaceId: string
 ): ActionSuggestion[] {
-  const actions: ActionSuggestion[] = []
+  const actions: ActionSuggestion[] = [];
 
   for (const reason of reasons) {
     if (reason.type === 'missing_integrations' || reason.type === 'missing_scopes') {
       actions.push({
         label: 'Review Security Surface',
         href: workspaceHref(workspaceId, '/security'),
-      })
+      });
     } else if (reason.type === 'missing_secrets') {
       actions.push({
         label: 'Review Security Surface',
         href: workspaceHref(workspaceId, '/security'),
-      })
+      });
     } else if (reason.type === 'missing_fields') {
       actions.push({
         label: 'Review Fleet',
         href: workspaceHref(workspaceId, '/fleet'),
-      })
+      });
     } else if (reason.type === 'blocked_by_policy') {
       actions.push({
         label: 'Review Security Surface',
         href: workspaceHref(workspaceId, '/security'),
-      })
+      });
     }
   }
 
   const unique = actions.filter(
-    (action, index, all) => all.findIndex((candidate) => candidate.href === action.href) === index,
-  )
-  return unique.slice(0, 3)
+    (action, index, all) => all.findIndex((candidate) => candidate.href === action.href) === index
+  );
+  return unique.slice(0, 3);
 }
 
 export function generateResponse(input: EngineInput): EngineOutput {
-  const { mode, userMessage, context } = input
+  const { mode, userMessage, context } = input;
 
   if (mode === 'public') {
-    return generatePublicResponse(userMessage)
+    return generatePublicResponse(userMessage);
   }
 
   if (mode === 'copilot' && context) {
-    return generateCopilotResponse(userMessage, context)
+    return generateCopilotResponse(userMessage, context);
   }
 
   return {
     content: "I'm not sure how to help with that. Could you try rephrasing your question?",
     actions: [],
-  }
+  };
 }
 
 export async function* generateResponseStream(
-  input: EngineInput,
+  input: EngineInput
 ): AsyncGenerator<{ content: string; done: boolean; actions?: ActionSuggestion[] }> {
-  const response = generateResponse(input)
-  const words = response.content.split(' ')
+  const response = generateResponse(input);
+  const words = response.content.split(' ');
 
-  let accumulated = ''
+  let accumulated = '';
   for (let index = 0; index < words.length; index += 1) {
-    accumulated += (index === 0 ? '' : ' ') + words[index]
-    await new Promise((resolve) => setTimeout(resolve, 20 + Math.random() * 30))
+    accumulated += (index === 0 ? '' : ' ') + words[index];
+    await new Promise((resolve) => setTimeout(resolve, 20 + Math.random() * 30));
     yield {
       content: accumulated,
       done: index === words.length - 1,
       actions: index === words.length - 1 ? response.actions : undefined,
-    }
+    };
   }
 }

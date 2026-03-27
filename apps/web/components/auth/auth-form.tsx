@@ -1,164 +1,145 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { cn } from '@/lib/utils'
-import { useAuthStore } from '@/lib/auth/store'
+import * as React from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/lib/auth/store';
 import {
   fetchOAuthProviders,
   getOAuthAuthorizeUrl,
   type OAuthProvidersResponse,
-} from '@/lib/auth/api'
-import { PasswordInput } from './password-input'
-import { ForgotPasswordModal } from './forgot-password-modal'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+} from '@/lib/auth/api';
+import { PasswordInput } from './password-input';
+import { ForgotPasswordModal } from './forgot-password-modal';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AuthFormProps {
-  className?: string
-  defaultTab?: 'login' | 'register'
+  className?: string;
+  defaultTab?: 'login' | 'register';
 }
 
 export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const login = useAuthStore((s) => s.login)
-  const register = useAuthStore((s) => s.register)
-  const isLoading = useAuthStore((s) => s.isLoading)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const login = useAuthStore((s) => s.login);
+  const register = useAuthStore((s) => s.register);
+  const isLoading = useAuthStore((s) => s.isLoading);
 
-  const [rememberMe, setRememberMe] = React.useState(false)
-  const [activeTab, setActiveTab] = React.useState(defaultTab)
-
-  React.useEffect(() => {
-    setActiveTab(defaultTab)
-  }, [defaultTab])
-
-  const [loginEmail, setLoginEmail] = React.useState('')
-  const [loginPassword, setLoginPassword] = React.useState('')
-  const [registerName, setRegisterName] = React.useState('')
-  const [registerEmail, setRegisterEmail] = React.useState('')
-  const [registerPassword, setRegisterPassword] = React.useState('')
-  const [confirmPassword, setConfirmPassword] = React.useState('')
-
-  const [emailError, setEmailError] = React.useState<string | null>(null)
-  const [passwordError, setPasswordError] = React.useState<string | null>(null)
-  const [emailTouched, setEmailTouched] = React.useState(false)
-  const [confirmTouched, setConfirmTouched] = React.useState(false)
-
-  const [oauthProviders, setOauthProviders] =
-    React.useState<OAuthProvidersResponse | null>(null)
-  const [forgotOpen, setForgotOpen] = React.useState(false)
+  const [rememberMe, setRememberMe] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState(defaultTab);
 
   React.useEffect(() => {
-    let cancelled = false
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
+
+  const [loginEmail, setLoginEmail] = React.useState('');
+  const [loginPassword, setLoginPassword] = React.useState('');
+  const [registerName, setRegisterName] = React.useState('');
+  const [registerEmail, setRegisterEmail] = React.useState('');
+  const [registerPassword, setRegisterPassword] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
+
+  const [emailError, setEmailError] = React.useState<string | null>(null);
+  const [passwordError, setPasswordError] = React.useState<string | null>(null);
+  const [emailTouched, setEmailTouched] = React.useState(false);
+  const [confirmTouched, setConfirmTouched] = React.useState(false);
+
+  const [oauthProviders, setOauthProviders] = React.useState<OAuthProvidersResponse | null>(null);
+  const [forgotOpen, setForgotOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    let cancelled = false;
     fetchOAuthProviders()
       .then((p) => {
-        if (!cancelled) setOauthProviders(p)
+        if (!cancelled) setOauthProviders(p);
       })
       .catch(() => {
-        if (!cancelled) setOauthProviders({ google: false, microsoft: false })
-      })
+        if (!cancelled) setOauthProviders({ google: false, microsoft: false });
+      });
     return () => {
-      cancelled = true
-    }
-  }, [])
+      cancelled = true;
+    };
+  }, []);
 
-  const showOauth =
-    oauthProviders &&
-    (oauthProviders.google || oauthProviders.microsoft)
+  const showOauth = oauthProviders && (oauthProviders.google || oauthProviders.microsoft);
 
   const startOAuth = (provider: 'google' | 'microsoft') => {
-    const u = new URL(`${window.location.origin}/auth/callback`)
-    const r = searchParams.get('redirect')
-    if (r) u.searchParams.set('redirect', r)
-    window.location.href = getOAuthAuthorizeUrl(provider, u.toString())
-  }
+    const u = new URL(`${window.location.origin}/auth/callback`);
+    const r = searchParams.get('redirect');
+    if (r) u.searchParams.set('redirect', r);
+    window.location.href = getOAuthAuthorizeUrl(provider, u.toString());
+  };
 
   const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   React.useEffect(() => {
     if (emailTouched && registerEmail && !validateEmail(registerEmail)) {
-      setEmailError('Enter a valid email address')
+      setEmailError('Enter a valid email address');
     } else {
-      setEmailError(null)
+      setEmailError(null);
     }
-  }, [registerEmail, emailTouched])
+  }, [registerEmail, emailTouched]);
 
   React.useEffect(() => {
-    if (
-      confirmTouched &&
-      confirmPassword &&
-      registerPassword !== confirmPassword
-    ) {
-      setPasswordError('Passwords do not match')
+    if (confirmTouched && confirmPassword && registerPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
     } else {
-      setPasswordError(null)
+      setPasswordError(null);
     }
-  }, [registerPassword, confirmPassword, confirmTouched])
+  }, [registerPassword, confirmPassword, confirmTouched]);
 
   const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!loginEmail || !loginPassword) {
-      toast.error('Email and password are required')
-      return
+      toast.error('Email and password are required');
+      return;
     }
     try {
-      const tenantId = await login(loginEmail, loginPassword, rememberMe)
-      const redirect = searchParams.get('redirect')
-      router.push(redirect || `/app/${tenantId}/dashboard`)
+      const tenantId = await login(loginEmail, loginPassword, rememberMe);
+      const redirect = searchParams.get('redirect');
+      router.push(redirect || `/app/${tenantId}/dashboard`);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Login failed. Please try again.'
-      toast.error(message)
+      const message = err instanceof Error ? err.message : 'Login failed. Please try again.';
+      toast.error(message);
     }
-  }
+  };
 
   const handleRegisterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateEmail(registerEmail)) {
-      setEmailError('Enter a valid email address')
-      return
+      setEmailError('Enter a valid email address');
+      return;
     }
 
     if (registerPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match')
-      return
+      setPasswordError('Passwords do not match');
+      return;
     }
 
     if (!registerName?.trim()) {
-      toast.error('Name is required')
-      return
+      toast.error('Name is required');
+      return;
     }
 
     try {
-      const tenantId = await register(
-        registerEmail,
-        registerPassword,
-        registerName.trim(),
-      )
-      toast.success('Account created!')
-      router.push(`/app/${tenantId}/dashboard`)
+      const tenantId = await register(registerEmail, registerPassword, registerName.trim());
+      toast.success('Account created!');
+      router.push(`/app/${tenantId}/dashboard`);
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : 'Registration failed. Please try again.'
-      toast.error(message)
+      const message = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+      toast.error(message);
     }
-  }
+  };
 
   return (
     <div className={cn('w-full max-w-md mx-auto', className)}>
@@ -186,9 +167,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
                 disabled={isLoading}
               >
                 <MicrosoftIcon />
-                <span className="sr-only sm:not-sr-only sm:ml-2">
-                  Microsoft
-                </span>
+                <span className="sr-only sm:not-sr-only sm:ml-2">Microsoft</span>
               </Button>
             ) : null}
           </div>
@@ -209,8 +188,8 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
             </TooltipTrigger>
             <TooltipContent className="max-w-xs">
               <p>
-                Tenant-level SAML and OIDC are configured per workspace. See
-                platform docs / ADR for WorkOS or Auth0 integration.
+                Tenant-level SAML and OIDC are configured per workspace. See platform docs / ADR for
+                WorkOS or Auth0 integration.
               </p>
             </TooltipContent>
           </Tooltip>
@@ -241,18 +220,11 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent
-          value="login"
-          className="animate-in fade-in-50 duration-300"
-        >
+        <TabsContent value="login" className="animate-in fade-in-50 duration-300">
           <div className="space-y-6">
             <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-semibold tracking-tight text-balance">
-                Welcome back
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Sign in with your email and password
-              </p>
+              <h1 className="text-2xl font-semibold tracking-tight text-balance">Welcome back</h1>
+              <p className="text-sm text-muted-foreground">Sign in with your email and password</p>
             </div>
 
             <form onSubmit={handleLoginSubmit} className="space-y-4">
@@ -298,9 +270,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
                 <Checkbox
                   id="remember-me"
                   checked={rememberMe}
-                  onCheckedChange={(checked) =>
-                    setRememberMe(checked === true)
-                  }
+                  onCheckedChange={(checked) => setRememberMe(checked === true)}
                   disabled={isLoading}
                 />
                 <Label
@@ -318,11 +288,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">
-                    <svg
-                      className="animate-spin size-4"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
+                    <svg className="animate-spin size-4" viewBox="0 0 24 24" aria-hidden="true">
                       <circle
                         className="opacity-25"
                         cx="12"
@@ -348,18 +314,13 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
           </div>
         </TabsContent>
 
-        <TabsContent
-          value="register"
-          className="animate-in fade-in-50 duration-300"
-        >
+        <TabsContent value="register" className="animate-in fade-in-50 duration-300">
           <div className="space-y-6">
             <div className="space-y-2 text-center">
               <h1 className="text-2xl font-semibold tracking-tight text-balance">
                 Create your account
               </h1>
-              <p className="text-sm text-muted-foreground">
-                Enter your details to get started
-              </p>
+              <p className="text-sm text-muted-foreground">Enter your details to get started</p>
             </div>
 
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
@@ -392,21 +353,14 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
                   onBlur={() => setEmailTouched(true)}
                   autoComplete="email"
                   aria-invalid={emailError ? 'true' : undefined}
-                  aria-describedby={
-                    emailError ? 'register-email-error' : undefined
-                  }
+                  aria-describedby={emailError ? 'register-email-error' : undefined}
                   className={cn(
                     'transition-all duration-200',
-                    emailError &&
-                      'border-destructive focus-visible:ring-destructive',
+                    emailError && 'border-destructive focus-visible:ring-destructive'
                   )}
                 />
                 {emailError && (
-                  <p
-                    id="register-email-error"
-                    className="text-sm text-destructive"
-                    role="alert"
-                  >
+                  <p id="register-email-error" className="text-sm text-destructive" role="alert">
                     {emailError}
                   </p>
                 )}
@@ -428,9 +382,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="register-confirm-password">
-                  Confirm password
-                </Label>
+                <Label htmlFor="register-confirm-password">Confirm password</Label>
                 <PasswordInput
                   id="register-confirm-password"
                   name="confirmPassword"
@@ -452,11 +404,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">
-                    <svg
-                      className="animate-spin size-4"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
+                    <svg className="animate-spin size-4" viewBox="0 0 24 24" aria-hidden="true">
                       <circle
                         className="opacity-25"
                         cx="12"
@@ -482,9 +430,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
 
             <p className="text-center text-xs text-muted-foreground">
               By registering you agree to our{' '}
-              <span className="text-muted-foreground">
-                Terms of Service and Privacy Policy
-              </span>{' '}
+              <span className="text-muted-foreground">Terms of Service and Privacy Policy</span>{' '}
               (links coming soon).
             </p>
           </div>
@@ -493,7 +439,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
 
       <ForgotPasswordModal open={forgotOpen} onOpenChange={setForgotOpen} />
     </div>
-  )
+  );
 }
 
 function GoogleIcon() {
@@ -516,7 +462,7 @@ function GoogleIcon() {
         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
       />
     </svg>
-  )
+  );
 }
 
 function MicrosoftIcon() {
@@ -527,5 +473,5 @@ function MicrosoftIcon() {
       <path fill="#7FBA00" d="M13 1h10v10H13z" />
       <path fill="#FFB900" d="M13 13h10v10H13z" />
     </svg>
-  )
+  );
 }

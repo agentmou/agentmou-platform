@@ -21,27 +21,21 @@ export async function usageRoutes(fastify: FastifyInstance) {
   // Get current period usage
   fastify.get(
     '/tenants/:tenantId/usage',
-    async (
-      request: FastifyRequest<{ Params: TenantParams }>,
-      reply: FastifyReply,
-    ) => {
+    async (request: FastifyRequest<{ Params: TenantParams }>, reply: FastifyReply) => {
       const { tenantId } = request.params;
       const usage = await usageService.getUsage(tenantId);
       return reply.send(UsageSummaryResponseSchema.parse({ usage }));
-    },
+    }
   );
 
   // Get usage breakdown
   fastify.get(
     '/tenants/:tenantId/usage/breakdown',
-    async (
-      request: FastifyRequest<{ Params: TenantParams }>,
-      reply: FastifyReply,
-    ) => {
+    async (request: FastifyRequest<{ Params: TenantParams }>, reply: FastifyReply) => {
       const { tenantId } = request.params;
       const breakdown = await usageService.getUsageBreakdown(tenantId);
       return reply.send({ breakdown });
-    },
+    }
   );
 
   // Get usage history
@@ -52,28 +46,22 @@ export async function usageRoutes(fastify: FastifyInstance) {
         Params: TenantParams;
         Querystring: UsageHistoryQuery;
       }>,
-      reply: FastifyReply,
+      reply: FastifyReply
     ) => {
       const { tenantId } = request.params;
-      const history = await usageService.getUsageHistory(
-        tenantId,
-        request.query.period,
-      );
+      const history = await usageService.getUsageHistory(tenantId, request.query.period);
       return reply.send(UsageHistoryResponseSchema.parse({ history }));
-    },
+    }
   );
 
   // Get limits
   fastify.get(
     '/tenants/:tenantId/usage/limits',
-    async (
-      request: FastifyRequest<{ Params: TenantParams }>,
-      reply: FastifyReply,
-    ) => {
+    async (request: FastifyRequest<{ Params: TenantParams }>, reply: FastifyReply) => {
       const { tenantId } = request.params;
       const limits = await usageService.getLimits(tenantId);
       return reply.send(UsageLimitsResponseSchema.parse({ limits }));
-    },
+    }
   );
 
   // Export usage data
@@ -84,11 +72,11 @@ export async function usageRoutes(fastify: FastifyInstance) {
         Params: TenantParams;
         Querystring: UsageExportQuery;
       }>,
-      reply: FastifyReply,
+      reply: FastifyReply
     ) => {
       const { tenantId } = request.params;
       const export_ = await usageService.exportUsage(tenantId, request.query);
       return reply.send(export_);
-    },
+    }
   );
 }

@@ -21,10 +21,7 @@ export type ExecutionStatus = z.infer<typeof ExecutionStatusSchema>;
 
 const LegacyExecutionStatusSchema = z.enum(['completed']);
 
-const RawExecutionStatusSchema = z.union([
-  ExecutionStatusSchema,
-  LegacyExecutionStatusSchema,
-]);
+const RawExecutionStatusSchema = z.union([ExecutionStatusSchema, LegacyExecutionStatusSchema]);
 
 // ---------------------------------------------------------------------------
 // Execution step
@@ -54,11 +51,11 @@ const RawExecutionStepTypeSchema = z.union([
 export const ExecutionStepSchema = z.object({
   id: z.string(),
   type: RawExecutionStepTypeSchema.transform((type) =>
-    type === 'n8n-execution' ? 'n8n_execution' : type,
+    type === 'n8n-execution' ? 'n8n_execution' : type
   ),
   name: z.string(),
   status: RawExecutionStatusSchema.transform((status) =>
-    status === 'completed' ? 'success' : status,
+    status === 'completed' ? 'success' : status
   ),
   startedAt: z.string(),
   completedAt: z.string().optional(),
@@ -90,7 +87,7 @@ export const ExecutionRunSchema = z.object({
   agentId: z.string().optional(),
   workflowId: z.string().optional(),
   status: RawExecutionStatusSchema.transform((status) =>
-    status === 'completed' ? 'success' : status,
+    status === 'completed' ? 'success' : status
   ),
   startedAt: z.string(),
   completedAt: z.string().optional(),
@@ -128,6 +125,4 @@ export const ExecutionRunLogsResponseSchema = z.object({
 });
 
 /** TypeScript shape for the execution log response. */
-export type ExecutionRunLogsResponse = z.infer<
-  typeof ExecutionRunLogsResponseSchema
->;
+export type ExecutionRunLogsResponse = z.infer<typeof ExecutionRunLogsResponseSchema>;

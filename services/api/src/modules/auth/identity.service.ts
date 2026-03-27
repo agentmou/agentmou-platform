@@ -1,10 +1,4 @@
-import {
-  db,
-  users,
-  tenants,
-  memberships,
-  userIdentities,
-} from '@agentmou/db';
+import { db, users, tenants, memberships, userIdentities } from '@agentmou/db';
 import { eq, and } from 'drizzle-orm';
 
 export type OAuthProfile = {
@@ -22,13 +16,12 @@ export type OAuthProfile = {
  * - Otherwise: new user + default workspace (same as email register).
  */
 export async function findOrCreateUserFromOAuthProfile(
-  profile: OAuthProfile,
+  profile: OAuthProfile
 ): Promise<{ userId: string; email: string; isNew: boolean }> {
   if (!profile.emailVerified) {
-    throw Object.assign(
-      new Error('Email from identity provider is not verified'),
-      { statusCode: 403 },
-    );
+    throw Object.assign(new Error('Email from identity provider is not verified'), {
+      statusCode: 403,
+    });
   }
 
   const email = profile.email.trim().toLowerCase();
@@ -39,8 +32,8 @@ export async function findOrCreateUserFromOAuthProfile(
     .where(
       and(
         eq(userIdentities.provider, profile.provider),
-        eq(userIdentities.providerSubject, profile.subject),
-      ),
+        eq(userIdentities.providerSubject, profile.subject)
+      )
     )
     .limit(1);
 
