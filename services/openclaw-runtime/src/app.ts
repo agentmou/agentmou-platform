@@ -24,7 +24,10 @@ export function buildApp(options?: { service?: OpenClawRuntimeService; apiKey?: 
   }));
 
   app.register(async function registerInternalOpsRoutes(routeApp) {
-    await routeApp.register(internalOpsRoutes, options ?? {});
+    await routeApp.register(internalOpsRoutes, {
+      ...(options ?? {}),
+      apiKey: options?.apiKey ?? config.apiKey,
+    });
   });
 
   return app;

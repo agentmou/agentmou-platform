@@ -13,7 +13,7 @@ export const internalOpsRoutes: FastifyPluginAsync<{
   apiKey?: string;
 }> = async (app, options) => {
   const service = options.service ?? new OpenClawRuntimeService();
-  const expectedApiKey = options.apiKey ?? process.env.OPENCLAW_API_KEY;
+  const expectedApiKey = options.apiKey;
 
   app.addHook('preHandler', async (request, reply) => {
     if (!expectedApiKey) {

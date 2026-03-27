@@ -2,63 +2,23 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import type {
-  AgentProfile,
-  ApprovalIntent,
-  OpenClawCapability,
-  OpenClawOperatorMessage,
-  OpenClawPlannedDelegation,
-  OpenClawPlannedWorkOrder,
-} from '@agentmou/contracts';
+  OpenClawStateStore,
+  OpenClawStorageConfig,
+  StoredRemoteSession,
+  StoredTenantRegistry,
+} from './state-store.js';
 
-export interface StoredTenantRegistry {
-  tenantId: string;
-  agentProfiles: AgentProfile[];
-  capabilities: OpenClawCapability[];
-  updatedAt: string;
-}
+const DEFAULT_STORAGE_CONFIG: OpenClawStorageConfig = {
+  mode: 'file',
+  stateDir: './.openclaw-state',
+};
 
-export interface StoredTurnRecord {
-  turnId: string;
-  timestamp: string;
-  trigger: 'telegram_message' | 'approval_resolution' | 'system_resume';
-  operatorMessage: string;
-  approvalIntent?: ApprovalIntent;
-  activeAgentId: string;
-  summary: string;
-  status: 'active' | 'waiting_approval' | 'completed' | 'blocked' | 'cancelled';
-  participants: string[];
-  toolCalls: string[];
-  delegations: OpenClawPlannedDelegation[];
-  workOrders: OpenClawPlannedWorkOrder[];
-  operatorMessages: OpenClawOperatorMessage[];
-  checkpointToken?: string;
-}
-
-export interface StoredTraceEvent {
-  id: string;
-  timestamp: string;
-  type: string;
-  payload: Record<string, unknown>;
-}
-
-export interface StoredRemoteSession {
-  tenantId: string;
-  objectiveId: string;
-  remoteSessionId: string;
-  activeAgentId: string;
-  status: 'active' | 'waiting_approval' | 'completed' | 'blocked' | 'cancelled';
-  createdAt: string;
-  updatedAt: string;
-  checkpointToken?: string;
-  traceReference: Record<string, unknown>;
-  turns: StoredTurnRecord[];
-  traceEvents: StoredTraceEvent[];
-}
-
-export class FileStateStore {
+export class FileStateStore implements OpenClawStateStore {
   private readonly stateDir: string;
 
-  constructor(stateDir = process.env.OPENCLAW_STATE_DIR || './.openclaw-state') {
+  constructor(config: OpenClawStorageConfig | string = DEFAULT_STORAGE_CONFIG) {
+    const stateDir =
+      typeof config === 'string' ? config : resolveStateDir(config);
     this.stateDir = path.resolve(stateDir);
   }
 
@@ -119,4 +79,12 @@ export class FileStateStore {
     await writeFile(tempPath, JSON.stringify(value, null, 2), 'utf8');
     await rename(tempPath, filePath);
   }
+}
+
+function resolveStateDir(config: OpenClawStorageConfig) {
+  if (config.mode !== 'file') {
+    throw new Error(`Unsupported OpenClaw storage mode: ${config.mode}`);
+  }
+
+  return config.stateDir;
 }

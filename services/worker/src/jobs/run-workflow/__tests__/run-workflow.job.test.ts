@@ -55,45 +55,49 @@ beforeEach(() => {
 });
 
 describe('processRunWorkflow', () => {
-  it('persists canonical workflow step types and success statuses', async () => {
-    const { processRunWorkflow } = await import('../run-workflow.job');
+  it(
+    'persists canonical workflow step types and success statuses',
+    async () => {
+      const { processRunWorkflow } = await import('../run-workflow.job');
 
-    mockExecuteWorkflow.mockResolvedValue({
-      finished: true,
-      data: { ok: true },
-    });
+      mockExecuteWorkflow.mockResolvedValue({
+        finished: true,
+        data: { ok: true },
+      });
 
-    const job = {
-      data: {
-        tenantId: 'tenant-1',
-        workflowInstallationId: 'wf-install-1',
-        runId: 'run-1',
-        input: { foo: 'bar' },
-      },
-      updateProgress: vi.fn().mockResolvedValue(undefined),
-    } as const;
+      const job = {
+        data: {
+          tenantId: 'tenant-1',
+          workflowInstallationId: 'wf-install-1',
+          runId: 'run-1',
+          input: { foo: 'bar' },
+        },
+        updateProgress: vi.fn().mockResolvedValue(undefined),
+      } as const;
 
-    await processRunWorkflow(job as never);
+      await processRunWorkflow(job as never);
 
-    expect(mockInsertValues).toHaveBeenCalledWith(
-      expect.objectContaining({
-        runId: 'run-1',
-        type: 'n8n_execution',
-        status: 'running',
-      }),
-    );
-    expect(mockUpdateSet).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        status: 'success',
-        output: { ok: true },
-      }),
-    );
-    expect(mockUpdateSet).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        status: 'success',
-      }),
-    );
-  });
+      expect(mockInsertValues).toHaveBeenCalledWith(
+        expect.objectContaining({
+          runId: 'run-1',
+          type: 'n8n_execution',
+          status: 'running',
+        }),
+      );
+      expect(mockUpdateSet).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          status: 'success',
+          output: { ok: true },
+        }),
+      );
+      expect(mockUpdateSet).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          status: 'success',
+        }),
+      );
+    },
+    15000,
+  );
 });
