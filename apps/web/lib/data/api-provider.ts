@@ -64,10 +64,8 @@ export const apiProvider: DataProvider = {
   // Installations
   listTenantInstalledAgents: (id) => fetchInstalledAgents(id),
   listTenantInstalledWorkflows: (id) => fetchInstalledWorkflows(id),
-  installAgent: (tenantId, templateId, config) =>
-    apiInstallAgent(tenantId, templateId, config),
-  installPack: (tenantId, packId, config) =>
-    apiInstallPack(tenantId, packId, config),
+  installAgent: (tenantId, templateId, config) => apiInstallAgent(tenantId, templateId, config),
+  installPack: (tenantId, packId, config) => apiInstallPack(tenantId, packId, config),
 
   // Execution
   listTenantRuns: (id) => fetchTenantRuns(id),
@@ -75,10 +73,8 @@ export const apiProvider: DataProvider = {
 
   // Approvals
   listTenantApprovals: (id) => fetchTenantApprovals(id),
-  approveRequest: (tenantId, approvalId, reason) =>
-    apiApprove(tenantId, approvalId, reason),
-  rejectRequest: (tenantId, approvalId, reason) =>
-    apiReject(tenantId, approvalId, reason),
+  approveRequest: (tenantId, approvalId, reason) => apiApprove(tenantId, approvalId, reason),
+  rejectRequest: (tenantId, approvalId, reason) => apiReject(tenantId, approvalId, reason),
 
   // Security — backed by live tenant aggregates where available
   listTenantSecurityFindings: (id) => fetchTenantSecurityFindings(id),
@@ -101,13 +97,14 @@ export const apiProvider: DataProvider = {
       timestamp: log.timestamp,
       action: log.action,
       actor: log.actorLabel,
-      category: log.category === 'membership' || log.category === 'connector'
-        ? 'security'
-        : log.category === 'approval'
-          ? 'workflow'
-          : log.category === 'auth'
-            ? 'security'
-            : log.category,
+      category:
+        log.category === 'membership' || log.category === 'connector'
+          ? 'security'
+          : log.category === 'approval'
+            ? 'workflow'
+            : log.category === 'auth'
+              ? 'security'
+              : log.category,
       details: Object.entries(log.details)
         .map(([key, value]) => `${key}: ${String(value)}`)
         .join(', '),
@@ -121,9 +118,7 @@ export const apiProvider: DataProvider = {
       fetchBillingOverview(id),
       fetchInstalledAgents(id),
     ]);
-    const primaryPaymentMethod = overview.paymentMethods.find(
-      (method) => method.isDefault,
-    );
+    const primaryPaymentMethod = overview.paymentMethods.find((method) => method.isDefault);
     return {
       plan: overview.subscription.plan,
       monthlySpend: overview.subscription.monthlyBaseAmount,

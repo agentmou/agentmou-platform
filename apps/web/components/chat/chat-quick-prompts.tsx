@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import { ArrowRight, Lightbulb } from 'lucide-react'
-import { QUICK_PROMPTS, type ChatMode } from '@/lib/chat/types'
-import { motion } from 'framer-motion'
+import { ArrowRight, Lightbulb } from 'lucide-react';
+import { QUICK_PROMPTS, type ChatMode } from '@/lib/chat/types';
+import { motion } from 'framer-motion';
 
 interface ChatQuickPromptsProps {
-  mode: ChatMode
-  onSelect: (prompt: string) => void
+  mode: ChatMode;
+  onSelect: (prompt: string) => void;
 }
 
 export function ChatQuickPrompts({ mode, onSelect }: ChatQuickPromptsProps) {
-  const prompts = QUICK_PROMPTS[mode]
+  const prompts = QUICK_PROMPTS[mode];
 
   return (
     <div className="border-t border-border/50 bg-gradient-to-t from-muted/30 to-transparent px-4 py-3">
@@ -34,5 +34,5 @@ export function ChatQuickPrompts({ mode, onSelect }: ChatQuickPromptsProps) {
         ))}
       </div>
     </div>
-  )
+  );
 }

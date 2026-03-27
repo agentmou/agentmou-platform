@@ -11,23 +11,14 @@ const REPO_ROOT_CANDIDATES = ['../../../..', '../../../../..'] as const;
  * @param requiredPaths - Relative paths that must exist below the repo root
  * @returns The first candidate root that contains every required path
  */
-export function resolveRepoRoot(
-  moduleDir: string,
-  requiredPaths: string[],
-): string {
+export function resolveRepoRoot(moduleDir: string, requiredPaths: string[]): string {
   const candidates = [
     process.env.AGENTMOU_REPO_ROOT,
-    ...REPO_ROOT_CANDIDATES.map((relativePath) =>
-      path.resolve(moduleDir, relativePath),
-    ),
+    ...REPO_ROOT_CANDIDATES.map((relativePath) => path.resolve(moduleDir, relativePath)),
   ].filter((value): value is string => Boolean(value));
 
   for (const candidate of candidates) {
-    if (
-      requiredPaths.every((requiredPath) =>
-        fs.existsSync(path.join(candidate, requiredPath)),
-      )
-    ) {
+    if (requiredPaths.every((requiredPath) => fs.existsSync(path.join(candidate, requiredPath)))) {
       return candidate;
     }
   }

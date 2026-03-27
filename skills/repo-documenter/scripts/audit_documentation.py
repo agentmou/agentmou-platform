@@ -51,7 +51,7 @@ class AuditReport:
     generated_at: str
     repo_root: str
     root_readme: bool
-    architecture_context: bool
+    current_state_doc: bool
     env_example: bool
     adr_count: int
     runbook_count: int
@@ -126,7 +126,7 @@ def build_report(repo_root: Path) -> AuditReport:
         generated_at=datetime.now(timezone.utc).isoformat(),
         repo_root=str(repo_root),
         root_readme=(repo_root / "README.md").is_file(),
-        architecture_context=(repo_root / "whole-initial-context.md").is_file(),
+        current_state_doc=(repo_root / "docs/architecture/current-state.md").is_file(),
         env_example=(repo_root / "infra/compose/.env.example").is_file(),
         adr_count=count_docs(repo_root, "docs/adr"),
         runbook_count=count_docs(repo_root, "docs/runbooks"),
@@ -146,7 +146,9 @@ def render_markdown(report: AuditReport) -> str:
     lines.append("| Check | Status |")
     lines.append("| --- | --- |")
     lines.append(f"| Root README | {'yes' if report.root_readme else 'no'} |")
-    lines.append(f"| Architecture context (`whole-initial-context.md`) | {'yes' if report.architecture_context else 'no'} |")
+    lines.append(
+        f"| Current state (`docs/architecture/current-state.md`) | {'yes' if report.current_state_doc else 'no'} |"
+    )
     lines.append(f"| Env example (`infra/compose/.env.example`) | {'yes' if report.env_example else 'no'} |")
     lines.append(f"| ADR count | {report.adr_count} |")
     lines.append(f"| Runbook count | {report.runbook_count} |")

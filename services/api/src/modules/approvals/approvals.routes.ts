@@ -1,8 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import {
-  ApprovalRequestsResponseSchema,
-  ApprovalResponseSchema,
-} from '@agentmou/contracts';
+import { ApprovalRequestsResponseSchema, ApprovalResponseSchema } from '@agentmou/contracts';
 import { ApprovalsService } from './approvals.service.js';
 import {
   approvalDecisionBodySchema,
@@ -28,15 +25,18 @@ export async function approvalRoutes(fastify: FastifyInstance) {
       const { status } = request.query as ApprovalListQuery;
       const approvals = await service.listApprovals(tenantId, { status });
       return reply.send(ApprovalRequestsResponseSchema.parse({ approvals }));
-    },
+    }
   );
 
-  fastify.get('/tenants/:tenantId/approvals/:approvalId', async (request: FastifyRequest, reply: FastifyReply) => {
-    const { tenantId, approvalId } = request.params as { tenantId: string; approvalId: string };
-    const approval = await service.getApproval(tenantId, approvalId);
-    if (!approval) return reply.status(404).send({ error: 'Approval not found' });
-    return reply.send(ApprovalResponseSchema.parse({ approval }));
-  });
+  fastify.get(
+    '/tenants/:tenantId/approvals/:approvalId',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { tenantId, approvalId } = request.params as { tenantId: string; approvalId: string };
+      const approval = await service.getApproval(tenantId, approvalId);
+      if (!approval) return reply.status(404).send({ error: 'Approval not found' });
+      return reply.send(ApprovalResponseSchema.parse({ approval }));
+    }
+  );
 
   fastify.post(
     '/tenants/:tenantId/approvals/:approvalId/approve',
@@ -56,7 +56,7 @@ export async function approvalRoutes(fastify: FastifyInstance) {
       const result = await service.approve(tenantId, approvalId, request.userId, body.reason);
       if (!result) return reply.status(404).send({ error: 'Approval not found' });
       return reply.send(ApprovalResponseSchema.parse({ approval: result }));
-    },
+    }
   );
 
   fastify.post(
@@ -77,7 +77,7 @@ export async function approvalRoutes(fastify: FastifyInstance) {
       const result = await service.reject(tenantId, approvalId, request.userId, body.reason);
       if (!result) return reply.status(404).send({ error: 'Approval not found' });
       return reply.send(ApprovalResponseSchema.parse({ approval: result }));
-    },
+    }
   );
 
   fastify.post(
@@ -92,6 +92,6 @@ export async function approvalRoutes(fastify: FastifyInstance) {
       const body = request.body as CreateApprovalBody;
       const approval = await service.requestApproval(tenantId, body);
       return reply.status(201).send(ApprovalResponseSchema.parse({ approval }));
-    },
+    }
   );
 }

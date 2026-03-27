@@ -1,107 +1,128 @@
-'use client'
+'use client';
 
-import { useRef, useEffect, useState, useCallback } from 'react'
-import { Bot, RotateCcw, X, Sparkles, Zap } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { useChatStore } from '@/lib/chat/store'
-import { generateResponseStream } from '@/lib/chat/engine'
-import type { ChatMode, ChatResponse, WorkspaceContextSnapshot } from '@/lib/chat/types'
-import { ChatMessageBubble } from './chat-message-bubble'
-import { ChatComposer } from './chat-composer'
-import { ChatQuickPrompts } from './chat-quick-prompts'
-import { ChatTypingIndicator } from './chat-typing-indicator'
-import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
-import { resolveHonestSurfaceState } from '@/lib/honest-ui'
+import { useRef, useEffect, useState, useCallback } from 'react';
+import { Bot, RotateCcw, X, Sparkles, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useChatStore } from '@/lib/chat/store';
+import { generateResponseStream } from '@/lib/chat/engine';
+import type { ChatMode, ChatResponse, WorkspaceContextSnapshot } from '@/lib/chat/types';
+import { ChatMessageBubble } from './chat-message-bubble';
+import { ChatComposer } from './chat-composer';
+import { ChatQuickPrompts } from './chat-quick-prompts';
+import { ChatTypingIndicator } from './chat-typing-indicator';
+import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface';
+import { resolveHonestSurfaceState } from '@/lib/honest-ui';
 
 interface ChatPanelProps {
-  mode: ChatMode
-  workspaceId?: string
-  contextSnapshot?: WorkspaceContextSnapshot
-  onClose: () => void
+  mode: ChatMode;
+  workspaceId?: string;
+  contextSnapshot?: WorkspaceContextSnapshot;
+  onClose: () => void;
 }
 
 export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatPanelProps) {
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const { messages, isLoading, setIsLoading, addMessage, updateLastAssistantMessage, resetConversation } = useChatStore(mode, workspaceId)
-  const [isStreaming, setIsStreaming] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const {
+    messages,
+    isLoading,
+    setIsLoading,
+    addMessage,
+    updateLastAssistantMessage,
+    resetConversation,
+  } = useChatStore(mode, workspaceId);
+  const [isStreaming, setIsStreaming] = useState(false);
   const assistantState = resolveHonestSurfaceState('chat-assistant', {
     providerMode: 'api',
     tenantId: workspaceId,
-  })
+  });
 
   // Scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isStreaming])
+  }, [messages, isStreaming]);
 
-  const handleSend = useCallback(async (content: string) => {
-    if (!content.trim() || isLoading) return
+  const handleSend = useCallback(
+    async (content: string) => {
+      if (!content.trim() || isLoading) return;
 
-    // Add user message
-    addMessage({ role: 'user', content })
-    setIsLoading(true)
-    setIsStreaming(true)
+      // Add user message
+      addMessage({ role: 'user', content });
+      setIsLoading(true);
+      setIsStreaming(true);
 
-    // Add placeholder for assistant message
-    addMessage({ role: 'assistant', content: '' })
+      // Add placeholder for assistant message
+      addMessage({ role: 'assistant', content: '' });
 
-    try {
-      if (mode === 'public') {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+      try {
+        if (mode === 'public') {
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              mode,
+              messages: [
+                ...messages.map((message) => ({
+                  role: message.role,
+                  content: message.content,
+                })),
+                { role: 'user', content },
+              ],
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Chat request failed: ${response.status}`);
+          }
+
+          const data = (await response.json()) as ChatResponse;
+          updateLastAssistantMessage(
+            data.message.content,
+            data.message.actions,
+            data.message.citations
+          );
+        } else {
+          const stream = generateResponseStream({
             mode,
-            messages: [
-              ...messages.map((message) => ({
-                role: message.role,
-                content: message.content,
-              })),
-              { role: 'user', content },
-            ],
-          }),
-        })
+            userMessage: content,
+            context: contextSnapshot,
+          });
 
-        if (!response.ok) {
-          throw new Error(`Chat request failed: ${response.status}`)
+          for await (const chunk of stream) {
+            updateLastAssistantMessage(chunk.content, chunk.actions);
+          }
         }
-
-        const data = await response.json() as ChatResponse
+      } catch (error) {
+        console.error('Chat error:', error);
         updateLastAssistantMessage(
-          data.message.content,
-          data.message.actions,
-          data.message.citations,
-        )
-      } else {
-        const stream = generateResponseStream({
-          mode,
-          userMessage: content,
-          context: contextSnapshot,
-        })
-
-        for await (const chunk of stream) {
-          updateLastAssistantMessage(chunk.content, chunk.actions)
-        }
+          'The assistant preview hit an error. Please try again in a moment.'
+        );
+      } finally {
+        setIsLoading(false);
+        setIsStreaming(false);
       }
-    } catch (error) {
-      console.error('Chat error:', error)
-      updateLastAssistantMessage(
-        'The assistant preview hit an error. Please try again in a moment.',
-      )
-    } finally {
-      setIsLoading(false)
-      setIsStreaming(false)
-    }
-  }, [mode, contextSnapshot, isLoading, messages, addMessage, setIsLoading, updateLastAssistantMessage])
+    },
+    [
+      mode,
+      contextSnapshot,
+      isLoading,
+      messages,
+      addMessage,
+      setIsLoading,
+      updateLastAssistantMessage,
+    ]
+  );
 
-  const handleQuickPrompt = useCallback((prompt: string) => {
-    handleSend(prompt)
-  }, [handleSend])
+  const handleQuickPrompt = useCallback(
+    (prompt: string) => {
+      handleSend(prompt);
+    },
+    [handleSend]
+  );
 
   return (
     <div className="fixed bottom-24 right-6 z-50 flex h-[520px] w-[380px] flex-col overflow-hidden rounded-2xl border border-border/50 bg-background/95 shadow-2xl backdrop-blur-xl sm:h-[580px] sm:w-[420px]">
@@ -110,7 +131,7 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
         {/* Gradient background */}
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-emerald-500/50 via-border to-transparent" />
-        
+
         <div className="relative flex items-center gap-3">
           {/* Animated avatar */}
           <div className="relative">
@@ -118,7 +139,7 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
               <Bot className="h-5 w-5 text-white" />
             </div>
           </div>
-          
+
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold">Agentmou Assistant</h3>
@@ -132,7 +153,7 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
             </p>
           </div>
         </div>
-        
+
         <div className="relative flex items-center gap-1">
           <Button
             variant="ghost"
@@ -167,7 +188,7 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
                 </div>
                 <div className="absolute -inset-1 rounded-2xl bg-emerald-500/10 blur-xl" />
               </div>
-              
+
               <h4 className="text-base font-semibold mb-1">
                 {mode === 'public'
                   ? 'Ask the public product assistant'
@@ -176,7 +197,7 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
               <p className="text-sm text-muted-foreground text-center max-w-[280px]">
                 {mode === 'public'
                   ? "I answer from Agentmou's public product corpus, add citations when the backend is available, and won't expose tenant-only data."
-                  : "I can summarize blockers, readiness, and available surfaces, but I will not change tenant state from chat."}
+                  : 'I can summarize blockers, readiness, and available surfaces, but I will not change tenant state from chat.'}
               </p>
               <div className="mt-4 w-full max-w-[320px]">
                 <HonestSurfaceNotice state={assistantState} />
@@ -186,9 +207,7 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
               </div>
             </div>
           ) : (
-            messages.map((message) => (
-              <ChatMessageBubble key={message.id} message={message} />
-            ))
+            messages.map((message) => <ChatMessageBubble key={message.id} message={message} />)
           )}
           {isStreaming && messages.length > 0 && messages[messages.length - 1].content === '' && (
             <ChatTypingIndicator />
@@ -212,5 +231,5 @@ export function ChatPanel({ mode, workspaceId, contextSnapshot, onClose }: ChatP
         }
       />
     </div>
-  )
+  );
 }

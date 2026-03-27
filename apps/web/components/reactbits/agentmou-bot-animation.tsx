@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import { useRef } from 'react'
-import { cn } from '@/lib/utils'
-import { useAgentmouAnimation } from './use-agentmou-animation'
+import { useRef } from 'react';
+import { cn } from '@/lib/utils';
+import { useAgentmouAnimation } from './use-agentmou-animation';
 
 interface AgentmouBotAnimationProps {
-  className?: string
+  className?: string;
 }
 
 /**
@@ -14,10 +14,10 @@ interface AgentmouBotAnimationProps {
  * Triggered on hover; respects prefers-reduced-motion.
  */
 export function AgentmouBotAnimation({ className }: AgentmouBotAnimationProps) {
-  const charRef = useRef<HTMLDivElement>(null)
-  const spotRef = useRef<HTMLImageElement>(null)
+  const charRef = useRef<HTMLDivElement>(null);
+  const spotRef = useRef<HTMLImageElement>(null);
 
-  useAgentmouAnimation(charRef, spotRef)
+  useAgentmouAnimation(charRef, spotRef);
 
   return (
     <div
@@ -43,5 +43,5 @@ export function AgentmouBotAnimation({ className }: AgentmouBotAnimationProps) {
         />
       </div>
     </div>
-  )
+  );
 }

@@ -1,34 +1,26 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import {
-  Workflow,
-  ArrowLeft,
-  ArrowRight,
-  Play,
-  Zap,
-  Clock,
-  FileCode,
-} from 'lucide-react'
-import { AvailabilityBadge } from '@/components/badges'
-import { SpotlightCard } from '@/components/reactbits/spotlight-card'
-import { useProviderQuery } from '@/lib/data/use-provider-query'
-import { useDataProvider } from '@/lib/providers/context'
-import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
-import { resolveHonestSurfaceState } from '@/lib/honest-ui'
-import { resolveCatalogAvailability } from '@/lib/catalog/availability'
-import type { WorkflowTemplate, Integration } from '@agentmou/contracts'
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Workflow, ArrowLeft, ArrowRight, Play, Zap, Clock, FileCode } from 'lucide-react';
+import { AvailabilityBadge } from '@/components/badges';
+import { SpotlightCard } from '@/components/reactbits/spotlight-card';
+import { useProviderQuery } from '@/lib/data/use-provider-query';
+import { useDataProvider } from '@/lib/providers/context';
+import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface';
+import { resolveHonestSurfaceState } from '@/lib/honest-ui';
+import { resolveCatalogAvailability } from '@/lib/catalog/availability';
+import type { WorkflowTemplate, Integration } from '@agentmou/contracts';
 
 const riskColors = {
   low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
   medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
   high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-}
+};
 
 const nodeTypeColors: Record<string, string> = {
   trigger: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
@@ -37,29 +29,29 @@ const nodeTypeColors: Record<string, string> = {
   logic: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
   fetch: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
   extract: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
-}
+};
 
 export default function WorkflowDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const tenantId = params.tenantId as string
-  const workflowId = params.workflowId as string
-  const provider = useDataProvider()
+  const params = useParams();
+  const router = useRouter();
+  const tenantId = params.tenantId as string;
+  const workflowId = params.workflowId as string;
+  const provider = useDataProvider();
   const installState = resolveHonestSurfaceState('marketplace-install-cta', {
     providerMode: provider.providerMode,
     tenantId,
-  })
+  });
   const connectState = resolveHonestSurfaceState('marketplace-connect-cta', {
     providerMode: provider.providerMode,
     tenantId,
-  })
+  });
   const { data: workflow, isLoading: loadingWorkflow } = useProviderQuery<WorkflowTemplate | null>(
-    (p) => p.getWorkflowTemplate(workflowId), null, [workflowId],
-  )
-  const { data: integrations } = useProviderQuery<Integration[]>(
-    (p) => p.listIntegrations(), [],
-  )
-  
+    (p) => p.getWorkflowTemplate(workflowId),
+    null,
+    [workflowId]
+  );
+  const { data: integrations } = useProviderQuery<Integration[]>((p) => p.listIntegrations(), []);
+
   if (loadingWorkflow) {
     return (
       <div className="p-6 lg:p-8">
@@ -67,7 +59,7 @@ export default function WorkflowDetailPage() {
           <p className="text-muted-foreground">Loading workflow...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!workflow) {
@@ -80,11 +72,11 @@ export default function WorkflowDetailPage() {
           </Link>
         </div>
       </div>
-    )
+    );
   }
-  
-  const workflowIntegrations = integrations.filter(i => workflow.integrations.includes(i.id))
-  const listingTier = resolveCatalogAvailability(workflow.availability)
+
+  const workflowIntegrations = integrations.filter((i) => workflow.integrations.includes(i.id));
+  const listingTier = resolveCatalogAvailability(workflow.availability);
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -93,7 +85,7 @@ export default function WorkflowDetailPage() {
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back
       </Button>
-      
+
       {/* Header */}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex items-start gap-4">
@@ -108,7 +100,9 @@ export default function WorkflowDetailPage() {
               <Badge className={riskColors[workflow.riskLevel]} variant="secondary">
                 {workflow.riskLevel} risk
               </Badge>
-              <Badge variant="outline" className="capitalize">{workflow.trigger} trigger</Badge>
+              <Badge variant="outline" className="capitalize">
+                {workflow.trigger} trigger
+              </Badge>
               <span className="text-sm text-muted-foreground">v{workflow.version}</span>
             </div>
           </div>
@@ -117,23 +111,23 @@ export default function WorkflowDetailPage() {
           {listingTier === 'available' ? (
             <div className="flex flex-col gap-2 items-end">
               <div className="flex gap-2">
-              <Button variant="outline" disabled>
-                <Play className="h-4 w-4 mr-2" />
-                Testing Not Available
-              </Button>
-              {installState.tone === 'demo' ? (
-                <Link href={`/app/${tenantId}/installer/new?workflow=${workflow.id}`}>
-                  <Button>
-                    Open Demo Setup
+                <Button variant="outline" disabled>
+                  <Play className="h-4 w-4 mr-2" />
+                  Testing Not Available
+                </Button>
+                {installState.tone === 'demo' ? (
+                  <Link href={`/app/${tenantId}/installer/new?workflow=${workflow.id}`}>
+                    <Button>
+                      Open Demo Setup
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button disabled>
+                    Install Preview
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
-                </Link>
-              ) : (
-                <Button disabled>
-                  Install Preview
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              )}
+                )}
               </div>
               {installState.tone !== 'demo' && (
                 <p className="text-xs text-muted-foreground max-w-[220px] text-right">
@@ -147,7 +141,8 @@ export default function WorkflowDetailPage() {
                 In catalog (preview)
               </Button>
               <p className="text-xs text-muted-foreground max-w-[220px] text-right">
-                Listed in the repo catalog; not yet marked generally available for production install.
+                Listed in the repo catalog; not yet marked generally available for production
+                install.
               </p>
             </div>
           ) : (
@@ -156,161 +151,171 @@ export default function WorkflowDetailPage() {
                 Coming Soon
               </Button>
               {workflow.statusNote && (
-                <p className="text-xs text-muted-foreground max-w-[200px] text-right">{workflow.statusNote}</p>
+                <p className="text-xs text-muted-foreground max-w-[200px] text-right">
+                  {workflow.statusNote}
+                </p>
               )}
             </div>
           )}
         </div>
       </div>
-      
+
       <Separator />
-      
+
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Use Case */}
           <SpotlightCard className="rounded-lg">
-          <Card>
-            <CardHeader>
-              <CardTitle>Use Case</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground leading-relaxed">{workflow.useCase}</p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Use Case</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground leading-relaxed">{workflow.useCase}</p>
+              </CardContent>
+            </Card>
           </SpotlightCard>
-          
+
           {/* Nodes Overview */}
           <SpotlightCard className="rounded-lg">
-          <Card>
-            <CardHeader>
-              <CardTitle>Workflow Nodes</CardTitle>
-              <CardDescription>The steps this workflow executes</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="relative">
-                {workflow.nodesOverview.map((node, index) => (
-                  <div key={node.id} className="flex items-start gap-4">
-                    {/* Connector line */}
-                    {index < workflow.nodesOverview.length - 1 && (
-                      <div className="absolute left-5 top-10 w-0.5 h-12 bg-border" style={{ top: `${index * 80 + 40}px` }} />
-                    )}
-                    <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-background bg-muted">
-                      <span className="text-sm font-medium">{index + 1}</span>
-                    </div>
-                    <div className="flex-1 pb-8">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium">{node.name}</span>
-                        <Badge className={nodeTypeColors[node.type] || 'bg-muted'} variant="secondary">
-                          {node.type}
-                        </Badge>
-                      </div>
-                      {node.description && (
-                        <p className="text-sm text-muted-foreground">{node.description}</p>
+            <Card>
+              <CardHeader>
+                <CardTitle>Workflow Nodes</CardTitle>
+                <CardDescription>The steps this workflow executes</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="relative">
+                  {workflow.nodesOverview.map((node, index) => (
+                    <div key={node.id} className="flex items-start gap-4">
+                      {/* Connector line */}
+                      {index < workflow.nodesOverview.length - 1 && (
+                        <div
+                          className="absolute left-5 top-10 w-0.5 h-12 bg-border"
+                          style={{ top: `${index * 80 + 40}px` }}
+                        />
                       )}
+                      <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-background bg-muted">
+                        <span className="text-sm font-medium">{index + 1}</span>
+                      </div>
+                      <div className="flex-1 pb-8">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium">{node.name}</span>
+                          <Badge
+                            className={nodeTypeColors[node.type] || 'bg-muted'}
+                            variant="secondary"
+                          >
+                            {node.type}
+                          </Badge>
+                        </div>
+                        {node.description && (
+                          <p className="text-sm text-muted-foreground">{node.description}</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </SpotlightCard>
-          
+
           {/* Changelog */}
           <SpotlightCard className="rounded-lg">
-          <Card>
-            <CardHeader>
-              <CardTitle>Changelog</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {workflow.changelog.map((entry, index) => (
-                  <li key={index} className="flex items-start gap-2 text-sm">
-                    <FileCode className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                    <span>{entry}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Changelog</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {workflow.changelog.map((entry, index) => (
+                    <li key={index} className="flex items-start gap-2 text-sm">
+                      <FileCode className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                      <span>{entry}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
           </SpotlightCard>
         </div>
-        
+
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Quick Info */}
           <SpotlightCard className="rounded-lg">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Quick Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Zap className="h-4 w-4" />
-                  Trigger
-                </span>
-                <span className="font-medium capitalize">{workflow.trigger}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Nodes
-                </span>
-                <span className="font-medium">{workflow.nodesOverview.length}</span>
-              </div>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Quick Info</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Zap className="h-4 w-4" />
+                    Trigger
+                  </span>
+                  <span className="font-medium capitalize">{workflow.trigger}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Nodes
+                  </span>
+                  <span className="font-medium">{workflow.nodesOverview.length}</span>
+                </div>
+              </CardContent>
+            </Card>
           </SpotlightCard>
-          
+
           {/* Output */}
           <SpotlightCard className="rounded-lg">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Output</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">{workflow.output}</p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Output</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{workflow.output}</p>
+              </CardContent>
+            </Card>
           </SpotlightCard>
-          
+
           {/* Required Integrations */}
           <SpotlightCard className="rounded-lg">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-base">Integrations</CardTitle>
-                <HonestSurfaceBadge state={connectState} />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <HonestSurfaceNotice state={connectState} />
-              {workflowIntegrations.map((integration) => (
-                <div key={integration.id} className="flex items-center justify-between">
-                  <span className="text-sm">{integration.name}</span>
-                  <Badge variant={integration.status === 'connected' ? 'default' : 'outline'}>
-                    {integration.status === 'connected'
-                      ? connectState.tone === 'demo'
-                        ? 'Demo ready'
-                        : 'Listed as ready'
-                      : connectState.tone === 'demo'
-                        ? 'Needs demo setup'
-                        : 'Needs setup'}
-                  </Badge>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-base">Integrations</CardTitle>
+                  <HonestSurfaceBadge state={connectState} />
                 </div>
-              ))}
-              {workflow.integrations.filter(i => !integrations.find(int => int.id === i)).map((i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <span className="text-sm capitalize">{i}</span>
-                  <Badge variant="outline">Required</Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <HonestSurfaceNotice state={connectState} />
+                {workflowIntegrations.map((integration) => (
+                  <div key={integration.id} className="flex items-center justify-between">
+                    <span className="text-sm">{integration.name}</span>
+                    <Badge variant={integration.status === 'connected' ? 'default' : 'outline'}>
+                      {integration.status === 'connected'
+                        ? connectState.tone === 'demo'
+                          ? 'Demo ready'
+                          : 'Listed as ready'
+                        : connectState.tone === 'demo'
+                          ? 'Needs demo setup'
+                          : 'Needs setup'}
+                    </Badge>
+                  </div>
+                ))}
+                {workflow.integrations
+                  .filter((i) => !integrations.find((int) => int.id === i))
+                  .map((i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <span className="text-sm capitalize">{i}</span>
+                      <Badge variant="outline">Required</Badge>
+                    </div>
+                  ))}
+              </CardContent>
+            </Card>
           </SpotlightCard>
         </div>
       </div>
     </div>
-  )
+  );
 }

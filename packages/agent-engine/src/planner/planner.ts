@@ -81,7 +81,8 @@ export class Planner {
       availableTools?: string[];
     }
   ): Promise<PlanStep[]> {
-    const toolList = context?.availableTools?.join(', ') ?? 'gmail-read, analyze-email, gmail-label';
+    const toolList =
+      context?.availableTools?.join(', ') ?? 'gmail-read, analyze-email, gmail-label';
 
     const response = await this.openai!.chat.completions.create({
       model: this.model,

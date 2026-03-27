@@ -123,15 +123,15 @@ void main() {
  */
 export type ThreadsProps = {
   /** RGB color 0–1, e.g. [0, 0.788, 0.988] for cyan */
-  color?: [number, number, number]
+  color?: [number, number, number];
   /** Wave amplitude (default 1) */
-  amplitude?: number
+  amplitude?: number;
   /** Line spacing/distance (default 0.7) */
-  distance?: number
+  distance?: number;
   /** Enable mouse interaction (default false) */
-  enableMouseInteraction?: boolean
-  className?: string
-}
+  enableMouseInteraction?: boolean;
+  className?: string;
+};
 
 export function Threads({
   color = [0, 0.788, 0.988],

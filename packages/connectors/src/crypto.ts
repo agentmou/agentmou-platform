@@ -20,10 +20,7 @@ export function encrypt(plaintext: string, keyHex: string): string {
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(ALGORITHM, key, iv);
 
-  const encrypted = Buffer.concat([
-    cipher.update(plaintext, 'utf8'),
-    cipher.final(),
-  ]);
+  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
   const authTag = cipher.getAuthTag();
 
   // Format: IV (12) + ciphertext (variable) + authTag (16)
@@ -57,10 +54,7 @@ export function decrypt(encryptedBase64: string, keyHex: string): string {
   const decipher = createDecipheriv(ALGORITHM, key, iv);
   decipher.setAuthTag(authTag);
 
-  const decrypted = Buffer.concat([
-    decipher.update(ciphertext),
-    decipher.final(),
-  ]);
+  const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
 
   return decrypted.toString('utf8');
 }

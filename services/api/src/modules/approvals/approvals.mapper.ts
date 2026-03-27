@@ -1,15 +1,9 @@
-import {
-  ApprovalRequestSchema,
-  type ApprovalRequest,
-} from '@agentmou/contracts';
+import { ApprovalRequestSchema, type ApprovalRequest } from '@agentmou/contracts';
 import { approvalRequests } from '@agentmou/db';
 
 type ApprovalRow = typeof approvalRequests.$inferSelect;
 
-export function mapApproval(
-  approval: ApprovalRow,
-  resolvedAgentId?: string,
-): ApprovalRequest {
+export function mapApproval(approval: ApprovalRow, resolvedAgentId?: string): ApprovalRequest {
   return ApprovalRequestSchema.parse({
     id: approval.id,
     tenantId: approval.tenantId,
@@ -66,9 +60,7 @@ function normalizeContext(context: unknown): Record<string, unknown> {
       : undefined;
   }
 
-  return Object.fromEntries(
-    Object.entries(normalized).filter(([, value]) => value !== undefined),
-  );
+  return Object.fromEntries(Object.entries(normalized).filter(([, value]) => value !== undefined));
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

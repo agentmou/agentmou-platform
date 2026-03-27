@@ -1,11 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import { CatalogService } from '../catalog/catalog.service.js';
-import {
-  db,
-  publicKnowledgeChunks,
-  publicKnowledgeDocuments,
-} from '@agentmou/db';
+import { db, publicKnowledgeChunks, publicKnowledgeDocuments } from '@agentmou/db';
 import { eq } from 'drizzle-orm';
 
 interface KnowledgeDocumentInput {
@@ -46,7 +42,7 @@ export class PublicKnowledgeService {
       .from(publicKnowledgeChunks)
       .innerJoin(
         publicKnowledgeDocuments,
-        eq(publicKnowledgeChunks.documentId, publicKnowledgeDocuments.id),
+        eq(publicKnowledgeChunks.documentId, publicKnowledgeDocuments.id)
       );
 
     const tokens = tokenize(query);
@@ -57,7 +53,7 @@ export class PublicKnowledgeService {
           tokens,
           row.title,
           row.chunkContent,
-          normalizeStringArray(row.chunkKeywords),
+          normalizeStringArray(row.chunkKeywords)
         );
 
         return {
@@ -157,7 +153,7 @@ export class PublicKnowledgeService {
           tokenCount: tokenize(chunk.content).length,
           embeddingModel: null,
           embedding: [],
-        })),
+        }))
       );
     }
   }
@@ -255,12 +251,8 @@ async function buildKnowledgeDocuments(): Promise<KnowledgeDocumentInput[]> {
         `${pack.name} bundles Agentmou agents and workflows for a shared outcome.`,
         `Description: ${pack.description}`,
         pack.agents.length ? `Agents: ${pack.agents.join(', ')}` : '',
-        pack.workflows?.length
-          ? `Workflows: ${pack.workflows.join(', ')}`
-          : '',
-        pack.connectors?.length
-          ? `Connectors: ${pack.connectors.join(', ')}`
-          : '',
+        pack.workflows?.length ? `Workflows: ${pack.workflows.join(', ')}` : '',
+        pack.connectors?.length ? `Connectors: ${pack.connectors.join(', ')}` : '',
       ]
         .filter(Boolean)
         .join('\n\n'),
@@ -296,12 +288,7 @@ function hrefForDocument(slug: string) {
   return '/docs';
 }
 
-function scoreMatch(
-  tokens: string[],
-  title: string,
-  content: string,
-  keywords: string[],
-) {
+function scoreMatch(tokens: string[], title: string, content: string, keywords: string[]) {
   const haystack = `${title} ${content}`.toLowerCase();
   let score = 0;
 
@@ -321,13 +308,11 @@ function excerptForMatch(content: string, tokens: string[]) {
     .filter(Boolean);
 
   const bestSentence =
-    sentences.find((sentence) =>
-      tokens.some((token) => sentence.toLowerCase().includes(token)),
-    ) ?? sentences[0] ?? content;
+    sentences.find((sentence) => tokens.some((token) => sentence.toLowerCase().includes(token))) ??
+    sentences[0] ??
+    content;
 
-  return bestSentence.length > 220
-    ? `${bestSentence.slice(0, 217)}...`
-    : bestSentence;
+  return bestSentence.length > 220 ? `${bestSentence.slice(0, 217)}...` : bestSentence;
 }
 
 function tokenize(value: string) {

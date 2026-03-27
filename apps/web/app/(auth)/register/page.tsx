@@ -1,6 +1,6 @@
-import { Suspense } from 'react'
-import { AuthForm } from '@/components/auth'
-import { Spinner } from '@/components/ui/spinner'
+import { Suspense } from 'react';
+import { AuthForm } from '@/components/auth';
+import { Spinner } from '@/components/ui/spinner';
 
 function AuthLoading() {
   return (
@@ -11,7 +11,7 @@ function AuthLoading() {
     >
       <Spinner className="size-8 text-muted-foreground" />
     </div>
-  )
+  );
 }
 
 export default function RegisterPage() {
@@ -19,5 +19,5 @@ export default function RegisterPage() {
     <Suspense fallback={<AuthLoading />}>
       <AuthForm defaultTab="register" />
     </Suspense>
-  )
+  );
 }

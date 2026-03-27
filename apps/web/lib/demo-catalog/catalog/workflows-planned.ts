@@ -1,4 +1,4 @@
-import type { WorkflowTemplate } from '../../control-plane/types'
+import type { WorkflowTemplate } from '../../control-plane/types';
 
 // Planned workflow placeholders to support orphan planned agents
 export const plannedWorkflowTemplates: WorkflowTemplate[] = [
@@ -417,4 +417,4 @@ export const plannedWorkflowTemplates: WorkflowTemplate[] = [
     tags: ['learning', 'notes', 'education'],
     visibility: 'public',
   },
-]
+];

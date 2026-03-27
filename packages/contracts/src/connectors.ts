@@ -70,9 +70,7 @@ export const N8nConnectionSchema = z.object({
   lastTestAt: z.string().optional(),
   lastTestStatus: N8nConnectionStatusSchema.optional(),
   executionCount: z.number(),
-  availability: z
-    .enum(['online', 'offline', 'not_configured'])
-    .optional(),
+  availability: z.enum(['online', 'offline', 'not_configured']).optional(),
   installedWorkflows: z.number().optional(),
   activeWorkflows: z.number().optional(),
   lastProvisionedAt: z.string().optional(),
@@ -84,11 +82,7 @@ export const N8nConnectionSchema = z.object({
 export type N8nConnection = z.infer<typeof N8nConnectionSchema>;
 
 /** Availability states for the workflow engine integration. */
-export const WorkflowEngineAvailabilitySchema = z.enum([
-  'online',
-  'offline',
-  'not_configured',
-]);
+export const WorkflowEngineAvailabilitySchema = z.enum(['online', 'offline', 'not_configured']);
 
 /** Detailed workflow engine status payload for a tenant. */
 export const WorkflowEngineStatusSchema = z.object({

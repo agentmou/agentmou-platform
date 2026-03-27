@@ -1,14 +1,7 @@
-import type {
-  PublicChatAction,
-  PublicChatRequest,
-  PublicChatResponse,
-} from '@agentmou/contracts';
+import type { PublicChatAction, PublicChatRequest, PublicChatResponse } from '@agentmou/contracts';
 
 import { N8nService } from '../n8n/n8n.service.js';
-import {
-  PublicKnowledgeService,
-  type KnowledgeMatch,
-} from './public-knowledge.service.js';
+import { PublicKnowledgeService, type KnowledgeMatch } from './public-knowledge.service.js';
 
 const publicKnowledgeService = new PublicKnowledgeService();
 const n8nService = new N8nService();
@@ -16,9 +9,7 @@ const PUBLIC_CHAT_WORKFLOW_ID = process.env.PUBLIC_CHAT_N8N_WORKFLOW_ID;
 
 export class PublicChatService {
   async reply(body: PublicChatRequest): Promise<PublicChatResponse> {
-    const lastUserMessage = [...body.messages]
-      .reverse()
-      .find((message) => message.role === 'user');
+    const lastUserMessage = [...body.messages].reverse().find((message) => message.role === 'user');
 
     if (!lastUserMessage) {
       return {
@@ -31,10 +22,7 @@ export class PublicChatService {
       };
     }
 
-    const matches = await publicKnowledgeService.search(
-      lastUserMessage.content,
-      4,
-    );
+    const matches = await publicKnowledgeService.search(lastUserMessage.content, 4);
 
     if (matches.length === 0) {
       return {
@@ -71,7 +59,7 @@ export class PublicChatService {
 
   private async tryN8nReply(
     body: PublicChatRequest,
-    matches: KnowledgeMatch[],
+    matches: KnowledgeMatch[]
   ): Promise<PublicChatResponse | null> {
     try {
       const result = await n8nService.executeWorkflow(PUBLIC_CHAT_WORKFLOW_ID!, {
@@ -100,9 +88,7 @@ export class PublicChatService {
           excerpt: match.excerpt,
           sourcePath: match.sourcePath,
         })),
-        actions: actionsForQuestion(
-          body.messages[body.messages.length - 1]?.content ?? '',
-        ),
+        actions: actionsForQuestion(body.messages[body.messages.length - 1]?.content ?? ''),
         provider: 'n8n',
         fallback: false,
       };

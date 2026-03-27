@@ -24,9 +24,7 @@ export function normalizeTenantSettings(settings: unknown): TenantSettings {
 
   return TenantSettingsSchema.parse({
     timezone:
-      typeof settings.timezone === 'string'
-        ? settings.timezone
-        : DEFAULT_TENANT_SETTINGS.timezone,
+      typeof settings.timezone === 'string' ? settings.timezone : DEFAULT_TENANT_SETTINGS.timezone,
     defaultHITL:
       typeof settings.defaultHITL === 'boolean'
         ? settings.defaultHITL
@@ -44,7 +42,7 @@ export function normalizeTenantSettings(settings: unknown): TenantSettings {
 
 export function mergeTenantSettings(
   current: unknown,
-  updates: TenantSettingsInput,
+  updates: TenantSettingsInput
 ): TenantSettings {
   const normalizedCurrent = normalizeTenantSettings(current);
 

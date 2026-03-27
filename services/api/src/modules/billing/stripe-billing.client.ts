@@ -17,10 +17,7 @@ function encodeForm(data: Record<string, string | number | boolean | undefined>)
   return body;
 }
 
-async function stripeRequest<T>(
-  path: string,
-  init?: RequestInit,
-): Promise<T> {
+async function stripeRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const secretKey = getStripeSecretKey();
   if (!secretKey) {
     throw Object.assign(new Error('Stripe is not configured'), {
@@ -39,32 +36,24 @@ async function stripeRequest<T>(
 
   if (!response.ok) {
     const message = await response.text();
-    throw Object.assign(
-      new Error(`Stripe ${response.status}: ${message}`),
-      { statusCode: response.status },
-    );
+    throw Object.assign(new Error(`Stripe ${response.status}: ${message}`), {
+      statusCode: response.status,
+    });
   }
 
   return response.json() as Promise<T>;
 }
 
 export class StripeBillingClient {
-  async createCustomer(input: {
-    email?: string | null;
-    name?: string | null;
-    tenantId: string;
-  }) {
-    return stripeRequest<{ id: string }>(
-      '/customers',
-      {
-        method: 'POST',
-        body: encodeForm({
-          email: input.email ?? undefined,
-          name: input.name ?? undefined,
-          'metadata[tenantId]': input.tenantId,
-        }),
-      },
-    );
+  async createCustomer(input: { email?: string | null; name?: string | null; tenantId: string }) {
+    return stripeRequest<{ id: string }>('/customers', {
+      method: 'POST',
+      body: encodeForm({
+        email: input.email ?? undefined,
+        name: input.name ?? undefined,
+        'metadata[tenantId]': input.tenantId,
+      }),
+    });
   }
 
   async listInvoices(customerId: string) {
@@ -129,35 +118,28 @@ export class StripeBillingClient {
     const primaryItem = subscription.items.data[0];
 
     if (!primaryItem) {
-      throw Object.assign(
-        new Error('Stripe subscription has no items to update'),
-        { statusCode: 409 },
-      );
+      throw Object.assign(new Error('Stripe subscription has no items to update'), {
+        statusCode: 409,
+      });
     }
 
-    return stripeRequest(
-      `/subscriptions/${subscriptionId}`,
-      {
-        method: 'POST',
-        body: encodeForm({
-          'items[0][id]': primaryItem.id,
-          'items[0][price]': priceId,
-          proration_behavior: 'always_invoice',
-        }),
-      },
-    );
+    return stripeRequest(`/subscriptions/${subscriptionId}`, {
+      method: 'POST',
+      body: encodeForm({
+        'items[0][id]': primaryItem.id,
+        'items[0][price]': priceId,
+        proration_behavior: 'always_invoice',
+      }),
+    });
   }
 
   async cancelSubscription(subscriptionId: string) {
-    return stripeRequest(
-      `/subscriptions/${subscriptionId}`,
-      {
-        method: 'POST',
-        body: encodeForm({
-          cancel_at_period_end: true,
-        }),
-      },
-    );
+    return stripeRequest(`/subscriptions/${subscriptionId}`, {
+      method: 'POST',
+      body: encodeForm({
+        cancel_at_period_end: true,
+      }),
+    });
   }
 
   async attachPaymentMethod(customerId: string, paymentMethodId: string) {
@@ -177,16 +159,13 @@ export class StripeBillingClient {
   async createCustomerPortalSession(customerId: string, returnUrl?: string) {
     const { webAppBaseUrl } = getApiConfig();
 
-    return stripeRequest<{ url: string }>(
-      '/billing_portal/sessions',
-      {
-        method: 'POST',
-        body: encodeForm({
-          customer: customerId,
-          return_url: returnUrl ?? webAppBaseUrl,
-        }),
-      },
-    );
+    return stripeRequest<{ url: string }>('/billing_portal/sessions', {
+      method: 'POST',
+      body: encodeForm({
+        customer: customerId,
+        return_url: returnUrl ?? webAppBaseUrl,
+      }),
+    });
   }
 }
 

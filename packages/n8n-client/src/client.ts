@@ -48,10 +48,7 @@ export class N8nClient {
    * The n8n REST API uses POST /workflows with the full workflow body.
    */
   async createWorkflow(workflow: Record<string, unknown>): Promise<N8nWorkflow> {
-    const response = await this.client.post(
-      '/workflows',
-      sanitizeWorkflowForCreate(workflow),
-    );
+    const response = await this.client.post('/workflows', sanitizeWorkflowForCreate(workflow));
     return response.data;
   }
 
@@ -80,7 +77,7 @@ export class N8nClient {
  * Strip only the known create-invalid keys and preserve the node graph as-is.
  */
 export function sanitizeWorkflowForCreate(
-  workflow: Record<string, unknown>,
+  workflow: Record<string, unknown>
 ): Record<string, unknown> {
   const {
     id: _id,

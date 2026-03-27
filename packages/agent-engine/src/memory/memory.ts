@@ -52,11 +52,11 @@ export class MemoryManager {
     let results = Array.from(this.memories.values());
 
     if (query.type) {
-      results = results.filter(m => m.type === query.type);
+      results = results.filter((m) => m.type === query.type);
     }
 
     if (query.search) {
-      results = results.filter(m =>
+      results = results.filter((m) =>
         m.content.toLowerCase().includes(query.search!.toLowerCase())
       );
     }
@@ -95,6 +95,6 @@ export class MemoryManager {
   }
 
   async getMemoriesByType(type: Memory['type']): Promise<Memory[]> {
-    return Array.from(this.memories.values()).filter(m => m.type === type);
+    return Array.from(this.memories.values()).filter((m) => m.type === type);
   }
 }

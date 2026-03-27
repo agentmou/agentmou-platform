@@ -6,8 +6,7 @@ import { recordAuditEvent } from '../../lib/audit.js';
 
 // Matches canonical UUID strings so provider slugs like "gmail" never hit the
 // UUID column predicate.
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class ConnectorsService {
   async listConnectors(tenantId: string) {
@@ -24,12 +23,7 @@ export class ConnectorsService {
     return connector ? mapConnector(connector, tenantId) : null;
   }
 
-  async createConnector(
-    tenantId: string,
-    provider: string,
-    scopes?: string[],
-    actorId?: string,
-  ) {
+  async createConnector(tenantId: string, provider: string, scopes?: string[], actorId?: string) {
     const [connector] = await db
       .insert(connectorAccounts)
       .values({
@@ -60,9 +54,7 @@ export class ConnectorsService {
       return;
     }
 
-    await db
-      .delete(connectorAccounts)
-      .where(eq(connectorAccounts.id, connector.id));
+    await db.delete(connectorAccounts).where(eq(connectorAccounts.id, connector.id));
 
     await recordAuditEvent({
       tenantId,
@@ -107,12 +99,7 @@ export class ConnectorsService {
     const [connector] = await db
       .select()
       .from(connectorAccounts)
-      .where(
-        and(
-          eq(connectorAccounts.tenantId, tenantId),
-          connectorIdentifier,
-        )
-      );
+      .where(and(eq(connectorAccounts.tenantId, tenantId), connectorIdentifier));
     return connector ?? null;
   }
 }

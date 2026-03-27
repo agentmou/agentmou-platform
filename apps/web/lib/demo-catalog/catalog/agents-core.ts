@@ -1,4 +1,4 @@
-import type { AgentTemplate } from '../../control-plane/types'
+import type { AgentTemplate } from '../../control-plane/types';
 
 // Core / Transversal agents (12)
 export const coreAgentTemplates: AgentTemplate[] = [
@@ -7,7 +7,8 @@ export const coreAgentTemplates: AgentTemplate[] = [
     name: 'Omnichannel Intake Router',
     outcome: 'Unified intake across email, Slack, and chat',
     domain: 'core',
-    description: 'Routes incoming requests from multiple channels (email, Slack, chat) to the appropriate workflow or team based on content and urgency.',
+    description:
+      'Routes incoming requests from multiple channels (email, Slack, chat) to the appropriate workflow or team based on content and urgency.',
     inputs: ['message_content', 'channel_source', 'sender_info'],
     outputs: ['routed_destination', 'priority', 'extracted_intent'],
     requiredIntegrations: ['gmail', 'slack'],
@@ -35,7 +36,8 @@ export const coreAgentTemplates: AgentTemplate[] = [
     name: 'Action Extractor',
     outcome: 'Extract actionable items from any text',
     domain: 'core',
-    description: 'Analyzes documents, emails, and messages to extract action items, deadlines, and responsible parties.',
+    description:
+      'Analyzes documents, emails, and messages to extract action items, deadlines, and responsible parties.',
     inputs: ['text_content', 'context'],
     outputs: ['action_items', 'deadlines', 'assignees'],
     requiredIntegrations: ['openai'],
@@ -64,7 +66,8 @@ export const coreAgentTemplates: AgentTemplate[] = [
     name: 'Document to Structured Data Operator',
     outcome: 'Transform documents into structured data',
     domain: 'core',
-    description: 'Converts unstructured documents (PDFs, images, emails) into structured JSON or database records.',
+    description:
+      'Converts unstructured documents (PDFs, images, emails) into structured JSON or database records.',
     inputs: ['document', 'schema_template'],
     outputs: ['structured_data', 'confidence_scores'],
     requiredIntegrations: ['openai', 'google-drive'],
@@ -93,7 +96,8 @@ export const coreAgentTemplates: AgentTemplate[] = [
     name: 'RAG Answer Copilot',
     outcome: 'Answer questions using your knowledge base',
     domain: 'core',
-    description: 'Retrieval-augmented generation agent that answers questions by searching your internal documentation and knowledge bases.',
+    description:
+      'Retrieval-augmented generation agent that answers questions by searching your internal documentation and knowledge bases.',
     inputs: ['question', 'context_filters'],
     outputs: ['answer', 'sources', 'confidence'],
     requiredIntegrations: ['qdrant', 'openai'],
@@ -123,7 +127,8 @@ export const coreAgentTemplates: AgentTemplate[] = [
     name: 'Workflow Orchestrator (n8n Commander)',
     outcome: 'Orchestrate complex multi-workflow operations',
     domain: 'core',
-    description: 'Meta-agent that coordinates multiple n8n workflows, manages dependencies, and handles error recovery.',
+    description:
+      'Meta-agent that coordinates multiple n8n workflows, manages dependencies, and handles error recovery.',
     inputs: ['workflow_ids', 'execution_params', 'dependencies'],
     outputs: ['execution_status', 'results', 'error_log'],
     requiredIntegrations: ['openai'],
@@ -181,7 +186,8 @@ export const coreAgentTemplates: AgentTemplate[] = [
     name: 'Data Hygiene Bot',
     outcome: 'Keep your data clean and consistent',
     domain: 'core',
-    description: 'Monitors databases and CRMs for data quality issues, duplicates, and inconsistencies.',
+    description:
+      'Monitors databases and CRMs for data quality issues, duplicates, and inconsistencies.',
     inputs: ['data_source', 'quality_rules'],
     outputs: ['issues_found', 'auto_fixes', 'report'],
     requiredIntegrations: ['google-sheets'],
@@ -210,7 +216,8 @@ export const coreAgentTemplates: AgentTemplate[] = [
     name: 'Monitoring & Digest Publisher',
     outcome: 'Stay informed with automated digests',
     domain: 'core',
-    description: 'Aggregates monitoring data from multiple sources and publishes scheduled digests to your preferred channels.',
+    description:
+      'Aggregates monitoring data from multiple sources and publishes scheduled digests to your preferred channels.',
     inputs: ['data_sources', 'digest_format', 'schedule'],
     outputs: ['digest', 'highlights', 'alerts'],
     requiredIntegrations: ['slack', 'google-sheets'],
@@ -239,7 +246,8 @@ export const coreAgentTemplates: AgentTemplate[] = [
     name: 'AI Cost & Quality Governor',
     outcome: 'Optimize AI spend while maintaining quality',
     domain: 'core',
-    description: 'Monitors AI API usage, costs, and output quality across all agents to optimize performance and spending.',
+    description:
+      'Monitors AI API usage, costs, and output quality across all agents to optimize performance and spending.',
     inputs: ['usage_data', 'quality_metrics', 'budget'],
     outputs: ['cost_report', 'quality_score', 'recommendations'],
     requiredIntegrations: ['openai'],
@@ -268,7 +276,8 @@ export const coreAgentTemplates: AgentTemplate[] = [
     name: 'Approval Gatekeeper',
     outcome: 'Centralized approval management',
     domain: 'core',
-    description: 'Manages approval workflows across all agents, routing requests to the right approvers and tracking decisions.',
+    description:
+      'Manages approval workflows across all agents, routing requests to the right approvers and tracking decisions.',
     inputs: ['approval_request', 'approver_rules'],
     outputs: ['decision', 'audit_log'],
     requiredIntegrations: ['slack', 'gmail'],
@@ -297,7 +306,8 @@ export const coreAgentTemplates: AgentTemplate[] = [
     name: 'Security Scanner for Workflows',
     outcome: 'Detect security issues in your workflows',
     domain: 'core',
-    description: 'Scans n8n workflows for security vulnerabilities, exposed credentials, and risky configurations.',
+    description:
+      'Scans n8n workflows for security vulnerabilities, exposed credentials, and risky configurations.',
     inputs: ['workflow_definitions'],
     outputs: ['security_report', 'risk_score', 'remediation_steps'],
     requiredIntegrations: [],
@@ -326,7 +336,8 @@ export const coreAgentTemplates: AgentTemplate[] = [
     name: 'Template Installer (Pack Manager)',
     outcome: 'Streamlined agent and pack installation',
     domain: 'core',
-    description: 'Manages the installation, configuration, and updates of agent templates and packs.',
+    description:
+      'Manages the installation, configuration, and updates of agent templates and packs.',
     inputs: ['template_id', 'config_params'],
     outputs: ['installation_status', 'configured_agent'],
     requiredIntegrations: [],
@@ -350,4 +361,4 @@ export const coreAgentTemplates: AgentTemplate[] = [
     tags: ['installation', 'templates', 'packs'],
     visibility: 'hidden',
   },
-]
+];

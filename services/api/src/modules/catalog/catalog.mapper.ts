@@ -46,13 +46,8 @@ export function mapAgentManifest(manifest: OperationalAgentManifest): AgentTempl
   return AgentTemplateSchema.parse({
     id: manifest.id,
     name: manifest.name,
-    outcome:
-      manifest.catalog?.outcome ??
-      manifest.description,
-    domain:
-      manifest.catalog?.domain ??
-      toAgentDomain(manifest.category) ??
-      'core',
+    outcome: manifest.catalog?.outcome ?? manifest.description,
+    domain: manifest.catalog?.domain ?? toAgentDomain(manifest.category) ?? 'core',
     description: manifest.description,
     inputs: manifest.catalog?.inputs ?? [],
     outputs: manifest.catalog?.outputs ?? [],
@@ -66,8 +61,7 @@ export function mapAgentManifest(manifest: OperationalAgentManifest): AgentTempl
     channel: manifest.catalog?.channel ?? 'stable',
     setupTimeMinutes: manifest.catalog?.setupTimeMinutes ?? 15,
     monthlyPrice: manifest.catalog?.monthlyPrice ?? null,
-    availability:
-      manifest.catalog?.availability ?? DEFAULT_OPERATIONAL_LISTING_AVAILABILITY,
+    availability: manifest.catalog?.availability ?? DEFAULT_OPERATIONAL_LISTING_AVAILABILITY,
     audience: manifest.catalog?.audience,
     statusNote: manifest.catalog?.statusNote,
     source: manifest.catalog?.source ?? 'manifest',
@@ -82,9 +76,7 @@ export function mapAgentManifest(manifest: OperationalAgentManifest): AgentTempl
   });
 }
 
-export function mapWorkflowManifest(
-  manifest: OperationalWorkflowManifest,
-): WorkflowTemplate {
+export function mapWorkflowManifest(manifest: OperationalWorkflowManifest): WorkflowTemplate {
   const category = toCategory(manifest.category);
   const derivedNodesOverview =
     manifest.steps?.map((step) => ({
@@ -104,22 +96,19 @@ export function mapWorkflowManifest(
     useCase: manifest.catalog?.useCase ?? manifest.description,
     riskLevel: manifest.catalog?.riskLevel ?? 'low',
     version: manifest.version,
-    changelog:
-      manifest.catalog?.changelog ??
-      [`${manifest.version}: Initial manifest-backed release`],
-    nodesOverview:
-      manifest.catalog?.nodesOverview.length
-        ? manifest.catalog.nodesOverview
-        : derivedNodesOverview,
+    changelog: manifest.catalog?.changelog ?? [
+      `${manifest.version}: Initial manifest-backed release`,
+    ],
+    nodesOverview: manifest.catalog?.nodesOverview.length
+      ? manifest.catalog.nodesOverview
+      : derivedNodesOverview,
     availability:
       manifest.status === 'planned'
         ? 'planned'
-        : manifest.catalog?.availability ?? DEFAULT_OPERATIONAL_LISTING_AVAILABILITY,
+        : (manifest.catalog?.availability ?? DEFAULT_OPERATIONAL_LISTING_AVAILABILITY),
     source: manifest.catalog?.source ?? 'manifest',
     statusNote: manifest.catalog?.statusNote,
-    catalogGroups:
-      manifest.catalog?.catalogGroups ??
-      (category ? [category] : undefined),
+    catalogGroups: manifest.catalog?.catalogGroups ?? (category ? [category] : undefined),
     family: manifest.catalog?.family,
     tags: manifest.catalog?.tags,
     featured: manifest.catalog?.featured,
@@ -147,8 +136,7 @@ export function mapPackManifest(manifest: OperationalPackManifest): PackTemplate
     featured: manifest.catalog?.featured,
     catalogGroup: manifest.catalog?.catalogGroup ?? toCategory(manifest.category) ?? undefined,
     tags: manifest.catalog?.tags,
-    availability:
-      manifest.catalog?.availability ?? DEFAULT_OPERATIONAL_LISTING_AVAILABILITY,
+    availability: manifest.catalog?.availability ?? DEFAULT_OPERATIONAL_LISTING_AVAILABILITY,
   });
 }
 
@@ -182,7 +170,5 @@ function toAgentDomain(value: string | undefined): AgentDomain | null {
     return null;
   }
 
-  return AGENT_DOMAIN_SET.has(value as AgentDomain)
-    ? (value as AgentDomain)
-    : null;
+  return AGENT_DOMAIN_SET.has(value as AgentDomain) ? (value as AgentDomain) : null;
 }

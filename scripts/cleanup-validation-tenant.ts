@@ -73,11 +73,9 @@ async function main() {
 
 function printSummary(
   mode: 'dry-run' | 'execute',
-  plan: Awaited<ReturnType<typeof planValidationFixtureCleanup>>,
+  plan: Awaited<ReturnType<typeof planValidationFixtureCleanup>>
 ) {
-  console.log(
-    `${mode === 'execute' ? 'Executed' : 'Planned'} validation fixture cleanup`,
-  );
+  console.log(`${mode === 'execute' ? 'Executed' : 'Planned'} validation fixture cleanup`);
   console.log(`Tenant: ${plan.tenant.name} (${plan.tenant.id})`);
   console.log(`User: ${plan.user.email} (${plan.user.id})`);
   console.log('External cleanup:');

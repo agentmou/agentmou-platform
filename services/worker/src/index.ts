@@ -27,10 +27,7 @@ import {
 const connection = getConnectionOptions();
 const logger = createServiceLogger('worker');
 
-function startWorker<T>(
-  queueName: string,
-  processor: (job: Job<T>) => Promise<void>,
-) {
+function startWorker<T>(queueName: string, processor: (job: Job<T>) => Promise<void>) {
   const worker = new Worker<T>(queueName, processor, { connection });
 
   worker.on('completed', (job) => {

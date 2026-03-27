@@ -1,10 +1,7 @@
 import { db, approvalRequests, agentInstallations } from '@agentmou/db';
 import { eq, and, desc, inArray } from 'drizzle-orm';
 import { mapApproval } from './approvals.mapper.js';
-import type {
-  ApprovalDecisionBody,
-  CreateApprovalBody,
-} from './approvals.schema.js';
+import type { ApprovalDecisionBody, CreateApprovalBody } from './approvals.schema.js';
 
 import { recordAuditEvent } from '../../lib/audit.js';
 
@@ -18,25 +15,23 @@ export class ApprovalsService {
 
     const approvals = filters?.status
       ? await db
-        .select()
-        .from(approvalRequests)
-        .where(
-          and(
-            eq(approvalRequests.tenantId, tenantId),
-            eq(approvalRequests.status, filters.status)
+          .select()
+          .from(approvalRequests)
+          .where(
+            and(
+              eq(approvalRequests.tenantId, tenantId),
+              eq(approvalRequests.status, filters.status)
+            )
           )
-        )
-        .orderBy(desc(approvalRequests.requestedAt))
+          .orderBy(desc(approvalRequests.requestedAt))
       : await query;
 
     const agentIds = await resolveAgentTemplateIds(approvals);
     return approvals.map((approval) =>
       mapApproval(
         approval,
-        approval.agentInstallationId
-          ? agentIds.get(approval.agentInstallationId)
-          : undefined,
-      ),
+        approval.agentInstallationId ? agentIds.get(approval.agentInstallationId) : undefined
+      )
     );
   }
 
@@ -44,12 +39,7 @@ export class ApprovalsService {
     const [approval] = await db
       .select()
       .from(approvalRequests)
-      .where(
-        and(
-          eq(approvalRequests.tenantId, tenantId),
-          eq(approvalRequests.id, approvalId)
-        )
-      );
+      .where(and(eq(approvalRequests.tenantId, tenantId), eq(approvalRequests.id, approvalId)));
     if (!approval) {
       return null;
     }
@@ -57,9 +47,7 @@ export class ApprovalsService {
     const agentIds = await resolveAgentTemplateIds([approval]);
     return mapApproval(
       approval,
-      approval.agentInstallationId
-        ? agentIds.get(approval.agentInstallationId)
-        : undefined,
+      approval.agentInstallationId ? agentIds.get(approval.agentInstallationId) : undefined
     );
   }
 
@@ -67,7 +55,7 @@ export class ApprovalsService {
     tenantId: string,
     approvalId: string,
     decidedBy: string,
-    reason?: ApprovalDecisionBody['reason'],
+    reason?: ApprovalDecisionBody['reason']
   ) {
     const [updated] = await db
       .update(approvalRequests)
@@ -77,12 +65,7 @@ export class ApprovalsService {
         decidedBy,
         decisionReason: reason,
       })
-      .where(
-        and(
-          eq(approvalRequests.tenantId, tenantId),
-          eq(approvalRequests.id, approvalId)
-        )
-      )
+      .where(and(eq(approvalRequests.tenantId, tenantId), eq(approvalRequests.id, approvalId)))
       .returning();
     if (!updated) {
       return null;
@@ -102,9 +85,7 @@ export class ApprovalsService {
     const agentIds = await resolveAgentTemplateIds([updated]);
     return mapApproval(
       updated,
-      updated.agentInstallationId
-        ? agentIds.get(updated.agentInstallationId)
-        : undefined,
+      updated.agentInstallationId ? agentIds.get(updated.agentInstallationId) : undefined
     );
   }
 
@@ -112,7 +93,7 @@ export class ApprovalsService {
     tenantId: string,
     approvalId: string,
     decidedBy: string,
-    reason?: ApprovalDecisionBody['reason'],
+    reason?: ApprovalDecisionBody['reason']
   ) {
     const [updated] = await db
       .update(approvalRequests)
@@ -122,12 +103,7 @@ export class ApprovalsService {
         decidedBy,
         decisionReason: reason,
       })
-      .where(
-        and(
-          eq(approvalRequests.tenantId, tenantId),
-          eq(approvalRequests.id, approvalId)
-        )
-      )
+      .where(and(eq(approvalRequests.tenantId, tenantId), eq(approvalRequests.id, approvalId)))
       .returning();
     if (!updated) {
       return null;
@@ -147,16 +123,11 @@ export class ApprovalsService {
     const agentIds = await resolveAgentTemplateIds([updated]);
     return mapApproval(
       updated,
-      updated.agentInstallationId
-        ? agentIds.get(updated.agentInstallationId)
-        : undefined,
+      updated.agentInstallationId ? agentIds.get(updated.agentInstallationId) : undefined
     );
   }
 
-  async requestApproval(
-    tenantId: string,
-    data: CreateApprovalBody,
-  ) {
+  async requestApproval(tenantId: string, data: CreateApprovalBody) {
     const [approval] = await db
       .insert(approvalRequests)
       .values({
@@ -194,21 +165,17 @@ export class ApprovalsService {
     const agentIds = await resolveAgentTemplateIds([approval]);
     return mapApproval(
       approval,
-      approval.agentInstallationId
-        ? agentIds.get(approval.agentInstallationId)
-        : undefined,
+      approval.agentInstallationId ? agentIds.get(approval.agentInstallationId) : undefined
     );
   }
 }
 
-async function resolveAgentTemplateIds(
-  approvals: Array<typeof approvalRequests.$inferSelect>,
-) {
+async function resolveAgentTemplateIds(approvals: Array<typeof approvalRequests.$inferSelect>) {
   const installationIds = [
     ...new Set(
       approvals
         .map((approval) => approval.agentInstallationId)
-        .filter((id): id is string => Boolean(id)),
+        .filter((id): id is string => Boolean(id))
     ),
   ];
 
@@ -224,7 +191,5 @@ async function resolveAgentTemplateIds(
     .from(agentInstallations)
     .where(inArray(agentInstallations.id, installationIds));
 
-  return new Map(
-    installations.map((installation) => [installation.id, installation.templateId]),
-  );
+  return new Map(installations.map((installation) => [installation.id, installation.templateId]));
 }

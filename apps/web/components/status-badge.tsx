@@ -1,11 +1,21 @@
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
-type StatusType = 'success' | 'failed' | 'running' | 'enabled' | 'disabled' | 'connected' | 'disconnected' | 'pending' | 'paid' | 'overdue'
+type StatusType =
+  | 'success'
+  | 'failed'
+  | 'running'
+  | 'enabled'
+  | 'disabled'
+  | 'connected'
+  | 'disconnected'
+  | 'pending'
+  | 'paid'
+  | 'overdue';
 
 interface StatusBadgeProps {
-  status: StatusType
-  className?: string
+  status: StatusType;
+  className?: string;
 }
 
 // Editorial style: outline fine, no strong backgrounds
@@ -61,16 +71,16 @@ const statusConfig: Record<StatusType, { label: string; className: string; dotCo
     className: 'border-foreground/30 text-foreground bg-transparent',
     dotColor: 'bg-foreground',
   },
-}
+};
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
-  const config = statusConfig[status]
+  const config = statusConfig[status];
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
         'text-[10px] uppercase tracking-wide font-medium px-2 py-0.5',
-        config.className, 
+        config.className,
         className
       )}
     >
@@ -79,5 +89,5 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
       )}
       {config.label}
     </Badge>
-  )
+  );
 }

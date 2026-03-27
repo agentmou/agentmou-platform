@@ -203,7 +203,9 @@ export class PolicyEngine {
 
     for (const constraint of constraints) {
       if (!this.checkConstraint(constraint, usage)) {
-        violations.push(`Constraint violation: ${constraint.type} — ${constraint.description ?? ''}`);
+        violations.push(
+          `Constraint violation: ${constraint.type} — ${constraint.description ?? ''}`
+        );
       }
     }
 

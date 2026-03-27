@@ -94,12 +94,7 @@ const TEST_FIXTURE_EMAIL_PATTERNS = [
 
 // These markers cover the temporary workspace and owner names used during
 // validation without allowing ordinary production customer names through.
-const TEST_FIXTURE_NAME_PATTERNS = [
-  /\boauth\b/i,
-  /\be2e\b/i,
-  /\btest\b/i,
-  /\bvalidation\b/i,
-];
+const TEST_FIXTURE_NAME_PATTERNS = [/\boauth\b/i, /\be2e\b/i, /\btest\b/i, /\bvalidation\b/i];
 
 export class ValidationFixtureCleanupError extends Error {
   constructor(message: string) {
@@ -118,17 +113,14 @@ export class ValidationFixturePartialCleanupError extends ValidationFixtureClean
   }
 }
 
-export function isValidationFixtureCandidate(
-  identity: ValidationFixtureIdentity,
-): boolean {
+export function isValidationFixtureCandidate(identity: ValidationFixtureIdentity): boolean {
   const { userName } = identity;
   const hasFixtureEmail = TEST_FIXTURE_EMAIL_PATTERNS.some((pattern) =>
-    pattern.test(identity.userEmail),
+    pattern.test(identity.userEmail)
   );
   const hasFixtureName =
     TEST_FIXTURE_NAME_PATTERNS.some((pattern) => pattern.test(identity.tenantName)) ||
-    (userName !== null
-      && TEST_FIXTURE_NAME_PATTERNS.some((pattern) => pattern.test(userName)));
+    (userName !== null && TEST_FIXTURE_NAME_PATTERNS.some((pattern) => pattern.test(userName)));
 
   return hasFixtureEmail && hasFixtureName && identity.tenantPlan === 'free';
 }
@@ -166,7 +158,7 @@ export function buildUserDeletionDecision(referenceCounts: {
 
 export async function planValidationFixtureCleanup(
   db: CleanupDb,
-  input: ValidationFixtureCleanupInput,
+  input: ValidationFixtureCleanupInput
 ): Promise<ValidationFixtureCleanupPlan> {
   const context = await buildValidationFixtureCleanupContext(db, input);
   return context.plan;
@@ -174,7 +166,7 @@ export async function planValidationFixtureCleanup(
 
 export async function executeValidationFixtureCleanup(
   db: CleanupDb,
-  input: ValidationFixtureCleanupInput,
+  input: ValidationFixtureCleanupInput
 ): Promise<ValidationFixtureCleanupPlan> {
   const context = await buildValidationFixtureCleanupContext(db, input);
 
@@ -187,7 +179,7 @@ export async function executeValidationFixtureCleanup(
   } catch (error) {
     throw new ValidationFixturePartialCleanupError(
       `External cleanup succeeded but database deletion failed for tenant ${context.tenantId}. Rerun is safe because missing external resources are treated as already cleaned.`,
-      { cause: error },
+      { cause: error }
     );
   }
 
@@ -196,12 +188,10 @@ export async function executeValidationFixtureCleanup(
 
 async function buildValidationFixtureCleanupContext(
   db: CleanupDb,
-  input: ValidationFixtureCleanupInput,
+  input: ValidationFixtureCleanupInput
 ): Promise<ValidationFixtureCleanupContext> {
   if (!input.userEmail && !input.userId) {
-    throw new ValidationFixtureCleanupError(
-      'Provide USER_EMAIL or USER_ID alongside TENANT_ID.',
-    );
+    throw new ValidationFixtureCleanupError('Provide USER_EMAIL or USER_ID alongside TENANT_ID.');
   }
 
   const [tenant] = await db
@@ -215,15 +205,13 @@ async function buildValidationFixtureCleanupContext(
     .where(eq(tenants.id, input.tenantId));
 
   if (!tenant) {
-    throw new ValidationFixtureCleanupError(
-      `Tenant ${input.tenantId} was not found.`,
-    );
+    throw new ValidationFixtureCleanupError(`Tenant ${input.tenantId} was not found.`);
   }
 
   const user = await resolveCleanupUser(db, input);
   if (tenant.ownerId !== user.id) {
     throw new ValidationFixtureCleanupError(
-      `Tenant ${tenant.id} is owned by ${tenant.ownerId}, not ${user.id}.`,
+      `Tenant ${tenant.id} is owned by ${tenant.ownerId}, not ${user.id}.`
     );
   }
 
@@ -236,7 +224,7 @@ async function buildValidationFixtureCleanupContext(
     })
   ) {
     throw new ValidationFixtureCleanupError(
-      `Tenant ${tenant.id} and ${user.email} do not look like a disposable validation fixture.`,
+      `Tenant ${tenant.id} and ${user.email} do not look like a disposable validation fixture.`
     );
   }
 
@@ -250,7 +238,7 @@ async function buildValidationFixtureCleanupContext(
 
   if (membershipRows.length !== 1 || membershipRows[0]?.userId !== user.id) {
     throw new ValidationFixtureCleanupError(
-      `Tenant ${tenant.id} has ${membershipRows.length} memberships; cleanup is only supported for single-owner validation fixtures.`,
+      `Tenant ${tenant.id} has ${membershipRows.length} memberships; cleanup is only supported for single-owner validation fixtures.`
     );
   }
 
@@ -285,12 +273,13 @@ async function buildValidationFixtureCleanupContext(
     .where(eq(executionRuns.tenantId, tenant.id));
   const runIds = executionRunRows.map((row) => row.id);
 
-  const executionStepRows = runIds.length === 0
-    ? []
-    : await db
-        .select({ id: executionSteps.id })
-        .from(executionSteps)
-        .where(inArray(executionSteps.runId, runIds));
+  const executionStepRows =
+    runIds.length === 0
+      ? []
+      : await db
+          .select({ id: executionSteps.id })
+          .from(executionSteps)
+          .where(inArray(executionSteps.runId, runIds));
 
   const agentInstallationRows = await db
     .select({ id: agentInstallations.id })
@@ -364,12 +353,7 @@ async function buildValidationFixtureCleanupContext(
   const otherApprovalDecisionRows = await db
     .select({ id: approvalRequests.id })
     .from(approvalRequests)
-    .where(
-      and(
-        eq(approvalRequests.decidedBy, user.id),
-        ne(approvalRequests.tenantId, tenant.id),
-      ),
-    );
+    .where(and(eq(approvalRequests.decidedBy, user.id), ne(approvalRequests.tenantId, tenant.id)));
 
   const userDeletion = buildUserDeletionDecision({
     otherOwnedTenants: otherOwnedTenantRows.length,
@@ -395,9 +379,8 @@ async function buildValidationFixtureCleanupContext(
   const externalOperations = [
     {
       label: 'n8n_workflows',
-      count: externalCleanupPlan.workflows.filter((workflow) =>
-        Boolean(workflow.n8nWorkflowId),
-      ).length,
+      count: externalCleanupPlan.workflows.filter((workflow) => Boolean(workflow.n8nWorkflowId))
+        .length,
     },
     {
       label: 'schedule_repeatables',
@@ -496,7 +479,7 @@ async function buildValidationFixtureCleanupContext(
       userDeletion,
       totalExternalResources: externalOperations.reduce(
         (total, operation) => total + operation.count,
-        0,
+        0
       ),
       totalRows:
         operations.reduce((total, operation) => total + operation.count, 0) +
@@ -508,7 +491,7 @@ async function buildValidationFixtureCleanupContext(
 
 async function resolveCleanupUser(
   db: CleanupDb,
-  input: ValidationFixtureCleanupInput,
+  input: ValidationFixtureCleanupInput
 ): Promise<ValidationFixtureCleanupPlan['user']> {
   const userByEmail = input.userEmail
     ? await db
@@ -536,28 +519,22 @@ async function resolveCleanupUser(
   const idMatch = userById[0];
 
   if (input.userEmail && !emailMatch) {
-    throw new ValidationFixtureCleanupError(
-      `User ${input.userEmail} was not found.`,
-    );
+    throw new ValidationFixtureCleanupError(`User ${input.userEmail} was not found.`);
   }
 
   if (input.userId && !idMatch) {
-    throw new ValidationFixtureCleanupError(
-      `User ${input.userId} was not found.`,
-    );
+    throw new ValidationFixtureCleanupError(`User ${input.userId} was not found.`);
   }
 
   if (emailMatch && idMatch && emailMatch.id !== idMatch.id) {
     throw new ValidationFixtureCleanupError(
-      `USER_EMAIL ${input.userEmail} and USER_ID ${input.userId} do not refer to the same user.`,
+      `USER_EMAIL ${input.userEmail} and USER_ID ${input.userId} do not refer to the same user.`
     );
   }
 
   const user = emailMatch ?? idMatch;
   if (!user) {
-    throw new ValidationFixtureCleanupError(
-      'Provide USER_EMAIL or USER_ID alongside TENANT_ID.',
-    );
+    throw new ValidationFixtureCleanupError('Provide USER_EMAIL or USER_ID alongside TENANT_ID.');
   }
 
   return user;
@@ -565,85 +542,49 @@ async function resolveCleanupUser(
 
 async function deleteRowsForTenant(
   tx: CleanupTransaction,
-  context: ValidationFixtureCleanupContext,
+  context: ValidationFixtureCleanupContext
 ) {
-  await tx
-    .delete(connectorOauthStates)
-    .where(eq(connectorOauthStates.tenantId, context.tenantId));
+  await tx.delete(connectorOauthStates).where(eq(connectorOauthStates.tenantId, context.tenantId));
 
-  await tx
-    .delete(secretEnvelopes)
-    .where(eq(secretEnvelopes.tenantId, context.tenantId));
+  await tx.delete(secretEnvelopes).where(eq(secretEnvelopes.tenantId, context.tenantId));
 
-  await tx
-    .delete(approvalRequests)
-    .where(eq(approvalRequests.tenantId, context.tenantId));
+  await tx.delete(approvalRequests).where(eq(approvalRequests.tenantId, context.tenantId));
 
-  await tx
-    .delete(billableUsageLedger)
-    .where(eq(billableUsageLedger.tenantId, context.tenantId));
+  await tx.delete(billableUsageLedger).where(eq(billableUsageLedger.tenantId, context.tenantId));
 
   if (context.runIds.length > 0) {
-    await tx
-      .delete(executionSteps)
-      .where(inArray(executionSteps.runId, context.runIds));
+    await tx.delete(executionSteps).where(inArray(executionSteps.runId, context.runIds));
   }
 
-  await tx
-    .delete(executionRuns)
-    .where(eq(executionRuns.tenantId, context.tenantId));
+  await tx.delete(executionRuns).where(eq(executionRuns.tenantId, context.tenantId));
 
-  await tx
-    .delete(agentInstallations)
-    .where(eq(agentInstallations.tenantId, context.tenantId));
+  await tx.delete(agentInstallations).where(eq(agentInstallations.tenantId, context.tenantId));
 
   await tx
     .delete(workflowInstallations)
     .where(eq(workflowInstallations.tenantId, context.tenantId));
 
-  await tx
-    .delete(schedules)
-    .where(eq(schedules.tenantId, context.tenantId));
+  await tx.delete(schedules).where(eq(schedules.tenantId, context.tenantId));
 
-  await tx
-    .delete(usageEvents)
-    .where(eq(usageEvents.tenantId, context.tenantId));
+  await tx.delete(usageEvents).where(eq(usageEvents.tenantId, context.tenantId));
 
-  await tx
-    .delete(billingInvoices)
-    .where(eq(billingInvoices.tenantId, context.tenantId));
+  await tx.delete(billingInvoices).where(eq(billingInvoices.tenantId, context.tenantId));
 
-  await tx
-    .delete(billingSubscriptions)
-    .where(eq(billingSubscriptions.tenantId, context.tenantId));
+  await tx.delete(billingSubscriptions).where(eq(billingSubscriptions.tenantId, context.tenantId));
 
-  await tx
-    .delete(billingAccounts)
-    .where(eq(billingAccounts.tenantId, context.tenantId));
+  await tx.delete(billingAccounts).where(eq(billingAccounts.tenantId, context.tenantId));
 
-  await tx
-    .delete(connectorAccounts)
-    .where(eq(connectorAccounts.tenantId, context.tenantId));
+  await tx.delete(connectorAccounts).where(eq(connectorAccounts.tenantId, context.tenantId));
 
-  await tx
-    .delete(auditEvents)
-    .where(eq(auditEvents.tenantId, context.tenantId));
+  await tx.delete(auditEvents).where(eq(auditEvents.tenantId, context.tenantId));
 
-  await tx
-    .delete(webhookEvents)
-    .where(eq(webhookEvents.tenantId, context.tenantId));
+  await tx.delete(webhookEvents).where(eq(webhookEvents.tenantId, context.tenantId));
 
-  await tx
-    .delete(memberships)
-    .where(eq(memberships.tenantId, context.tenantId));
+  await tx.delete(memberships).where(eq(memberships.tenantId, context.tenantId));
 
-  await tx
-    .delete(tenants)
-    .where(eq(tenants.id, context.tenantId));
+  await tx.delete(tenants).where(eq(tenants.id, context.tenantId));
 
   if (context.plan.userDeletion.willDelete) {
-    await tx
-      .delete(users)
-      .where(eq(users.id, context.userId));
+    await tx.delete(users).where(eq(users.id, context.userId));
   }
 }

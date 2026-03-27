@@ -1,8 +1,15 @@
 {
-  "defaultConfig": {
-    "MD060": { "style": "compact" },
-    "MD013": false,
-    "MD040": false,
-    "MD036": false
+  "default": true,
+  "MD013": false,
+  "MD022": false,
+  "MD032": false,
+  "MD033": false,
+  "MD034": false,
+  "MD036": false,
+  "MD040": false,
+  "MD041": false,
+  "MD053": false,
+  "MD060": {
+    "style": "compact"
   }
 }

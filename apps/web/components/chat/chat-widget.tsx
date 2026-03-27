@@ -1,23 +1,22 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { MessageCircle, X, Sparkles } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { ChatPanel } from './chat-panel'
-import type { ChatMode, WorkspaceContextSnapshot } from '@/lib/chat/types'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState } from 'react';
+import { MessageCircle, X, Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ChatPanel } from './chat-panel';
+import type { ChatMode, WorkspaceContextSnapshot } from '@/lib/chat/types';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ChatWidgetProps {
-  mode: ChatMode
-  workspaceId?: string
-  contextSnapshot?: WorkspaceContextSnapshot
+  mode: ChatMode;
+  workspaceId?: string;
+  contextSnapshot?: WorkspaceContextSnapshot;
 }
 
 export function ChatWidget({ mode, workspaceId, contextSnapshot }: ChatWidgetProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
-  const hoverLabel =
-    mode === 'public' ? 'Open demo assistant' : 'Open assistant preview'
+  const [isOpen, setIsOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const hoverLabel = mode === 'public' ? 'Open demo assistant' : 'Open assistant preview';
 
   return (
     <>
@@ -66,17 +65,17 @@ export function ChatWidget({ mode, workspaceId, contextSnapshot }: ChatWidgetPro
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className={cn(
-            "relative flex h-14 w-14 items-center justify-center rounded-full transition-all duration-300",
-            "shadow-lg hover:shadow-xl",
+            'relative flex h-14 w-14 items-center justify-center rounded-full transition-all duration-300',
+            'shadow-lg hover:shadow-xl',
             isOpen
-              ? "bg-muted text-muted-foreground"
-              : "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white"
+              ? 'bg-muted text-muted-foreground'
+              : 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white'
           )}
         >
           {!isOpen && (
             <span className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" />
           )}
-          
+
           {/* Icon with transition */}
           <motion.div
             initial={false}
@@ -95,5 +94,5 @@ export function ChatWidget({ mode, workspaceId, contextSnapshot }: ChatWidgetPro
         </motion.button>
       </div>
     </>
-  )
+  );
 }

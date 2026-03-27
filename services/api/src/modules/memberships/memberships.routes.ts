@@ -20,11 +20,14 @@ const membershipResponseSchema = z.object({
 export async function membershipRoutes(fastify: FastifyInstance) {
   const membershipsService = new MembershipsService();
 
-  fastify.get('/tenants/:tenantId/members', async (request: FastifyRequest, reply: FastifyReply) => {
-    const { tenantId } = request.params as { tenantId: string };
-    const members = await membershipsService.listMembers(tenantId);
-    return reply.send(TenantMembersResponseSchema.parse({ members }));
-  });
+  fastify.get(
+    '/tenants/:tenantId/members',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { tenantId } = request.params as { tenantId: string };
+      const members = await membershipsService.listMembers(tenantId);
+      return reply.send(TenantMembersResponseSchema.parse({ members }));
+    }
+  );
 
   fastify.post('/tenants/:tenantId/members', {
     schema: { body: addMemberSchema },
@@ -33,20 +36,23 @@ export async function membershipRoutes(fastify: FastifyInstance) {
       const membership = await membershipsService.addMember(
         tenantId,
         request.body as AddMemberInput,
-        request.userId,
+        request.userId
       );
       return reply.send(membershipResponseSchema.parse({ membership }));
     },
   });
 
-  fastify.get('/tenants/:tenantId/members/:memberId', async (request: FastifyRequest, reply: FastifyReply) => {
-    const { tenantId, memberId } = request.params as { tenantId: string; memberId: string };
-    const member = await membershipsService.getMember(tenantId, memberId);
-    if (!member) {
-      return reply.status(404).send({ error: 'Member not found' });
+  fastify.get(
+    '/tenants/:tenantId/members/:memberId',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { tenantId, memberId } = request.params as { tenantId: string; memberId: string };
+      const member = await membershipsService.getMember(tenantId, memberId);
+      if (!member) {
+        return reply.status(404).send({ error: 'Member not found' });
+      }
+      return reply.send(TenantMemberResponseSchema.parse({ member }));
     }
-    return reply.send(TenantMemberResponseSchema.parse({ member }));
-  });
+  );
 
   fastify.put('/tenants/:tenantId/members/:memberId', {
     schema: { body: updateMemberRoleSchema },
@@ -56,7 +62,7 @@ export async function membershipRoutes(fastify: FastifyInstance) {
         tenantId,
         memberId,
         (request.body as UpdateMemberRoleInput).role,
-        request.userId,
+        request.userId
       );
       if (!membership) {
         return reply.status(404).send({ error: 'Member not found' });
@@ -65,13 +71,12 @@ export async function membershipRoutes(fastify: FastifyInstance) {
     },
   });
 
-  fastify.delete('/tenants/:tenantId/members/:memberId', async (request: FastifyRequest, reply: FastifyReply) => {
-    const { tenantId, memberId } = request.params as { tenantId: string; memberId: string };
-    const result = await membershipsService.removeMember(
-      tenantId,
-      memberId,
-      request.userId,
-    );
-    return reply.send(result);
-  });
+  fastify.delete(
+    '/tenants/:tenantId/members/:memberId',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { tenantId, memberId } = request.params as { tenantId: string; memberId: string };
+      const result = await membershipsService.removeMember(tenantId, memberId, request.userId);
+      return reply.send(result);
+    }
+  );
 }

@@ -30,7 +30,7 @@ export class ExternalInstallationCleanupError extends Error {
     message: string,
     readonly resourceType: 'n8n_workflow' | 'schedule_repeatable',
     readonly resourceId: string,
-    options?: { cause?: unknown },
+    options?: { cause?: unknown }
   ) {
     super(message, options);
     this.name = 'ExternalInstallationCleanupError';
@@ -43,19 +43,15 @@ export class ExternalInstallationCleanupError extends Error {
  * The cleanup is intentionally fail-closed: any non-idempotent external error
  * aborts before the caller deletes local rows.
  */
-export async function cleanupInstallationExternalResources(
-  plan: ExternalInstallationCleanupPlan,
-) {
+export async function cleanupInstallationExternalResources(plan: ExternalInstallationCleanupPlan) {
   if (plan.workflows.length === 0 && plan.schedules.length === 0) {
     return;
   }
 
-  const n8n =
-    plan.workflows.some((workflow) => Boolean(workflow.n8nWorkflowId))
-      ? new N8nService()
-      : null;
-  const queue =
-    plan.schedules.length > 0 ? getQueue(QUEUE_NAMES.SCHEDULE_TRIGGER) : null;
+  const n8n = plan.workflows.some((workflow) => Boolean(workflow.n8nWorkflowId))
+    ? new N8nService()
+    : null;
+  const queue = plan.schedules.length > 0 ? getQueue(QUEUE_NAMES.SCHEDULE_TRIGGER) : null;
 
   for (const workflow of plan.workflows) {
     if (!workflow.n8nWorkflowId) {
@@ -73,7 +69,7 @@ export async function cleanupInstallationExternalResources(
         `Failed to delete n8n workflow ${workflow.n8nWorkflowId} for installation ${workflow.installationId}.`,
         'n8n_workflow',
         workflow.n8nWorkflowId,
-        { cause: error },
+        { cause: error }
       );
     }
   }
@@ -83,34 +79,26 @@ export async function cleanupInstallationExternalResources(
       await queue!.removeRepeatable(
         SCHEDULE_TRIGGER_JOB_NAME,
         { pattern: schedule.cron },
-        getScheduleTriggerJobId(schedule.id),
+        getScheduleTriggerJobId(schedule.id)
       );
     } catch (error) {
       throw new ExternalInstallationCleanupError(
         `Failed to remove BullMQ repeatable for schedule ${schedule.id} on installation ${schedule.installationId}.`,
         'schedule_repeatable',
         schedule.id,
-        { cause: error },
+        { cause: error }
       );
     }
   }
 }
 
 function isIdempotentNotFound(error: unknown): boolean {
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'response' in error
-  ) {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
     const response = (error as { response?: { status?: unknown } }).response;
     return response?.status === 404;
   }
 
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'statusCode' in error
-  ) {
+  if (typeof error === 'object' && error !== null && 'statusCode' in error) {
     const statusCode = (error as { statusCode?: unknown }).statusCode;
     return typeof statusCode === 'number' && statusCode === 404;
   }

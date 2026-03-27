@@ -1,8 +1,4 @@
-import {
-  TenantMemberSchema,
-  type TenantMember,
-  type UserRole,
-} from '@agentmou/contracts';
+import { TenantMemberSchema, type TenantMember, type UserRole } from '@agentmou/contracts';
 
 interface MembershipUser {
   id: string | null;

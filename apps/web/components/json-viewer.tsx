@@ -1,40 +1,37 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { Copy, Check, ChevronDown, ChevronRight } from 'lucide-react'
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Copy, Check, ChevronDown, ChevronRight } from 'lucide-react';
 
 interface JsonViewerProps {
-  data: unknown
-  className?: string
-  maxHeight?: string
-  collapsible?: boolean
-  defaultCollapsed?: boolean
+  data: unknown;
+  className?: string;
+  maxHeight?: string;
+  collapsible?: boolean;
+  defaultCollapsed?: boolean;
 }
 
-export function JsonViewer({ 
-  data, 
-  className, 
+export function JsonViewer({
+  data,
+  className,
   maxHeight = '300px',
   collapsible = false,
   defaultCollapsed = false,
 }: JsonViewerProps) {
-  const [copied, setCopied] = useState(false)
-  const [collapsed, setCollapsed] = useState(defaultCollapsed)
-  const formattedJson = JSON.stringify(data, null, 2)
+  const [copied, setCopied] = useState(false);
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
+  const formattedJson = JSON.stringify(data, null, 2);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(formattedJson)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    await navigator.clipboard.writeText(formattedJson);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
-    <div className={cn(
-      'relative rounded-md border border-border/50 bg-muted/20',
-      className
-    )}>
+    <div className={cn('relative rounded-md border border-border/50 bg-muted/20', className)}>
       {/* Header with copy button */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-border/30">
         {collapsible && (
@@ -52,7 +49,9 @@ export function JsonViewer({
             {collapsed ? 'Expand' : 'Collapse'}
           </Button>
         )}
-        {!collapsible && <span className="text-[10px] uppercase tracking-wide text-muted-foreground">JSON</span>}
+        {!collapsible && (
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">JSON</span>
+        )}
         <Button
           variant="ghost"
           size="sm"
@@ -72,7 +71,7 @@ export function JsonViewer({
           )}
         </Button>
       </div>
-      
+
       {/* JSON content */}
       {!collapsed && (
         <pre
@@ -83,5 +82,5 @@ export function JsonViewer({
         </pre>
       )}
     </div>
-  )
+  );
 }

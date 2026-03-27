@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils';
 
 interface GradientTextProps {
-  children: React.ReactNode
-  className?: string
-  colors?: string[]
-  animationSpeed?: number
+  children: React.ReactNode;
+  className?: string;
+  colors?: string[];
+  animationSpeed?: number;
   /** Delay in seconds before the gradient animation starts (for staggered reading-order effect) */
-  animationDelay?: number
+  animationDelay?: number;
 }
 
 export function GradientText({
@@ -18,7 +18,7 @@ export function GradientText({
   animationSpeed = 6,
   animationDelay = 0,
 }: GradientTextProps) {
-  const gradientColors = [...colors, colors[0]].join(', ')
+  const gradientColors = [...colors, colors[0]].join(', ');
 
   return (
     <span
@@ -35,5 +35,5 @@ export function GradientText({
     >
       {children}
     </span>
-  )
+  );
 }

@@ -1,8 +1,4 @@
-import {
-  IntegrationSchema,
-  type Integration,
-  type IntegrationCategory,
-} from '@agentmou/contracts';
+import { IntegrationSchema, type Integration, type IntegrationCategory } from '@agentmou/contracts';
 import { connectorAccounts } from '@agentmou/db';
 
 type ConnectorRow = typeof connectorAccounts.$inferSelect;
@@ -72,15 +68,10 @@ const CONNECTOR_METADATA: Record<string, ConnectorMetadata> = {
   },
 };
 
-export function mapConnector(
-  connector: ConnectorRow,
-  tenantId: string,
-): Integration {
+export function mapConnector(connector: ConnectorRow, tenantId: string): Integration {
   const scopes = normalizeScopes(connector.scopes);
-  const metadata = CONNECTOR_METADATA[connector.provider] ?? buildFallbackMetadata(
-    connector.provider,
-    scopes,
-  );
+  const metadata =
+    CONNECTOR_METADATA[connector.provider] ?? buildFallbackMetadata(connector.provider, scopes);
 
   return IntegrationSchema.parse({
     id: connector.provider,
@@ -97,10 +88,7 @@ export function mapConnector(
   });
 }
 
-function buildFallbackMetadata(
-  provider: string,
-  scopes: string[],
-): ConnectorMetadata {
+function buildFallbackMetadata(provider: string, scopes: string[]): ConnectorMetadata {
   return {
     name: provider
       .split(/[-_]/)

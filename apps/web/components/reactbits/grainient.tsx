@@ -1,25 +1,25 @@
-'use client'
+'use client';
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils';
 
 interface GrainientProps {
-  className?: string
+  className?: string;
   /** Colors for the gradient (CSS color strings) */
-  colors?: string[]
+  colors?: string[];
   /** Gradient angle in degrees (linear) or 'radial' */
-  angle?: number | 'radial'
+  angle?: number | 'radial';
   /** Grain intensity 0–1 (opacity of the noise overlay) */
-  grain?: number
+  grain?: number;
   /** Unique id for the SVG filter to avoid conflicts */
-  id?: string
+  id?: string;
   /** Animate gradient flow (React Bits style) */
-  animated?: boolean
+  animated?: boolean;
   /** Animation duration in seconds (when animated) */
-  animationDuration?: number
+  animationDuration?: number;
   /**
    * @deprecated Unused; linear gradient mode uses `colors` instead.
    */
-  blobColors?: [string, string, string]
+  blobColors?: [string, string, string];
 }
 
 /**
@@ -39,7 +39,7 @@ export function Grainient({
   const baseGradient =
     angle === 'radial'
       ? `radial-gradient(ellipse at 50% 50%, ${colors.join(', ')})`
-      : `linear-gradient(${angle}deg, ${colors.join(', ')})`
+      : `linear-gradient(${angle}deg, ${colors.join(', ')})`;
 
   const gradientStyle = animated
     ? {
@@ -47,14 +47,10 @@ export function Grainient({
         backgroundSize: '400% 100%',
         animation: `grainient-flow ${animationDuration}s ease-in-out infinite`,
       }
-    : { background: baseGradient }
+    : { background: baseGradient };
 
   return (
-    <div
-      className={cn('relative overflow-hidden', className)}
-      style={gradientStyle}
-      aria-hidden
-    >
+    <div className={cn('relative overflow-hidden', className)} style={gradientStyle} aria-hidden>
       {/* SVG grain overlay */}
       <div
         className="pointer-events-none absolute inset-0 mix-blend-soft-light"
@@ -74,5 +70,5 @@ export function Grainient({
         </svg>
       </div>
     </div>
-  )
+  );
 }

@@ -1,20 +1,12 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { cn } from '@/lib/utils'
-import { HalftoneBackground } from '@/components/brand/halftone-background'
-import { FadeContent } from '@/components/reactbits/fade-content'
-import { 
-  BookOpen, 
-  Bot, 
-  Workflow, 
-  Plug, 
-  Code,
-  Shield,
-  ChevronRight
-} from 'lucide-react'
+import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
+import { HalftoneBackground } from '@/components/brand/halftone-background';
+import { FadeContent } from '@/components/reactbits/fade-content';
+import { BookOpen, Bot, Workflow, Plug, Code, Shield, ChevronRight } from 'lucide-react';
 
 const sections = [
   {
@@ -77,7 +69,7 @@ const sections = [
       { id: 'runs-api', title: 'Runs API' },
     ],
   },
-]
+];
 
 const content: Record<string, { title: string; content: string }> = {
   introduction: {
@@ -394,7 +386,7 @@ Each approval request shows:
 - Keep HITL required for truly high-risk actions`,
   },
   'workflow-overview': {
-    title: 'Workflow Overview', 
+    title: 'Workflow Overview',
     content: `# Workflow Overview
 
 Workflows are n8n automation templates that power agents. The catalog contains 40+ workflows.
@@ -434,15 +426,19 @@ Workflows are n8n automation templates that power agents. The catalog contains 4
 
 Workflows are filtered based on visible agents. When you filter by category, only workflows used by agents in that category are shown.`,
   },
-}
+};
 
 export default function DocsPage() {
-  const [activeItem, setActiveItem] = useState('introduction')
+  const [activeItem, setActiveItem] = useState('introduction');
 
-  const currentContent = content[activeItem] || content.introduction
+  const currentContent = content[activeItem] || content.introduction;
 
   return (
-    <HalftoneBackground variant="mintTop" intensity="med" className="min-h-[calc(100vh-4rem)] border-t border-border/50">
+    <HalftoneBackground
+      variant="mintTop"
+      intensity="med"
+      className="min-h-[calc(100vh-4rem)] border-t border-border/50"
+    >
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
           {/* Sidebar */}
@@ -467,10 +463,12 @@ export default function DocsPage() {
                                 : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                             )}
                           >
-                            <ChevronRight className={cn(
-                              'h-3 w-3 transition-transform',
-                              activeItem === item.id && 'rotate-90'
-                            )} />
+                            <ChevronRight
+                              className={cn(
+                                'h-3 w-3 transition-transform',
+                                activeItem === item.id && 'rotate-90'
+                              )}
+                            />
                             {item.title}
                           </button>
                         </li>
@@ -499,5 +497,5 @@ export default function DocsPage() {
         </div>
       </div>
     </HalftoneBackground>
-  )
+  );
 }

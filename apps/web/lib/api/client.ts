@@ -59,7 +59,7 @@ const secretsResponseSchema = z.object({
       connectorAccountId: z.string().nullable().optional(),
       createdAt: z.string(),
       rotatedAt: z.string().nullable().optional(),
-    }),
+    })
   ),
 });
 
@@ -68,7 +68,7 @@ export type ApiSecret = z.infer<typeof secretsResponseSchema>['secrets'][number]
 export class ApiError extends Error {
   constructor(
     public status: number,
-    message: string,
+    message: string
   ) {
     super(message);
     this.name = 'ApiError';
@@ -78,7 +78,7 @@ export class ApiError extends Error {
 export class ApiContractError extends Error {
   constructor(
     public path: string,
-    public issues: string[],
+    public issues: string[]
   ) {
     super(formatContractError(path, issues));
     this.name = 'ApiContractError';
@@ -111,7 +111,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 async function requestParsed<TSchema extends ZodTypeAny>(
   path: string,
   schema: TSchema,
-  options?: RequestInit,
+  options?: RequestInit
 ): Promise<z.infer<TSchema>> {
   const data = await request<unknown>(path, options);
   const parsed = schema.safeParse(data);
@@ -121,7 +121,7 @@ async function requestParsed<TSchema extends ZodTypeAny>(
   }
 
   const issues = parsed.error.issues.map(
-    (issue) => `${issue.path.join('.') || '<root>'}: ${issue.message}`,
+    (issue) => `${issue.path.join('.') || '<root>'}: ${issue.message}`
   );
 
   throw new ApiContractError(path, issues);
@@ -150,10 +150,7 @@ export async function fetchTenants(): Promise<Tenant[]> {
 
 export async function fetchTenant(tenantId: string): Promise<Tenant | null> {
   try {
-    const data = await requestParsed(
-      `/api/v1/tenants/${tenantId}`,
-      TenantResponseSchema,
-    );
+    const data = await requestParsed(`/api/v1/tenants/${tenantId}`, TenantResponseSchema);
     return data.tenant;
   } catch (error) {
     if (isApiNotFound(error)) {
@@ -165,10 +162,7 @@ export async function fetchTenant(tenantId: string): Promise<Tenant | null> {
 }
 
 async function fetchInstallations(tenantId: string) {
-  return requestParsed(
-    `/api/v1/tenants/${tenantId}/installations`,
-    InstallationsResponseSchema,
-  );
+  return requestParsed(`/api/v1/tenants/${tenantId}/installations`, InstallationsResponseSchema);
 }
 
 // ---------------------------------------------------------------------------
@@ -178,7 +172,7 @@ async function fetchInstallations(tenantId: string) {
 export async function fetchTenantMembers(tenantId: string): Promise<TenantMember[]> {
   const data = await requestParsed(
     `/api/v1/tenants/${tenantId}/members`,
-    TenantMembersResponseSchema,
+    TenantMembersResponseSchema
   );
   return data.members;
 }
@@ -196,7 +190,7 @@ export async function fetchCatalogAgent(agentId: string): Promise<AgentTemplate 
   try {
     const data = await requestParsed(
       `/api/v1/catalog/agents/${agentId}`,
-      AgentTemplateResponseSchema,
+      AgentTemplateResponseSchema
     );
     return data.agent;
   } catch {
@@ -211,10 +205,7 @@ export async function fetchCatalogPacks(): Promise<PackTemplate[]> {
 
 export async function fetchCatalogPack(packId: string): Promise<PackTemplate | null> {
   try {
-    const data = await requestParsed(
-      `/api/v1/catalog/packs/${packId}`,
-      PackTemplateResponseSchema,
-    );
+    const data = await requestParsed(`/api/v1/catalog/packs/${packId}`, PackTemplateResponseSchema);
     return data.pack;
   } catch {
     return null;
@@ -222,10 +213,7 @@ export async function fetchCatalogPack(packId: string): Promise<PackTemplate | n
 }
 
 export async function fetchCatalogWorkflows(): Promise<WorkflowTemplate[]> {
-  const data = await requestParsed(
-    '/api/v1/catalog/workflows',
-    WorkflowTemplatesResponseSchema,
-  );
+  const data = await requestParsed('/api/v1/catalog/workflows', WorkflowTemplatesResponseSchema);
   return data.workflows;
 }
 
@@ -246,7 +234,7 @@ export async function fetchInstalledWorkflows(tenantId: string): Promise<Install
 export async function installAgent(
   tenantId: string,
   templateId: string,
-  config?: Record<string, unknown>,
+  config?: Record<string, unknown>
 ) {
   return requestParsed(
     `/api/v1/tenants/${tenantId}/installations/agents`,
@@ -254,14 +242,14 @@ export async function installAgent(
     {
       method: 'POST',
       body: JSON.stringify({ templateId, config }),
-    },
+    }
   );
 }
 
 export async function installPack(
   tenantId: string,
   packId: string,
-  config?: Record<string, unknown>,
+  config?: Record<string, unknown>
 ) {
   return requestParsed(
     `/api/v1/tenants/${tenantId}/installations/packs`,
@@ -269,7 +257,7 @@ export async function installPack(
     {
       method: 'POST',
       body: JSON.stringify({ packId, config }),
-    },
+    }
   );
 }
 
@@ -280,7 +268,7 @@ export async function installPack(
 export async function fetchConnectors(tenantId: string): Promise<Integration[]> {
   const data = await requestParsed(
     `/api/v1/tenants/${tenantId}/connectors`,
-    ConnectorsResponseSchema,
+    ConnectorsResponseSchema
   );
   return data.connectors;
 }
@@ -290,21 +278,18 @@ export async function fetchConnectors(tenantId: string): Promise<Integration[]> 
 // ---------------------------------------------------------------------------
 
 export async function fetchTenantRuns(tenantId: string): Promise<ExecutionRun[]> {
-  const data = await requestParsed(
-    `/api/v1/tenants/${tenantId}/runs`,
-    ExecutionRunsResponseSchema,
-  );
+  const data = await requestParsed(`/api/v1/tenants/${tenantId}/runs`, ExecutionRunsResponseSchema);
   return data.runs;
 }
 
 export async function fetchTenantRun(
   tenantId: string,
-  runId: string,
+  runId: string
 ): Promise<ExecutionRun | null> {
   try {
     const data = await requestParsed(
       `/api/v1/tenants/${tenantId}/runs/${runId}`,
-      ExecutionRunResponseSchema,
+      ExecutionRunResponseSchema
     );
     return data.run;
   } catch (error) {
@@ -319,38 +304,30 @@ export async function fetchTenantRun(
 export async function fetchTenantApprovals(tenantId: string): Promise<ApprovalRequest[]> {
   const data = await requestParsed(
     `/api/v1/tenants/${tenantId}/approvals`,
-    ApprovalRequestsResponseSchema,
+    ApprovalRequestsResponseSchema
   );
   return data.approvals;
 }
 
-export async function approveRequest(
-  tenantId: string,
-  approvalId: string,
-  reason?: string,
-) {
+export async function approveRequest(tenantId: string, approvalId: string, reason?: string) {
   return requestParsed(
     `/api/v1/tenants/${tenantId}/approvals/${approvalId}/approve`,
     ApprovalResponseSchema,
     {
       method: 'POST',
       body: JSON.stringify({ reason }),
-    },
+    }
   );
 }
 
-export async function rejectRequest(
-  tenantId: string,
-  approvalId: string,
-  reason?: string,
-) {
+export async function rejectRequest(tenantId: string, approvalId: string, reason?: string) {
   return requestParsed(
     `/api/v1/tenants/${tenantId}/approvals/${approvalId}/reject`,
     ApprovalResponseSchema,
     {
       method: 'POST',
       body: JSON.stringify({ reason }),
-    },
+    }
   );
 }
 
@@ -358,38 +335,31 @@ export async function rejectRequest(
 // Security
 // ---------------------------------------------------------------------------
 
-export async function fetchTenantSecurityFindings(
-  tenantId: string,
-): Promise<SecurityFinding[]> {
+export async function fetchTenantSecurityFindings(tenantId: string): Promise<SecurityFinding[]> {
   const data = await requestParsed(
     `/api/v1/tenants/${tenantId}/security/findings`,
-    SecurityFindingsResponseSchema,
+    SecurityFindingsResponseSchema
   );
   return data.findings;
 }
 
-export async function fetchTenantSecurityPolicies(
-  tenantId: string,
-): Promise<SecurityPolicy[]> {
+export async function fetchTenantSecurityPolicies(tenantId: string): Promise<SecurityPolicy[]> {
   const data = await requestParsed(
     `/api/v1/tenants/${tenantId}/security/policies`,
-    SecurityPoliciesResponseSchema,
+    SecurityPoliciesResponseSchema
   );
   return data.policies;
 }
 
 export async function fetchTenantSecrets(tenantId: string): Promise<ApiSecret[]> {
-  const data = await requestParsed(
-    `/api/v1/tenants/${tenantId}/secrets`,
-    secretsResponseSchema,
-  );
+  const data = await requestParsed(`/api/v1/tenants/${tenantId}/secrets`, secretsResponseSchema);
   return data.secrets;
 }
 
 export async function fetchTenantAuditLogs(tenantId: string) {
   const data = await requestParsed(
     `/api/v1/tenants/${tenantId}/security/audit-logs`,
-    AuditEventsResponseSchema,
+    AuditEventsResponseSchema
   );
   return data.logs;
 }
@@ -398,12 +368,10 @@ export async function fetchTenantAuditLogs(tenantId: string) {
 // Billing
 // ---------------------------------------------------------------------------
 
-export async function fetchBillingOverview(
-  tenantId: string,
-): Promise<BillingOverview> {
+export async function fetchBillingOverview(tenantId: string): Promise<BillingOverview> {
   const data = await requestParsed(
     `/api/v1/tenants/${tenantId}/billing/overview`,
-    BillingOverviewResponseSchema,
+    BillingOverviewResponseSchema
   );
   return data.overview;
 }
@@ -411,7 +379,7 @@ export async function fetchBillingOverview(
 export async function fetchTenantInvoices(tenantId: string): Promise<Invoice[]> {
   const data = await requestParsed(
     `/api/v1/tenants/${tenantId}/billing/invoices`,
-    BillingInvoicesResponseSchema,
+    BillingInvoicesResponseSchema
   );
   return data.invoices;
 }
@@ -420,12 +388,10 @@ export async function fetchTenantInvoices(tenantId: string): Promise<Invoice[]> 
 // Workflow Engine
 // ---------------------------------------------------------------------------
 
-export async function fetchWorkflowEngineStatus(
-  tenantId: string,
-): Promise<WorkflowEngineStatus> {
+export async function fetchWorkflowEngineStatus(tenantId: string): Promise<WorkflowEngineStatus> {
   const data = await requestParsed(
     `/api/v1/tenants/${tenantId}/n8n/status`,
-    WorkflowEngineStatusResponseSchema,
+    WorkflowEngineStatusResponseSchema
   );
   return data.status;
 }

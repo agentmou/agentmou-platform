@@ -10,10 +10,7 @@ import type { Job } from 'bullmq';
 import { db, approvalRequests, executionRuns, auditEvents } from '@agentmou/db';
 import { eq } from 'drizzle-orm';
 import { getQueue, QUEUE_NAMES } from '@agentmou/queue';
-import {
-  logRuntimeMessage,
-  warnRuntimeMessage,
-} from '../runtime-support/job-log.js';
+import { logRuntimeMessage, warnRuntimeMessage } from '../runtime-support/job-log.js';
 
 export interface ApprovalTimeoutPayload {
   tenantId: string;
@@ -64,10 +61,7 @@ export async function processApprovalTimeout(job: Job<ApprovalTimeoutPayload>) {
       .where(eq(approvalRequests.id, approvalId));
 
     // Resume the paused run
-    await db
-      .update(executionRuns)
-      .set({ status: 'running' })
-      .where(eq(executionRuns.id, runId));
+    await db.update(executionRuns).set({ status: 'running' }).where(eq(executionRuns.id, runId));
 
     // Re-enqueue the run-agent job to continue execution
     if (approval.agentInstallationId) {
@@ -116,7 +110,5 @@ export async function processApprovalTimeout(job: Job<ApprovalTimeoutPayload>) {
     },
   });
 
-  logRuntimeMessage(
-    `[approval-timeout] Applied ${actionOnTimeout} to approval ${approvalId}`
-  );
+  logRuntimeMessage(`[approval-timeout] Applied ${actionOnTimeout} to approval ${approvalId}`);
 }

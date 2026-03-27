@@ -1,4 +1,4 @@
-import type { AgentTemplate } from '../../control-plane/types'
+import type { AgentTemplate } from '../../control-plane/types';
 
 // Sales / RevOps agents (16)
 export const salesAgentTemplates: AgentTemplate[] = [
@@ -7,7 +7,8 @@ export const salesAgentTemplates: AgentTemplate[] = [
     name: 'Lead Scoring Assistant',
     outcome: 'Prioritize leads with AI-powered scoring',
     domain: 'sales',
-    description: 'Analyzes lead data and behavior signals to generate intelligent lead scores for prioritization.',
+    description:
+      'Analyzes lead data and behavior signals to generate intelligent lead scores for prioritization.',
     inputs: ['lead_data', 'behavior_signals', 'scoring_criteria'],
     outputs: ['lead_score', 'score_breakdown', 'recommended_action'],
     requiredIntegrations: ['google-sheets'],
@@ -32,7 +33,8 @@ export const salesAgentTemplates: AgentTemplate[] = [
     name: 'Follow-up Sequence Manager',
     outcome: 'Automate sales follow-up sequences',
     domain: 'sales',
-    description: 'Manages multi-touch follow-up sequences with intelligent timing and personalization.',
+    description:
+      'Manages multi-touch follow-up sequences with intelligent timing and personalization.',
     inputs: ['prospect_data', 'sequence_template', 'engagement_history'],
     outputs: ['next_touchpoint', 'personalized_message', 'timing_recommendation'],
     requiredIntegrations: ['gmail'],
@@ -57,7 +59,8 @@ export const salesAgentTemplates: AgentTemplate[] = [
     name: 'Proposal Generator',
     outcome: 'Create proposals in minutes, not hours',
     domain: 'sales',
-    description: 'Generates customized sales proposals using templates and prospect-specific information.',
+    description:
+      'Generates customized sales proposals using templates and prospect-specific information.',
     inputs: ['prospect_info', 'requirements', 'pricing_config'],
     outputs: ['proposal_draft', 'pricing_table', 'customization_suggestions'],
     requiredIntegrations: ['google-drive', 'openai'],
@@ -82,7 +85,8 @@ export const salesAgentTemplates: AgentTemplate[] = [
     name: 'Objection Playbook Bot',
     outcome: 'Handle objections like a pro',
     domain: 'sales',
-    description: 'Provides real-time objection handling suggestions based on your playbook and past successes.',
+    description:
+      'Provides real-time objection handling suggestions based on your playbook and past successes.',
     inputs: ['objection_text', 'deal_context', 'playbook'],
     outputs: ['suggested_responses', 'success_examples', 'resources'],
     requiredIntegrations: ['openai', 'notion'],
@@ -107,7 +111,8 @@ export const salesAgentTemplates: AgentTemplate[] = [
     name: 'CRM Hygiene Enforcer',
     outcome: 'Keep your CRM clean and accurate',
     domain: 'sales',
-    description: 'Monitors CRM data quality, identifies issues, and prompts reps to update stale records.',
+    description:
+      'Monitors CRM data quality, identifies issues, and prompts reps to update stale records.',
     inputs: ['crm_data', 'hygiene_rules'],
     outputs: ['issues_found', 'update_prompts', 'quality_score'],
     requiredIntegrations: ['google-sheets', 'slack'],
@@ -157,7 +162,8 @@ export const salesAgentTemplates: AgentTemplate[] = [
     name: 'Call / Thread Summarizer',
     outcome: 'Summarize calls and threads instantly',
     domain: 'sales',
-    description: 'Generates concise summaries of sales calls and email threads with key points and next steps.',
+    description:
+      'Generates concise summaries of sales calls and email threads with key points and next steps.',
     inputs: ['call_transcript', 'thread_content'],
     outputs: ['summary', 'key_points', 'action_items', 'sentiment'],
     requiredIntegrations: ['openai'],
@@ -211,7 +217,8 @@ export const salesAgentTemplates: AgentTemplate[] = [
     name: 'Outbound Personalizer',
     outcome: 'Personalize outreach at scale',
     domain: 'sales',
-    description: 'Researches prospects and generates personalized outreach messages based on their context.',
+    description:
+      'Researches prospects and generates personalized outreach messages based on their context.',
     inputs: ['prospect_list', 'template', 'research_depth'],
     outputs: ['personalized_messages', 'research_notes', 'best_timing'],
     requiredIntegrations: ['apify', 'openai'],
@@ -236,7 +243,8 @@ export const salesAgentTemplates: AgentTemplate[] = [
     name: 'Warm Intro Finder',
     outcome: 'Find paths to warm introductions',
     domain: 'sales',
-    description: 'Analyzes network connections to find warm introduction paths to target prospects.',
+    description:
+      'Analyzes network connections to find warm introduction paths to target prospects.',
     inputs: ['target_prospect', 'network_data'],
     outputs: ['intro_paths', 'connection_strength', 'outreach_suggestions'],
     requiredIntegrations: ['google-sheets'],
@@ -286,7 +294,8 @@ export const salesAgentTemplates: AgentTemplate[] = [
     name: 'Demo Recap Sender',
     outcome: 'Follow up demos with perfect recaps',
     domain: 'sales',
-    description: 'Automatically generates and sends personalized demo recap emails with key points.',
+    description:
+      'Automatically generates and sends personalized demo recap emails with key points.',
     inputs: ['demo_notes', 'attendees', 'next_steps'],
     outputs: ['recap_email', 'resource_links', 'calendar_invite'],
     requiredIntegrations: ['gmail', 'google-calendar'],
@@ -336,7 +345,8 @@ export const salesAgentTemplates: AgentTemplate[] = [
     name: 'Multi-threading Planner',
     outcome: 'Build multi-threaded relationships',
     domain: 'sales',
-    description: 'Identifies stakeholders and suggests multi-threading strategies for complex deals.',
+    description:
+      'Identifies stakeholders and suggests multi-threading strategies for complex deals.',
     inputs: ['deal_data', 'org_chart', 'engagement_history'],
     outputs: ['stakeholder_map', 'threading_strategy', 'outreach_plan'],
     requiredIntegrations: ['google-sheets'],
@@ -386,7 +396,8 @@ export const salesAgentTemplates: AgentTemplate[] = [
     name: 'Lead Gen Attachment Evaluator',
     outcome: 'Screen lead submissions automatically',
     domain: 'sales',
-    description: 'Evaluates attachments from lead generation forms (resumes, RFIs, etc.) against criteria.',
+    description:
+      'Evaluates attachments from lead generation forms (resumes, RFIs, etc.) against criteria.',
     inputs: ['attachment', 'evaluation_criteria', 'lead_source'],
     outputs: ['score', 'qualification', 'key_highlights', 'next_steps'],
     requiredIntegrations: ['gmail', 'google-sheets'],
@@ -410,4 +421,4 @@ export const salesAgentTemplates: AgentTemplate[] = [
     visibility: 'variant',
     variantOf: 'agent-resume-evaluator',
   },
-]
+];

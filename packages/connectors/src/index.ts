@@ -9,7 +9,7 @@ export { loadGmailConnector, loadTenantConnectors, ConnectorLoadError } from './
 /**
  * Connector providers recognized by the registry layer.
  */
-export type ConnectorType = 
+export type ConnectorType =
   | 'gmail'
   | 'slack'
   | 'drive'

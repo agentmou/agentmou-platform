@@ -1,18 +1,18 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { cn } from '@/lib/utils'
-import type { CSSProperties } from 'react'
+import * as React from 'react';
+import { cn } from '@/lib/utils';
+import type { CSSProperties } from 'react';
 
 interface StarBorderProps {
-  children: React.ReactNode
-  as?: React.ElementType
-  className?: string
-  color?: string
-  speed?: string
-  thickness?: number
+  children: React.ReactNode;
+  as?: React.ElementType;
+  className?: string;
+  color?: string;
+  speed?: string;
+  thickness?: number;
   /** Length of the light segment as % of perimeter (default 15). */
-  lightLength?: number
+  lightLength?: number;
 }
 
 /**
@@ -30,15 +30,15 @@ export function StarBorder({
   thickness = 1.5,
   lightLength = 15,
 }: StarBorderProps) {
-  const id = React.useId().replace(/:/g, '')
-  const inset = thickness
-  const gap = 100 - lightLength
-  const dur = speed
+  const id = React.useId().replace(/:/g, '');
+  const inset = thickness;
+  const gap = 100 - lightLength;
+  const dur = speed;
   return (
     <Component
       className={cn(
         'star-border-container relative inline-grid overflow-hidden rounded-md',
-        className,
+        className
       )}
       style={
         {
@@ -108,5 +108,5 @@ export function StarBorder({
         {children}
       </div>
     </Component>
-  )
+  );
 }

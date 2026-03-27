@@ -4,7 +4,7 @@ function ensureDatabaseUrl(value: string) {
   const parsed = new URL(value);
   if (!['postgres:', 'postgresql:'].includes(parsed.protocol)) {
     throw new Error(
-      `DATABASE_URL must use postgres:// or postgresql://, received ${parsed.protocol}`,
+      `DATABASE_URL must use postgres:// or postgresql://, received ${parsed.protocol}`
     );
   }
 

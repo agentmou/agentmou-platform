@@ -93,9 +93,7 @@ describe('PolicyEngine', () => {
         id: 'no-external-api',
         name: 'No External API',
         description: 'Block external API calls',
-        rules: [
-          { id: 'r1', condition: 'api.*', action: 'deny' },
-        ],
+        rules: [{ id: 'r1', condition: 'api.*', action: 'deny' }],
         constraints: [],
       });
 
@@ -108,9 +106,7 @@ describe('PolicyEngine', () => {
         id: 'approve-writes',
         name: 'Approve Writes',
         description: 'All writes need approval',
-        rules: [
-          { id: 'r1', condition: 'gmail.write', action: 'require_approval' },
-        ],
+        rules: [{ id: 'r1', condition: 'gmail.write', action: 'require_approval' }],
         constraints: [],
       });
 

@@ -29,15 +29,13 @@ function topCounts(items: (string | undefined)[], maxItems: number) {
     counts.set(item, (counts.get(item) || 0) + 1);
   }
 
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, maxItems);
+  return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, maxItems);
 }
 
 export function buildDashboardMetrics(
   tenantId: string,
   runs: ExecutionRun[],
-  period: DashboardMetrics['period'] = 'week',
+  period: DashboardMetrics['period'] = 'week'
 ): DashboardMetrics {
   const days = dayCount(period);
   const dateRange = buildDateRange(days);
@@ -47,14 +45,9 @@ export function buildDashboardMetrics(
   const runsSuccess = visibleRuns.filter((run) => run.status === 'success').length;
   const runsFailed = visibleRuns.filter((run) => run.status === 'failed').length;
   const avgLatencyMs = runsTotal
-    ? Math.round(
-        visibleRuns.reduce((sum, run) => sum + (run.durationMs || 0), 0) / runsTotal,
-      )
+    ? Math.round(visibleRuns.reduce((sum, run) => sum + (run.durationMs || 0), 0) / runsTotal)
     : 0;
-  const totalCost = visibleRuns.reduce(
-    (sum, run) => sum + (run.costEstimate || 0),
-    0,
-  );
+  const totalCost = visibleRuns.reduce((sum, run) => sum + (run.costEstimate || 0), 0);
 
   return {
     tenantId,
@@ -66,14 +59,14 @@ export function buildDashboardMetrics(
     totalCost,
     topAgents: topCounts(
       visibleRuns.map((run) => run.agentId),
-      5,
+      5
     ).map(([agentId, count]) => ({
       agentId,
       runs: count,
     })),
     topWorkflows: topCounts(
       visibleRuns.map((run) => run.workflowId),
-      5,
+      5
     ).map(([workflowId, count]) => ({
       workflowId,
       runs: count,
@@ -84,7 +77,7 @@ export function buildDashboardMetrics(
         visibleRuns
           .filter((run) => dateKey(run.startedAt) === date)
           .reduce((sum, run) => sum + (run.costEstimate || 0), 0)
-          .toFixed(4),
+          .toFixed(4)
       ),
     })),
     runsByDay: dateRange.map((date) => ({

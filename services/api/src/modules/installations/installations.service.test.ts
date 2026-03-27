@@ -48,13 +48,11 @@ describe('InstallationsService.uninstall', () => {
     mockTransaction.mockImplementation(async (callback: (tx: unknown) => unknown) =>
       callback({
         delete: mockTxDelete,
-      }),
+      })
     );
   });
 
-  it(
-    'removes remote workflows before deleting a workflow installation',
-    async () => {
+  it('removes remote workflows before deleting a workflow installation', async () => {
     const { InstallationsService } = await import('./installations.service.js');
 
     setSelectResults([
@@ -98,13 +96,9 @@ describe('InstallationsService.uninstall', () => {
     });
     expect(mockTxDelete).toHaveBeenNthCalledWith(1, schedulesTable);
     expect(mockTxDelete).toHaveBeenNthCalledWith(2, workflowInstallationsTable);
-    },
-    15000,
-  );
+  }, 15000);
 
-  it(
-    'removes repeatable schedules before deleting an agent installation',
-    async () => {
+  it('removes repeatable schedules before deleting an agent installation', async () => {
     const { InstallationsService } = await import('./installations.service.js');
 
     setSelectResults([
@@ -141,7 +135,5 @@ describe('InstallationsService.uninstall', () => {
     });
     expect(mockTxDelete).toHaveBeenNthCalledWith(1, schedulesTable);
     expect(mockTxDelete).toHaveBeenNthCalledWith(2, agentInstallationsTable);
-    },
-    15000,
-  );
+  }, 15000);
 });

@@ -6,7 +6,12 @@ import {
   workflowInstallations,
 } from '@agentmou/db';
 import { eq, and, desc, asc, inArray } from 'drizzle-orm';
-import { getQueue, QUEUE_NAMES, type RunAgentPayload, type RunWorkflowPayload } from '@agentmou/queue';
+import {
+  getQueue,
+  QUEUE_NAMES,
+  type RunAgentPayload,
+  type RunWorkflowPayload,
+} from '@agentmou/queue';
 import { buildExecutionLogs, mapExecutionRun, mapExecutionStep } from './runs.mapper.js';
 
 export class RunsService {
@@ -19,10 +24,12 @@ export class RunsService {
       agentInstallationId?: string;
       workflowInstallationId?: string;
       input?: Record<string, unknown>;
-    },
+    }
   ) {
     if (!body.agentInstallationId && !body.workflowInstallationId) {
-      throw Object.assign(new Error('agentInstallationId or workflowInstallationId required'), { statusCode: 400 });
+      throw Object.assign(new Error('agentInstallationId or workflowInstallationId required'), {
+        statusCode: 400,
+      });
     }
 
     const [run] = await db
@@ -88,7 +95,7 @@ export class RunsService {
           : undefined,
         steps: [],
         logs: [],
-      }),
+      })
     );
   }
 
@@ -96,12 +103,7 @@ export class RunsService {
     const [run] = await db
       .select()
       .from(executionRuns)
-      .where(
-        and(
-          eq(executionRuns.tenantId, tenantId),
-          eq(executionRuns.id, runId)
-        )
-      );
+      .where(and(eq(executionRuns.tenantId, tenantId), eq(executionRuns.id, runId)));
     if (!run) return null;
 
     const steps = await db
@@ -127,12 +129,7 @@ export class RunsService {
     const [run] = await db
       .select()
       .from(executionRuns)
-      .where(
-        and(
-          eq(executionRuns.tenantId, tenantId),
-          eq(executionRuns.id, runId)
-        )
-      );
+      .where(and(eq(executionRuns.tenantId, tenantId), eq(executionRuns.id, runId)));
     if (!run) return [];
 
     return db
@@ -144,19 +141,17 @@ export class RunsService {
   }
 }
 
-async function resolveInstallationTemplates(
-  runs: Array<typeof executionRuns.$inferSelect>,
-) {
-  const agentInstallationIds = [...new Set(
-    runs
-      .map((run) => run.agentInstallationId)
-      .filter((id): id is string => Boolean(id)),
-  )];
-  const workflowInstallationIds = [...new Set(
-    runs
-      .map((run) => run.workflowInstallationId)
-      .filter((id): id is string => Boolean(id)),
-  )];
+async function resolveInstallationTemplates(runs: Array<typeof executionRuns.$inferSelect>) {
+  const agentInstallationIds = [
+    ...new Set(
+      runs.map((run) => run.agentInstallationId).filter((id): id is string => Boolean(id))
+    ),
+  ];
+  const workflowInstallationIds = [
+    ...new Set(
+      runs.map((run) => run.workflowInstallationId).filter((id): id is string => Boolean(id))
+    ),
+  ];
 
   const [agents, workflows] = await Promise.all([
     agentInstallationIds.length > 0
@@ -181,10 +176,10 @@ async function resolveInstallationTemplates(
 
   return {
     agentTemplateIds: new Map(
-      agents.map((installation) => [installation.id, installation.templateId]),
+      agents.map((installation) => [installation.id, installation.templateId])
     ),
     workflowTemplateIds: new Map(
-      workflows.map((installation) => [installation.id, installation.templateId]),
+      workflows.map((installation) => [installation.id, installation.templateId])
     ),
   };
 }

@@ -72,9 +72,7 @@ export const demoProvider: DataProvider = {
     const workflows = await mockProvider.listMarketplaceWorkflowTemplates();
     return markDemoWorkflowList(workflows);
   },
-  getWorkflowTemplate: async (
-    workflowId: string,
-  ): Promise<WorkflowTemplate | null> => {
+  getWorkflowTemplate: async (workflowId: string): Promise<WorkflowTemplate | null> => {
     const workflow = await mockProvider.getWorkflowTemplate(workflowId);
     return workflow ? markDemoWorkflow(workflow) : null;
   },

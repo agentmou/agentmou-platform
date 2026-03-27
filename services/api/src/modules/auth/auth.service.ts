@@ -149,9 +149,7 @@ export class AuthService {
       const link = `${webBase.replace(/\/$/, '')}/reset-password?token=${plain}`;
 
       if (process.env.LOG_PASSWORD_RESET_LINK === '1' || process.env.NODE_ENV !== 'production') {
-        process.stdout.write(
-          `[auth] password reset link for ${normalized}: ${link}\n`,
-        );
+        process.stdout.write(`[auth] password reset link for ${normalized}: ${link}\n`);
       }
     }
 

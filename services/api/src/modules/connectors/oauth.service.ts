@@ -60,11 +60,7 @@ export class OAuthService {
    *
    * @returns The URL to redirect the user to
    */
-  async getAuthorizeUrl(
-    tenantId: string,
-    provider: string,
-    redirectUrl?: string
-  ): Promise<string> {
+  async getAuthorizeUrl(tenantId: string, provider: string, redirectUrl?: string): Promise<string> {
     if (provider !== 'gmail') {
       throw new Error(`Unsupported OAuth provider: ${provider}`);
     }
@@ -134,16 +130,12 @@ export class OAuthService {
     }
 
     if (oauthState.expiresAt < new Date()) {
-      await db
-        .delete(connectorOauthStates)
-        .where(eq(connectorOauthStates.id, oauthState.id));
+      await db.delete(connectorOauthStates).where(eq(connectorOauthStates.id, oauthState.id));
       throw new OAuthError('OAuth state has expired', 'STATE_EXPIRED');
     }
 
     // Consume the state (one-time use)
-    await db
-      .delete(connectorOauthStates)
-      .where(eq(connectorOauthStates.id, oauthState.id));
+    await db.delete(connectorOauthStates).where(eq(connectorOauthStates.id, oauthState.id));
 
     return oauthState;
   }
@@ -179,10 +171,7 @@ export class OAuthService {
     });
 
     if (!response.ok) {
-      throw new OAuthError(
-        `Failed to fetch user info: ${response.status}`,
-        'USERINFO_FAILED'
-      );
+      throw new OAuthError(`Failed to fetch user info: ${response.status}`, 'USERINFO_FAILED');
     }
 
     return response.json() as Promise<GoogleUserInfo>;
@@ -207,10 +196,7 @@ export class OAuthService {
       .select()
       .from(connectorAccounts)
       .where(
-        and(
-          eq(connectorAccounts.tenantId, tenantId),
-          eq(connectorAccounts.provider, provider)
-        )
+        and(eq(connectorAccounts.tenantId, tenantId), eq(connectorAccounts.provider, provider))
       )
       .limit(1);
 
@@ -229,19 +215,17 @@ export class OAuthService {
         })
         .where(eq(connectorAccounts.id, existing.id));
     } else {
-      await db
-        .insert(connectorAccounts)
-        .values({
-          tenantId,
-          provider,
-          accessToken: encryptedAccessToken,
-          refreshToken: encryptedRefreshToken,
-          tokenExpiresAt,
-          externalAccountId: userInfo.email,
-          status: 'connected',
-          connectedAt: new Date(),
-          scopes: GMAIL_SCOPES,
-        });
+      await db.insert(connectorAccounts).values({
+        tenantId,
+        provider,
+        accessToken: encryptedAccessToken,
+        refreshToken: encryptedRefreshToken,
+        tokenExpiresAt,
+        externalAccountId: userInfo.email,
+        status: 'connected',
+        connectedAt: new Date(),
+        scopes: GMAIL_SCOPES,
+      });
     }
 
     await recordAuditEvent({

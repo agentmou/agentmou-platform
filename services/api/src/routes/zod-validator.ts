@@ -1,7 +1,4 @@
-import type {
-  FastifySchemaCompiler,
-  FastifySchemaValidationError,
-} from 'fastify';
+import type { FastifySchemaCompiler, FastifySchemaValidationError } from 'fastify';
 import type { ZodIssue, ZodTypeAny } from 'zod';
 
 function isZodSchema(schema: unknown): schema is ZodTypeAny {
@@ -37,7 +34,7 @@ export const zodValidatorCompiler: FastifySchemaCompiler<unknown> = ({
 }) => {
   if (!isZodSchema(schema)) {
     throw new Error(
-      `Unsupported schema for ${method} ${url} (${httpPart ?? 'unknown'}). Use a Zod schema.`,
+      `Unsupported schema for ${method} ${url} (${httpPart ?? 'unknown'}). Use a Zod schema.`
     );
   }
 

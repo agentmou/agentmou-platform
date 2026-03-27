@@ -1,10 +1,6 @@
 import { FastifyInstance } from 'fastify';
 
-import {
-  buildUsageBreakdown,
-  buildUsageHistory,
-  computeTenantUsage,
-} from './usage.helpers.js';
+import { buildUsageBreakdown, buildUsageHistory, computeTenantUsage } from './usage.helpers.js';
 
 export class UsageService {
   private fastify: FastifyInstance;
@@ -36,7 +32,7 @@ export class UsageService {
 
   async exportUsage(
     tenantId: string,
-    options: { format?: string; startDate?: string; endDate?: string },
+    options: { format?: string; startDate?: string; endDate?: string }
   ) {
     const snapshot = await computeTenantUsage(tenantId);
     const history = buildUsageHistory(snapshot.runs, 30);

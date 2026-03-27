@@ -11,9 +11,7 @@ import { agentInstallations, workflowInstallations } from '@agentmou/db';
 type AgentInstallationRow = typeof agentInstallations.$inferSelect;
 type WorkflowInstallationRow = typeof workflowInstallations.$inferSelect;
 
-export function mapAgentInstallation(
-  installation: AgentInstallationRow,
-): InstalledAgent {
+export function mapAgentInstallation(installation: AgentInstallationRow): InstalledAgent {
   return InstalledAgentSchema.parse({
     id: installation.id,
     tenantId: installation.tenantId,
@@ -29,9 +27,7 @@ export function mapAgentInstallation(
   });
 }
 
-export function mapWorkflowInstallation(
-  installation: WorkflowInstallationRow,
-): InstalledWorkflow {
+export function mapWorkflowInstallation(installation: WorkflowInstallationRow): InstalledWorkflow {
   return InstalledWorkflowSchema.parse({
     id: installation.id,
     tenantId: installation.tenantId,
@@ -48,7 +44,7 @@ export function mapWorkflowInstallation(
 export function mapInstallationRecord(
   installation:
     | (AgentInstallationRow & { type: 'agent' })
-    | (WorkflowInstallationRow & { type: 'workflow' }),
+    | (WorkflowInstallationRow & { type: 'workflow' })
 ): InstallationRecord {
   if (installation.type === 'agent') {
     return InstallationRecordSchema.parse({

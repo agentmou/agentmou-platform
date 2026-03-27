@@ -331,7 +331,7 @@ web-boundary parsing instead of drifting back to optimistic typing.
 - Keep the web client parsing API envelopes before data reaches UI state.
 - Add contract-focused tests whenever a new shared surface is introduced.
 
-See [Appendix A](#appendix-a--contract-alignment-guardrails) for the current
+See [Appendix A](#appendix-a---contract-alignment-guardrails) for the current
 guardrails by surface.
 
 ### 2. Expose Only Real Tenant Features, Or Label Partial Ones Explicitly

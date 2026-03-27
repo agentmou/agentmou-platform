@@ -25,12 +25,10 @@ const {
   updateMock: vi.fn(),
   eqMock: vi.fn((field: unknown, value: unknown) => ({ field, value })),
   andMock: vi.fn((...conditions: unknown[]) => conditions),
-  mapConnectorMock: vi.fn(
-    (connector: { provider: string; status: string }) => ({
-      id: connector.provider,
-      status: connector.status,
-    }),
-  ),
+  mapConnectorMock: vi.fn((connector: { provider: string; status: string }) => ({
+    id: connector.provider,
+    status: connector.status,
+  })),
   recordAuditEventMock: vi.fn(),
   connectorAccountsMock: {
     id: 'id',
@@ -99,7 +97,7 @@ describe('ConnectorsService', () => {
     expect(eqMock).not.toHaveBeenCalledWith(connectorAccountsMock.provider, connectorId);
     expect(andMock).toHaveBeenCalledWith(
       { field: connectorAccountsMock.tenantId, value: 'tenant-123' },
-      { field: connectorAccountsMock.id, value: connectorId },
+      { field: connectorAccountsMock.id, value: connectorId }
     );
   });
 
@@ -123,7 +121,7 @@ describe('ConnectorsService', () => {
           connectorId: connectorRow.id,
           provider: 'gmail',
         },
-      }),
+      })
     );
   });
 
@@ -151,7 +149,7 @@ describe('ConnectorsService', () => {
           connectorId: connectorRow.id,
           provider: 'gmail',
         },
-      }),
+      })
     );
   });
 });

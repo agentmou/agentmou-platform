@@ -1,10 +1,6 @@
 import { db, tenants } from '@agentmou/db';
 import { eq } from 'drizzle-orm';
-import {
-  mapTenant,
-  mergeTenantSettings,
-  normalizeTenantSettings,
-} from './tenants.mapper.js';
+import { mapTenant, mergeTenantSettings, normalizeTenantSettings } from './tenants.mapper.js';
 import type {
   CreateTenantInput,
   TenantSettingsInput,
@@ -32,17 +28,11 @@ export class TenantsService {
   }
 
   async getTenant(id: string) {
-    const [tenant] = await db
-      .select()
-      .from(tenants)
-      .where(eq(tenants.id, id));
+    const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id));
     return tenant ? mapTenant(tenant) : null;
   }
 
-  async updateTenant(
-    id: string,
-    updates: UpdateTenantInput,
-  ) {
+  async updateTenant(id: string, updates: UpdateTenantInput) {
     const [tenant] = await db
       .update(tenants)
       .set({ ...updates, updatedAt: new Date() })

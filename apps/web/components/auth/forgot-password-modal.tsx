@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import * as React from 'react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -12,40 +12,34 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { forgotPasswordApi } from '@/lib/auth/api'
+} from '@/components/ui/dialog';
+import { forgotPasswordApi } from '@/lib/auth/api';
 
 interface ForgotPasswordModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function ForgotPasswordModal({
-  open,
-  onOpenChange,
-}: ForgotPasswordModalProps) {
-  const [email, setEmail] = React.useState('')
-  const [loading, setLoading] = React.useState(false)
+export function ForgotPasswordModal({ open, onOpenChange }: ForgotPasswordModalProps) {
+  const [email, setEmail] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email.trim()) return
-    setLoading(true)
+    e.preventDefault();
+    if (!email.trim()) return;
+    setLoading(true);
     try {
-      await forgotPasswordApi(email.trim())
-      toast.success(
-        'If an account exists for that email, you will receive reset instructions.',
-      )
-      onOpenChange(false)
-      setEmail('')
+      await forgotPasswordApi(email.trim());
+      toast.success('If an account exists for that email, you will receive reset instructions.');
+      onOpenChange(false);
+      setEmail('');
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : 'Something went wrong.'
-      toast.error(msg)
+      const msg = err instanceof Error ? err.message : 'Something went wrong.';
+      toast.error(msg);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -53,8 +47,8 @@ export function ForgotPasswordModal({
         <DialogHeader>
           <DialogTitle>Reset password</DialogTitle>
           <DialogDescription>
-            Enter your email address. If you have an account, we will send a
-            reset link (check server logs in development).
+            Enter your email address. If you have an account, we will send a reset link (check
+            server logs in development).
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -87,5 +81,5 @@ export function ForgotPasswordModal({
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,15 +1,6 @@
 {
-  "agents": [
-    "inbox-triage"
-  ],
-  "workflowsPublic": [
-    "wf-01-auto-label-gmail"
-  ],
-  "workflowsPlanned": [
-    "wf-plan-rag-kb-answer"
-  ],
-  "packs": [
-    "sales-accelerator",
-    "support-starter"
-  ]
+  "agents": ["inbox-triage"],
+  "workflowsPublic": ["wf-01-auto-label-gmail"],
+  "workflowsPlanned": ["wf-plan-rag-kb-answer"],
+  "packs": ["sales-accelerator", "support-starter"]
 }

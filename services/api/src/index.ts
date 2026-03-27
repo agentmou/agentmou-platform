@@ -8,9 +8,7 @@ const start = async () => {
 
   try {
     await app.listen({ port: config.port, host: config.host });
-    app.log.info(
-      `Control Plane API running at http://${config.host}:${config.port}`,
-    );
+    app.log.info(`Control Plane API running at http://${config.host}:${config.port}`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);

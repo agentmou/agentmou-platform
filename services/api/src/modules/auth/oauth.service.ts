@@ -1,12 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import {
-  db,
-  users,
-  tenants,
-  memberships,
-  userOauthStates,
-  oauthLoginCodes,
-} from '@agentmou/db';
+import { db, users, tenants, memberships, userOauthStates, oauthLoginCodes } from '@agentmou/db';
 import { createToken } from '@agentmou/auth';
 import { eq, and, lt } from 'drizzle-orm';
 import { findOrCreateUserFromOAuthProfile, type OAuthProfile } from './identity.service.js';
@@ -42,9 +35,7 @@ function getMicrosoftConfig() {
 }
 
 export function isOAuthProviderConfigured(provider: B2CProvider): boolean {
-  return provider === 'google'
-    ? getGoogleConfig() !== null
-    : getMicrosoftConfig() !== null;
+  return provider === 'google' ? getGoogleConfig() !== null : getMicrosoftConfig() !== null;
 }
 
 export async function purgeExpiredOauthStates(): Promise<void> {
@@ -54,7 +45,7 @@ export async function purgeExpiredOauthStates(): Promise<void> {
 
 export async function startB2cOAuth(
   provider: B2CProvider,
-  returnUrl: string,
+  returnUrl: string
 ): Promise<{ redirectUrl: string; state: string }> {
   const allowlist = parseWebOriginAllowlist(process.env.AUTH_WEB_ORIGIN_ALLOWLIST);
   if (!isAllowedAuthCallbackUrl(returnUrl, allowlist)) {
@@ -171,14 +162,11 @@ async function exchangeMicrosoftCode(code: string): Promise<OAuthProfile> {
     grant_type: 'authorization_code',
     scope: 'openid email profile offline_access https://graph.microsoft.com/User.Read',
   });
-  const tokenRes = await fetch(
-    'https://login.microsoftonline.com/common/oauth2/v2.0/token',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString(),
-    },
-  );
+  const tokenRes = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString(),
+  });
   if (!tokenRes.ok) {
     const t = await tokenRes.text();
     throw Object.assign(new Error(`Microsoft token exchange failed: ${t}`), {
@@ -218,17 +206,12 @@ async function exchangeMicrosoftCode(code: string): Promise<OAuthProfile> {
 export async function completeB2cOAuthCallback(
   provider: B2CProvider,
   code: string,
-  state: string,
+  state: string
 ): Promise<{ redirectTo: string }> {
   const [row] = await db
     .select()
     .from(userOauthStates)
-    .where(
-      and(
-        eq(userOauthStates.state, state),
-        eq(userOauthStates.provider, provider),
-      ),
-    )
+    .where(and(eq(userOauthStates.state, state), eq(userOauthStates.provider, provider)))
     .limit(1);
 
   if (!row || row.expiresAt < new Date()) {
@@ -247,9 +230,7 @@ export async function completeB2cOAuthCallback(
   }
 
   const profile =
-    provider === 'google'
-      ? await exchangeGoogleCode(code)
-      : await exchangeMicrosoftCode(code);
+    provider === 'google' ? await exchangeGoogleCode(code) : await exchangeMicrosoftCode(code);
 
   if (profile.provider !== provider) {
     throw Object.assign(new Error('Provider mismatch'), { statusCode: 400 });

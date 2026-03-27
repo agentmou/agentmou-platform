@@ -68,7 +68,7 @@ describe('buildApp', () => {
           }),
         },
       },
-      async () => ({ ok: true }),
+      async () => ({ ok: true })
     );
 
     await app.ready();

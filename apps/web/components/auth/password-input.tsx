@@ -1,18 +1,12 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import * as React from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const EyeIcon = () => (
-  <svg
-    className="size-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    aria-hidden="true"
-  >
+  <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -26,16 +20,10 @@ const EyeIcon = () => (
       d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
     />
   </svg>
-)
+);
 
 const EyeOffIcon = () => (
-  <svg
-    className="size-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    aria-hidden="true"
-  >
+  <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -43,7 +31,7 @@ const EyeOffIcon = () => (
       d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
     />
   </svg>
-)
+);
 
 const CheckIcon = ({ className }: { className?: string }) => (
   <svg
@@ -53,14 +41,9 @@ const CheckIcon = ({ className }: { className?: string }) => (
     viewBox="0 0 24 24"
     aria-hidden="true"
   >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2.5}
-      d="M5 13l4 4L19 7"
-    />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
   </svg>
-)
+);
 
 const XIcon = ({ className }: { className?: string }) => (
   <svg
@@ -70,32 +53,27 @@ const XIcon = ({ className }: { className?: string }) => (
     viewBox="0 0 24 24"
     aria-hidden="true"
   >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2.5}
-      d="M6 18L18 6M6 6l12 12"
-    />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
   </svg>
-)
+);
 
 interface PasswordStrength {
-  score: number
-  label: string
-  color: string
-  bgColor: string
+  score: number;
+  label: string;
+  color: string;
+  bgColor: string;
 }
 
 function calculatePasswordStrength(password: string): PasswordStrength {
-  let score = 0
+  let score = 0;
 
-  if (password.length >= 8) score++
-  if (password.length >= 12) score++
-  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++
-  if (/\d/.test(password)) score++
-  if (/[^a-zA-Z0-9]/.test(password)) score++
+  if (password.length >= 8) score++;
+  if (password.length >= 12) score++;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  if (/[^a-zA-Z0-9]/.test(password)) score++;
 
-  score = Math.min(score, 4)
+  score = Math.min(score, 4);
 
   const strengths: PasswordStrength[] = [
     {
@@ -128,14 +106,14 @@ function calculatePasswordStrength(password: string): PasswordStrength {
       color: 'text-green-500',
       bgColor: 'bg-green-500',
     },
-  ]
+  ];
 
-  return strengths[score]
+  return strengths[score];
 }
 
 interface PasswordRequirement {
-  label: string
-  validator: (password: string) => boolean
+  label: string;
+  validator: (password: string) => boolean;
 }
 
 const passwordRequirements: PasswordRequirement[] = [
@@ -144,14 +122,13 @@ const passwordRequirements: PasswordRequirement[] = [
   { label: 'One lowercase letter', validator: (p) => /[a-z]/.test(p) },
   { label: 'One number', validator: (p) => /\d/.test(p) },
   { label: 'One special character', validator: (p) => /[^a-zA-Z0-9]/.test(p) },
-]
+];
 
-interface PasswordInputProps
-  extends Omit<React.ComponentProps<typeof Input>, 'type'> {
-  showStrengthIndicator?: boolean
-  showRequirements?: boolean
-  error?: string
-  'aria-describedby'?: string
+interface PasswordInputProps extends Omit<React.ComponentProps<typeof Input>, 'type'> {
+  showStrengthIndicator?: boolean;
+  showRequirements?: boolean;
+  error?: string;
+  'aria-describedby'?: string;
 }
 
 export function PasswordInput({
@@ -164,27 +141,26 @@ export function PasswordInput({
   onChange,
   ...props
 }: PasswordInputProps) {
-  const [showPassword, setShowPassword] = React.useState(false)
-  const [internalValue, setInternalValue] = React.useState('')
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [internalValue, setInternalValue] = React.useState('');
 
-  const password = value !== undefined ? String(value) : internalValue
-  const strength = calculatePasswordStrength(password)
+  const password = value !== undefined ? String(value) : internalValue;
+  const strength = calculatePasswordStrength(password);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (value === undefined) {
-      setInternalValue(e.target.value)
+      setInternalValue(e.target.value);
     }
-    onChange?.(e)
-  }
+    onChange?.(e);
+  };
 
-  const errorId = error ? `${id}-error` : undefined
-  const strengthId = showStrengthIndicator ? `${id}-strength` : undefined
-  const requirementsId = showRequirements ? `${id}-requirements` : undefined
+  const errorId = error ? `${id}-error` : undefined;
+  const strengthId = showStrengthIndicator ? `${id}-strength` : undefined;
+  const requirementsId = showRequirements ? `${id}-requirements` : undefined;
 
   const describedBy =
-    [props['aria-describedby'], errorId, strengthId, requirementsId]
-      .filter(Boolean)
-      .join(' ') || undefined
+    [props['aria-describedby'], errorId, strengthId, requirementsId].filter(Boolean).join(' ') ||
+    undefined;
 
   return (
     <div className="space-y-2">
@@ -198,7 +174,7 @@ export function PasswordInput({
           className={cn(
             'pr-10',
             error && 'border-destructive focus-visible:ring-destructive',
-            className,
+            className
           )}
           aria-describedby={describedBy}
           aria-invalid={error ? 'true' : undefined}
@@ -229,7 +205,7 @@ export function PasswordInput({
                 key={index}
                 className={cn(
                   'h-1.5 flex-1 rounded-full transition-all duration-300',
-                  index <= strength.score ? strength.bgColor : 'bg-muted',
+                  index <= strength.score ? strength.bgColor : 'bg-muted'
                 )}
               />
             ))}
@@ -247,13 +223,13 @@ export function PasswordInput({
           aria-label="Password requirements"
         >
           {passwordRequirements.map((req) => {
-            const isValid = req.validator(password)
+            const isValid = req.validator(password);
             return (
               <li
                 key={req.label}
                 className={cn(
                   'flex items-center gap-1.5 transition-colors duration-200',
-                  isValid ? 'text-green-600' : 'text-muted-foreground',
+                  isValid ? 'text-green-600' : 'text-muted-foreground'
                 )}
               >
                 {isValid ? (
@@ -263,15 +239,15 @@ export function PasswordInput({
                 )}
                 <span>{req.label}</span>
               </li>
-            )
+            );
           })}
         </ul>
       )}
     </div>
-  )
+  );
 }
 
 /** @internal Exported for unit tests */
 export function passwordStrengthLabel(password: string): string {
-  return calculatePasswordStrength(password).label
+  return calculatePasswordStrength(password).label;
 }

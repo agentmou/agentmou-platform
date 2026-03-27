@@ -25,10 +25,7 @@ export function createChildLogger(context: Record<string, unknown>) {
 /**
  * Create a service logger with an optional extra context object.
  */
-export function createServiceLogger(
-  service: string,
-  context: Record<string, unknown> = {},
-) {
+export function createServiceLogger(service: string, context: Record<string, unknown> = {}) {
   return createChildLogger({ service, ...context });
 }
 

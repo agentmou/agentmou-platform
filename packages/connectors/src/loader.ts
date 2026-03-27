@@ -20,29 +20,17 @@ export async function loadGmailConnector(
   connectorAccountId?: string
 ): Promise<GmailConnector> {
   const conditions = connectorAccountId
-    ? and(
-        eq(connectorAccounts.id, connectorAccountId),
-        eq(connectorAccounts.tenantId, tenantId)
-      )
-    : and(
-        eq(connectorAccounts.tenantId, tenantId),
-        eq(connectorAccounts.provider, 'gmail')
-      );
+    ? and(eq(connectorAccounts.id, connectorAccountId), eq(connectorAccounts.tenantId, tenantId))
+    : and(eq(connectorAccounts.tenantId, tenantId), eq(connectorAccounts.provider, 'gmail'));
 
-  const [account] = await db
-    .select()
-    .from(connectorAccounts)
-    .where(conditions)
-    .limit(1);
+  const [account] = await db.select().from(connectorAccounts).where(conditions).limit(1);
 
   if (!account) {
     throw new ConnectorLoadError('Gmail connector account not found');
   }
 
   if (account.status !== 'connected') {
-    throw new ConnectorLoadError(
-      `Gmail connector is not connected (status: ${account.status})`
-    );
+    throw new ConnectorLoadError(`Gmail connector is not connected (status: ${account.status})`);
   }
 
   if (!account.accessToken || !account.refreshToken) {
@@ -71,17 +59,12 @@ export async function loadGmailConnector(
 /**
  * Loads all connected connectors for a tenant, keyed by provider.
  */
-export async function loadTenantConnectors(
-  tenantId: string
-): Promise<Map<string, GmailConnector>> {
+export async function loadTenantConnectors(tenantId: string): Promise<Map<string, GmailConnector>> {
   const accounts = await db
     .select()
     .from(connectorAccounts)
     .where(
-      and(
-        eq(connectorAccounts.tenantId, tenantId),
-        eq(connectorAccounts.status, 'connected')
-      )
+      and(eq(connectorAccounts.tenantId, tenantId), eq(connectorAccounts.status, 'connected'))
     );
 
   const connectors = new Map<string, GmailConnector>();

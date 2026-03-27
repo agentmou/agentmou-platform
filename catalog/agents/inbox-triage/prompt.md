@@ -16,6 +16,7 @@ You are an email triage assistant. Your job is to analyze incoming emails and ca
 ## Output Format
 
 For each email, produce:
+
 ```json
 {
   "emailId": "string",

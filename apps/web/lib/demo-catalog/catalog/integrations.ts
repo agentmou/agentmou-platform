@@ -1,4 +1,4 @@
-import type { Integration } from '../../control-plane/types'
+import type { Integration } from '../../control-plane/types';
 
 // New integrations to add
 export const newIntegrations: Integration[] = [
@@ -143,4 +143,4 @@ export const newIntegrations: Integration[] = [
     lastTestAt: null,
     oauthUrl: '/api/oauth/google-analytics',
   },
-]
+];

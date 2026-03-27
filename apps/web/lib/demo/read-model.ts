@@ -98,9 +98,7 @@ function topCounts(items: (string | undefined)[], maxItems: number) {
     counts.set(item, (counts.get(item) || 0) + 1);
   }
 
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, maxItems);
+  return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, maxItems);
 }
 
 export function listTenants(): Tenant[] {
@@ -131,9 +129,7 @@ export function listMarketplaceWorkflowTemplates(): WorkflowTemplate[] {
   return workflowTemplates.filter(isPublicWorkflow);
 }
 
-export function getWorkflowTemplate(
-  workflowId: string,
-): WorkflowTemplate | undefined {
+export function getWorkflowTemplate(workflowId: string): WorkflowTemplate | undefined {
   return workflowTemplates.find((workflow) => workflow.id === workflowId);
 }
 
@@ -142,9 +138,7 @@ export function listPackTemplates(): PackTemplate[] {
 }
 
 export function getPackTemplate(packIdOrSlug: string): PackTemplate | undefined {
-  return packTemplates.find(
-    (pack) => pack.id === packIdOrSlug || pack.slug === packIdOrSlug,
-  );
+  return packTemplates.find((pack) => pack.id === packIdOrSlug || pack.slug === packIdOrSlug);
 }
 
 export function listIntegrations(): Integration[] {
@@ -159,27 +153,21 @@ export function listTenantInstalledAgents(tenantId: string): InstalledAgent[] {
   return installedAgents.filter((agent) => agent.tenantId === tenantId);
 }
 
-export function listTenantInstalledWorkflows(
-  tenantId: string,
-): InstalledWorkflow[] {
+export function listTenantInstalledWorkflows(tenantId: string): InstalledWorkflow[] {
   return installedWorkflows.filter((workflow) => workflow.tenantId === tenantId);
 }
 
 export function listTenantAgentTemplates(tenantId: string): AgentTemplate[] {
   const templateIds = new Set(
-    listTenantInstalledAgents(tenantId).map((installation) => installation.templateId),
+    listTenantInstalledAgents(tenantId).map((installation) => installation.templateId)
   );
 
   return listCatalogAgentTemplates().filter((template) => templateIds.has(template.id));
 }
 
-export function listTenantWorkflowTemplates(
-  tenantId: string,
-): WorkflowTemplate[] {
+export function listTenantWorkflowTemplates(tenantId: string): WorkflowTemplate[] {
   const templateIds = new Set(
-    listTenantInstalledWorkflows(tenantId).map(
-      (installation) => installation.templateId,
-    ),
+    listTenantInstalledWorkflows(tenantId).map((installation) => installation.templateId)
   );
 
   return listCatalogWorkflowTemplates().filter((template) => templateIds.has(template.id));
@@ -193,22 +181,15 @@ export function listTenantRuns(tenantId: string): ExecutionRun[] {
   return executionRuns.filter((run) => run.tenantId === tenantId);
 }
 
-export function getTenantRun(
-  tenantId: string,
-  runId: string,
-): ExecutionRun | undefined {
+export function getTenantRun(tenantId: string, runId: string): ExecutionRun | undefined {
   return listTenantRuns(tenantId).find((run) => run.id === runId);
 }
 
-export function listTenantSecurityFindings(
-  tenantId: string,
-): SecurityFinding[] {
+export function listTenantSecurityFindings(tenantId: string): SecurityFinding[] {
   return securityFindings.filter((finding) => finding.tenantId === tenantId);
 }
 
-export function listTenantSecurityPolicies(
-  tenantId: string,
-): SecurityPolicy[] {
+export function listTenantSecurityPolicies(tenantId: string): SecurityPolicy[] {
   const scopedPolicies = securityPolicies.filter((policy) => policy.tenantId === tenantId);
   return scopedPolicies.length > 0 ? scopedPolicies : [...securityPolicies];
 }
@@ -221,9 +202,7 @@ export function listTenantInvoices(tenantId: string): Invoice[] {
   return invoices.filter((invoice) => invoice.tenantId === tenantId);
 }
 
-export function getTenantN8nConnection(
-  tenantId: string,
-): N8nConnection | undefined {
+export function getTenantN8nConnection(tenantId: string): N8nConnection | undefined {
   return n8nConnections.find((connection) => connection.tenantId === tenantId);
 }
 
@@ -244,7 +223,7 @@ export function getTenantBillingInfo(_tenantId: string): FleetBillingInfo {
 
 export function getTenantDashboardMetrics(
   tenantId: string,
-  period: DashboardMetrics['period'] = 'week',
+  period: DashboardMetrics['period'] = 'week'
 ): DashboardMetrics {
   const runs = listTenantRuns(tenantId);
   const days = dayCount(period);
@@ -255,16 +234,14 @@ export function getTenantDashboardMetrics(
   const runsSuccess = visibleRuns.filter((run) => run.status === 'success').length;
   const runsFailed = visibleRuns.filter((run) => run.status === 'failed').length;
   const avgLatencyMs = runsTotal
-    ? Math.round(
-        visibleRuns.reduce((acc, run) => acc + (run.durationMs || 0), 0) / runsTotal,
-      )
+    ? Math.round(visibleRuns.reduce((acc, run) => acc + (run.durationMs || 0), 0) / runsTotal)
     : 0;
 
   const totalCost = visibleRuns.reduce((acc, run) => acc + run.costEstimate, 0);
 
   const topAgents = topCounts(
     visibleRuns.map((run) => run.agentId),
-    5,
+    5
   ).map(([agentId, count]) => ({
     agentId,
     runs: count,
@@ -272,7 +249,7 @@ export function getTenantDashboardMetrics(
 
   const topWorkflows = topCounts(
     visibleRuns.map((run) => run.workflowId),
-    5,
+    5
   ).map(([workflowId, count]) => ({
     workflowId,
     runs: count,
@@ -289,7 +266,7 @@ export function getTenantDashboardMetrics(
       visibleRuns
         .filter((run) => dateKey(run.startedAt) === date)
         .reduce((acc, run) => acc + run.costEstimate, 0)
-        .toFixed(4),
+        .toFixed(4)
     ),
   }));
 

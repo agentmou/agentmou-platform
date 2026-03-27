@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest';
 
-import { generateResponse } from './engine'
-import type { WorkspaceContextSnapshot } from './types'
+import { generateResponse } from './engine';
+import type { WorkspaceContextSnapshot } from './types';
 
 const readyContext: WorkspaceContextSnapshot = {
   workspaceId: 'tenant-acme',
@@ -12,12 +12,10 @@ const readyContext: WorkspaceContextSnapshot = {
   checklistTotal: 4,
   pendingTasks: [],
   installedAgents: [],
-  integrations: [
-    { id: 'slack', name: 'Slack', status: 'connected', missingScopes: [] },
-  ],
+  integrations: [{ id: 'slack', name: 'Slack', status: 'connected', missingScopes: [] }],
   pendingApprovalsCount: 0,
   recentErrors: [],
-}
+};
 
 const blockedContext: WorkspaceContextSnapshot = {
   ...readyContext,
@@ -29,53 +27,47 @@ const blockedContext: WorkspaceContextSnapshot = {
       completed: false,
     },
   ],
-  integrations: [
-    { id: 'slack', name: 'Slack', status: 'disconnected', missingScopes: [] },
-  ],
-}
+  integrations: [{ id: 'slack', name: 'Slack', status: 'disconnected', missingScopes: [] }],
+};
 
 describe('generateResponse', () => {
   it('keeps public security answers free of unsupported security claims', () => {
     const response = generateResponse({
       mode: 'public',
       userMessage: 'Tell me about your security posture',
-    })
+    });
 
-    expect(response.content).toContain('security surfaces today')
-    expect(response.content).not.toContain('SOC 2 Type II')
-    expect(response.content).not.toContain('End-to-end encryption')
-    expect(response.content).not.toContain('automatic rotation')
-  })
+    expect(response.content).toContain('security surfaces today');
+    expect(response.content).not.toContain('SOC 2 Type II');
+    expect(response.content).not.toContain('End-to-end encryption');
+    expect(response.content).not.toContain('automatic rotation');
+  });
 
   it('treats go-live requests as preview-only in copilot mode', () => {
     const response = generateResponse({
       mode: 'copilot',
       userMessage: 'Can you help me go live?',
       context: readyContext,
-    })
+    });
 
-    expect(response.content).toContain('cannot activate production from chat')
-    expect(response.actions?.some((action) => action.label.includes('Go Live'))).toBe(
-      false,
-    )
-    expect(response.actions?.some((action) => action.label === 'Review Fleet')).toBe(
-      true,
-    )
-  })
+    expect(response.content).toContain('cannot activate production from chat');
+    expect(response.actions?.some((action) => action.label.includes('Go Live'))).toBe(false);
+    expect(response.actions?.some((action) => action.label === 'Review Fleet')).toBe(true);
+  });
 
   it('points blocked integration issues to review surfaces instead of fake fixes', () => {
     const response = generateResponse({
       mode: 'copilot',
       userMessage: 'Why is this workspace still blocked?',
       context: blockedContext,
-    })
+    });
 
-    expect(response.content).toContain('cannot connect them for you')
+    expect(response.content).toContain('cannot connect them for you');
     expect(response.actions).toEqual([
       {
         label: 'Review Security Surface',
         href: '/app/tenant-acme/security',
       },
-    ])
-  })
-})
+    ]);
+  });
+});

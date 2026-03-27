@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import * as React from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import {
   CommandDialog,
   CommandInput,
@@ -10,7 +10,7 @@ import {
   CommandGroup,
   CommandItem,
   CommandSeparator,
-} from '@/components/ui/command'
+} from '@/components/ui/command';
 import {
   Activity,
   LayoutDashboard,
@@ -29,100 +29,110 @@ import {
   Plus,
   XCircle,
   Clock,
-} from 'lucide-react'
-import { buildSearchIndex, searchItems, groupSearchItems, type SearchItem } from '@/lib/search-index'
-import { useDataProvider } from '@/lib/providers/context'
+} from 'lucide-react';
+import {
+  buildSearchIndex,
+  searchItems,
+  groupSearchItems,
+  type SearchItem,
+} from '@/lib/search-index';
+import { useDataProvider } from '@/lib/providers/context';
 
 const iconMap: Record<string, React.ElementType> = {
-  'activity': Activity,
+  activity: Activity,
   'layout-dashboard': LayoutDashboard,
-  'store': Store,
-  'download': Download,
-  'package': Package,
-  'eye': Eye,
+  store: Store,
+  download: Download,
+  package: Package,
+  eye: Eye,
   'check-circle': CheckCircle,
-  'shield': Shield,
-  'settings': Settings,
-  'bot': Bot,
-  'workflow': Workflow,
-  'play': Play,
+  shield: Shield,
+  settings: Settings,
+  bot: Bot,
+  workflow: Workflow,
+  play: Play,
   'refresh-cw': RefreshCw,
-  'check': Check,
-  'plus': Plus,
+  check: Check,
+  plus: Plus,
   'x-circle': XCircle,
-  'clock': Clock,
-}
+  clock: Clock,
+};
 
 interface CommandPaletteProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
-  const router = useRouter()
-  const params = useParams()
-  const tenantId = params.tenantId as string
-  
-  const provider = useDataProvider()
-  const [query, setQuery] = React.useState('')
-  
+  const router = useRouter();
+  const params = useParams();
+  const tenantId = params.tenantId as string;
+
+  const provider = useDataProvider();
+  const [query, setQuery] = React.useState('');
+
   // Build search index with current tenant
-  const [searchIndex, setSearchIndex] = React.useState<SearchItem[]>([])
+  const [searchIndex, setSearchIndex] = React.useState<SearchItem[]>([]);
   React.useEffect(() => {
-    buildSearchIndex(tenantId, provider).then(setSearchIndex).catch(() => setSearchIndex([]))
-  }, [tenantId, provider])
-  
+    buildSearchIndex(tenantId, provider)
+      .then(setSearchIndex)
+      .catch(() => setSearchIndex([]));
+  }, [tenantId, provider]);
+
   // Filter items based on query
   const filteredItems = React.useMemo(() => {
-    return searchItems(searchIndex, query)
-  }, [searchIndex, query])
-  
+    return searchItems(searchIndex, query);
+  }, [searchIndex, query]);
+
   // Group filtered items
   const groupedItems = React.useMemo(() => {
-    return groupSearchItems(filteredItems)
-  }, [filteredItems])
-  
+    return groupSearchItems(filteredItems);
+  }, [filteredItems]);
+
   // Handle item selection
-  const handleSelect = React.useCallback((item: SearchItem) => {
-    onOpenChange(false)
-    setQuery('')
-    router.push(item.href)
-  }, [router, onOpenChange])
-  
+  const handleSelect = React.useCallback(
+    (item: SearchItem) => {
+      onOpenChange(false);
+      setQuery('');
+      router.push(item.href);
+    },
+    [router, onOpenChange]
+  );
+
   // Keyboard shortcut to focus search when "/" is pressed
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (open && e.key === '/') {
-        e.preventDefault()
+        e.preventDefault();
         // Focus is handled by cmdk
       }
-    }
-    
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [open])
-  
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
+
   const getIcon = (iconName?: string) => {
-    if (!iconName) return null
-    const Icon = iconMap[iconName]
-    return Icon ? <Icon className="h-4 w-4" /> : null
-  }
-  
+    if (!iconName) return null;
+    const Icon = iconMap[iconName];
+    return Icon ? <Icon className="h-4 w-4" /> : null;
+  };
+
   return (
-    <CommandDialog 
-      open={open} 
+    <CommandDialog
+      open={open}
       onOpenChange={onOpenChange}
       title="Command Palette"
       description="Search for pages, agents, workflows, and preview shortcuts"
     >
-      <CommandInput 
+      <CommandInput
         placeholder="Search pages, agents, workflows, or shortcuts..."
         value={query}
         onValueChange={setQuery}
       />
       <CommandList>
         <CommandEmpty>No matching pages or previews found.</CommandEmpty>
-        
+
         {Object.entries(groupedItems).map(([groupName, items], index) => (
           <React.Fragment key={groupName}>
             {index > 0 && <CommandSeparator />}
@@ -155,5 +165,5 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         ))}
       </CommandList>
     </CommandDialog>
-  )
+  );
 }

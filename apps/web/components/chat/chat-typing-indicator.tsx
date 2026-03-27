@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { Bot, Sparkles } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { Bot, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export function ChatTypingIndicator() {
   return (
@@ -14,12 +14,12 @@ export function ChatTypingIndicator() {
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-sm shadow-emerald-500/20">
         <Bot className="h-4 w-4" />
       </div>
-      
+
       {/* Typing bubble */}
       <div className="relative rounded-2xl rounded-tl-md bg-muted/70 ring-1 ring-border/50 px-4 py-3">
         {/* Sparkle indicator */}
         <Sparkles className="absolute -left-1 -top-1 h-3 w-3 text-emerald-500 opacity-60" />
-        
+
         <div className="flex items-center gap-1.5">
           {/* Animated dots with emerald color */}
           <motion.span
@@ -40,5 +40,5 @@ export function ChatTypingIndicator() {
         </div>
       </div>
     </motion.div>
-  )
+  );
 }

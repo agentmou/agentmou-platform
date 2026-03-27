@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import { motion, AnimatePresence } from 'framer-motion'
-import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
+import { motion, AnimatePresence } from 'framer-motion';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 interface PageTransitionProps {
-  children: React.ReactNode
-  className?: string
+  children: React.ReactNode;
+  className?: string;
 }
 
 export function PageTransition({ children, className }: PageTransitionProps) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <AnimatePresence mode="wait">
@@ -25,7 +25,7 @@ export function PageTransition({ children, className }: PageTransitionProps) {
         {children}
       </motion.div>
     </AnimatePresence>
-  )
+  );
 }
 
 // Fade only transition (for modals, overlays)
@@ -40,25 +40,25 @@ export function FadeTransition({ children, className }: PageTransitionProps) {
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
 // Slide transition (for panels, drawers)
 interface SlideTransitionProps extends PageTransitionProps {
-  direction?: 'left' | 'right' | 'up' | 'down'
+  direction?: 'left' | 'right' | 'up' | 'down';
 }
 
-export function SlideTransition({ 
-  children, 
-  className, 
-  direction = 'right' 
+export function SlideTransition({
+  children,
+  className,
+  direction = 'right',
 }: SlideTransitionProps) {
   const variants = {
     left: { x: -20, opacity: 0 },
     right: { x: 20, opacity: 0 },
     up: { y: -20, opacity: 0 },
     down: { y: 20, opacity: 0 },
-  }
+  };
 
   return (
     <motion.div
@@ -70,20 +70,20 @@ export function SlideTransition({
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
 // Stagger children animation
 interface StaggerContainerProps {
-  children: React.ReactNode
-  className?: string
-  staggerDelay?: number
+  children: React.ReactNode;
+  className?: string;
+  staggerDelay?: number;
 }
 
-export function StaggerContainer({ 
-  children, 
-  className, 
-  staggerDelay = 0.05 
+export function StaggerContainer({
+  children,
+  className,
+  staggerDelay = 0.05,
 }: StaggerContainerProps) {
   return (
     <motion.div
@@ -100,13 +100,16 @@ export function StaggerContainer({
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
-export function StaggerItem({ 
-  children, 
-  className 
-}: { children: React.ReactNode; className?: string }) {
+export function StaggerItem({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <motion.div
       variants={{
@@ -118,5 +121,5 @@ export function StaggerItem({
     >
       {children}
     </motion.div>
-  )
+  );
 }

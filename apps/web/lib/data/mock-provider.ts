@@ -78,8 +78,7 @@ export const mockProvider: DataProvider = {
   getTenantBillingInfo: async (id) => _getTenantBillingInfo(id),
 
   // Dashboard
-  getTenantDashboardMetrics: async (id, period) =>
-    _getTenantDashboardMetrics(id, period),
+  getTenantDashboardMetrics: async (id, period) => _getTenantDashboardMetrics(id, period),
 
   // Connectors
   listTenantIntegrations: async (id) => _listTenantIntegrations(id),

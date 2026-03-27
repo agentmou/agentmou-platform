@@ -45,7 +45,7 @@ export interface MeResponse {
 class AuthApiError extends Error {
   constructor(
     public status: number,
-    message: string,
+    message: string
   ) {
     super(message);
     this.name = 'AuthApiError';
@@ -71,7 +71,7 @@ async function authRequest<T>(path: string, options?: RequestInit): Promise<T> {
   if (!res.ok) {
     throw new AuthApiError(
       res.status,
-      (body as { message?: string }).message || `API ${res.status}: ${res.statusText}`,
+      (body as { message?: string }).message || `API ${res.status}: ${res.statusText}`
     );
   }
 
@@ -81,7 +81,7 @@ async function authRequest<T>(path: string, options?: RequestInit): Promise<T> {
 export async function registerApi(
   email: string,
   password: string,
-  name: string,
+  name: string
 ): Promise<RegisterResponse> {
   return authRequest<RegisterResponse>('/api/v1/auth/register', {
     method: 'POST',
@@ -89,10 +89,7 @@ export async function registerApi(
   });
 }
 
-export async function loginApi(
-  email: string,
-  password: string,
-): Promise<LoginResponse> {
+export async function loginApi(email: string, password: string): Promise<LoginResponse> {
   return authRequest<LoginResponse>('/api/v1/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
@@ -120,17 +117,12 @@ export async function fetchOAuthProviders(): Promise<OAuthProvidersResponse> {
  * Build authorize URL for top-level navigation.
  * `returnUrl` must be an absolute URL on an allowlisted origin (e.g. `https://app.example.com/auth/callback?redirect=...`).
  */
-export function getOAuthAuthorizeUrl(
-  provider: 'google' | 'microsoft',
-  returnUrl: string,
-): string {
+export function getOAuthAuthorizeUrl(provider: 'google' | 'microsoft', returnUrl: string): string {
   const q = new URLSearchParams({ return_url: returnUrl });
   return `${API_URL}/api/v1/auth/oauth/${provider}/authorize?${q.toString()}`;
 }
 
-export async function exchangeOAuthLoginCode(
-  code: string,
-): Promise<LoginResponse> {
+export async function exchangeOAuthLoginCode(code: string): Promise<LoginResponse> {
   return authRequest<LoginResponse>('/api/v1/auth/oauth/exchange', {
     method: 'POST',
     body: JSON.stringify({ code }),
@@ -144,10 +136,7 @@ export async function forgotPasswordApi(email: string): Promise<{ ok: true }> {
   });
 }
 
-export async function resetPasswordApi(
-  token: string,
-  password: string,
-): Promise<{ ok: true }> {
+export async function resetPasswordApi(token: string, password: string): Promise<{ ok: true }> {
   return authRequest<{ ok: true }>('/api/v1/auth/reset-password', {
     method: 'POST',
     body: JSON.stringify({ token, password }),

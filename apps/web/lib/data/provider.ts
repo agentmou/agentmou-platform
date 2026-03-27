@@ -100,13 +100,9 @@ export interface InstallationMethods {
   installAgent(
     tenantId: string,
     templateId: string,
-    config?: Record<string, unknown>,
+    config?: Record<string, unknown>
   ): Promise<unknown>;
-  installPack(
-    tenantId: string,
-    packId: string,
-    config?: Record<string, unknown>,
-  ): Promise<unknown>;
+  installPack(tenantId: string, packId: string, config?: Record<string, unknown>): Promise<unknown>;
 }
 
 // ---------------------------------------------------------------------------
@@ -124,16 +120,8 @@ export interface ExecutionMethods {
 
 export interface ApprovalMethods {
   listTenantApprovals(tenantId: string): Promise<ApprovalRequest[]>;
-  approveRequest(
-    tenantId: string,
-    approvalId: string,
-    reason?: string,
-  ): Promise<unknown>;
-  rejectRequest(
-    tenantId: string,
-    approvalId: string,
-    reason?: string,
-  ): Promise<unknown>;
+  approveRequest(tenantId: string, approvalId: string, reason?: string): Promise<unknown>;
+  rejectRequest(tenantId: string, approvalId: string, reason?: string): Promise<unknown>;
 }
 
 // ---------------------------------------------------------------------------
@@ -163,7 +151,7 @@ export interface BillingMethods {
 export interface DashboardMethods {
   getTenantDashboardMetrics(
     tenantId: string,
-    period?: DashboardMetrics['period'],
+    period?: DashboardMetrics['period']
   ): Promise<DashboardMetrics>;
 }
 

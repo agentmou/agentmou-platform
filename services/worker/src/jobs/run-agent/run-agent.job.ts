@@ -55,9 +55,7 @@ export async function processRunAgent(job: Job<RunAgentPayload>) {
     `You are an AI assistant executing the "${templateId}" agent.`
   );
 
-  const policyConfig = await loadPolicyConfig(
-    path.join(agentDir, 'policy.yaml')
-  );
+  const policyConfig = await loadPolicyConfig(path.join(agentDir, 'policy.yaml'));
 
   await job.updateProgress(30);
 
@@ -111,9 +109,7 @@ export async function processRunAgent(job: Job<RunAgentPayload>) {
   await job.updateProgress(100);
 
   if (!result.success) {
-    errorRuntimeMessage(
-      `[run-agent] Failed run ${runId}: ${result.error ?? 'unknown error'}`,
-    );
+    errorRuntimeMessage(`[run-agent] Failed run ${runId}: ${result.error ?? 'unknown error'}`);
     throw new Error(result.error ?? 'Agent execution failed');
   }
 
@@ -127,10 +123,7 @@ export async function processRunAgent(job: Job<RunAgentPayload>) {
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function loadFileOrDefault(
-  filePath: string,
-  fallback: string
-): Promise<string> {
+async function loadFileOrDefault(filePath: string, fallback: string): Promise<string> {
   try {
     return await fs.readFile(filePath, 'utf-8');
   } catch {
@@ -138,9 +131,7 @@ async function loadFileOrDefault(
   }
 }
 
-async function loadPolicyConfig(
-  filePath: string
-): Promise<AgentPolicyConfig | null> {
+async function loadPolicyConfig(filePath: string): Promise<AgentPolicyConfig | null> {
   try {
     const content = await fs.readFile(filePath, 'utf-8');
     return yaml.parse(content) as AgentPolicyConfig;

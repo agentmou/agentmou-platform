@@ -26,7 +26,7 @@ interface QueryResult<T> {
 export function useProviderQuery<T>(
   fn: ProviderFn<T>,
   fallback: T,
-  deps: unknown[] = [],
+  deps: unknown[] = []
 ): QueryResult<T> {
   const provider = useDataProvider();
   const [data, setData] = useState<T>(fallback);

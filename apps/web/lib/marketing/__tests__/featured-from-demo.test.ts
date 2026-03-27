@@ -14,7 +14,7 @@ describe('buildMarketingFeaturedCatalog', () => {
 
     expect(catalog.packs).toHaveLength(2);
     expect(catalog.packs.map((p) => p.id).sort()).toEqual(
-      ['pack-sales-accelerator', 'pack-support-starter'].sort(),
+      ['pack-sales-accelerator', 'pack-support-starter'].sort()
     );
 
     expect(catalog.operationalFeaturedCounts).toEqual({
