@@ -29,7 +29,7 @@ import { useProviderQuery } from '@/lib/data/use-provider-query'
 import { useDataProvider } from '@/lib/data'
 import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
 import { resolveHonestSurfaceState } from '@/lib/honest-ui'
-import { EmptyState } from '@/components/fleetops/empty-state'
+import { EmptyState } from '@/components/control-plane/empty-state'
 import { Store } from 'lucide-react'
 import type {
   AgentTemplate,

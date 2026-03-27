@@ -1,6 +1,6 @@
 'use client'
 
-import { normalizeCategory } from '@/lib/fleetops/category-config'
+import { normalizeCategory } from '@/lib/control-plane/category-config'
 import { resolveCatalogAvailability } from '@/lib/catalog/availability'
 import type { DataProvider } from '@/lib/data/provider'
 import { resolveHonestSurfaceState } from '@/lib/honest-ui'

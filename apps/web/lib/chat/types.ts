@@ -1,4 +1,4 @@
-// Chat Types for AgentMou Assistant
+// Chat Types for Agentmou Assistant
 
 import type { PublicChatCitation } from '@agentmou/contracts'
 
@@ -56,7 +56,7 @@ export interface ChatResponse {
 // Quick prompts by mode
 export const QUICK_PROMPTS: Record<ChatMode, string[]> = {
   public: [
-    'What does AgentMou actually do today?',
+    'What does Agentmou actually do today?',
     'How do pricing and run overages work?',
     'What security capabilities are real today?',
     'Which agents and workflows are public?',

@@ -47,7 +47,7 @@ import { JsonViewer } from '@/components/json-viewer'
 import { StatCard } from '@/components/stat-card'
 import { cn, formatDate } from '@/lib/utils'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
-import { EmptyState } from '@/components/fleetops/empty-state'
+import { EmptyState } from '@/components/control-plane/empty-state'
 
 const actionTypeIcons: Record<string, React.ElementType> = {
   send_email: Mail,

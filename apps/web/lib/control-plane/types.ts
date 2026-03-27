@@ -1,5 +1,5 @@
 /**
- * Domain types for the FleetOps UI layer.
+ * Domain types for the tenant control-plane UI layer.
  *
  * All canonical domain types are defined in @agentmou/contracts and
  * re-exported here so existing page/component imports remain stable.

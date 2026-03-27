@@ -25,7 +25,7 @@ import {
   AlertTriangle,
   Loader2,
 } from 'lucide-react'
-import { normalizeCategory } from '@/lib/fleetops/category-config'
+import { normalizeCategory } from '@/lib/control-plane/category-config'
 import { resolveCatalogAvailability } from '@/lib/catalog/availability'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import type {

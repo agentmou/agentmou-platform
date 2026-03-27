@@ -45,7 +45,7 @@ import {
   Command,
 } from 'lucide-react'
 import { Logo } from '@/components/brand'
-import { CommandPalette } from '@/components/fleetops/command-palette'
+import { CommandPalette } from '@/components/control-plane/command-palette'
 import { useAuthStore } from '@/lib/auth/store'
 import { useDataProvider } from '@/lib/data'
 
@@ -82,7 +82,7 @@ interface AgentmouShellProps {
   children: React.ReactNode
 }
 
-export function FleetOpsShell({ children }: AgentmouShellProps) {
+export function AgentmouShell({ children }: AgentmouShellProps) {
   const router = useRouter()
   const pathname = usePathname()
   const params = useParams()

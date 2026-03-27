@@ -1,4 +1,4 @@
-// Mock Chat Engine for AgentMou Assistant
+// Mock Chat Engine for Agentmou Assistant
 // This file is designed to be easily replaced with OpenAI integration
 
 import type {
@@ -62,7 +62,7 @@ function generatePublicResponse(userMessage: string): EngineOutput {
     case 'nextSteps':
     case 'howItWorks':
       return {
-        content: `**How to explore AgentMou today:**
+        content: `**How to explore Agentmou today:**
 
 1. **Open the demo workspace** to inspect the product safely
 2. **Browse the marketplace** to review agents, workflows, and packs
@@ -79,7 +79,7 @@ Would you like to open the demo workspace or compare plans?`,
 
     case 'pricing':
       return {
-        content: `**AgentMou pricing today:**
+        content: `**Agentmou pricing today:**
 
 - **Starter** ($29/mo) - 3 agents, 1,000 runs/mo, 5 integrations
 - **Pro** ($99/mo) - 10 agents, 10,000 runs/mo, unlimited integrations
@@ -134,7 +134,7 @@ The catalog and demo show what the product aims to support, while tenant-facing 
 
     case 'security':
       return {
-        content: `**AgentMou security surfaces today:**
+        content: `**Agentmou security surfaces today:**
 
 - **Role-based access patterns** are visible in the product
 - **Human-in-the-loop approvals** are part of the operating model
@@ -161,7 +161,7 @@ I can help you explore the demo, review pricing, and explain which tenant surfac
 
     default:
       return {
-        content: `I can help you explore AgentMou without pretending the demo is live. Here are a few good starting points:
+        content: `I can help you explore Agentmou without pretending the demo is live. Here are a few good starting points:
 
 - What the demo workspace shows today
 - Which tenant surfaces are preview-only
@@ -412,7 +412,7 @@ I can point you to the current surface, but not execute security changes from ch
 
     default:
       return {
-        content: `I'm the AgentMou assistant preview for this workspace. I can help you with:
+        content: `I'm the Agentmou assistant preview for this workspace. I can help you with:
 
 - **Next review steps** in the current checklist
 - **Troubleshooting context** for blockers shown in the snapshot

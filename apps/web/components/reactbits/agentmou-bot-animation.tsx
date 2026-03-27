@@ -9,7 +9,7 @@ interface AgentmouBotAnimationProps {
 }
 
 /**
- * AgentMou Bot Animation — interactive spring-physics animation.
+ * Agentmou Bot Animation — interactive spring-physics animation.
  * Replaces halftone illustration in Pre-built workflows section.
  * Triggered on hover; respects prefers-reduced-motion.
  */
@@ -28,7 +28,7 @@ export function AgentmouBotAnimation({ className }: AgentmouBotAnimationProps) {
         <img
           className="bot-img"
           src="/isotipo_agentmou.png"
-          alt="AgentMou Bot"
+          alt="Agentmou Bot"
           width={560}
           height={560}
         />

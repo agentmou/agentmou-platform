@@ -1,4 +1,4 @@
-import type { AgentTemplate } from '../../fleetops/types'
+import type { AgentTemplate } from '../../control-plane/types'
 
 // Operations, Finance, HR, and IT agents
 export const opsFinanceAgentTemplates: AgentTemplate[] = [
@@ -205,7 +205,7 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     audience: 'business',
     statusNote: 'Coming Q3',
     catalogGroup: 'ops',
-    family: 'governance-fleetops',
+    family: 'governance-platform',
     tags: ['security', 'audit', 'access', 'compliance'],
     visibility: 'public',
   },
@@ -325,7 +325,7 @@ export const opsFinanceAgentTemplates: AgentTemplate[] = [
     audience: 'business',
     statusNote: 'Coming Q3',
     catalogGroup: 'ops',
-    family: 'governance-fleetops',
+    family: 'governance-platform',
     tags: ['retention', 'consent', 'compliance', 'gdpr'],
     visibility: 'public',
   },

@@ -59,7 +59,7 @@ Eye,
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
-import { EmptyState } from '@/components/fleetops/empty-state'
+import { EmptyState } from '@/components/control-plane/empty-state'
 import { FadeContent } from '@/components/reactbits/fade-content'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import type {

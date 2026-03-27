@@ -1,4 +1,4 @@
-import type { WorkflowTemplate } from '../../fleetops/types'
+import type { WorkflowTemplate } from '../../control-plane/types'
 
 // Planned workflow placeholders to support orphan planned agents
 export const plannedWorkflowTemplates: WorkflowTemplate[] = [
@@ -160,7 +160,7 @@ export const plannedWorkflowTemplates: WorkflowTemplate[] = [
     availability: 'planned',
     statusNote: 'Coming Q2',
     catalogGroups: ['core'],
-    family: 'governance-fleetops',
+    family: 'governance-platform',
     tags: ['hitl', 'approvals', 'governance'],
     visibility: 'public',
   },
@@ -183,7 +183,7 @@ export const plannedWorkflowTemplates: WorkflowTemplate[] = [
     availability: 'planned',
     statusNote: 'Coming Q3',
     catalogGroups: ['core'],
-    family: 'governance-fleetops',
+    family: 'governance-platform',
     tags: ['security', 'scanning', 'compliance'],
     visibility: 'public',
   },
@@ -390,7 +390,7 @@ export const plannedWorkflowTemplates: WorkflowTemplate[] = [
     availability: 'planned',
     statusNote: 'Coming Q3',
     catalogGroups: ['core', 'ops'],
-    family: 'governance-fleetops',
+    family: 'governance-platform',
     tags: ['inventory', 'retention', 'governance'],
     visibility: 'public',
   },

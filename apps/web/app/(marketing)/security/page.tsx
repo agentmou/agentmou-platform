@@ -17,7 +17,7 @@ import {
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Security - AgentMou',
+  title: 'Security - Agentmou',
   description: 'Enterprise-grade security for your AI agent operations.',
 }
 
@@ -116,7 +116,7 @@ export default function SecurityPage() {
                 Security you can trust
               </h1>
               <p className="mt-6 text-lg text-muted-foreground">
-                  AgentMou is built with security at its core. We protect your data, your integrations, and your business.
+                  Agentmou is built with security at its core. We protect your data, your integrations, and your business.
               </p>
             </div>
           </FadeContent>
