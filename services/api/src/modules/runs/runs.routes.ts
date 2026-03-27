@@ -1,4 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import {
+  ExecutionRunLogsResponseSchema,
+  ExecutionRunResponseSchema,
+  ExecutionRunsResponseSchema,
+} from '@agentmou/contracts';
 import { RunsService } from './runs.service.js';
 
 export async function runRoutes(fastify: FastifyInstance) {
@@ -7,20 +12,20 @@ export async function runRoutes(fastify: FastifyInstance) {
   fastify.get('/tenants/:tenantId/runs', async (request: FastifyRequest, reply: FastifyReply) => {
     const { tenantId } = request.params as { tenantId: string };
     const runs = await service.listRuns(tenantId);
-    return reply.send({ runs });
+    return reply.send(ExecutionRunsResponseSchema.parse({ runs }));
   });
 
   fastify.get('/tenants/:tenantId/runs/:runId', async (request: FastifyRequest, reply: FastifyReply) => {
     const { tenantId, runId } = request.params as { tenantId: string; runId: string };
     const run = await service.getRun(tenantId, runId);
     if (!run) return reply.status(404).send({ error: 'Run not found' });
-    return reply.send({ run });
+    return reply.send(ExecutionRunResponseSchema.parse({ run }));
   });
 
   fastify.get('/tenants/:tenantId/runs/:runId/logs', async (request: FastifyRequest, reply: FastifyReply) => {
     const { tenantId, runId } = request.params as { tenantId: string; runId: string };
     const logs = await service.getRunLogs(tenantId, runId);
-    return reply.send({ logs });
+    return reply.send(ExecutionRunLogsResponseSchema.parse({ logs }));
   });
 
   fastify.post('/tenants/:tenantId/runs', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -31,6 +36,6 @@ export async function runRoutes(fastify: FastifyInstance) {
       input?: Record<string, unknown>;
     };
     const run = await service.triggerRun(tenantId, body);
-    return reply.status(201).send({ run });
+    return reply.status(201).send(ExecutionRunResponseSchema.parse({ run }));
   });
 }

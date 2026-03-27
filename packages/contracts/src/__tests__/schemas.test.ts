@@ -6,7 +6,9 @@ import {
   TenantSchema,
   TenantsResponseSchema,
   TenantMembersResponseSchema,
+  InstallationResponseSchema,
   InstallationsResponseSchema,
+  InstallPackQueuedResponseSchema,
   ExecutionStepSchema,
   ExecutionRunSchema,
   ExecutionRunsResponseSchema,
@@ -312,6 +314,7 @@ describe('ExecutionRunSchema', () => {
   const validRun = {
     id: 'run-1',
     tenantId: 'tenant-1',
+    agentInstallationId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
     agentId: 'agent-inbox-triage',
     status: 'success',
     startedAt: '2024-01-01T00:00:00Z',
@@ -327,6 +330,9 @@ describe('ExecutionRunSchema', () => {
   it('parses a valid execution run', () => {
     const result = ExecutionRunSchema.parse(validRun);
     expect(result.status).toBe('success');
+    expect(result.agentInstallationId).toBe(
+      '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+    );
   });
 
   it('rejects invalid status', () => {
@@ -339,6 +345,7 @@ describe('ExecutionRunSchema', () => {
     const result = ExecutionRunSchema.parse({
       ...validRun,
       status: 'completed',
+      workflowInstallationId: '3fa85f64-5717-4562-b3fc-2c963f66afa7',
       timeline: [
         {
           id: 'step-1',
@@ -355,6 +362,9 @@ describe('ExecutionRunSchema', () => {
       type: 'n8n_execution',
       status: 'success',
     });
+    expect(result.workflowInstallationId).toBe(
+      '3fa85f64-5717-4562-b3fc-2c963f66afa7',
+    );
   });
 
   it('parses execution response envelopes', () => {
@@ -520,6 +530,36 @@ describe('InstallationsResponseSchema', () => {
 
     expect(result.installations.agents[0].kpiValues).toEqual({});
   });
+
+  it('parses single installation responses with explicit record type', () => {
+    const result = InstallationResponseSchema.parse({
+      installation: {
+        id: 'install-1',
+        tenantId: 'tenant-1',
+        templateId: 'inbox-triage',
+        status: 'active',
+        installedAt: '2024-01-01T00:00:00Z',
+        config: {},
+        hitlEnabled: true,
+        lastRunAt: null,
+        runsTotal: 10,
+        runsSuccess: 8,
+        type: 'agent',
+      },
+    });
+
+    expect(result.installation.type).toBe('agent');
+  });
+
+  it('parses queued pack installation responses', () => {
+    const result = InstallPackQueuedResponseSchema.parse({
+      jobId: 'job-1',
+      status: 'queued',
+      message: 'Pack queued',
+    });
+
+    expect(result.status).toBe('queued');
+  });
 });
 
 describe('ApprovalRequestSchema', () => {
@@ -528,6 +568,7 @@ describe('ApprovalRequestSchema', () => {
       id: 'appr-1',
       tenantId: 'tenant-1',
       runId: 'run-1',
+      agentInstallationId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
       agentId: 'inbox-triage',
       actionType: 'send_email',
       riskLevel: 'medium',
@@ -539,6 +580,9 @@ describe('ApprovalRequestSchema', () => {
       requestedAt: '2024-01-01T00:00:00Z',
     });
     expect(result.status).toBe('pending');
+    expect(result.agentInstallationId).toBe(
+      '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+    );
   });
 
   it('normalizes optional approval fields without widening the contract', () => {
@@ -571,6 +615,7 @@ describe('ApprovalRequestSchema', () => {
           id: 'appr-3',
           tenantId: 'tenant-1',
           runId: 'run-1',
+          agentInstallationId: '3fa85f64-5717-4562-b3fc-2c963f66afa8',
           agentId: 'inbox-triage',
           actionType: 'send_email',
           riskLevel: 'medium',

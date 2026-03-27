@@ -69,6 +69,39 @@ export const InstallationsResponseSchema = z.object({
 /** TypeScript shape for the installations response. */
 export type InstallationsResponse = z.infer<typeof InstallationsResponseSchema>;
 
+export const InstallationKindSchema = z.enum(['agent', 'workflow']);
+
+export const AgentInstallationRecordSchema = InstalledAgentSchema.extend({
+  type: z.literal('agent'),
+});
+
+export const WorkflowInstallationRecordSchema = InstalledWorkflowSchema.extend({
+  type: z.literal('workflow'),
+});
+
+export const InstallationRecordSchema = z.discriminatedUnion('type', [
+  AgentInstallationRecordSchema,
+  WorkflowInstallationRecordSchema,
+]);
+
+export type InstallationRecord = z.infer<typeof InstallationRecordSchema>;
+
+export const InstallationResponseSchema = z.object({
+  installation: InstallationRecordSchema,
+});
+
+export type InstallationResponse = z.infer<typeof InstallationResponseSchema>;
+
+export const InstallPackQueuedResponseSchema = z.object({
+  jobId: z.union([z.string(), z.number()]),
+  status: z.literal('queued'),
+  message: z.string(),
+});
+
+export type InstallPackQueuedResponse = z.infer<
+  typeof InstallPackQueuedResponseSchema
+>;
+
 // ---------------------------------------------------------------------------
 // Installation process
 // ---------------------------------------------------------------------------

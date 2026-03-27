@@ -53,7 +53,9 @@ export const ApprovalRequestSchema = z.object({
   id: z.string(),
   tenantId: z.string(),
   runId: z.string(),
-  agentId: z.string(),
+  agentInstallationId: z.string().uuid().optional(),
+  // Template ids are used for catalog lookup; installation ids are canonical.
+  agentId: z.string().optional(),
   actionType: ApprovalActionTypeSchema,
   riskLevel: RiskLevelSchema,
   title: z.string(),

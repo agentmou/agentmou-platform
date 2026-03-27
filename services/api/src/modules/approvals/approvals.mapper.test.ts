@@ -42,6 +42,7 @@ describe('mapApproval', () => {
       id: 'approval-1',
       tenantId: 'tenant-1',
       runId: 'run-1',
+      agentInstallationId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
       agentId: 'agent-template-1',
       actionType: 'send_email',
       riskLevel: 'medium',
@@ -60,7 +61,7 @@ describe('mapApproval', () => {
     });
   });
 
-  it('falls back to the installation id when the template id is unavailable', () => {
+  it('keeps the installation id canonical when the template id is unavailable', () => {
     const approval = mapApproval({
       id: 'approval-2',
       tenantId: 'tenant-1',
@@ -84,7 +85,10 @@ describe('mapApproval', () => {
       decisionReason: null,
     });
 
-    expect(approval.agentId).toBe('3fa85f64-5717-4562-b3fc-2c963f66afa7');
+    expect(approval.agentInstallationId).toBe(
+      '3fa85f64-5717-4562-b3fc-2c963f66afa7',
+    );
+    expect(approval.agentId).toBeUndefined();
     expect(approval.status).toBe('pending');
   });
 });
