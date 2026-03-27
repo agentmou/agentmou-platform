@@ -235,6 +235,7 @@ describe('api client runtime parsing', () => {
             id: 'approval-1',
             tenantId: 'tenant-1',
             runId: 'run-1',
+            agentInstallationId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
             agentId: 'agent-1',
             actionType: 'send_email',
             riskLevel: 'medium',
@@ -257,6 +258,37 @@ describe('api client runtime parsing', () => {
     const result = await approveRequest('tenant-1', 'approval-1', 'Looks good');
 
     expect(result.approval.status).toBe('approved');
+    expect(result.approval.agentInstallationId).toBe(
+      '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+    );
+  });
+
+  it('parses install responses with explicit installation types', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          installation: {
+            id: 'install-1',
+            tenantId: 'tenant-1',
+            templateId: 'agent-1',
+            status: 'active',
+            installedAt: '2024-01-01T00:00:00Z',
+            config: {},
+            hitlEnabled: true,
+            lastRunAt: null,
+            runsTotal: 1,
+            runsSuccess: 1,
+            type: 'agent',
+          },
+        }),
+        { status: 201 },
+      ),
+    ) as typeof fetch;
+
+    const { installAgent } = await import('./client');
+    const result = await installAgent('tenant-1', 'agent-1');
+
+    expect(result.installation.type).toBe('agent');
   });
 
   it('parses billing overview and workflow engine status through shared contracts', async () => {

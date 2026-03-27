@@ -32,7 +32,7 @@ describe('runs.mapper', () => {
       {
         id: 'run-1',
         tenantId: 'tenant-1',
-        agentInstallationId: 'install-1',
+        agentInstallationId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
         workflowInstallationId: null,
         status: 'completed',
         triggeredBy: 'manual',
@@ -66,6 +66,8 @@ describe('runs.mapper', () => {
     );
 
     expect(run).toMatchObject({
+      agentInstallationId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      workflowInstallationId: null,
       agentId: 'agent-inbox-triage',
       status: 'success',
       durationMs: undefined,

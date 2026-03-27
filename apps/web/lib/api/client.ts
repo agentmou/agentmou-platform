@@ -16,8 +16,9 @@ import {
   ConnectorsResponseSchema,
   ExecutionRunResponseSchema,
   ExecutionRunsResponseSchema,
+  InstallationResponseSchema,
   InstallationsResponseSchema,
-  InstalledAgentSchema,
+  InstallPackQueuedResponseSchema,
   PackTemplateResponseSchema,
   PackTemplatesResponseSchema,
   SecurityFindingsResponseSchema,
@@ -48,16 +49,6 @@ import { z, type ZodTypeAny } from 'zod';
 import { getTokenCookie } from '@/lib/auth/cookies';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
-const installAgentResponseSchema = z.object({
-  installation: InstalledAgentSchema,
-});
-
-const installPackResponseSchema = z.object({
-  jobId: z.union([z.string(), z.number()]),
-  status: z.literal('queued'),
-  message: z.string(),
-});
 
 const secretsResponseSchema = z.object({
   secrets: z.array(
@@ -259,7 +250,7 @@ export async function installAgent(
 ) {
   return requestParsed(
     `/api/v1/tenants/${tenantId}/installations/agents`,
-    installAgentResponseSchema,
+    InstallationResponseSchema,
     {
       method: 'POST',
       body: JSON.stringify({ templateId, config }),
@@ -274,7 +265,7 @@ export async function installPack(
 ) {
   return requestParsed(
     `/api/v1/tenants/${tenantId}/installations/packs`,
-    installPackResponseSchema,
+    InstallPackQueuedResponseSchema,
     {
       method: 'POST',
       body: JSON.stringify({ packId, config }),

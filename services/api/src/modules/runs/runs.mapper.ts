@@ -40,6 +40,8 @@ export function mapExecutionRun(
   return ExecutionRunSchema.parse({
     id: run.id,
     tenantId: run.tenantId,
+    agentInstallationId: run.agentInstallationId ?? null,
+    workflowInstallationId: run.workflowInstallationId ?? null,
     agentId: resolved.agentId,
     workflowId: resolved.workflowId,
     status: normalizeStatus(run.status),

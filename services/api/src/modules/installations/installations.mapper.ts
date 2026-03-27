@@ -1,6 +1,8 @@
 import {
+  InstallationRecordSchema,
   InstalledAgentSchema,
   InstalledWorkflowSchema,
+  type InstallationRecord,
   type InstalledAgent,
   type InstalledWorkflow,
 } from '@agentmou/contracts';
@@ -40,6 +42,24 @@ export function mapWorkflowInstallation(
     lastRunAt: installation.lastRunAt?.toISOString() ?? null,
     runsTotal: installation.runsTotal,
     runsSuccess: installation.runsSuccess,
+  });
+}
+
+export function mapInstallationRecord(
+  installation:
+    | (AgentInstallationRow & { type: 'agent' })
+    | (WorkflowInstallationRow & { type: 'workflow' }),
+): InstallationRecord {
+  if (installation.type === 'agent') {
+    return InstallationRecordSchema.parse({
+      ...mapAgentInstallation(installation),
+      type: 'agent',
+    });
+  }
+
+  return InstallationRecordSchema.parse({
+    ...mapWorkflowInstallation(installation),
+    type: 'workflow',
   });
 }
 

@@ -7,6 +7,7 @@ import { N8nService } from '../n8n/n8n.service';
 import { cleanupInstallationExternalResources } from '../../lib/external-installation-cleanup.js';
 import {
   mapAgentInstallation,
+  mapInstallationRecord,
   mapWorkflowInstallation,
 } from './installations.mapper.js';
 
@@ -118,7 +119,9 @@ export class InstallationsService {
           eq(agentInstallations.id, installationId)
         )
       );
-    if (agent) return { ...agent, type: 'agent' as const };
+    if (agent) {
+      return mapInstallationRecord({ ...agent, type: 'agent' as const });
+    }
 
     const [workflow] = await db
       .select()
@@ -129,7 +132,9 @@ export class InstallationsService {
           eq(workflowInstallations.id, installationId)
         )
       );
-    if (workflow) return { ...workflow, type: 'workflow' as const };
+    if (workflow) {
+      return mapInstallationRecord({ ...workflow, type: 'workflow' as const });
+    }
 
     return null;
   }

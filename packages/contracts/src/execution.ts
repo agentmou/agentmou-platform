@@ -84,6 +84,9 @@ export const TriggerTypeSchema = z.enum(['webhook', 'cron', 'manual', 'api', 'ag
 export const ExecutionRunSchema = z.object({
   id: z.string(),
   tenantId: z.string(),
+  agentInstallationId: z.string().uuid().nullable().optional(),
+  workflowInstallationId: z.string().uuid().nullable().optional(),
+  // Template ids stay available for UI lookup, but installation ids are canonical.
   agentId: z.string().optional(),
   workflowId: z.string().optional(),
   status: RawExecutionStatusSchema.transform((status) =>
