@@ -1,6 +1,6 @@
 # @agentmou/web
 
-Next.js application for the AgentMou public site and tenant control-plane UI.
+Next.js application for the Agentmou public site and tenant control-plane UI.
 
 ## Purpose
 
@@ -80,7 +80,7 @@ pnpm --filter @agentmou/web start
 
 | Provider | When | Catalog source |
 | --- | --- | --- |
-| `mockProvider` | Marketing layout `DataProviderContext` default | `lib/demo-catalog` via `lib/fleetops/read-model` |
+| `mockProvider` | Marketing layout `DataProviderContext` default | `lib/demo-catalog` via `lib/control-plane/read-model` |
 | `demoProvider` | `tenantId === demo-workspace` | Same as mock, plus operational overlay in `lib/data/demo-provider.ts` |
 | `apiProvider` | Authenticated real tenants | `services/api` / `catalog/` + `workflows/` on disk |
 
