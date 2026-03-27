@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch'
 import { Stepper, Step } from '@/components/reactbits/stepper'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { useToast } from '@/hooks/use-toast'
-import { useDataProvider } from '@/lib/data'
+import { useDataProvider } from '@/lib/providers/context'
 import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
 import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 import {

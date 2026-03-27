@@ -28,7 +28,7 @@ import {
 } from 'lucide-react'
 import { formatNumber } from '@/lib/utils'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
-import { useDataProvider } from '@/lib/data'
+import { useDataProvider } from '@/lib/providers/context'
 import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
 import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 import type { FleetBillingInfo } from '@/lib/data/provider'

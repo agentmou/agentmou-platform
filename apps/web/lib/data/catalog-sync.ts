@@ -11,4 +11,4 @@ export {
   listMarketplaceAgentTemplates,
   listMarketplaceWorkflowTemplates,
   listPackTemplates,
-} from '@/lib/control-plane/read-model';
+} from '@/lib/demo/read-model';

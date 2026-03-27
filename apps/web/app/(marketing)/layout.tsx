@@ -6,7 +6,8 @@ import { MinimalButton } from '@/components/ui/minimal-button'
 import { ArrowRight } from 'lucide-react'
 import { Logo } from '@/components/brand'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { DataProviderContext, mockProvider } from '@/lib/data'
+import { DataProviderContext } from '@/lib/providers/context'
+import { mockProvider } from '@/lib/providers/demo'
 
 export default function MarketingLayout({
   children,
