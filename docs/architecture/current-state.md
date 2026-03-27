@@ -1,6 +1,6 @@
 # Current State
 
-**Validated on**: March 19, 2026
+**Validated on**: March 27, 2026
 
 **Internal ops addendum**: The private `services/internal-ops` subsystem plus
 its related contracts, DB tables, and worker execution path were code-verified
@@ -15,6 +15,13 @@ routes (`/auth/callback`, `/reset-password`), and ADR
 for enterprise SSO direction. Production was not re-verified end-to-end for
 these flows in this update; treat the March 19-20 operational table as the live
 evidence baseline for VPS behavior until a new smoke pass is recorded.
+
+**Repo-remediation addendum (code-verified March 27, 2026)**: The web app now
+separates product, demo, and marketing concerns more explicitly; the worker no
+longer advertises placeholder job families that are not started by the runtime;
+`@agentmou/contracts` is enforced through API mappers and web-client parsing
+for the current runtime slices; and root `pnpm lint` now includes shell and
+Compose validation for `infra/`.
 
 This document is the current, code-verified architecture and operations
 context for the repository. It supersedes the original architecture proposal
@@ -42,10 +49,10 @@ has been intentionally removed from the active documentation surface.
 
 Agentmou is no longer at the purely aspirational stage described in the initial
 context. The repository now contains a real monorepo structure, a working
-control-plane API, a background worker, a first runtime slice, Gmail OAuth, and
+control-plane API, a background worker, a private internal-ops plane, Gmail
+OAuth, authoritative shared contracts for the active runtime slices, and
 versioned catalog/workflow assets. At the same time, it still carries demo
-inventory, stubbed modules, and contract drift between shared types and runtime
-payloads.
+inventory and a set of intentionally honest-but-incomplete tenant surfaces.
 
 ### Validated Snapshot
 
@@ -54,17 +61,20 @@ payloads.
 | Monorepo structure          | `implemented` | `apps/`, `services/`, `packages/`, `catalog/`, `workflows/`, `infra/`, and `docs/` are all present and used                                                                                                                                                                                                  |
 | Control plane API           | `partial`     | Core modules are real; some tenant-facing modules remain stubbed                                                                                                                                                                                                                                             |
 | Personal internal ops plane | `partial`     | `services/internal-ops` is a real private control-plane service with Telegram ingress, remote OpenClaw turns, `hc-coherence` governance, and worker handoffs                                                                                                                                                 |
-| Web app                     | `partial`     | Authenticated routes use the API provider, but marketing/demo and some tenant surfaces still rely on demo or empty-default paths                                                                                                                                                                             |
-| Data plane                  | `partial`     | Worker queues and runtime path are real, but breadth and contract maturity are still limited                                                                                                                                                                                                                 |
+| Web app                     | `partial`     | Product, demo, and marketing boundaries are explicit, but some tenant surfaces are still preview/read-only because the backend is intentionally incomplete                                                                                                                                                    |
+| Data plane                  | `partial`     | Worker queues and runtime path are real; the remaining limits are breadth and product maturity, not placeholder job scaffolds or silent contract drift                                                                                                                                                       |
 | Catalog and workflow assets | `partial`     | Real installable assets exist, but demo inventory is much larger than the real catalog                                                                                                                                                                                                                       |
 | Infrastructure model        | `partial`     | Production compose and deploy scripts are present, and the March 19-20, 2026 VPS inspection plus follow-up fixes verified live API, worker, edge, backup cron, protected public routes, Gmail OAuth, the real n8n provisioning path, full validation-fixture cleanup, and the OpenAI-backed deep-health path |
-| Validation baseline         | `implemented` | `pnpm typecheck`, `pnpm test`, and `pnpm lint` all pass from the repo root as of March 19-20, 2026; `pnpm lint` still reports non-blocking warnings                                                                                                                                                          |
+| Validation baseline         | `implemented` | `pnpm typecheck`, `pnpm test`, `pnpm lint`, and `pnpm audit --prod` all pass from the repo root as of March 27, 2026; `pnpm lint` now also validates shell scripts and Compose manifests and still reports non-blocking warnings |
 
-### Validation Commands Observed On March 19-20, 2026
+### Validation Commands Observed On March 27, 2026
 
 - `pnpm typecheck`: passes
 - `pnpm test`: passes
 - `pnpm lint`: passes with warnings only (0 errors)
+- `pnpm audit --prod`: passes
+- `pnpm test:agents`: passes
+- `pnpm typecheck:agents`: passes
 
 The March 17 Vitest resolution failure no longer reproduces in the current repo
 state.
@@ -131,7 +141,7 @@ The canonical live statement supported by current evidence is:
 | Marketing site                                    | `implemented` | Homepage catalog from demo featured slice via `/api/public-catalog` (operational stats use `demoTotals` / `operationalFeaturedCounts`) |
 | Auth flows                                        | `implemented` | Login/register, optional B2C OAuth (Google/Microsoft when configured), forgot/reset password, Zustand store, JWT cookie, `proxy.ts` route protection |
 | Tenant app shell                                  | `implemented` | Tenant route groups, navigation shell, command palette, typed client helpers                                                  |
-| Authenticated tenant pages backed by API provider | `partial`     | Tenant pages use `apiProvider`, but several surfaces still fall back to empty defaults because backend modules are incomplete |
+| Authenticated tenant pages backed by API provider | `partial`     | Tenant pages use `apiProvider`, while the honest-surface audit explicitly marks preview, read-only, and not-yet-available areas |
 | Demo workspace and marketing demo data            | `implemented` | `mockProvider` / `demoProvider` read `apps/web/lib/demo-catalog/`; marketing cards use curated `marketing-featured`; see `docs/catalog-and-demo.md` |
 | `/api/chat` assistant route                       | `stub`        | Uses the mock chat engine with an explicit TODO for a real OpenAI-backed implementation                                       |
 
@@ -151,10 +161,10 @@ The API has 15 module directories under `services/api/src/modules`.
 | `memberships`   | `implemented` | Tenant membership listing and management                                                                                                                                                                                       |
 | `catalog`       | `implemented` | Loads manifests from `catalog/` and `workflows/` through `@agentmou/catalog-sdk`                                                                                                                                               |
 | `installations` | `partial`     | Real installs and queued pack installs; uninstall exists; no broader lifecycle management yet                                                                                                                                  |
-| `connectors`    | `partial`     | Real DB-backed connectors plus live-validated Gmail OAuth; `DELETE /connectors/:connectorId` now works with either a row UUID or a provider slug like `gmail`, but response shapes are still not aligned with shared contracts |
+| `connectors`    | `partial`     | Real DB-backed connectors plus live-validated Gmail OAuth; runtime rows are mapped into the shared integration contract before they leave the API |
 | `secrets`       | `partial`     | Real persistence exists, but broader governance and UI integration are limited                                                                                                                                                 |
-| `approvals`     | `partial`     | Real CRUD/decision flow, but payload shape drifts from shared contracts                                                                                                                                                        |
-| `runs`          | `partial`     | Real run creation and DB-backed retrieval, but contract shape is not yet stable                                                                                                                                                |
+| `approvals`     | `partial`     | Real CRUD/decision flow with shared-contract mapping; the remaining limits are product flow depth and review UX, not schema drift                                                                                              |
+| `runs`          | `partial`     | Real run creation and DB-backed retrieval with normalized shared execution contracts; broader rollups and richer execution UX are still limited                                                                                |
 | `n8n`           | `partial`     | Real adapter routes exist, but tenant scoping is mostly path-level rather than full domain enforcement                                                                                                                         |
 | `public-chat`   | `partial`     | Public `/public/chat` route validates against shared chat contracts and currently relies on a narrow service implementation                                                                                                    |
 | `usage`         | `stub`        | Exposed surface exists without real metering implementation                                                                                                                                                                    |
@@ -181,28 +191,25 @@ The private internal operating system lives in `services/internal-ops`.
 | ----------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------- |
 | JWT auth                | `implemented` | `@agentmou/auth` plus API middleware                                                                             |
 | Tenant membership guard | `implemented` | `requireTenantAccess` protects tenant-scoped routes                                                              |
-| Tenant settings model   | `partial`     | Stored in DB, but runtime payloads can be partial or `{}` while shared contracts assume a fully populated object |
+| Tenant settings model   | `implemented` | Stored in DB and normalized through the shared tenant-settings contract before leaving the API |
 | RBAC hardening          | `planned`     | Basic roles exist, but deeper permission enforcement is still limited                                            |
 
 ### Data Plane
 
 #### `services/worker`
 
-The worker has 10 job directories under `services/worker/src/jobs`, and 6 queues
-are currently started from `services/worker/src/index.ts`.
+The worker now has 6 active job families under `services/worker/src/jobs`, plus
+`runtime-support/` helpers, and 6 queues are currently started from
+`services/worker/src/index.ts`.
 
 | Queue / Job           | Status        | Notes                                                                                                                                                |
 | --------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `install-pack`        | `implemented` | Creates installations, provisions workflows, and creates schedules                                                                                   |
 | `run-agent`           | `partial`     | Loads installation assets and delegates to `AgentEngine.execute()`                                                                                   |
-| `run-workflow`        | `partial`     | Executes installed n8n workflows and persists results, but uses its own run-step semantics                                                           |
+| `run-workflow`        | `partial`     | Executes installed n8n workflows and persists normalized execution results; the remaining limit is the n8n-dependent lifecycle breadth                |
 | `schedule-trigger`    | `partial`     | Converts cron schedules into concrete run jobs                                                                                                       |
 | `approval-timeout`    | `partial`     | Applies timeout policies and writes audit events                                                                                                     |
 | `internal-work-order` | `implemented` | Executes the private internal-ops queue, including Telegram delivery, approval gates, native artifacts, and dispatch into installed agents/workflows |
-| `install-agent`       | `planned`     | Job scaffold exists but is not started                                                                                                               |
-| `daily-digest`        | `planned`     | Job scaffold exists but is not started                                                                                                               |
-| `ingest-document`     | `planned`     | Job scaffold exists but is not started                                                                                                               |
-| `rebuild-embeddings`  | `planned`     | Job scaffold exists but is not started                                                                                                               |
 
 #### `packages/agent-engine`
 
@@ -211,7 +218,7 @@ are currently started from `services/worker/src/index.ts`.
 | Planner           | `partial` | Real GPT-4o-mini path plus deterministic fallback behavior                            |
 | Policy engine     | `partial` | Real policy checks exist, but approval/resume semantics are still limited             |
 | Tool execution    | `partial` | Gmail read/label and `analyze-email` are real                                         |
-| Run logging       | `partial` | Persists to the DB, but emitted step/run statuses do not fully match shared contracts |
+| Run logging       | `implemented` | Persists to the DB and normalizes canonical step/run statuses for the shared execution contract |
 | Memory            | `planned` | Package surface exists, but there is no real knowledge/memory product path yet        |
 | Workflow dispatch | `planned` | Scaffolded, not yet a broad orchestration layer                                       |
 
@@ -231,15 +238,14 @@ service for email analysis.
 
 | Package                   | Status        | Notes                                                                                                             |
 | ------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `@agentmou/contracts`     | `partial`     | Central type package exists, but it is not yet authoritative in runtime payloads                                  |
+| `@agentmou/contracts`     | `implemented` | Central Zod-backed type package is now the enforced contract boundary for the active API, worker, and web runtime slices |
 | `@agentmou/db`            | `implemented` | Drizzle client and the growing shared schema back the API, worker, and private internal-ops subsystem             |
 | `@agentmou/auth`          | `implemented` | JWT and password hashing are real                                                                                 |
 | `@agentmou/queue`         | `implemented` | Queue names and typed payloads are shared between API and worker                                                  |
-| `@agentmou/catalog-sdk`   | `partial`     | Real manifest loading works for current assets, but its manifest shapes are narrower than the richer UI contracts |
+| `@agentmou/catalog-sdk`   | `partial`     | Real manifest loading works for current assets; API mappers project those manifests into the shared catalog contracts |
 | `@agentmou/connectors`    | `partial`     | Real Gmail connector and encryption helpers exist; more providers are still absent                                |
 | `@agentmou/n8n-client`    | `partial`     | Real thin client exists, but broader lifecycle and scale concerns remain                                          |
-| `@agentmou/observability` | `partial`     | Logging/tracing helpers exist, but product-grade observability is still mostly implemented elsewhere              |
-| `@agentmou/ui`            | `planned`     | Minimal placeholder package, not yet a true design system                                                         |
+| `@agentmou/observability` | `partial`     | Logging/tracing helpers now include service-scoped logger helpers, but broader product telemetry remains thin     |
 
 ### Catalog and Asset Reality
 
@@ -317,7 +323,7 @@ repository has since moved from proposal to implementation in several areas.
 | Control plane and data plane split                  | `implemented` at a structural level, `partial` in maturity                                                     |
 | n8n should be a capability engine, not the product  | `partial`; the code treats it as infrastructure, but lifecycle and exposure policies still need hardening      |
 | Template vs installation vs execution separation    | `partial`; this distinction exists in DB schema and services, but some web and contract surfaces still blur it |
-| Shared contracts as the single type source of truth | `partial`; package exists, but producer payloads are not consistently aligned or parsed                        |
+| Shared contracts as the single type source of truth | `implemented` for the active runtime slices; API mappers and the web client now parse against `@agentmou/contracts` |
 | Real multi-tenant control plane                     | `partial`; core tenancy/auth is real, deeper hardening is still missing                                        |
 | Marketplace backed by versioned assets              | `partial`; real manifests exist, but the demo catalog is much broader than the installable catalog             |
 | Memory/RAG/usage/billing/security enterprise layers | `planned` or `stub`, not real platform capabilities yet                                                        |
@@ -331,182 +337,144 @@ some surfaces as more complete than their runtime truth.
 This section intentionally focuses on evidence-backed corrections, not cleanup
 for cleanup's sake.
 
-### 1. Make `@agentmou/contracts` Authoritative Before Adding More Features
+### 1. Keep `@agentmou/contracts` Authoritative And Tested
 
 **Why this matters**
 
-Shared contracts now exist, but several API and worker payloads no longer match
-them. That means the repository compiles while still allowing silent runtime
-shape drift across API, worker, and web.
+The active runtime slices now map and parse through `@agentmou/contracts`.
+That gain is only durable if new domains keep using schema-backed mappers and
+web-boundary parsing instead of drifting back to optimistic typing.
 
 **Conservative correction**
 
-- Align runtime producers to shared contracts, or explicitly narrow the
-  contracts to the shapes that are truly emitted today.
-- Add runtime parsing at API boundaries in the web client before expanding more
-  tenant-facing features.
+- Keep API mappers parsing outbound payloads with the shared schemas.
+- Keep the web client parsing API envelopes before data reaches UI state.
+- Add contract-focused tests whenever a new shared surface is introduced.
 
-See [Appendix A](#appendix-a--contract-drift) for the concrete mismatches.
+See [Appendix A](#appendix-a--contract-alignment-guardrails) for the current
+guardrails by surface.
 
-### 2. Expose Only Real Tenant Features, or Label Placeholders Explicitly
+### 2. Expose Only Real Tenant Features, Or Label Partial Ones Explicitly
 
 **Why this matters**
 
-Several tenant surfaces look production-ready in the UI even when the backing
-module is a stub or the API provider returns empty defaults.
+Several tenant surfaces are intentionally preview, read-only, or stub-backed.
+The repo is healthier when that reality is explicit in the UI than when screens
+imply a capability the backend does not actually own yet.
 
 **Evidence**
 
-- `services/api/src/modules/billing/billing.service.ts` returns hard-coded
+- `services/api/src/modules/billing/billing.service.ts` still returns
   placeholder data.
-- `services/api/src/modules/security/security.service.ts` returns hard-coded
+- `services/api/src/modules/security/security.service.ts` still returns
   placeholder data.
-- `apps/web/lib/data/api-provider.ts` returns empty or synthetic defaults for
-  security, billing, dashboard metrics, and n8n connection.
-- `apps/web/app/api/chat/route.ts` uses the mock chat engine.
+- `apps/web/lib/honest-ui/audit.ts` explicitly marks metrics, observability,
+  billing, security, installer, and chat as preview, read-only, or demo.
+- `apps/web/app/api/chat/route.ts` still uses the mock chat engine.
 
 **Conservative correction**
 
-- Hide, badge, or clearly label placeholder tenant surfaces until the backing
-  behavior is real.
-- Prefer an honest “not yet available” state over a convincing but synthetic
-  control-plane screen.
+- Keep honest-surface labels and treatments explicit in the web app.
+- Prefer an honest “preview” or “not yet available” treatment over a synthetic
+  control-plane experience.
 
-### 3. Keep The Demo Catalog, But Fence It Strictly
+### 3. Keep The Demo Catalog Fenced Strictly
 
 **Why this matters**
 
-The real installable catalog and the demo/marketing catalog currently coexist.
-That is acceptable for a product-in-transition, but only if the boundaries stay
-clear.
+The repo intentionally keeps a real installable catalog and a much broader demo
+inventory. That is acceptable only while product pages remain on product data
+providers and demo data stays behind explicit boundaries.
 
 **Conservative correction**
 
 - Treat manifest-backed assets as the installable source of truth.
-- Keep `apps/web/lib/control-plane/*` demo inventory only for marketing and
-  `demo-workspace`.
-- Do not let tenant-scoped business logic depend on demo inventory again.
+- Keep demo selectors in `apps/web/lib/demo/read-model.ts`.
+- Keep `apps/web/lib/demo-catalog/*` and `apps/web/lib/marketing/*` out of
+  authenticated tenant product flows unless the route is explicitly demo-only.
 
-### 4. Keep The Validation Baseline Verified, Not Assumed
-
-**Why this matters**
-
-The local validation baseline is green again, but those claims only stay useful
-if they continue to reflect freshly re-run commands instead of inherited
-assumptions.
-
-**Conservative correction**
-
-- Update top-level docs to report the March 18, 2026 validation snapshot
-  exactly.
-- Re-run `pnpm typecheck`, `pnpm test`, and `pnpm lint` before changing the
-  repository's validation claims again.
-
-### 5. Stop Letting Documentation Drift Create Product Drift
+### 4. Keep Infrastructure Validation Executable, Not Implied
 
 **Why this matters**
 
-Documentation now disagrees about phase naming, validation status, and
-production deployment state. That makes onboarding harder and weakens decision
-quality.
+Shell scripts and Compose files are part of the product's operational surface.
+They need first-class repo checks instead of relying on operator memory.
 
 **Conservative correction**
 
-- Use this document as the current architecture context.
-- Reconcile future README, roadmap, and implementation notes only after code or
-  deployment facts are revalidated.
+- Keep `pnpm lint:infra` wired into the root `pnpm lint`.
+- Validate all tracked Compose files with `docker compose config` against the
+  checked-in env examples.
+- Update `infra/compose/.env.example` and `.env.openclaw.example` together with
+  any Compose-level config change.
+
+### 5. Keep Production Claims Evidence-Backed
+
+**Why this matters**
+
+The repository documents a verified March 19-20, 2026 VPS snapshot, but that
+snapshot will go stale if future claims are made from repo state alone.
+
+**Conservative correction**
+
+- Re-run the documented smoke tests before refreshing production claims.
+- Treat the March 19-20 table as the live evidence baseline until a newer
+  direct verification pass is recorded.
 
 ## Prioritized Next Steps
 
-### Priority 0: Canonicalize the Current Context
+### Priority 0: Keep The Canonical Context Small And Current
 
-- Keep this document linked from the repo entry points.
-- Keep this document and [`../planning/roadmap.md`](../planning/roadmap.md) as
-  the active architecture and planning context.
+- Keep this document, [`../planning/roadmap.md`](../planning/roadmap.md), and
+  the root/doc entrypoints aligned in the same PR as any structural change.
 
-### Priority 1: Fix Contract Drift Across API, Worker, DB, and Web
+### Priority 1: Implement The Honest-UI Backlog
 
-- Align execution, approval, installation, connector, and tenant settings
-  payloads with `@agentmou/contracts`.
-- Add runtime parsing in the web API client to make drift fail loudly.
+- Replace or clearly keep preview/read-only surfaces for billing, security,
+  dashboard rollups, n8n connection management, and chat.
+- Keep `apps/web/lib/honest-ui/audit.ts` in sync with any tenant-surface change.
 
-### Priority 2: Make Stub Surfaces Honest
+### Priority 2: Expand Operational Breadth Only Through Real Runtime Paths
 
-- Either implement or explicitly label/hide billing, security, dashboard, n8n
-  connection, and chat surfaces that still rely on placeholders or empty
-  defaults.
+- Add connectors, installable assets, or workflow breadth only through active
+  queue/API/runtime paths.
+- Do not reintroduce placeholder worker jobs or queue constants as “planned”
+  runtime surfaces.
 
-### Priority 3: Verify Production Truth Before Claiming Production Maturity
+### Priority 3: Re-Verify Production Before Claiming More Maturity
 
-- Run the documented smoke tests against the live environment.
-- Confirm whether API and worker are actually active on the VPS before updating
-  roadmap or implementation documents again.
+- Run the documented smoke and health checks against the VPS again before
+  updating the operational verification snapshot.
 
-### Priority 4: Expand Only After The Baseline Is Trustworthy
+### Priority 4: Deepen Observability And Operational Telemetry
 
-- Add more connectors, workflows, and installable catalog assets only after the
-  control-plane contracts and validation baseline are reliable.
-- Keep memory/RAG, usage metering, and enterprise hardening behind the baseline
-  work above.
+- Grow `@agentmou/observability` beyond logger helpers when the product needs
+  real service-level telemetry, alerts, or trace propagation.
 
 ## Decision Guardrails
 
 - Do not remove the demo catalog until the real catalog can support both
   marketing and product UX needs.
-- Do not add more cross-layer features while `@agentmou/contracts` is visibly
-  out of sync with producer payloads.
-- Do not describe placeholder modules as “MVP complete” just because they have
-  routes and pages.
+- Do not bypass contract parsing at API or web boundaries for shared surfaces.
+- Do not reintroduce placeholder worker jobs or queue names that are not part
+  of the live runtime.
+- Do not let authenticated tenant pages import demo catalog fixtures directly.
 - Do not claim live production activation from repository state alone.
 - Do not replace the Python agents service by default; remove it only when the
   remaining functionality is actually absorbed elsewhere.
 
-## Appendix A - Contract Drift
+## Appendix A - Contract Alignment Guardrails
 
-The following mismatches should be treated as the minimum contract-alignment
-work before broadening feature scope.
+The following guardrails describe how the active runtime slices stay aligned
+today.
 
-### Execution Runs And Steps
-
-| Surface                | Shared contract                       | Real producer today                                                                                         | Drift                                                                                                                                                                                                                                              |
-| ---------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Run status and shape   | `packages/contracts/src/execution.ts` | `services/api/src/modules/runs/runs.service.ts`, `packages/db/src/schema.ts`                                | Shared contract expects `agentId`, `workflowId`, `logs`, `timeline`, and required `durationMs`; API returns DB-backed rows with `agentInstallationId`, `workflowInstallationId`, optional duration, and nested `steps` only on the single-run path |
-| Step types             | `ExecutionStepTypeSchema`             | `packages/agent-engine/src/planner/planner.ts`, `services/worker/src/jobs/run-workflow/run-workflow.job.ts` | Shared contract does not include emitted values such as `tool_call` and `n8n-execution`                                                                                                                                                            |
-| Step status vocabulary | `ExecutionStatusSchema`               | `packages/agent-engine/src/run-logger/logger.ts`                                                            | Run logger persists step status `completed`, while the shared execution status enum does not include `completed`                                                                                                                                   |
-
-### Approval Payload Shape
-
-| Surface          | Shared contract                       | Real producer today                                                                    | Drift                                                                                                                                                                                  |
-| ---------------- | ------------------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Approval request | `packages/contracts/src/approvals.ts` | `services/api/src/modules/approvals/approvals.service.ts`, `packages/db/src/schema.ts` | Shared contract expects `agentId`, required `description`, and a structured `context.inputs/sources`; runtime uses `agentInstallationId`, optional description, and generic JSON blobs |
-
-### Installation Response Shape
-
-| Surface                           | Shared contract                           | Real producer today                                               | Drift                                                                                                             |
-| --------------------------------- | ----------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Installed agent                   | `packages/contracts/src/installations.ts` | `services/api/src/modules/installations/installations.service.ts` | Shared contract requires `kpiValues`; DB/API rows do not provide it                                               |
-| Installations collection response | none                                      | `services/api/src/modules/installations/installations.routes.ts`  | API returns grouped `{ installations: { agents, workflows } }`, but there is no shared contract for this envelope |
-
-### Connector Response Shape
-
-| Surface             | Shared contract                        | Real producer today                                                                      | Drift                                                                                                                                                                                        |
-| ------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Connector list item | `packages/contracts/src/connectors.ts` | `services/api/src/modules/connectors/connectors.service.ts`, `packages/db/src/schema.ts` | Shared contract expects display metadata such as `name`, `icon`, `category`, and `requiredScopes`; API returns raw `connector_accounts` rows centered on provider credentials and timestamps |
-
-### Tenant Settings Shape
-
-| Surface         | Shared contract                     | Real producer today                                                                | Drift                                                                                                                            |
-| --------------- | ----------------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Tenant settings | `packages/contracts/src/tenancy.ts` | `services/api/src/modules/tenants/tenants.service.ts`, `packages/db/src/schema.ts` | Shared contract assumes a fully populated settings object; DB defaults to `{}` and the service can return partial arbitrary JSON |
-
-### Lack Of Runtime Parsing In The Web API Client
-
-| Surface        | Shared contract                                          | Real consumer today          | Drift                                                                                                                  |
-| -------------- | -------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Web API client | Typed return annotations in `apps/web/lib/api/client.ts` | `apps/web/lib/api/client.ts` | The client trusts JSON responses without schema parsing, so the mismatches above compile and flow into the UI silently |
-
-### Additional Important Drift: Catalog Response Shape
-
-| Surface                      | Shared contract                     | Real producer today                                                                        | Drift                                                                                                                                       |
-| ---------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Catalog agents and workflows | `packages/contracts/src/catalog.ts` | `services/api/src/modules/catalog/catalog.service.ts`, `packages/catalog-sdk/src/index.ts` | The API returns manifest shapes from `CatalogSDK`, while the web client types them as richer `AgentTemplate` and `WorkflowTemplate` objects |
+| Surface area | Current guardrail | Evidence |
+| --- | --- | --- |
+| Execution runs and steps | API mappers parse `ExecutionRunSchema` / `ExecutionStepSchema`, and worker/logger code normalizes runtime step types and success statuses before those payloads reach shared contracts. | `services/api/src/modules/runs/runs.mapper.ts`, `services/worker/src/jobs/run-workflow/__tests__/run-workflow.job.test.ts`, `packages/agent-engine/src/__tests__/run-logger.test.ts` |
+| Approval requests | API mappers parse `ApprovalRequestSchema` and normalize optional context/source metadata before returning it. | `services/api/src/modules/approvals/approvals.mapper.ts`, `services/api/src/modules/approvals/approvals.mapper.test.ts` |
+| Installations | API mappers parse shared installation schemas and grouped installation records. | `services/api/src/modules/installations/installations.mapper.ts`, `services/api/src/modules/installations/installations.mapper.test.ts` |
+| Connectors | API mappers project DB connector rows into `IntegrationSchema` instead of leaking raw connector-account rows. | `services/api/src/modules/connectors/connectors.mapper.ts`, `services/api/src/modules/connectors/connectors.mapper.test.ts` |
+| Tenant settings | The tenants mapper fills defaults and parses `TenantSettingsSchema` / `TenantSchema` before the API responds. | `services/api/src/modules/tenants/tenants.mapper.ts`, `services/api/src/modules/tenants/tenants.mapper.test.ts` |
+| Catalog payloads | API catalog mappers project manifest data into the shared catalog contracts, and the web client parses those envelopes at the boundary. | `services/api/src/modules/catalog/catalog.mapper.ts`, `apps/web/lib/api/client.test.ts` |
+| Web API boundary | The web API client parses server responses through shared contract schemas so malformed payloads fail loudly. | `apps/web/lib/api/client.ts`, `apps/web/lib/api/client.test.ts` |
+| Shared schema baseline | Contract tests assert canonical execution vocabularies, approval normalization, and internal-ops/OpenClaw schemas. | `packages/contracts/src/__tests__/schemas.test.ts` |

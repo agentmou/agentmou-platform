@@ -80,7 +80,7 @@ pnpm --filter @agentmou/web start
 
 | Provider | When | Catalog source |
 | --- | --- | --- |
-| `mockProvider` | Marketing layout `DataProviderContext` default | `lib/demo-catalog` via `lib/control-plane/read-model` |
+| `mockProvider` | Marketing layout `DataProviderContext` default | `lib/demo-catalog` via `lib/demo/read-model.ts` |
 | `demoProvider` | `tenantId === demo-workspace` | Same as mock, plus operational overlay in `lib/data/demo-provider.ts` |
 | `apiProvider` | Authenticated real tenants | `services/api` / `catalog/` + `workflows/` on disk |
 
@@ -94,6 +94,8 @@ pnpm --filter @agentmou/web start
 - `lib/data/api-provider.ts` adapts the real API to the `DataProvider` interface.
 - `lib/data/demo-provider.ts` powers `demo-workspace` with read-only demo data
   and operational vs non-operational availability (`planned` + status note).
+- `lib/demo/read-model.ts` is the synchronous selector layer used only behind
+  `mockProvider`.
 - `lib/catalog/availability.ts` centralizes default listing tier resolution for UI.
 - `lib/demo-catalog/` owns the demo inventory, marketing featured IDs, and
   generated operational ID index.
@@ -105,6 +107,8 @@ pnpm --filter @agentmou/web start
 - `lib/auth/store.ts` owns login, registration, cookie hydration, and active-tenant selection.
 - `components/auth/` provides the tabbed sign-in / register UI (`AuthForm`,
   `PasswordInput`) used by `app/(auth)`.
+- `components/ui/` is the current source of truth for reusable UI primitives;
+  there is no live `packages/ui` workspace package.
 
 ## Configuration
 

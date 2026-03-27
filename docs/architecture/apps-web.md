@@ -1,167 +1,122 @@
 # `apps/web` Architecture
 
-This document describes the real `apps/web` structure after refactors and
-the engineering rules to keep it aligned with the target architecture.
+This document describes the current `apps/web` structure after the product,
+demo, and mock-boundary cleanup.
 
 ## Purpose
 
-`apps/web` is a single Next.js app with two surfaces:
+`apps/web` is a single Next.js app with three explicit surface families:
 
-- Marketing surface: public pages and product narrative.
-- App surface: tenant-scoped control plane UI.
+- marketing pages under `app/(marketing)`
+- auth flows under `app/(auth)` plus standalone callback/reset routes
+- tenant-scoped control-plane pages under `app/app/[tenantId]`
 
-It is intentionally UI/control-plane only. It is not the runtime execution
-authority.
+The app is intentionally a UI/control-plane client. It does not execute agents
+or workflows itself.
 
-## Dependency on Shared Contracts
+## Contract Boundary
 
-`apps/web` depends on `@agentmou/contracts` as a workspace dependency.
-All domain types used by pages and components are re-exported through
-`lib/control-plane/types.ts`, which imports from contracts. This means:
+`apps/web` depends on `@agentmou/contracts` for shared domain types. The local
+entrypoint for those types is `lib/control-plane/types.ts`, which re-exports
+the canonical contracts for UI consumers.
 
-- Pages continue to import from `@/lib/control-plane/types`.
-- The underlying types are the canonical Zod-inferred types from
-  contracts.
-- Adding new domain types happens in contracts first, then is consumed
-  here via re-export.
+The web-side API boundary is intentionally defensive:
+
+- `lib/api/client.ts` fetches the API
+- responses are parsed through shared contract schemas
+- tenant pages consume transport-neutral `DataProvider` methods rather than raw
+  fetch calls
 
 ## Routing Structure
 
 - `app/(marketing)/...`
-  - Public pages (`/`, `/pricing`, `/security`, `/docs`, `/login`).
-  - Uses marketing shell and visual brand components.
-
+  - public product narrative, docs, pricing, and security pages
 - `app/(auth)/...`
-  - Login and registration (`/login`, `/register`) using `components/auth`
-    (`AuthForm`, `PasswordInput`, forgot-password modal).
-  - B2C OAuth (Google, Microsoft when enabled in the API) starts from the API
-    authorize URL and returns through `/auth/callback`, which exchanges a
-    one-time code for a JWT cookie.
-  - Password reset entry point: `/reset-password` (token from email link when
-    outbound email is configured).
-
-- `app/auth/callback` and `app/reset-password`
-  - Standalone routes outside `(auth)` for OAuth return URL and deep links.
-
+  - login and registration UI
+- `app/auth/callback`
+  - OAuth return handling
+- `app/reset-password`
+  - password reset deep link
 - `app/app/[tenantId]/...`
-  - Tenant control plane pages.
-  - Current sections:
-    - `dashboard`
-    - `marketplace` (+ detail pages for agents, workflows, packs)
-    - `installer/new`
-    - `fleet`
-    - `runs` (+ detail page per run)
-    - `approvals`
-    - `observability`
-    - `security`
-    - `settings`
-
+  - tenant dashboard, marketplace, installer, fleet, runs, approvals,
+    observability, security, and settings
 - `app/api/chat/route.ts`
-  - Mock chat endpoint scaffold, designed to be replaced by real model
-    integration.
+  - explicitly mock-backed assistant route
 
-## Data Access Pattern
+## Data Provider Architecture
 
-All active tenant control-plane pages consume data through:
+The active app no longer routes product pages through a generic
+`control-plane/read-model` layer. The current split is:
 
-- `lib/control-plane/read-model.ts`
+- `lib/data/provider.ts`
+  - transport-neutral `DataProvider` interface for product pages
+- `lib/data/api-provider.ts`
+  - real API-backed implementation for authenticated tenants
+- `lib/data/demo-provider.ts`
+  - demo-workspace overlay that forces non-operational assets to
+    `availability: planned`
+- `lib/data/mock-provider.ts`
+  - async wrapper over demo read-model selectors for marketing/demo-only flows
+- `lib/providers/*`
+  - route-facing provider selection (`apiProvider`, `demoProvider`,
+    `mockProvider`, `getTenantDataProvider`)
+- `lib/demo/read-model.ts`
+  - synchronous demo/mock selectors used only behind `mockProvider`
 
-Read-model responsibilities:
+This split keeps demo data explicit and prevents product pages from importing
+demo catalog fixtures directly.
 
-- Catalog selectors (agent, workflow, pack, integration).
-- Tenant selectors (installed, approvals, runs, security, members,
-  billing, audit, secrets).
-- Derived metrics (`getTenantDashboardMetrics`).
+## Demo, Marketing, And Honest UI
 
-This keeps page components focused on view logic and avoids direct
-coupling to raw mock source files.
+- `lib/demo-catalog/*` holds the broad demo inventory used for marketing and
+  `demo-workspace`
+- `lib/marketing/*` builds homepage/public-catalog payloads from the curated
+  featured set
+- `lib/honest-ui/*` is the audit map for surfaces that are preview,
+  read-only, demo, or otherwise not fully backed by the platform
 
-## Theme Support
+The main product rule is: demo inventory is allowed, but only through explicit
+demo or marketing boundaries.
 
-`ThemeProvider` from `next-themes` is mounted in the root layout with
-`attribute="class"`, `defaultTheme="system"`, `enableSystem`. Dark mode
-support is structurally wired.
+## Component And Folder Guidance
 
-## What Was Kept
+- `components/ui/*`
+  - current shared UI primitive layer for the app
+- `components/auth/*`
+  - login, registration, password reset, and OAuth-adjacent UI
+- `components/control-plane/*`
+  - app shell and command palette
+- `components/brand/*`
+  - marketing-only visual system
+- `components/chat/*`
+  - mock assistant UI
+- `lib/auth/*`
+  - browser auth API calls, cookie helpers, Zustand auth state
+- `lib/chat/*`
+  - mock assistant behavior and state
+- `lib/catalog/*`
+  - catalog-specific UI helpers such as listing availability
+- `lib/search-index.ts`, `lib/saved-views.ts`, `lib/utils.ts`
+  - local UI support modules
 
-- Visual direction and styling language.
-- Existing page layout and route IA.
-- Marketplace/fleet/runs/observability UX structure.
-- Existing dependency set.
+There is no live `packages/ui` boundary right now. Reusable UI primitives live
+in `apps/web/components/ui/`.
 
-## What Was Refactored
+## Patterns To Follow
 
-Initial pass:
+- Keep product, demo, and marketing concerns in their explicit folders.
+- Prefer `DataProvider` methods in pages and route-facing components.
+- Import shared domain types through `@/lib/control-plane/types`.
+- Keep tenant awareness explicit in route params and provider selection.
+- Use the honest-surface audit when a screen is backed by preview or synthetic
+  behavior.
 
-- Replaced direct `mock-data` imports in active pages with read-model
-  functions.
-- Fixed route/link mismatches in active app flows.
-- Removed unused legacy app model layer and components.
+## Anti-Patterns To Avoid
 
-Contracts elevation pass:
-
-- Wired `@agentmou/contracts` as dependency.
-- Refactored `types.ts` to re-export from contracts.
-- Refactored `category-config.ts` to import canonical types from
-  contracts.
-- Removed duplicate `use-toast` file.
-- Removed 3 dead components (`data-table`, `filter-bar`, `empty-state`).
-- Wired `ThemeProvider` in root layout.
-- Removed v0 generator tag from metadata.
-- Fixed `no-case-declarations` lint errors in chat engine.
-
-## Component/Folder Guidance
-
-- `components/ui/*` — shadcn-style primitives (~57 components).
-- `components/auth/*` — shared login/register UI, password strength, OAuth
-  entry points, forgot-password modal (enterprise SSO is UI-disabled until an
-  external IdP integration ships; see
-  [`docs/adr/013-enterprise-auth-sso-strategy.md`](../adr/013-enterprise-auth-sso-strategy.md)).
-- `components/control-plane/*` — tenant shell (`AgentmouShell` in
-  `app-shell.tsx`) and command palette (`command-palette.tsx`).
-- `components/brand/*` — marketing-only brand visuals.
-- `components/chat/*` — assistant behavior and chat UI.
-- `components/badges.tsx`, `stat-card.tsx`, `json-viewer.tsx` — feature
-  components.
-- `hooks/` — `use-toast.ts` (canonical), `use-mobile.ts`.
-- `lib/control-plane/*` — control-plane domain models, read-model, catalog data.
-- `lib/auth/*` — browser auth API client, cookie helpers, Zustand auth store
-  (password login, remember-me, OAuth exchange).
-- `lib/chat/*` — assistant behavior/state (currently mock engine).
-- `lib/utils.ts` — `cn`, `formatDate`, `formatNumber`.
-- `lib/saved-views.ts` — localStorage-backed saved views for runs.
-- `lib/search-index.ts` — command palette search index.
-
-## Server vs Client Boundaries
-
-- Most tenant pages are currently client components for
-  interaction-heavy UIs.
-- Route handlers are limited and currently mock-backed.
-- Future migration path:
-  - Move fetchers to real API clients in server contexts where possible.
-  - Keep interactive state and transient UI logic in client components.
-
-## Patterns to Follow
-
-- Prefer read-model selectors over direct dataset imports in page
-  components.
-- Keep tenant awareness explicit in routes and selectors.
-- Keep catalog entities separate from installed/execution entities in
-  UI logic.
-- Keep feature behavior in domain-specific folders (`control-plane`, `chat`)
-  instead of generic `lib` growth.
-- Import domain types through `@/lib/control-plane/types` (which re-exports
-  from contracts).
-
-## Anti-Patterns to Avoid
-
-- Reintroducing a second domain model/store parallel to the control-plane read model.
-- Building new pages directly on raw mock arrays.
-- Mixing template metadata with tenant installation state in one object.
-- Adding route actions to non-existent paths.
-- Defining new domain types locally instead of in contracts.
-
-## Immediate Next Step for `apps/web`
-
-Replace mock-backed read-model internals with real typed API clients
-while preserving the same selector interface for pages.
+- Importing `lib/demo-catalog/*` directly from authenticated tenant pages
+- Reintroducing a generic `shared` or `control-plane/read-model` bucket for
+  unrelated concerns
+- Building new product flows on top of `mockProvider`
+- Recreating a shared UI workspace package before there is a real second
+  consumer
+- Defining local copies of types that already exist in `@agentmou/contracts`

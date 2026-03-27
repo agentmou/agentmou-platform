@@ -17,6 +17,7 @@ rotation.
 - `pnpm install`
 - `pnpm typecheck`
 - `pnpm lint`
+- `pnpm lint:infra` if the change touches `infra/compose/` or `infra/scripts/`
 - `pnpm build`
 - `pnpm test`
 - Infrastructure env file configured (`infra/compose/.env`)
@@ -36,10 +37,11 @@ cp infra/compose/.env.example infra/compose/.env
 docker compose -f infra/compose/docker-compose.local.yml up -d
 ```
 
-### 3) Typecheck and Build
+### 3) Typecheck, Lint, And Build
 
 ```bash
 pnpm typecheck
+pnpm lint
 pnpm build
 ```
 
@@ -157,6 +159,11 @@ The smoke test now treats an empty catalog response as a failure by requiring
 the live catalog payload to include `inbox-triage`.
 Before running `deploy-prod.sh`, inspect `git status --short` on the VPS
 checkout and resolve any unexpected local drift.
+
+`pnpm lint` now validates more than workspace ESLint state. It also runs
+`pnpm lint:infra`, which syntax-checks `infra/scripts/*.sh` and validates each
+tracked Compose file with `docker compose config` against the committed env
+examples.
 
 If the `internal-ops` container exits with `ERR_UNKNOWN_FILE_EXTENSION` for
 `.ts` files under workspace packages (for example `@agentmou/contracts`), the

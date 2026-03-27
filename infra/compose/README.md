@@ -30,6 +30,12 @@ Start the local stack:
 docker compose -f infra/compose/docker-compose.local.yml up -d
 ```
 
+Validate every Compose file against the tracked env examples:
+
+```bash
+pnpm lint:compose
+```
+
 Production deploys should follow the procedures in
 [`docs/runbooks/deployment.md`](../../docs/runbooks/deployment.md) instead of
 invoking the production compose file ad hoc.
@@ -39,5 +45,8 @@ invoking the production compose file ad hoc.
 - `infra/compose/.env` contains real secrets and must not be committed.
 - `infra/compose/.env.openclaw` contains real OpenClaw VPS secrets and must
   not be committed.
+- `pnpm lint` now includes `pnpm lint:compose`, which runs
+  `docker compose config` against the local, production, and OpenClaw Compose
+  files using the tracked example env files.
 - Production backups write outside the repo checkout even though the compose
   files define data mounts relative to the repository.

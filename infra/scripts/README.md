@@ -31,3 +31,6 @@ deployment model.
 - Keep `deploy-prod.sh` and `deploy-openclaw.sh` as the tracked production
   deploy commands. If an operator wants a shortcut, use a shell alias outside
   the repo.
+- `pnpm lint:infra` is the repo-level guardrail for this directory. It runs
+  `bash -n infra/scripts/*.sh` and also validates the tracked Compose files
+  because those manifests are operationally coupled to these scripts.

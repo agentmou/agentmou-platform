@@ -17,6 +17,8 @@ slow or stateful work that should not happen during an API request.
 - Run installed workflows through `@agentmou/n8n-client`.
 - Translate repeatable cron triggers into execution runs.
 - Resolve approval timeout actions and resume or fail runs accordingly.
+- Execute private `internal-work-order` jobs for Telegram delivery, approval
+  gates, artifact generation, and dispatch into installed assets.
 
 ## How It Fits Into The System
 
@@ -61,9 +63,10 @@ pnpm --filter @agentmou/worker start
 | `approval-timeout`    | `processApprovalTimeout`   | Applies auto-approve, auto-reject, or escalation logic after timeout                                                                                         |
 | `internal-work-order` | `processInternalWorkOrder` | Executes the private internal-ops queue, including Telegram delivery, approval gating, native artifacts, and optional dispatch to installed agents/workflows |
 
-Additional job folders such as `install-agent`, `daily-digest`,
-`ingest-document`, and `rebuild-embeddings` exist as future-facing scaffolds,
-but they are not currently started by `src/index.ts`.
+The worker deliberately no longer carries placeholder job families that are not
+started by `src/index.ts`. Shared runtime helpers now live under
+`src/jobs/runtime-support/` instead of a generic `shared/` folder so the active
+job surface is easier to navigate.
 
 ## Configuration
 

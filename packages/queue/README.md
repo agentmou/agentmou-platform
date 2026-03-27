@@ -38,10 +38,18 @@ await queue.add('run-agent', {
 
 ## Queue Inventory
 
-The package currently defines queue names for both active and planned jobs,
-including `install-pack`, `run-agent`, `run-workflow`, `schedule-trigger`,
-`approval-timeout`, `internal-work-order`, `ingest-document`,
-`rebuild-embeddings`, and `daily-digest`.
+The package currently defines the active queue contracts used by the platform
+runtime:
+
+- `install-pack`
+- `run-agent`
+- `run-workflow`
+- `schedule-trigger`
+- `approval-timeout`
+- `internal-work-order`
+
+Placeholder queue names that were not part of the live worker runtime were
+removed so the shared package only advertises real surfaces.
 
 ## Configuration
 
