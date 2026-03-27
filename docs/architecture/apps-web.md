@@ -31,6 +31,18 @@ All domain types used by pages and components are re-exported through
   - Public pages (`/`, `/pricing`, `/security`, `/docs`, `/login`).
   - Uses marketing shell and visual brand components.
 
+- `app/(auth)/...`
+  - Login and registration (`/login`, `/register`) using `components/auth`
+    (`AuthForm`, `PasswordInput`, forgot-password modal).
+  - B2C OAuth (Google, Microsoft when enabled in the API) starts from the API
+    authorize URL and returns through `/auth/callback`, which exchanges a
+    one-time code for a JWT cookie.
+  - Password reset entry point: `/reset-password` (token from email link when
+    outbound email is configured).
+
+- `app/auth/callback` and `app/reset-password`
+  - Standalone routes outside `(auth)` for OAuth return URL and deep links.
+
 - `app/app/[tenantId]/...`
   - Tenant control plane pages.
   - Current sections:
@@ -101,6 +113,10 @@ Contracts elevation pass:
 ## Component/Folder Guidance
 
 - `components/ui/*` — shadcn-style primitives (~57 components).
+- `components/auth/*` — shared login/register UI, password strength, OAuth
+  entry points, forgot-password modal (enterprise SSO is UI-disabled until an
+  external IdP integration ships; see
+  [`docs/adr/013-enterprise-auth-sso-strategy.md`](../adr/013-enterprise-auth-sso-strategy.md)).
 - `components/fleetops/*` — tenant shell (`app-shell.tsx`) and command
   palette (`command-palette.tsx`).
 - `components/brand/*` — marketing-only brand visuals.
@@ -109,6 +125,8 @@ Contracts elevation pass:
   components.
 - `hooks/` — `use-toast.ts` (canonical), `use-mobile.ts`.
 - `lib/fleetops/*` — FleetOps domain models, read-model, catalog data.
+- `lib/auth/*` — browser auth API client, cookie helpers, Zustand auth store
+  (password login, remember-me, OAuth exchange).
 - `lib/chat/*` — assistant behavior/state (currently mock engine).
 - `lib/utils.ts` — `cn`, `formatDate`, `formatNumber`.
 - `lib/saved-views.ts` — localStorage-backed saved views for runs.

@@ -60,6 +60,24 @@ pnpm --filter @agentmou/catalog-sdk test
 - Confirm the disposable tenant still matches the guarded cleanup rules before
   using `--execute`.
 
+### B2C login (Google/Microsoft) redirects or “origin not allowed”
+
+- Ensure `AUTH_WEB_ORIGIN_ALLOWLIST` on the API includes the exact browser
+  origin (scheme + host + port) for `apps/web`, for example
+  `http://localhost:3000` locally. See
+  [`infra/compose/.env.example`](../infra/compose/.env.example).
+- Confirm B2C redirect URIs in the provider console match
+  `GOOGLE_OAUTH_REDIRECT_URI` / `MICROSOFT_OAUTH_REDIRECT_URI` (API callback
+  URLs), not the Next.js app URL.
+- Verify `GOOGLE_OAUTH_CLIENT_ID` / `MICROSOFT_OAUTH_*` are set when you expect
+  those buttons; the web UI only shows providers the API advertises as enabled.
+
+### Password reset link never arrives
+
+- Outbound email is not fully wired for all environments; in development the API
+  may log reset links when `LOG_PASSWORD_RESET_LINK=1` (see
+  [`apps/web/README.md`](../apps/web/README.md) and `.env.example`).
+
 ## When To Escalate
 
 - Production or VPS issues: use the [Runbooks Index](./runbooks/README.md) and

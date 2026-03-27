@@ -61,7 +61,7 @@ curl http://localhost:3001/health
 | Prefix | Purpose |
 | --- | --- |
 | `/health` | Liveness check |
-| `/api/v1/auth` | Register, login, and current-user lookup |
+| `/api/v1/auth` | Register, login, me, B2C OAuth (Google/Microsoft), one-time code exchange, forgot/reset password |
 | `/api/v1/catalog` | Agent, pack, workflow, category, and search access |
 | `/public/chat` | Public chat route backed by shared contracts |
 | `/api/v1/oauth/callback` | Public Google OAuth callback |
@@ -85,7 +85,8 @@ route shape exists even where the implementation is still thin.
 ## Important Modules
 
 - `src/app.ts` wires middleware, route registration, CORS, and validation.
-- `src/modules/auth` owns register/login/me flows.
+- `src/modules/auth` owns register/login/me, B2C OAuth (authorize/callback,
+  exchange, identity linking), forgot/reset password, and related rate limits.
 - `src/modules/catalog` serves manifest-backed catalog data.
   It maps operational manifests to shared UI catalog contracts before sending
   API responses.
@@ -115,6 +116,12 @@ dependencies:
 | `GOOGLE_CLIENT_ID` | Gmail OAuth client ID |
 | `GOOGLE_CLIENT_SECRET` | Gmail OAuth client secret |
 | `GOOGLE_REDIRECT_URI` | Public OAuth callback URL |
+| `AUTH_WEB_ORIGIN_ALLOWLIST` | Comma-separated browser origins allowed for OAuth `return_url` validation |
+| `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` | B2C Google login (separate from Gmail connector client when you split them) |
+| `GOOGLE_OAUTH_REDIRECT_URI` | API callback URL for B2C Google login |
+| `MICROSOFT_OAUTH_CLIENT_ID` / `MICROSOFT_OAUTH_CLIENT_SECRET` | B2C Microsoft login |
+| `MICROSOFT_OAUTH_REDIRECT_URI` | API callback URL for B2C Microsoft login |
+| `LOG_PASSWORD_RESET_LINK` | When `1`, log reset links (intended for non-production debugging) |
 | `CONNECTOR_ENCRYPTION_KEY` | AES-256-GCM key for stored connector tokens |
 | `N8N_API_URL` | n8n API base URL for workflow provisioning |
 | `N8N_API_KEY` | n8n API key |
@@ -137,3 +144,4 @@ pnpm --filter @agentmou/api build
 - [Repository Map](../../docs/repo-map.md)
 - [ADR-007: n8n Workflow Provisioning](../../docs/adr/007-n8n-workflow-provisioning.md)
 - [ADR-008: Connector OAuth Token Storage](../../docs/adr/008-connector-oauth-token-storage.md)
+- [ADR-013: Enterprise Auth / SSO Strategy](../../docs/adr/013-enterprise-auth-sso-strategy.md)

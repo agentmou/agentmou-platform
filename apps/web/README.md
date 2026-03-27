@@ -15,7 +15,16 @@ or workflows itself.
 ## Responsibilities
 
 - Render the marketing experience under `app/(marketing)`.
-- Handle login and registration under `app/(auth)`.
+- Handle login and registration under `app/(auth)` using `components/auth`
+  (`AuthForm`, password strength UI). **B2C OAuth** (Google, Microsoft) uses
+  `GET /api/v1/auth/oauth/:provider/authorize` with `return_url` pointing to
+  `/auth/callback`, then `POST /api/v1/auth/oauth/exchange` for a one-time
+  code. **Forgot password** calls `POST /api/v1/auth/forgot-password` and
+  `/reset-password` on the web; email delivery is not integrated yet (reset
+  links are logged in non-production when `LOG_PASSWORD_RESET_LINK=1` or by
+  default in dev on the API). **Enterprise SAML/OIDC** per tenant is planned
+  via an external provider (see `docs/adr/013-enterprise-auth-sso-strategy.md`);
+  the UI shows a disabled SSO row with tooltip.
 - Protect tenant routes with Next.js proxy and a JWT cookie.
 - Consume the control-plane API through typed client helpers in `lib/api/`.
 - Serve marketing homepage cards from `/api/public-catalog`, built from the
@@ -63,6 +72,7 @@ pnpm --filter @agentmou/web start
 | --- | --- |
 | `app/(marketing)` | Public landing, pricing, docs, and security pages |
 | `app/(auth)` | Login and registration flows |
+| `app/auth/callback`, `app/reset-password` | OAuth return handling and password reset deep links |
 | `app/app` | Authenticated app shell and tenant redirects |
 | `app/app/[tenantId]` | Tenant-scoped dashboard, marketplace, fleet, runs, approvals, security, and settings |
 
@@ -93,6 +103,8 @@ pnpm --filter @agentmou/web start
 - `lib/marketing/public-catalog.ts` remains for optional API/filesystem catalog
   helpers; homepage cards no longer depend on it.
 - `lib/auth/store.ts` owns login, registration, cookie hydration, and active-tenant selection.
+- `components/auth/` provides the tabbed sign-in / register UI (`AuthForm`,
+  `PasswordInput`) used by `app/(auth)`.
 
 ## Configuration
 
@@ -101,6 +113,7 @@ Required or important environment variables:
 | Variable | Purpose |
 | --- | --- |
 | `NEXT_PUBLIC_API_URL` | Base URL for `services/api`; defaults to `http://localhost:3001` |
+| API `AUTH_WEB_ORIGIN_ALLOWLIST` | Comma-separated origins allowed for OAuth `return_url` (e.g. `http://localhost:3000`). Must include the web app origin or OAuth redirects are rejected. |
 
 The app also expects the auth flow to set the `agentmou-token` cookie used by
 `proxy.ts` and the typed API client.

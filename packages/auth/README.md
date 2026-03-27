@@ -9,6 +9,10 @@ authentication flow:
 - Sign and verify JWTs.
 - Hash and verify passwords without native dependencies.
 
+B2C OAuth login and password login both end in the same JWT shape issued by the
+API; linking external identities and OAuth state lives in `@agentmou/db`, not in
+this package.
+
 It keeps credential logic out of the API route layer so the same behavior can be
 tested and reused consistently.
 

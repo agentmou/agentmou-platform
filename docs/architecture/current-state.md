@@ -7,6 +7,15 @@ its related contracts, DB tables, and worker execution path were code-verified
 on March 25, 2026. The broader production verification snapshot below retains
 its March 19-20, 2026 evidence baseline.
 
+**B2C auth addendum (code-verified March 27, 2026)**: The repository now
+includes DB-backed user OAuth identities, B2C authorize/callback routes on the
+API, a one-time code exchange, forgot/reset password endpoints, matching web
+routes (`/auth/callback`, `/reset-password`), and ADR
+[`013-enterprise-auth-sso-strategy.md`](../adr/013-enterprise-auth-sso-strategy.md)
+for enterprise SSO direction. Production was not re-verified end-to-end for
+these flows in this update; treat the March 19-20 operational table as the live
+evidence baseline for VPS behavior until a new smoke pass is recorded.
+
 This document is the current, code-verified architecture and operations
 context for the repository. It supersedes the original architecture proposal
 and should be used as the canonical starting point for operational
@@ -120,7 +129,7 @@ The canonical live statement supported by current evidence is:
 | Capability                                        | Status        | Notes                                                                                                                         |
 | ------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | Marketing site                                    | `implemented` | Homepage catalog from demo featured slice via `/api/public-catalog` (operational stats use `demoTotals` / `operationalFeaturedCounts`) |
-| Auth flows                                        | `implemented` | Login/register pages, Zustand auth store, JWT cookie, route protection                                                        |
+| Auth flows                                        | `implemented` | Login/register, optional B2C OAuth (Google/Microsoft when configured), forgot/reset password, Zustand store, JWT cookie, `proxy.ts` route protection |
 | Tenant app shell                                  | `implemented` | Tenant route groups, navigation shell, command palette, typed client helpers                                                  |
 | Authenticated tenant pages backed by API provider | `partial`     | Tenant pages use `apiProvider`, but several surfaces still fall back to empty defaults because backend modules are incomplete |
 | Demo workspace and marketing demo data            | `implemented` | `mockProvider` / `demoProvider` read `apps/web/lib/demo-catalog/`; marketing cards use curated `marketing-featured`; see `docs/catalog-and-demo.md` |
@@ -137,7 +146,7 @@ The API has 15 module directories under `services/api/src/modules`.
 
 | Module          | Status        | Notes                                                                                                                                                                                                                          |
 | --------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `auth`          | `implemented` | Register/login/me, JWT issuance, tenant creation transaction                                                                                                                                                                   |
+| `auth`          | `implemented` | Register/login/me, JWT issuance, tenant creation transaction, B2C OAuth + exchange, forgot/reset password, rate limits and web-origin allowlist for OAuth redirects                                                          |
 | `tenants`       | `implemented` | CRUD and settings storage via Drizzle                                                                                                                                                                                          |
 | `memberships`   | `implemented` | Tenant membership listing and management                                                                                                                                                                                       |
 | `catalog`       | `implemented` | Loads manifests from `catalog/` and `workflows/` through `@agentmou/catalog-sdk`                                                                                                                                               |
