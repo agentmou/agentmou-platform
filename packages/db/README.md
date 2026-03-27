@@ -1,6 +1,6 @@
 # @agentmou/db
 
-Database schema and client for the AgentMou platform, built on
+Database schema and client for the Agentmou platform, built on
 [Drizzle ORM](https://orm.drizzle.team/) with PostgreSQL.
 
 ## Purpose
