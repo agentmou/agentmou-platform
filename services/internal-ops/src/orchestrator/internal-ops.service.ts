@@ -1163,7 +1163,7 @@ export class InternalOpsService {
             executionTarget: 'native',
             title: `${workOrder.title} (binding missing)`,
             summary:
-              'The requested AgentMou capability is not bound in the internal tenant, so the system produced a native brief instead of external execution.',
+              'The requested Agentmou capability is not bound in the internal tenant, so the system produced a native brief instead of external execution.',
             requiresApproval: false,
             parentDelegationId: workOrder.parentDelegationId,
             payload: {

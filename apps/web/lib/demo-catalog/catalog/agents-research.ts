@@ -1,4 +1,4 @@
-import type { AgentTemplate } from '../../fleetops/types'
+import type { AgentTemplate } from '../../control-plane/types'
 
 // Research / Content / Marketing agents (16)
 export const researchAgentTemplates: AgentTemplate[] = [

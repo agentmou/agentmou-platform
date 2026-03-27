@@ -17,9 +17,9 @@ authority.
 
 `apps/web` depends on `@agentmou/contracts` as a workspace dependency.
 All domain types used by pages and components are re-exported through
-`lib/fleetops/types.ts`, which imports from contracts. This means:
+`lib/control-plane/types.ts`, which imports from contracts. This means:
 
-- Pages continue to import from `@/lib/fleetops/types`.
+- Pages continue to import from `@/lib/control-plane/types`.
 - The underlying types are the canonical Zod-inferred types from
   contracts.
 - Adding new domain types happens in contracts first, then is consumed
@@ -62,9 +62,9 @@ All domain types used by pages and components are re-exported through
 
 ## Data Access Pattern
 
-All active FleetOps pages consume data through:
+All active tenant control-plane pages consume data through:
 
-- `lib/fleetops/read-model.ts`
+- `lib/control-plane/read-model.ts`
 
 Read-model responsibilities:
 
@@ -117,14 +117,14 @@ Contracts elevation pass:
   entry points, forgot-password modal (enterprise SSO is UI-disabled until an
   external IdP integration ships; see
   [`docs/adr/013-enterprise-auth-sso-strategy.md`](../adr/013-enterprise-auth-sso-strategy.md)).
-- `components/fleetops/*` — tenant shell (`app-shell.tsx`) and command
-  palette (`command-palette.tsx`).
+- `components/control-plane/*` — tenant shell (`AgentmouShell` in
+  `app-shell.tsx`) and command palette (`command-palette.tsx`).
 - `components/brand/*` — marketing-only brand visuals.
 - `components/chat/*` — assistant behavior and chat UI.
 - `components/badges.tsx`, `stat-card.tsx`, `json-viewer.tsx` — feature
   components.
 - `hooks/` — `use-toast.ts` (canonical), `use-mobile.ts`.
-- `lib/fleetops/*` — FleetOps domain models, read-model, catalog data.
+- `lib/control-plane/*` — control-plane domain models, read-model, catalog data.
 - `lib/auth/*` — browser auth API client, cookie helpers, Zustand auth store
   (password login, remember-me, OAuth exchange).
 - `lib/chat/*` — assistant behavior/state (currently mock engine).
@@ -148,14 +148,14 @@ Contracts elevation pass:
 - Keep tenant awareness explicit in routes and selectors.
 - Keep catalog entities separate from installed/execution entities in
   UI logic.
-- Keep feature behavior in domain-specific folders (`fleetops`, `chat`)
+- Keep feature behavior in domain-specific folders (`control-plane`, `chat`)
   instead of generic `lib` growth.
-- Import domain types through `@/lib/fleetops/types` (which re-exports
+- Import domain types through `@/lib/control-plane/types` (which re-exports
   from contracts).
 
 ## Anti-Patterns to Avoid
 
-- Reintroducing a second domain model/store parallel to FleetOps.
+- Reintroducing a second domain model/store parallel to the control-plane read model.
 - Building new pages directly on raw mock arrays.
 - Mixing template metadata with tenant installation state in one object.
 - Adding route actions to non-existent paths.

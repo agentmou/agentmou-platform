@@ -32,7 +32,7 @@ import {
   listTenantAuditEvents as _listTenantAuditEvents,
   getTenantBillingInfo as _getTenantBillingInfo,
   getTenantDashboardMetrics as _getTenantDashboardMetrics,
-} from '@/lib/fleetops/read-model';
+} from '@/lib/control-plane/read-model';
 
 export const mockProvider: DataProvider = {
   providerMode: 'mock',

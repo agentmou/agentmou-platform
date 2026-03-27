@@ -1,7 +1,7 @@
 # Internal Ops Hetzner Rollout
 
 Use this runbook when you want the fastest production path for the personal
-AgentMou operating system with Hetzner as the OpenClaw VPS provider.
+Agentmou operating system with Hetzner as the OpenClaw VPS provider.
 
 This is the provider-specific fast path for the generic
 [Internal Ops Bring-Up](./internal-ops-bring-up.md) runbook.
@@ -16,16 +16,16 @@ Telegram -> internal-ops -> openclaw-runtime -> worker -> Telegram
 
 with:
 
-- `ops.agentmou.io` on the existing main AgentMou VPS
+- `ops.agentmou.io` on the existing main Agentmou VPS
 - `openclaw.agentmou.io` on a new dedicated Hetzner VPS
 
-Do not bind tenant-installed AgentMou capabilities until this base loop is
+Do not bind tenant-installed Agentmou capabilities until this base loop is
 stable.
 
 ## Prerequisites
 
 - Access to the `agentmou.io` DNS zone
-- Access to the existing main AgentMou VPS
+- Access to the existing main Agentmou VPS
 - A valid `OPENAI_API_KEY`
 - A Telegram bot token
 - A real internal tenant UUID for `INTERNAL_OPS_TENANT_ID`
@@ -151,9 +151,9 @@ Acceptance criteria for this phase:
 - `https://openclaw.agentmou.io/health` returns `200`
 - authenticated register call returns success
 
-## Phase 5: Update The Main AgentMou VPS
+## Phase 5: Update The Main Agentmou VPS
 
-On the existing AgentMou VPS:
+On the existing Agentmou VPS:
 
 ```bash
 ssh deploy@<main-agentmou-vps-ip>
@@ -201,7 +201,7 @@ bash infra/scripts/register-telegram-webhook.sh
 Then send a real message to the bot:
 
 ```text
-Prepare a weekly executive summary of open priorities for AgentMou.
+Prepare a weekly executive summary of open priorities for Agentmou.
 ```
 
 Required checks:

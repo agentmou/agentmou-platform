@@ -1,5 +1,5 @@
 /**
- * DataProvider interface — unified data access for the FleetOps UI.
+ * DataProvider interface — unified data access for the tenant control-plane UI.
  *
  * Two implementations exist:
  *   - MockProvider: wraps read-model.ts (sync mock data, instant)

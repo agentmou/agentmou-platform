@@ -1,8 +1,15 @@
 const TOKEN_KEY = 'agentmou-token';
-const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const SECONDS_PER_DAY = 60 * 60 * 24;
 
-export function setTokenCookie(token: string) {
-  document.cookie = `${TOKEN_KEY}=${token}; path=/; max-age=${MAX_AGE}; SameSite=Lax`;
+export type SetTokenCookieOptions = {
+  /** Cookie lifetime in days. Default 7; use a longer value for "remember me". */
+  maxAgeDays?: number;
+};
+
+export function setTokenCookie(token: string, options?: SetTokenCookieOptions) {
+  const maxAgeDays = options?.maxAgeDays ?? 7;
+  const maxAge = SECONDS_PER_DAY * maxAgeDays;
+  document.cookie = `${TOKEN_KEY}=${token}; path=/; max-age=${maxAge}; SameSite=Lax`;
 }
 
 export function getTokenCookie(): string | null {

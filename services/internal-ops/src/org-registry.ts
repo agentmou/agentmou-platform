@@ -33,7 +33,7 @@ const INTERNAL_OPTIONAL_AGENTMOU_CAPABILITIES = [
     capabilityKey: 'agentmou.engineering.agent',
     title: 'Engineering Agent Installation',
     description:
-      'Run a tenant-installed AgentMou agent for engineering or product work.',
+      'Run a tenant-installed Agentmou agent for engineering or product work.',
     executionTarget: 'agent_installation',
     bindingRequired: true,
   },
@@ -41,7 +41,7 @@ const INTERNAL_OPTIONAL_AGENTMOU_CAPABILITIES = [
     capabilityKey: 'agentmou.marketing.workflow',
     title: 'Marketing Workflow Installation',
     description:
-      'Run a tenant-installed AgentMou workflow for launch and campaign work.',
+      'Run a tenant-installed Agentmou workflow for launch and campaign work.',
     executionTarget: 'workflow_installation',
     bindingRequired: true,
   },
@@ -49,7 +49,7 @@ const INTERNAL_OPTIONAL_AGENTMOU_CAPABILITIES = [
     capabilityKey: 'agentmou.sales.workflow',
     title: 'Sales Workflow Installation',
     description:
-      'Run a tenant-installed AgentMou workflow for pipeline or CRM work.',
+      'Run a tenant-installed Agentmou workflow for pipeline or CRM work.',
     executionTarget: 'workflow_installation',
     bindingRequired: true,
   },
@@ -57,7 +57,7 @@ const INTERNAL_OPTIONAL_AGENTMOU_CAPABILITIES = [
     capabilityKey: 'agentmou.finance.workflow',
     title: 'Finance Workflow Installation',
     description:
-      'Run a tenant-installed AgentMou workflow for finance reviews and ledgers.',
+      'Run a tenant-installed Agentmou workflow for finance reviews and ledgers.',
     executionTarget: 'workflow_installation',
     bindingRequired: true,
   },

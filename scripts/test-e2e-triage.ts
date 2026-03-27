@@ -196,7 +196,7 @@ const steps: Step[] = [
 
 async function main() {
   console.log('═══════════════════════════════════════════════════════════');
-  console.log(' AgentMou E2E Test — Gmail Inbox Triage Vertical Slice');
+  console.log(' Agentmou E2E Test — Gmail Inbox Triage Vertical Slice');
   console.log('═══════════════════════════════════════════════════════════');
   console.log(`API: ${API_URL}\n`);
 

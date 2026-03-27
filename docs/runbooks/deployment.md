@@ -72,16 +72,16 @@ before making production-state claims.
 
 Use the infra scripts in this order so the VPS workflow stays predictable:
 
-1. `infra/scripts/setup.sh` for first-time AgentMou VPS bootstrap after cloning.
+1. `infra/scripts/setup.sh` for first-time Agentmou VPS bootstrap after cloning.
 2. `infra/scripts/verify-prod-image-assets.sh` before shipping API or worker
    changes that depend on repo-backed `catalog/` or `workflows/` assets.
-3. `infra/scripts/deploy-prod.sh` for every main AgentMou VPS deploy.
+3. `infra/scripts/deploy-prod.sh` for every main Agentmou VPS deploy.
 4. `infra/scripts/deploy-openclaw.sh` for the dedicated OpenClaw runtime VPS.
 5. `infra/scripts/smoke-test.sh` for standalone public verification.
 6. `infra/scripts/backup.sh` for scheduled or manual backups.
 
 `infra/scripts/deploy-prod.sh` is the tracked deploy command for the main
-AgentMou VPS. `infra/scripts/deploy-openclaw.sh` is the tracked deploy command
+Agentmou VPS. `infra/scripts/deploy-openclaw.sh` is the tracked deploy command
 for the dedicated OpenClaw runtime VPS. If an operator wants a shortcut, keep
 it as a shell alias outside the repo instead of a duplicate tracked script.
 

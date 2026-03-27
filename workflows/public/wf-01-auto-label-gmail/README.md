@@ -16,7 +16,7 @@ This repository stores one canonical workflow template in Git. Each tenant insta
 
 This workflow is a documented `n8n_native_exception`.
 
-- The default product rule is `platform_managed` credentials through AgentMou connectors and services.
+- The default product rule is `platform_managed` credentials through Agentmou connectors and services.
 - This specific workflow still uses n8n-native Gmail nodes at runtime because Gmail trigger/action nodes require native n8n credentials today.
 - The exception applies only to runtime binding. The repository still stores a sanitized template with no tenant secrets.
 

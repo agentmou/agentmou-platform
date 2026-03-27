@@ -14,7 +14,7 @@ import type {
   Invoice,
   DashboardMetrics,
   N8nConnection,
-} from '../fleetops/types'
+} from '../control-plane/types'
 
 // Import catalog modules
 import { newWorkflowTemplates } from './catalog/workflows-public'

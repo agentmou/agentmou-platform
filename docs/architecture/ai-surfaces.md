@@ -1,6 +1,6 @@
 # AI Surfaces
 
-Use this document when you need to understand how AgentMou talks about
+Use this document when you need to understand how Agentmou talks about
 "agents," workflows, MCP, and runtime ownership without mixing together
 developer tooling and customer-facing product behavior.
 
@@ -20,7 +20,7 @@ repo-local `AGENTS.md` instructions, skills, and developer MCP connections.
 
 ### Internal Ops Agents
 
-Internal ops agents run AgentMou itself as a private company operating system.
+Internal ops agents run Agentmou itself as a private company operating system.
 
 - Their control plane lives in `services/internal-ops`.
 - Their human operator surface is Telegram.

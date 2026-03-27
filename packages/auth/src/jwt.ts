@@ -3,7 +3,7 @@ import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
 const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'dev-secret');
 
 /**
- * JWT claims carried by authenticated AgentMou sessions.
+ * JWT claims carried by authenticated Agentmou sessions.
  */
 export interface TokenPayload extends JWTPayload {
   userId: string;

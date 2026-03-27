@@ -1,5 +1,5 @@
 /**
- * Typed API client for the AgentMou Control Plane API.
+ * Typed API client for the Agentmou Control Plane API.
  *
  * All methods return typed data using @agentmou/contracts types.
  * Set NEXT_PUBLIC_API_URL in your environment to point to the API server.

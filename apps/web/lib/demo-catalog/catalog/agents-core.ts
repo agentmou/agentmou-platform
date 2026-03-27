@@ -1,4 +1,4 @@
-import type { AgentTemplate } from '../../fleetops/types'
+import type { AgentTemplate } from '../../control-plane/types'
 
 // Core / Transversal agents (12)
 export const coreAgentTemplates: AgentTemplate[] = [
@@ -143,7 +143,7 @@ export const coreAgentTemplates: AgentTemplate[] = [
     audience: 'both',
     statusNote: 'Buildable on request',
     catalogGroup: 'core',
-    family: 'governance-fleetops',
+    family: 'governance-platform',
     tags: ['orchestration', 'n8n', 'workflows'],
     visibility: 'public',
   },
@@ -259,7 +259,7 @@ export const coreAgentTemplates: AgentTemplate[] = [
     audience: 'business',
     statusNote: 'Coming soon',
     catalogGroup: 'core',
-    family: 'governance-fleetops',
+    family: 'governance-platform',
     tags: ['cost', 'quality', 'ai-governance'],
     visibility: 'public',
   },
@@ -288,7 +288,7 @@ export const coreAgentTemplates: AgentTemplate[] = [
     audience: 'business',
     statusNote: 'Buildable on request',
     catalogGroup: 'core',
-    family: 'governance-fleetops',
+    family: 'governance-platform',
     tags: ['approvals', 'hitl', 'governance'],
     visibility: 'public',
   },
@@ -317,7 +317,7 @@ export const coreAgentTemplates: AgentTemplate[] = [
     audience: 'business',
     statusNote: 'Coming soon',
     catalogGroup: 'core',
-    family: 'governance-fleetops',
+    family: 'governance-platform',
     tags: ['security', 'scanning', 'vulnerabilities'],
     visibility: 'public',
   },
@@ -346,7 +346,7 @@ export const coreAgentTemplates: AgentTemplate[] = [
     audience: 'business',
     statusNote: 'Buildable on request',
     catalogGroup: 'core',
-    family: 'governance-fleetops',
+    family: 'governance-platform',
     tags: ['installation', 'templates', 'packs'],
     visibility: 'hidden',
   },

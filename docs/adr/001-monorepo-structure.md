@@ -5,7 +5,7 @@
 
 ## Context
 
-We need to decide on the project structure for the AgentMou Platform. The platform consists of multiple applications, services, and shared packages that need to work together.
+We need to decide on the project structure for the Agentmou Platform. The platform consists of multiple applications, services, and shared packages that need to work together.
 
 ## Decision
 

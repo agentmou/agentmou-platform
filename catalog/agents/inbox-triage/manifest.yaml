@@ -3,7 +3,7 @@ name: Inbox Triage
 version: 0.1.0
 description: Automatically categorize, prioritize, and label incoming Gmail messages for support teams
 category: support
-author: AgentMou Team
+author: Agentmou Team
 tags:
   - email
   - gmail

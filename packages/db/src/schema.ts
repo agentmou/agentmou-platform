@@ -7,6 +7,7 @@ import {
   integer,
   jsonb,
   real,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
 // ---------------------------------------------------------------------------
@@ -57,6 +58,82 @@ export const memberships = pgTable('memberships', {
   role: text('role').notNull().default('viewer'),
   joinedAt: timestamp('joined_at').defaultNow().notNull(),
   lastActiveAt: timestamp('last_active_at').defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// User identities (OAuth / enterprise IdP)
+// ---------------------------------------------------------------------------
+
+/** Links a platform user to an external IdP subject (Google, Microsoft, SAML, etc.). */
+export const userIdentities = pgTable(
+  'user_identities',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    provider: text('provider').notNull(),
+    providerSubject: text('provider_subject').notNull(),
+    emailSnapshot: text('email_snapshot'),
+    metadata: jsonb('metadata').default({}),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('user_identities_provider_subject_uidx').on(
+      table.provider,
+      table.providerSubject,
+    ),
+  ],
+);
+
+/** Short-lived OAuth state for B2C login (CSRF + return URL). */
+export const userOauthStates = pgTable('user_oauth_states', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  state: text('state').notNull().unique(),
+  provider: text('provider').notNull(),
+  returnUrl: text('return_url').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+});
+
+/** One-time codes exchanged by the web app for a JWT after OAuth redirect. */
+export const oauthLoginCodes = pgTable('oauth_login_codes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  codeHash: text('code_hash').notNull().unique(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  expiresAt: timestamp('expires_at').notNull(),
+  consumedAt: timestamp('consumed_at'),
+});
+
+export const passwordResetTokens = pgTable('password_reset_tokens', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  tokenHash: text('token_hash').notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  consumedAt: timestamp('consumed_at'),
+});
+
+/**
+ * Tenant-level SSO configuration (SAML/OIDC via WorkOS, Auth0, or custom).
+ * Schema placeholder; connection flows are documented in ADR.
+ */
+export const tenantSsoConnections = pgTable('tenant_sso_connections', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id, { onDelete: 'cascade' }),
+  connectionType: text('connection_type').notNull(),
+  providerKey: text('provider_key'),
+  idpMetadataUrl: text('idp_metadata_url'),
+  verifiedDomains: jsonb('verified_domains').default([]),
+  enabled: boolean('enabled').notNull().default(false),
+  config: jsonb('config').default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 // ---------------------------------------------------------------------------
@@ -211,7 +288,7 @@ export const executionSteps = pgTable('execution_steps', {
 // Internal Ops Agent Registry
 // ---------------------------------------------------------------------------
 
-/** Internal organizational agents used to run AgentMou itself. */
+/** Internal organizational agents used to run Agentmou itself. */
 export const internalAgentProfiles = pgTable('internal_agent_profiles', {
   id: text('id').primaryKey(),
   tenantId: uuid('tenant_id')

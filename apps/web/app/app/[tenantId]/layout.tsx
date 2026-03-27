@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { FleetOpsShell } from '@/components/fleetops/app-shell'
+import { AgentmouShell } from '@/components/control-plane/app-shell'
 import { DataProviderContext, apiProvider, demoProvider } from '@/lib/data'
 
 export default function TenantLayout({
@@ -15,7 +15,7 @@ export default function TenantLayout({
 
   return (
     <DataProviderContext.Provider value={provider}>
-      <FleetOpsShell>{children}</FleetOpsShell>
+      <AgentmouShell>{children}</AgentmouShell>
     </DataProviderContext.Provider>
   )
 }

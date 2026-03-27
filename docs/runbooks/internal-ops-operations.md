@@ -1,7 +1,7 @@
 # Internal Ops Operations
 
 Use this runbook when you need to start, verify, or troubleshoot the personal
-internal operating system that powers AgentMou's private org chart.
+internal operating system that powers Agentmou's private org chart.
 
 If you are bringing the system up for the first time and need the full local
 validation plus two-VPS rollout path, start with
@@ -15,7 +15,7 @@ This runbook covers:
 - the Telegram webhook path
 - the OpenClaw runtime dependency
 - worker-side `internal-work-order` execution
-- capability bindings into the internal AgentMou tenant
+- capability bindings into the internal Agentmou tenant
 
 It does not replace the main deployment runbook for the product stack.
 
@@ -79,7 +79,7 @@ Expected response shape:
 
 ## Production Topology
 
-- `services/internal-ops` now runs on the main AgentMou VPS through
+- `services/internal-ops` now runs on the main Agentmou VPS through
   `infra/compose/docker-compose.prod.yml`.
 - The public host is `https://ops.<DOMAIN>`.
 - `services/worker` must share the same
@@ -156,10 +156,10 @@ order by created_at desc
 limit 20;
 ```
 
-## Bind Optional AgentMou Capabilities
+## Bind Optional Agentmou Capabilities
 
 Only native capabilities are bootstrapped automatically. If you want the
-internal org chart to use an installed AgentMou asset, create a binding in
+internal org chart to use an installed Agentmou asset, create a binding in
 `internal_capability_bindings`.
 
 Example: bind an engineering capability to an existing agent installation.

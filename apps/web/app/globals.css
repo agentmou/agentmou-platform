@@ -386,7 +386,7 @@
   /* no CSS animation; LogoLoop uses requestAnimationFrame */
 }
 
-/* AgentMou Bot Animation — spring-physics interactive */
+/* Agentmou Bot Animation — spring-physics interactive */
 .agentmou-container {
   perspective: 900px;
   pointer-events: auto;

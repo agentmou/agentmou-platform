@@ -1,4 +1,4 @@
-import type { WorkflowTemplate } from '../../fleetops/types'
+import type { WorkflowTemplate } from '../../control-plane/types'
 
 // New workflows to add to the catalog (wf-06 through wf-30, excluding already existing wf-09, wf-10, wf-24, wf-25, wf-26)
 export const newWorkflowTemplates: WorkflowTemplate[] = [

@@ -16,7 +16,7 @@ import {
   isOperationalPack,
   isOperationalWorkflow,
 } from '@/lib/demo-catalog/operational-index';
-import { normalizeCategory } from '@/lib/fleetops/category-config';
+import { normalizeCategory } from '@/lib/control-plane/category-config';
 import type {
   MarketingAgent,
   MarketingCatalogPayload,

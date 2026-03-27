@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 
 /**
- * Spring-physics animation for AgentMou bot.
+ * Spring-physics animation for Agentmou bot.
  * Triggers jump sequence on hover; respects prefers-reduced-motion.
  */
 export function useAgentmouAnimation(

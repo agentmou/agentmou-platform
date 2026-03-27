@@ -16,7 +16,7 @@ This runbook covers:
 - `infra/compose/.env.openclaw`
 - `infra/scripts/deploy-openclaw.sh`
 
-It assumes the main AgentMou stack stays on its current VPS and only the
+It assumes the main Agentmou stack stays on its current VPS and only the
 reasoning runtime is split out.
 
 ## Prerequisites
@@ -115,13 +115,13 @@ Fix:
 
 Cause:
 
-- `OPENCLAW_API_KEY` does not match between the runtime VPS and the AgentMou
+- `OPENCLAW_API_KEY` does not match between the runtime VPS and the Agentmou
   VPS
 
 Check:
 
 - `.env.openclaw`
-- the AgentMou VPS `infra/compose/.env`
+- the Agentmou VPS `infra/compose/.env`
 
 ### Trace or session state disappears after restart
 

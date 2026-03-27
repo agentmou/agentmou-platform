@@ -25,7 +25,7 @@ import { RiskBadge, ChannelBadge, IntegrationChip, SpecLine, AvailabilityBadge, 
 import { FadeContent } from '@/components/reactbits/fade-content'
 import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { TiltedCard } from '@/components/reactbits/tilted-card'
-import { CATEGORY_OPTIONS, normalizeCategory } from '@/lib/fleetops/category-config'
+import { CATEGORY_OPTIONS, normalizeCategory } from '@/lib/control-plane/category-config'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import { resolveCatalogAvailability } from '@/lib/catalog/availability'
 import type { AgentTemplate, WorkflowTemplate, PackTemplate } from '@agentmou/contracts'

@@ -7,6 +7,7 @@ import {
   fetchMe,
   type AuthUser,
   type AuthTenant,
+  type LoginResponse,
 } from './api';
 import { setTokenCookie, getTokenCookie, removeTokenCookie } from './cookies';
 
@@ -18,18 +19,28 @@ interface AuthState {
   isLoading: boolean;
   isHydrated: boolean;
 
-  login: (email: string, password: string) => Promise<string>;
+  login: (
+    email: string,
+    password: string,
+    rememberMe?: boolean,
+  ) => Promise<string>;
   register: (email: string, password: string, name: string) => Promise<string>;
   logout: () => void;
   hydrate: () => Promise<void>;
   setActiveTenant: (tenantId: string) => void;
+  /** After OAuth exchange — same session shape as password login. */
+  applyOAuthExchange: (
+    res: LoginResponse,
+    rememberMe?: boolean,
+  ) => string;
 }
 
 /**
  * Auth store powered by Zustand.
  *
  * - `login` / `register` call the API, persist the JWT in a cookie,
- *   and return the tenantId to redirect to.
+ *   and return the tenantId to redirect to. Login accepts optional
+ *   `rememberMe` (longer cookie lifetime: 30d vs 7d).
  * - `hydrate` is called on app mount to restore state from the cookie.
  * - `logout` clears everything and removes the cookie.
  */
@@ -41,12 +52,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: false,
   isHydrated: false,
 
-  login: async (email, password) => {
+  login: async (email, password, rememberMe = false) => {
     set({ isLoading: true });
     try {
       const res = await loginApi(email, password);
-      setTokenCookie(res.token);
+      setTokenCookie(res.token, { maxAgeDays: rememberMe ? 30 : 7 });
       const tenantId = res.tenants[0]?.id ?? null;
+      if (!tenantId) {
+        set({ isLoading: false });
+        throw new Error('No workspace found for this account. Contact support.');
+      }
       set({
         token: res.token,
         user: res.user,
@@ -54,7 +69,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         activeTenantId: tenantId,
         isLoading: false,
       });
-      return tenantId!;
+      return tenantId;
     } catch (err) {
       set({ isLoading: false });
       throw err;
@@ -102,7 +117,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const res = await fetchMe(token);
       set({
         token,
-        user: { id: res.user.id, email: res.user.email, name: res.user.name },
+        user: {
+          id: res.user.id,
+          email: res.user.email,
+          name: res.user.name ?? null,
+        },
         tenants: res.user.tenants,
         activeTenantId: res.user.tenants[0]?.id ?? null,
         isHydrated: true,
@@ -115,5 +134,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setActiveTenant: (tenantId) => {
     set({ activeTenantId: tenantId });
+  },
+
+  applyOAuthExchange: (res, rememberMe = false) => {
+    const tenantId = res.tenants[0]?.id ?? null;
+    if (!tenantId) {
+      throw new Error('No workspace found for this account. Contact support.');
+    }
+    setTokenCookie(res.token, { maxAgeDays: rememberMe ? 30 : 7 });
+    const tenants: AuthTenant[] = res.tenants.map((t) => ({
+      ...t,
+      role: t.role ?? 'member',
+    }));
+    set({
+      token: res.token,
+      user: {
+        id: res.user.id,
+        email: res.user.email,
+        name: res.user.name ?? null,
+      },
+      tenants,
+      activeTenantId: tenantId,
+      isHydrated: true,
+      isLoading: false,
+    });
+    return tenantId;
   },
 }));

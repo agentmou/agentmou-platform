@@ -1,6 +1,6 @@
 # @agentmou/agent-engine
 
-Runtime engine for planning, governing, and executing AgentMou agent runs.
+Runtime engine for planning, governing, and executing Agentmou agent runs.
 
 ## Purpose
 
