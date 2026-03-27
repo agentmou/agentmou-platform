@@ -34,7 +34,6 @@ const parsed = AgentTemplateSchema.parse(rawData);
 | `billing`       | Invoice, UsageMetric                                                                                                                       |
 | `dashboard`     | DashboardMetrics                                                                                                                           |
 | `chat`          | PublicChatRequest, PublicChatResponse, citations, and actions                                                                              |
-| `internal-ops`  | Internal agent profiles, objectives, delegations, Telegram updates, OpenClaw turn contracts, capability bindings, and internal work orders |
 
 ### Barrel Exports
 
@@ -47,8 +46,8 @@ const parsed = AgentTemplateSchema.parse(rawData);
 Production Docker images for Node services in this monorepo that bundle
 workspace-linked dependencies typically run the service entrypoint with `tsx`
 so TypeScript package entrypoints (this package’s `main` points at `src`) load
-correctly inside the container. See `services/openclaw-runtime/Dockerfile` and
-`services/internal-ops/Dockerfile` for examples.
+correctly inside the container. See `services/api/Dockerfile` and
+`services/worker/Dockerfile` for examples.
 
 ```bash
 pnpm --filter @agentmou/contracts typecheck
@@ -59,5 +58,4 @@ pnpm --filter @agentmou/contracts lint
 
 - [Current State](../../docs/architecture/current-state.md)
 - [Repository Map](../../docs/repo-map.md)
-- [Internal Ops Architecture](../../docs/architecture/internal-ops-personal-os.md)
 - [ADR-002: Shared Contracts](../../docs/adr/002-shared-contracts-type-system.md)

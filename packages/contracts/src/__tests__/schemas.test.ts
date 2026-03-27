@@ -27,12 +27,6 @@ import {
   OperationalPackManifestSchema,
   WorkflowTemplatesResponseSchema,
   PackTemplatesResponseSchema,
-  AgentProfileSchema,
-  ProtocolEnvelopeSchema,
-  TelegramUpdateSchema,
-  OpenClawTurnInputSchema,
-  OpenClawTurnResultSchema,
-  InternalOpsResponseSchema,
 } from '../index';
 
 describe('CategorySchema', () => {
@@ -377,117 +371,6 @@ describe('ExecutionRunSchema', () => {
     expect(
       ExecutionRunLogsResponseSchema.parse({ logs: ['log-1'] }).logs,
     ).toEqual(['log-1']);
-  });
-});
-
-describe('InternalOps schemas', () => {
-  it('parses an internal agent profile', () => {
-    const profile = AgentProfileSchema.parse({
-      id: 'cto',
-      roleTitle: 'CTO',
-      department: 'engineering',
-      mission: 'Ship product safely.',
-      kpis: [{ name: 'delivery_health' }],
-      allowedTools: ['repo-analysis'],
-      allowedWorkflowTags: ['engineering'],
-      memoryScope: 'objective',
-      riskBudget: 'high',
-      escalationPolicy: 'Escalate on production changes.',
-      playbooks: ['incident-response'],
-    });
-
-    expect(profile.department).toBe('engineering');
-  });
-
-  it('parses protocol envelopes carrying coherence metadata', () => {
-    const envelope = ProtocolEnvelopeSchema.parse({
-      contract: {
-        system: 'agentmou-internal-ops',
-        version: '2.0.0',
-      },
-      kind: 'delegation',
-      senderAgentId: 'ceo',
-      recipientAgentId: 'cto',
-      sessionId: '11111111-1111-4111-8111-111111111111',
-      objectiveId: '22222222-2222-4222-8222-222222222222',
-      headline: 'Delegate product work',
-      summary: 'Prepare the execution plan',
-      requestedAction: 'execute',
-      constraints: ['deterministic execution'],
-      expectedArtifacts: ['brief'],
-      capabilityKeys: ['internal.prepare_brief'],
-      executionTarget: 'native',
-      coherence: {
-        continueMode: 'continue',
-        alertIds: [],
-        controlTypes: ['structure'],
-        reviewRequired: false,
-        paused: false,
-      },
-      payload: {},
-    });
-
-    expect(envelope.contract.system).toBe('agentmou-internal-ops');
-  });
-
-  it('parses telegram webhook updates and internal ops responses', () => {
-    const update = TelegramUpdateSchema.parse({
-      update_id: 123,
-      message: {
-        message_id: 456,
-        from: { id: 789, first_name: 'Tim' },
-        chat: { id: 999, type: 'private' },
-        date: 1740000000,
-        text: 'Prepare next week launch brief',
-      },
-    });
-
-    const response = InternalOpsResponseSchema.parse({
-      ok: true,
-      sessionId: '11111111-1111-4111-8111-111111111111',
-      objectiveId: '22222222-2222-4222-8222-222222222222',
-      summary: 'Queued work orders',
-      approvalRequired: true,
-      queuedWorkOrderIds: ['33333333-3333-4333-8333-333333333333'],
-    });
-
-    expect(update.message?.text).toContain('launch');
-    expect(response.approvalRequired).toBe(true);
-  });
-
-  it('parses OpenClaw turn input and output contracts', () => {
-    const turnInput = OpenClawTurnInputSchema.parse({
-      tenantId: '11111111-1111-4111-8111-111111111111',
-      sessionId: '22222222-2222-4222-8222-222222222222',
-      objectiveId: '33333333-3333-4333-8333-333333333333',
-      trigger: 'telegram_message',
-      activeAgentId: 'ceo',
-      operatorMessage: 'Review next week priorities',
-      agentProfiles: [],
-      capabilities: [],
-      memory: [],
-      context: {},
-    });
-
-    const turnResult = OpenClawTurnResultSchema.parse({
-      remoteSessionId: 'openclaw-session-1',
-      activeAgentId: 'ceo',
-      summary: 'CEO delegated the request to CTO and COO.',
-      status: 'active',
-      closeObjective: false,
-      delegations: [],
-      workOrders: [],
-      operatorMessages: [],
-      participants: ['ceo', 'cto', 'coo'],
-      contextChannels: ['telegram'],
-      toolCalls: ['internal.prepare_brief'],
-      successfulResults: 1,
-      retryCount: 0,
-      traceReference: { traceId: 'trace-1' },
-    });
-
-    expect(turnInput.trigger).toBe('telegram_message');
-    expect(turnResult.remoteSessionId).toBe('openclaw-session-1');
   });
 });
 

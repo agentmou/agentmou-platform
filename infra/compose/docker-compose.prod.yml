@@ -210,45 +210,6 @@ services:
       - traefik.http.services.api.loadbalancer.server.port=3001
 
   # ---------------------------------------------------------------------------
-  # Personal Internal Ops (Fastify)
-  # ---------------------------------------------------------------------------
-  internal-ops:
-    build:
-      context: ../..
-      dockerfile: services/internal-ops/Dockerfile
-    restart: unless-stopped
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      - REDIS_URL=redis://redis:6379
-      - INTERNAL_OPS_TENANT_ID=${INTERNAL_OPS_TENANT_ID}
-      - INTERNAL_OPS_TELEGRAM_BOT_TOKEN=${INTERNAL_OPS_TELEGRAM_BOT_TOKEN}
-      - INTERNAL_OPS_TELEGRAM_WEBHOOK_SECRET=${INTERNAL_OPS_TELEGRAM_WEBHOOK_SECRET}
-      - INTERNAL_OPS_CALLBACK_SECRET=${INTERNAL_OPS_CALLBACK_SECRET}
-      - INTERNAL_OPS_TELEGRAM_ALLOWED_CHAT_IDS=${INTERNAL_OPS_TELEGRAM_ALLOWED_CHAT_IDS}
-      - INTERNAL_OPS_TELEGRAM_ALLOWED_USER_IDS=${INTERNAL_OPS_TELEGRAM_ALLOWED_USER_IDS}
-      - OPENCLAW_API_URL=${OPENCLAW_API_URL}
-      - OPENCLAW_API_KEY=${OPENCLAW_API_KEY}
-      - OPENCLAW_TIMEOUT_MS=${OPENCLAW_TIMEOUT_MS:-15000}
-      - CORS_ORIGIN=${CORS_ORIGIN}
-      - NODE_ENV=production
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - internal
-      - web
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=web
-      - traefik.http.routers.internal-ops.rule=Host(`ops.${DOMAIN}`)
-      - traefik.http.routers.internal-ops.entrypoints=websecure
-      - traefik.http.routers.internal-ops.tls.certresolver=le
-      - traefik.http.routers.internal-ops.middlewares=secure-headers@docker,rate-limit@docker,noindex@docker
-      - traefik.http.services.internal-ops.loadbalancer.server.port=3002
-
-  # ---------------------------------------------------------------------------
   # Database migrations (one-off job)
   # ---------------------------------------------------------------------------
   migrate:
@@ -288,8 +249,6 @@ services:
       - CONNECTOR_ENCRYPTION_KEY=${CONNECTOR_ENCRYPTION_KEY}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - INTERNAL_OPS_TELEGRAM_BOT_TOKEN=${INTERNAL_OPS_TELEGRAM_BOT_TOKEN}
-      - INTERNAL_OPS_CALLBACK_SECRET=${INTERNAL_OPS_CALLBACK_SECRET}
       - NODE_ENV=production
     depends_on:
       postgres:

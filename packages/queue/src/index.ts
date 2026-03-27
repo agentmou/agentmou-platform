@@ -4,7 +4,6 @@ export {
   QUEUE_NAMES,
   SCHEDULE_TRIGGER_JOB_NAME,
   type InstallPackPayload,
-  type InternalWorkOrderPayload,
   type RunAgentPayload,
   type RunWorkflowPayload,
   type ScheduleTriggerPayload,

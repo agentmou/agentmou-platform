@@ -17,8 +17,6 @@ slow or stateful work that should not happen during an API request.
 - Run installed workflows through `@agentmou/n8n-client`.
 - Translate repeatable cron triggers into execution runs.
 - Resolve approval timeout actions and resume or fail runs accordingly.
-- Execute private `internal-work-order` jobs for Telegram delivery, approval
-  gates, artifact generation, and dispatch into installed assets.
 
 ## How It Fits Into The System
 
@@ -32,8 +30,6 @@ the platform provides the required runtime pieces:
   run logging.
 - `@agentmou/connectors` decrypts and loads tenant connector instances.
 - `@agentmou/n8n-client` triggers workflow execution in n8n.
-- `services/internal-ops` publishes private company-operation work orders into
-  the shared queue layer.
 
 ## Local Usage
 
@@ -61,7 +57,6 @@ pnpm --filter @agentmou/worker start
 | `run-workflow`        | `processRunWorkflow`       | Executes an installed n8n workflow and persists run status                                                                                                   |
 | `schedule-trigger`    | `processScheduleTrigger`   | Converts a cron trigger into a concrete execution run and follow-up job                                                                                      |
 | `approval-timeout`    | `processApprovalTimeout`   | Applies auto-approve, auto-reject, or escalation logic after timeout                                                                                         |
-| `internal-work-order` | `processInternalWorkOrder` | Executes the private internal-ops queue, including Telegram delivery, approval gating, native artifacts, and optional dispatch to installed agents/workflows |
 
 The worker deliberately no longer carries placeholder job families that are not
 started by `src/index.ts`. Shared runtime helpers now live under
@@ -84,8 +79,6 @@ Important environment variables:
 | `GOOGLE_CLIENT_ID`                | Needed when loading Gmail connectors                              |
 | `GOOGLE_CLIENT_SECRET`            | Needed when loading Gmail connectors                              |
 | `CONNECTOR_ENCRYPTION_KEY`        | Decrypts stored connector tokens                                  |
-| `INTERNAL_OPS_TELEGRAM_BOT_TOKEN` | Required for outbound Telegram messages from internal work orders |
-| `INTERNAL_OPS_CALLBACK_SECRET`    | Required to sign Telegram approval callback payloads              |
 
 ## Development
 
@@ -103,5 +96,4 @@ API and web app.
 
 - [Current State](../../docs/architecture/current-state.md)
 - [Repository Map](../../docs/repo-map.md)
-- [Internal Ops Architecture](../../docs/architecture/internal-ops-personal-os.md)
 - [VPS Operations Runbook](../../docs/runbooks/vps-operations.md)

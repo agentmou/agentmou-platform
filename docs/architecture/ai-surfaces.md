@@ -4,7 +4,7 @@ Use this document when you need to understand how Agentmou talks about
 "agents," workflows, MCP, and runtime ownership without mixing together
 developer tooling and customer-facing product behavior.
 
-## Three Agent Surfaces
+## Two Agent Surfaces
 
 ### Developer Agents
 
@@ -17,20 +17,6 @@ repo-local `AGENTS.md` instructions, skills, and developer MCP connections.
 - They are not customer-facing product runtime components.
 - They should never be treated as tenant-installable assets or as part of the
   SaaS control plane.
-
-### Internal Ops Agents
-
-Internal ops agents run Agentmou itself as a private company operating system.
-
-- Their control plane lives in `services/internal-ops`.
-- Their human operator surface is Telegram.
-- Their reasoning runtime is a remote OpenClaw service reached through a typed
-  adapter.
-- Their governance path uses `hc-coherence` artifacts persisted in
-  `internal_protocol_events`.
-- They may reuse installed product agents and workflows from the internal
-  tenant, but only through curated capability bindings.
-- They are not product catalog assets and are not exposed as tenant features.
 
 ### Product Agents
 
@@ -50,17 +36,12 @@ Product agents are installable templates for tenants.
   operational manifest is mapped to shared contracts.
 - `Installation`: the tenant-scoped runtime record created from a template.
 - `Run`: a concrete execution created from an installation.
-- `Internal objective`: a private company operation tracked through
-  `services/internal-ops`.
-- `Capability binding`: a tenant-scoped link from an internal ops capability to
-  a concrete agent installation or workflow installation.
 
 The important distinction is:
 
 - `Manifest` is repo truth.
 - `Template contract` is product presentation.
 - `Installation` is tenant runtime state.
-- `Internal objective` is private operational state.
 
 ## Repo Truth vs Runtime Truth
 
@@ -112,8 +93,6 @@ This means:
 ### Runtime Execution
 
 - `services/api` handles control-plane install/provision requests
-- `services/internal-ops` handles private company objectives, delegations,
-  Telegram ingress, and OpenClaw turns
 - `services/worker` runs agent/workflow jobs
 - `@agentmou/agent-engine` owns product-agent planning and tool execution
 - `@agentmou/n8n-client` talks to the shared n8n runtime
@@ -149,7 +128,6 @@ Current runtime ownership examples:
 - `agent_engine`: primary runtime for installable product agents
 - `n8n`: runtime owner for deterministic workflow templates
 - `agents_service`: narrow helper service for specific LLM-backed actions
-- `openclaw`: reasoning runtime for the personal internal ops system
 
 ## Manifest vs Catalog Contract
 
@@ -181,8 +159,6 @@ explicitly manifest-aware.
 
 - Do not commit tenant-specific workflow copies.
 - Do not treat developer MCP configs as product runtime assets.
-- Do not treat the private internal org chart as a tenant-facing product
-  feature.
 - Do not make n8n the source of truth for product behavior.
 - Do not hide credential strategy exceptions in workflow JSON or tribal
   knowledge. Declare them in manifests and docs.

@@ -10,16 +10,6 @@ here, then open the procedure that matches the task you need to perform.
   template and validating its tenant install path.
 - [Deployment Runbook](./deployment.md) for local stack setup, VPS deploys,
   health verification, fixture cleanup, and provider-backed secret rotation.
-- [Internal Ops Bring-Up](./internal-ops-bring-up.md) for the first-time
-  rollout path from local validation to the two-VPS Telegram/OpenClaw
-  topology.
-- [Internal Ops Hetzner Rollout](./internal-ops-hetzner-rollout.md) for the
-  exact fast path when the dedicated OpenClaw runtime VPS lives on Hetzner.
-- [Internal Ops Operations](./internal-ops-operations.md) for the private
-  Telegram/OpenClaw operating system, operator webhook setup, capability
-  bindings, and approval/resumption flow checks.
-- [OpenClaw Runtime Operations](./openclaw-runtime-operations.md) for the
-  dedicated reasoning-runtime VPS, its compose stack, and deploy procedure.
 - [Workflow Authoring and Promotion](./workflow-authoring-and-promotion.md) for
   turning an n8n prototype into a canonical Git-tracked workflow template and
   validating its tenant install path.

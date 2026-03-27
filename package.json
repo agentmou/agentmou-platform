@@ -30,7 +30,7 @@
     "cleanup:validation-tenant": "tsx scripts/cleanup-validation-tenant.ts",
     "demo-catalog:generate": "tsx scripts/generate-operational-catalog-ids.ts",
     "demo-catalog:check": "pnpm demo-catalog:generate && git diff --exit-code -- apps/web/lib/demo-catalog/operational-ids.gen.json",
-    "lint:compose": "docker compose --env-file infra/compose/.env.example -f infra/compose/docker-compose.local.yml config >/dev/null && docker compose --env-file infra/compose/.env.example -f infra/compose/docker-compose.prod.yml config >/dev/null && docker compose --env-file infra/compose/.env.openclaw.example -f infra/compose/docker-compose.openclaw.yml config >/dev/null",
+    "lint:compose": "docker compose --env-file infra/compose/.env.example -f infra/compose/docker-compose.local.yml config >/dev/null && docker compose --env-file infra/compose/.env.example -f infra/compose/docker-compose.prod.yml config >/dev/null",
     "lint:infra": "bash -n infra/scripts/*.sh && pnpm lint:compose",
     "test:agents": "python3 -m unittest discover -s services/agents -p 'test_*.py'",
     "typecheck:agents": "python3 -m py_compile services/agents/main.py",

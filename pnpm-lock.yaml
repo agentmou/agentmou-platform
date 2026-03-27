@@ -462,77 +462,6 @@ importers:
         specifier: ^5.7.0
         version: 5.7.3
 
-  services/internal-ops:
-    dependencies:
-      '@agentmou/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
-      '@agentmou/db':
-        specifier: workspace:*
-        version: link:../../packages/db
-      '@agentmou/queue':
-        specifier: workspace:*
-        version: link:../../packages/queue
-      '@fastify/cors':
-        specifier: ^10.0.0
-        version: 10.1.0
-      ajv:
-        specifier: ^8.17.1
-        version: 8.18.0
-      ajv-formats:
-        specifier: ^3.0.1
-        version: 3.0.1(ajv@8.18.0)
-      drizzle-orm:
-        specifier: ^0.39.0
-        version: 0.39.3(postgres@3.4.8)
-      fastify:
-        specifier: ^5.8.4
-        version: 5.8.4
-      hc-coherence:
-        specifier: ^1.0.1
-        version: 1.0.1
-      tsx:
-        specifier: ^4.19.0
-        version: 4.21.0
-      zod:
-        specifier: ^3.24.0
-        version: 3.25.76
-    devDependencies:
-      '@types/node':
-        specifier: ^22.13.0
-        version: 22.19.15
-      typescript:
-        specifier: ^5.7.0
-        version: 5.7.3
-
-  services/openclaw-runtime:
-    dependencies:
-      '@agentmou/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
-      '@fastify/cors':
-        specifier: ^10.0.0
-        version: 10.1.0
-      fastify:
-        specifier: ^5.8.4
-        version: 5.8.4
-      openai:
-        specifier: ^4.80.0
-        version: 4.104.0(zod@3.25.76)
-      tsx:
-        specifier: ^4.19.0
-        version: 4.21.0
-      zod:
-        specifier: ^3.24.0
-        version: 3.25.76
-    devDependencies:
-      '@types/node':
-        specifier: ^22.13.0
-        version: 22.19.15
-      typescript:
-        specifier: ^5.7.0
-        version: 5.7.3
-
   services/worker:
     dependencies:
       '@agentmou/agent-engine':
@@ -3492,10 +3421,6 @@ packages:
   hasown@2.0.2:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
-
-  hc-coherence@1.0.1:
-    resolution: {integrity: sha512-hhkHBeiqKdzau1fVD9lbw3wIr9oyHGWgSOE7hUzDUE6f1bVeyX9Gb4cYYcV97TS0d4iqJz9QfyKZeX0lSvdxIw==}
-    engines: {node: '>=20 <23', npm: '>=10'}
 
   headers-polyfill@4.0.3:
     resolution: {integrity: sha512-IScLbePpkvO846sIwOtOTDjutRMWdXdJmXdMvk6gCBHxFO8d+QKOQedyZSxFTTFYRSmlgSTDtXqqq4pcenBXLQ==}
@@ -7730,8 +7655,6 @@ snapshots:
   hasown@2.0.2:
     dependencies:
       function-bind: 1.1.2
-
-  hc-coherence@1.0.1: {}
 
   headers-polyfill@4.0.3: {}
 

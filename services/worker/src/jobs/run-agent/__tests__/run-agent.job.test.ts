@@ -55,10 +55,6 @@ vi.mock('@agentmou/agent-engine', () => ({
   })),
 }));
 
-vi.mock('../../internal-work-order/internal-execution-sync.js', () => ({
-  syncInternalExecutionRunResult: vi.fn().mockResolvedValue(undefined),
-}));
-
 // ---------------------------------------------------------------------------
 // Mock fs/yaml for catalog loading
 // ---------------------------------------------------------------------------

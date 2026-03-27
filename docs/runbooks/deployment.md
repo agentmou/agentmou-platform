@@ -125,23 +125,13 @@ After first deploy or after schema changes:
 docker compose --profile ops -f infra/compose/docker-compose.prod.yml run --rm migrate
 ```
 
-### Deploy the OpenClaw runtime VPS
-
-```bash
-ssh deploy@<openclaw-vps-ip>
-cd /srv/agentmou-platform
-bash infra/scripts/deploy-openclaw.sh
-```
-
 ### Active services
 
-In compose, the `api`, `worker`, and `internal-ops` services start
-automatically with the main stack. The `web` service is behind a profile
+In compose, the `api`, `worker`, and `agents` services start automatically
+with the main stack. The `web` service is behind a profile
 (`--profile web`) because the web app is deployed on Vercel instead
-(`https://agentmou.io`, with `www` redirecting to apex). The OpenClaw runtime
-is intentionally deployed on a separate VPS with
-`infra/scripts/deploy-openclaw.sh`. Verify the live VPS state with the checks
-below rather than inferring it from this runbook alone.
+(`https://agentmou.io`, with `www` redirecting to apex). Verify the live VPS
+state with the checks below rather than inferring it from this runbook alone.
 
 On March 19, 2026, these checks were revalidated from the live VPS checkout at
 `/srv/agentmou-platform`: `git status --short --branch` was clean before the
@@ -165,17 +155,9 @@ checkout and resolve any unexpected local drift.
 tracked Compose file with `docker compose config` against the committed env
 examples.
 
-If the `internal-ops` container exits with `ERR_UNKNOWN_FILE_EXTENSION` for
-`.ts` files under workspace packages (for example `@agentmou/contracts`), the
-image must start with `tsx` as in the tracked
-[`services/internal-ops/Dockerfile`](../../services/internal-ops/Dockerfile).
-Rebuild from a clean checkout and redeploy; do not override `CMD` with plain
-`node` in Compose overrides.
-
 ```bash
 # Local deploy gates (through Traefik on the VPS host)
 curl -sk --resolve api.DOMAIN:443:127.0.0.1 https://api.DOMAIN/health
-curl -sk --resolve ops.DOMAIN:443:127.0.0.1 https://ops.DOMAIN/health
 
 # Public DNS/TLS/API smoke
 bash infra/scripts/smoke-test.sh
@@ -241,7 +223,7 @@ Order:
 Restart only the affected services after updating `.env`:
 
 ```bash
-docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents worker api internal-ops
+docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents worker api
 ```
 
 Minimum post-rotation verification:

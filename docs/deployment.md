@@ -9,14 +9,6 @@ then follow the linked runbook for the detailed steps.
   [`docs/runbooks/deployment.md#local-development-stack`](./runbooks/deployment.md#local-development-stack)
 - Production VPS deploy:
   [`docs/runbooks/deployment.md#production-deployment-vps`](./runbooks/deployment.md#production-deployment-vps)
-- First-time bring-up of the personal internal operating system:
-  [`docs/runbooks/internal-ops-bring-up.md`](./runbooks/internal-ops-bring-up.md)
-- Hetzner-specific fast path for the personal internal operating system:
-  [`docs/runbooks/internal-ops-hetzner-rollout.md`](./runbooks/internal-ops-hetzner-rollout.md)
-- Personal internal ops service and Telegram/OpenClaw setup:
-  [`docs/runbooks/internal-ops-operations.md`](./runbooks/internal-ops-operations.md)
-- Dedicated OpenClaw runtime VPS:
-  [`docs/runbooks/openclaw-runtime-operations.md`](./runbooks/openclaw-runtime-operations.md)
 - VPS operating procedures and host-level maintenance:
   [`docs/runbooks/vps-operations.md`](./runbooks/vps-operations.md)
 
@@ -28,35 +20,16 @@ Use the scripts in this order:
 2. `infra/scripts/verify-prod-image-assets.sh` before deploys that depend on
    repo-backed assets in `catalog/` or `workflows/`
 3. `infra/scripts/deploy-prod.sh` for production deploys
-4. `infra/scripts/deploy-openclaw.sh` for the dedicated OpenClaw runtime VPS
-5. `infra/scripts/bootstrap-openclaw-ubuntu-host.sh` for one-time bootstrap of
-   a fresh Ubuntu OpenClaw VPS
-6. `infra/scripts/register-telegram-webhook.sh` for the tracked Telegram
-   webhook registration path
-7. `infra/scripts/smoke-test-internal-ops.sh` for local internal-ops/OpenClaw
-   bring-up verification
-8. `infra/scripts/verify-openclaw-runtime.sh` for remote OpenClaw health plus
-   authenticated contract verification
-9. `infra/scripts/verify-internal-ops-remote.sh` for remote internal-ops plus
-   Telegram webhook verification
-10. `infra/scripts/smoke-test.sh` for standalone public verification
-11. `infra/scripts/backup.sh` for scheduled or manual backups
+4. `infra/scripts/smoke-test.sh` for standalone public verification
+5. `infra/scripts/backup.sh` for scheduled or manual backups
 
 ## Before You Deploy
 
 - Validate the repo locally with `pnpm typecheck`, `pnpm lint`, and
   `pnpm test`.
 - Confirm `infra/compose/.env` is up to date for the target environment.
-- Confirm `infra/compose/.env.openclaw` is up to date on the OpenClaw VPS if
-  the change touches `services/openclaw-runtime`.
 - Review [`infra/README.md`](../infra/README.md) if the change touches Docker
   Compose, Traefik, backups, or deploy scripts.
-- If the change touches `services/internal-ops`, also review the OpenClaw and
-  Telegram requirements in
-  [`docs/runbooks/internal-ops-bring-up.md`](./runbooks/internal-ops-bring-up.md)
-  or the Hetzner fast path in
-  [`docs/runbooks/internal-ops-hetzner-rollout.md`](./runbooks/internal-ops-hetzner-rollout.md),
-  and [`docs/runbooks/internal-ops-operations.md`](./runbooks/internal-ops-operations.md).
 
 ## Related Docs
 

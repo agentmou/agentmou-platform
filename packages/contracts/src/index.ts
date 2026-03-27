@@ -9,4 +9,3 @@ export * from './security';
 export * from './billing';
 export * from './dashboard';
 export * from './chat';
-export * from './internal-ops';

@@ -10,9 +10,7 @@ The canonical documentation entrypoint is [`docs/README.md`](./docs/README.md).
 - `apps/web`: public marketing site plus authenticated tenant control plane
 - `services/api`: Fastify control-plane API
 - `services/worker`: BullMQ worker for installs, executions, schedules, and
-  internal work orders
-- `services/internal-ops`: private Telegram/OpenClaw operating system
-- `services/openclaw-runtime`: dedicated reasoning runtime for internal ops
+  approval timeout handling
 - `services/agents`: narrow Python FastAPI sidecar for email analysis and deep
   health
 - `packages/*`: shared contracts, DB, queueing, catalog SDK, connectors, auth,
@@ -53,7 +51,6 @@ pnpm dev
 | ------------------------------ | ----------------------- |
 | Web                            | `http://localhost:3000` |
 | API                            | `http://localhost:3001` |
-| Internal Ops (when configured) | `http://localhost:3002` |
 | n8n                            | `http://localhost:5678` |
 | PostgreSQL                     | `localhost:5432`        |
 | Redis                          | `localhost:6379`        |
@@ -63,7 +60,6 @@ pnpm dev
 - [Documentation Hub](./docs/README.md)
 - [Architecture Overview](./docs/architecture/overview.md)
 - [Current State](./docs/architecture/current-state.md)
-- [Internal Ops Personal Operating System](./docs/architecture/internal-ops-personal-os.md)
 - [Repository Map](./docs/repo-map.md)
 - [Catalog, demo, and marketing](./docs/catalog-and-demo.md)
 - [Deployment Guide](./docs/deployment.md)
