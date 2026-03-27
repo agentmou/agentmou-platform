@@ -1,6 +1,12 @@
+import { createServiceLogger } from '@agentmou/observability';
+
 /**
  * Approval gate definition attached to high-risk execution paths.
  */
+const logger = createServiceLogger('agent-engine', {
+  component: 'approval-gates',
+});
+
 export interface ApprovalGate {
   id: string;
   name: string;
@@ -141,7 +147,14 @@ export class ApprovalGateManager {
 
   private async notifyApprovers(gate: ApprovalGate, request: ApprovalRequest) {
     // Notify all approvers (email, Slack, etc.)
-    console.log(`Notifying approvers for request ${request.id}`);
+    logger.info(
+      {
+        approvers: gate.approvers,
+        gateId: gate.id,
+        requestId: request.id,
+      },
+      'Notifying approvers for approval request',
+    );
   }
 
   private scheduleTimeout(request: ApprovalRequest, timeoutSeconds: number) {

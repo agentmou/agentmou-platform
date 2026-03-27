@@ -13,7 +13,7 @@ import { getQueue, QUEUE_NAMES } from '@agentmou/queue';
 import {
   logRuntimeMessage,
   warnRuntimeMessage,
-} from '../shared/job-log.js';
+} from '../runtime-support/job-log.js';
 
 export interface ApprovalTimeoutPayload {
   tenantId: string;

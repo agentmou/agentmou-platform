@@ -6,7 +6,7 @@
  */
 
 import { Worker, type Job } from 'bullmq';
-import { createChildLogger } from '@agentmou/observability';
+import { createServiceLogger } from '@agentmou/observability';
 import {
   getConnectionOptions,
   QUEUE_NAMES,
@@ -19,7 +19,7 @@ import {
 import { processInstallPack, processRunAgent, processRunWorkflow, processScheduleTrigger, processApprovalTimeout, processInternalWorkOrder, type ApprovalTimeoutPayload } from './jobs';
 
 const connection = getConnectionOptions();
-const logger = createChildLogger({ service: 'worker' });
+const logger = createServiceLogger('worker');
 
 function startWorker<T>(
   queueName: string,

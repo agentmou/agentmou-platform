@@ -5,12 +5,14 @@ import pino from 'pino';
  */
 export const logger = pino({
   level: process.env.LOG_LEVEL || 'info',
-  transport: {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-    },
-  },
+  transport: shouldPrettyPrint()
+    ? {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+        },
+      }
+    : undefined,
 });
 
 /**
@@ -18,4 +20,25 @@ export const logger = pino({
  */
 export function createChildLogger(context: Record<string, unknown>) {
   return logger.child(context);
+}
+
+/**
+ * Create a service logger with an optional extra context object.
+ */
+export function createServiceLogger(
+  service: string,
+  context: Record<string, unknown> = {},
+) {
+  return createChildLogger({ service, ...context });
+}
+
+/**
+ * Test environments should keep log noise to an absolute minimum.
+ */
+export function isTestEnvironment() {
+  return process.env.NODE_ENV === 'test';
+}
+
+function shouldPrettyPrint() {
+  return !isTestEnvironment() && process.stdout.isTTY === true;
 }

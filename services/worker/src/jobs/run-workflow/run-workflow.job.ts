@@ -11,10 +11,10 @@ import { db, executionRuns, executionSteps, workflowInstallations } from '@agent
 import { eq } from 'drizzle-orm';
 import { N8nClient } from '@agentmou/n8n-client';
 
-import { logJobMessage } from '../shared/job-log.js';
-import { recordRunUsage } from '../shared/metering.js';
+import { logJobMessage } from '../runtime-support/job-log.js';
+import { recordRunUsage } from '../runtime-support/metering.js';
 import { syncInternalExecutionRunResult } from '../internal-work-order/internal-execution-sync.js';
-import { errorRuntimeMessage } from '../shared/job-log.js';
+import { errorRuntimeMessage } from '../runtime-support/job-log.js';
 
 const N8N_API_URL = process.env.N8N_API_URL || 'http://n8n:5678/api/v1';
 const N8N_API_KEY = process.env.N8N_API_KEY || '';

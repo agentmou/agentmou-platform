@@ -20,6 +20,11 @@ import { CatalogSDK, resolveRepoRoot } from '@agentmou/catalog-sdk';
 import { N8nClient } from '@agentmou/n8n-client';
 import { db, agentInstallations, workflowInstallations, schedules } from '@agentmou/db';
 import { eq } from 'drizzle-orm';
+import {
+  errorRuntimeMessage,
+  logRuntimeMessage,
+  warnRuntimeMessage,
+} from '../runtime-support/job-log.js';
 
 const REPO_ROOT = resolveRepoRoot(import.meta.dirname, [
   'catalog/agents',
@@ -37,7 +42,9 @@ export async function processInstallPack(job: Job<InstallPackPayload>) {
   const { tenantId, packId, config } = job.data;
   const n8n = createN8nClient();
 
-  console.log(`[install-pack] Installing pack "${packId}" for tenant ${tenantId}`);
+  logRuntimeMessage(
+    `[install-pack] Installing pack "${packId}" for tenant ${tenantId}`,
+  );
 
   await job.updateProgress(10);
 
@@ -56,7 +63,9 @@ export async function processInstallPack(job: Job<InstallPackPayload>) {
   for (const templateId of agentIds) {
     const manifest = await loadAgentManifest(templateId);
     if (!manifest) {
-      console.warn(`[install-pack] Skipping unknown agent template "${templateId}"`);
+      warnRuntimeMessage(
+        `[install-pack] Skipping unknown agent template "${templateId}"`,
+      );
       continue;
     }
 
@@ -88,7 +97,9 @@ export async function processInstallPack(job: Job<InstallPackPayload>) {
   for (const templateId of workflowIds) {
     const workflowJson = await loadWorkflowDefinition(templateId);
     if (!workflowJson) {
-      console.warn(`[install-pack] Skipping unknown workflow template "${templateId}"`);
+      warnRuntimeMessage(
+        `[install-pack] Skipping unknown workflow template "${templateId}"`,
+      );
       continue;
     }
 
@@ -100,7 +111,9 @@ export async function processInstallPack(job: Job<InstallPackPayload>) {
     }).returning();
 
     if (!n8n) {
-      console.warn('[install-pack] N8N_API_KEY missing; marking workflow installation as error');
+      warnRuntimeMessage(
+        '[install-pack] N8N_API_KEY missing; marking workflow installation as error',
+      );
       await db
         .update(workflowInstallations)
         .set({ status: 'error' })
@@ -119,7 +132,7 @@ export async function processInstallPack(job: Job<InstallPackPayload>) {
         .where(eq(workflowInstallations.id, installation.id));
       installedWorkflows += 1;
     } catch (error) {
-      console.error(
+      errorRuntimeMessage(
         `[install-pack] Failed to provision workflow "${templateId}" in n8n`,
         error,
       );
@@ -132,7 +145,7 @@ export async function processInstallPack(job: Job<InstallPackPayload>) {
 
   await job.updateProgress(100);
 
-  console.log(
+  logRuntimeMessage(
     `[install-pack] Pack "${packId}" installed: ${installedAgents} agents, ${installedWorkflows} workflows`,
   );
 }
@@ -218,7 +231,7 @@ async function createSchedule(
     },
   );
 
-  console.log(
+  logRuntimeMessage(
     `[install-pack] Created schedule ${schedule.id} (${cron}) for ${targetType} ${installationId}`,
   );
 }
