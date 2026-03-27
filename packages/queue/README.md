@@ -32,7 +32,6 @@ await queue.add('run-agent', {
 | `RunAgentPayload`          | Payload for agent execution jobs                     |
 | `RunWorkflowPayload`       | Payload for workflow execution jobs                  |
 | `ScheduleTriggerPayload`   | Payload for cron trigger fan-out jobs                |
-| `InternalWorkOrderPayload` | Payload for the private internal-ops execution queue |
 | `getConnectionOptions()`   | Parse a shared BullMQ Redis config from `REDIS_URL`  |
 | `getQueue(name)`           | Lazily create and cache a BullMQ queue instance      |
 
@@ -46,7 +45,6 @@ runtime:
 - `run-workflow`
 - `schedule-trigger`
 - `approval-timeout`
-- `internal-work-order`
 
 Placeholder queue names that were not part of the live worker runtime were
 removed so the shared package only advertises real surfaces.
@@ -67,5 +65,4 @@ pnpm --filter @agentmou/queue lint
 ## Related Docs
 
 - [Current State](../../docs/architecture/current-state.md)
-- [Internal Ops Architecture](../../docs/architecture/internal-ops-personal-os.md)
 - [VPS Operations Runbook](../../docs/runbooks/vps-operations.md)

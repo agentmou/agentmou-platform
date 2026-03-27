@@ -3,7 +3,6 @@
   "globalDependencies": [
     ".env",
     "infra/compose/.env.example",
-    "infra/compose/.env.openclaw.example",
     ".github/workflows/ci.yml"
   ],
   "globalEnv": [

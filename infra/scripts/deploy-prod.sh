@@ -9,7 +9,7 @@ set -euo pipefail
 # Behavior:
 #   1. Pull latest code from origin/main
 #   2. Validate required production environment variables
-#   3. Rebuild api, worker, internal-ops, and migrate images
+#   3. Rebuild api, worker, agents, and migrate images
 #   4. Wait for PostgreSQL health and run migrations
 #   5. Restart the stack
 #   6. Gate success on local edge health and the public smoke test
@@ -173,20 +173,11 @@ required_env_vars=(
   GOOGLE_CLIENT_SECRET
   GOOGLE_REDIRECT_URI
   CONNECTOR_ENCRYPTION_KEY
-  INTERNAL_OPS_TENANT_ID
-  INTERNAL_OPS_TELEGRAM_BOT_TOKEN
-  INTERNAL_OPS_TELEGRAM_WEBHOOK_SECRET
-  INTERNAL_OPS_CALLBACK_SECRET
-  OPENCLAW_API_URL
-  OPENCLAW_API_KEY
 )
 
 optional_env_vars=(
   CORS_ORIGIN
   N8N_API_URL
-  INTERNAL_OPS_TELEGRAM_ALLOWED_CHAT_IDS
-  INTERNAL_OPS_TELEGRAM_ALLOWED_USER_IDS
-  OPENCLAW_TIMEOUT_MS
 )
 
 missing_required=0
@@ -204,8 +195,8 @@ if [ "$missing_required" -ne 0 ]; then
   fail "Populate the missing required production env vars in $ENV_FILE and rerun the deploy"
 fi
 
-step "Step 3/6 - Rebuilding API, worker, internal-ops, and migrate images"
-docker compose --profile ops -f "$COMPOSE_FILE" build api worker internal-ops migrate
+step "Step 3/6 - Rebuilding API, worker, agents, and migrate images"
+docker compose --profile ops -f "$COMPOSE_FILE" build api worker agents migrate
 ok "Images rebuilt"
 
 if [ "$BUILD_ONLY" -eq 1 ]; then
@@ -234,7 +225,6 @@ sleep 10
 step "Step 6/6 - Verifying local edge health and public smoke"
 
 API_HOST="api.${API_DOMAIN}"
-OPS_HOST="ops.${API_DOMAIN}"
 
 if ! check_local_https_health "$API_HOST" "API"; then
   docker compose -f "$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
@@ -243,15 +233,6 @@ if ! check_local_https_health "$API_HOST" "API"; then
   echo
   docker compose -f "$COMPOSE_FILE" logs --tail 120 traefik || true
   fail "Deploy failed because local edge/API health is unhealthy"
-fi
-
-if ! check_local_https_health "$OPS_HOST" "Internal Ops"; then
-  docker compose -f "$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
-  echo
-  docker compose -f "$COMPOSE_FILE" logs --tail 120 internal-ops || true
-  echo
-  docker compose -f "$COMPOSE_FILE" logs --tail 120 traefik || true
-  fail "Deploy failed because internal-ops health is unhealthy"
 fi
 
 echo

@@ -5,7 +5,6 @@ export const QUEUE_NAMES = {
   RUN_WORKFLOW: 'run-workflow',
   SCHEDULE_TRIGGER: 'schedule-trigger',
   APPROVAL_TIMEOUT: 'approval-timeout',
-  INTERNAL_WORK_ORDER: 'internal-work-order',
 } as const;
 
 /** BullMQ job name used for persisted cron schedules. */
@@ -47,18 +46,4 @@ export interface ScheduleTriggerPayload {
   scheduleId: string;
   targetType: 'agent' | 'workflow';
   installationId: string;
-}
-
-/** Typed payload for internal operating-system work orders. */
-export interface InternalWorkOrderPayload {
-  tenantId: string;
-  objectiveId: string;
-  workOrderId: string;
-  workType:
-    | 'prepare_artifact'
-    | 'run_agent_installation'
-    | 'run_workflow_installation'
-    | 'request_human_approval'
-    | 'sync_internal_state'
-    | 'notify_telegram';
 }

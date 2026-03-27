@@ -1,20 +1,16 @@
 # Compose Files
 
-This directory contains the Docker Compose definitions for local development,
-the main Agentmou production stack, and the dedicated OpenClaw runtime VPS.
+This directory contains the Docker Compose definitions for local development
+and the main Agentmou production stack.
 
 ## Files
 
 - `.env.example`
   - Baseline environment template used to create `infra/compose/.env`.
-- `.env.openclaw.example`
-  - Environment template for the dedicated OpenClaw runtime VPS.
 - `docker-compose.local.yml`
   - Local infrastructure stack for development workflows.
 - `docker-compose.prod.yml`
   - Production stack definition for the main Agentmou VPS.
-- `docker-compose.openclaw.yml`
-  - Separate production stack definition for the OpenClaw runtime VPS.
 
 ## Usage
 
@@ -43,10 +39,8 @@ invoking the production compose file ad hoc.
 ## Notes
 
 - `infra/compose/.env` contains real secrets and must not be committed.
-- `infra/compose/.env.openclaw` contains real OpenClaw VPS secrets and must
-  not be committed.
 - `pnpm lint` now includes `pnpm lint:compose`, which runs
-  `docker compose config` against the local, production, and OpenClaw Compose
-  files using the tracked example env files.
+  `docker compose config` against the local and production Compose files using
+  the tracked example env files.
 - Production backups write outside the repo checkout even though the compose
   files define data mounts relative to the repository.

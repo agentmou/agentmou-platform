@@ -2,11 +2,6 @@
 
 **Validated on**: March 27, 2026
 
-**Internal ops addendum**: The private `services/internal-ops` subsystem plus
-its related contracts, DB tables, and worker execution path were code-verified
-on March 25, 2026. The broader production verification snapshot below retains
-its March 19-20, 2026 evidence baseline.
-
 **B2C auth addendum (code-verified March 27, 2026)**: The repository now
 includes DB-backed user OAuth identities, B2C authorize/callback routes on the
 API, a one-time code exchange, forgot/reset password endpoints, matching web
@@ -49,10 +44,10 @@ has been intentionally removed from the active documentation surface.
 
 Agentmou is no longer at the purely aspirational stage described in the initial
 context. The repository now contains a real monorepo structure, a working
-control-plane API, a background worker, a private internal-ops plane, Gmail
-OAuth, authoritative shared contracts for the active runtime slices, and
-versioned catalog/workflow assets. At the same time, it still carries demo
-inventory and a set of intentionally honest-but-incomplete tenant surfaces.
+control-plane API, a background worker, Gmail OAuth, authoritative shared
+contracts for the active runtime slices, and versioned catalog/workflow
+assets. At the same time, it still carries demo inventory and a set of
+intentionally honest-but-incomplete tenant surfaces.
 
 ### Validated Snapshot
 
@@ -60,7 +55,6 @@ inventory and a set of intentionally honest-but-incomplete tenant surfaces.
 | --------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Monorepo structure          | `implemented` | `apps/`, `services/`, `packages/`, `catalog/`, `workflows/`, `infra/`, and `docs/` are all present and used                                                                                                                                                                                                  |
 | Control plane API           | `partial`     | Core modules are real; some tenant-facing modules remain stubbed                                                                                                                                                                                                                                             |
-| Personal internal ops plane | `partial`     | `services/internal-ops` is a real private control-plane service with Telegram ingress, remote OpenClaw turns, `hc-coherence` governance, and worker handoffs                                                                                                                                                 |
 | Web app                     | `partial`     | Product, demo, and marketing boundaries are explicit, but some tenant surfaces are still preview/read-only because the backend is intentionally incomplete                                                                                                                                                    |
 | Data plane                  | `partial`     | Worker queues and runtime path are real; the remaining limits are breadth and product maturity, not placeholder job scaffolds or silent contract drift                                                                                                                                                       |
 | Catalog and workflow assets | `partial`     | Real installable assets exist, but demo inventory is much larger than the real catalog                                                                                                                                                                                                                       |
@@ -97,7 +91,7 @@ truth that was actually verified during this epic.
 | Catalog reachability                                              | `live-verified` | Public smoke test returned `200` for `/api/v1/catalog/agents`; API logs showed repeated successful catalog requests                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Catalog content                                                   | `live-verified` | After the follow-up `REPO_ROOT` fix, `curl -sk https://api.agentmou.io/api/v1/catalog/agents` returned the `inbox-triage` manifest payload from production                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Minimal auth validation                                           | `live-verified` | Public smoke test returned `400` for invalid `POST /api/v1/auth/login`, matching expected schema-validation behavior                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| Worker live status                                                | `live-verified` | `docker compose ps` showed `worker` `Up`; the March 19 production logs showed 5 active queues listening: `install-pack`, `run-agent`, `run-workflow`, `schedule-trigger`, and `approval-timeout`. The repo now additionally starts `internal-work-order`, which was verified from code on March 25, 2026 rather than from that earlier VPS snapshot                                                                                                                                                                                                                                                                                                                                                 |
+| Worker live status                                                | `live-verified` | `docker compose ps` showed `worker` `Up`; the March 19 production logs showed 5 active queues listening: `install-pack`, `run-agent`, `run-workflow`, `schedule-trigger`, and `approval-timeout`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | Edge status                                                       | `live-verified` | `docker compose ps` showed Traefik `Up` on ports `80` and `443`; the local Traefik health gate returned `200`; recent Traefik logs showed active certificate-renew checks on March 19, 2026                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Protected public routes                                           | `live-verified` | `https://agents.agentmou.io/health` returned `401` without BasicAuth and `200` with the rotated BasicAuth credential; `https://uptime.agentmou.io/` returned `401` without auth and `302 /dashboard` with it; `https://n8n.agentmou.io/` returned `200`                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | VPS-local secret rotation                                         | `passed`        | `JWT_SECRET`, `AGENTS_API_KEY`, and `BASIC_AUTH_USERS` were rotated in `infra/compose/.env`; only `api`, `worker`, `agents`, and `traefik` were recreated; the hardened public smoke test still passed `3 passed, 0 failed` afterward                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
@@ -172,19 +166,6 @@ The API has 15 module directories under `services/api/src/modules`.
 | `security`      | `stub`        | Hard-coded placeholder values                                                                                                                                                                                                  |
 | `webhooks`      | `stub`        | Exposed route shape exists, but behavior is placeholder                                                                                                                                                                        |
 
-#### `services/internal-ops`
-
-The private internal operating system lives in `services/internal-ops`.
-
-| Capability                        | Status        | Notes                                                                                                                                                |
-| --------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Telegram webhook ingress          | `implemented` | Accepts operator messages and inline-button callbacks through `POST /telegram/webhook`                                                               |
-| Remote OpenClaw boundary          | `implemented` | Uses a typed HTTP adapter for remote turn start, continue, cancel, trace, agent registration, and capability registration                            |
-| `hc-coherence` governance         | `implemented` | Builds an execution snapshot from real turn state and persists official coherence artifacts in `internal_protocol_events`                            |
-| Private org chart                 | `implemented` | Internal agent profiles, relationships, and default native capability bindings are bootstrapped into the DB and registered with OpenClaw             |
-| Optional Agentmou substrate reuse | `partial`     | Can dispatch installed agents and workflows through tenant-scoped capability bindings, but only native bindings are bootstrapped automatically       |
-| Deployment packaging              | `partial`     | Service is real and documented, but there is no checked-in Compose service for it yet and the OpenClaw runtime is expected to live outside this repo |
-
 #### Auth and Tenant Boundaries
 
 | Capability              | Status        | Notes                                                                                                            |
@@ -198,8 +179,8 @@ The private internal operating system lives in `services/internal-ops`.
 
 #### `services/worker`
 
-The worker now has 6 active job families under `services/worker/src/jobs`, plus
-`runtime-support/` helpers, and 6 queues are currently started from
+The worker now has 5 active job families under `services/worker/src/jobs`, plus
+`runtime-support/` helpers, and 5 queues are currently started from
 `services/worker/src/index.ts`.
 
 | Queue / Job           | Status        | Notes                                                                                                                                                |
@@ -209,7 +190,6 @@ The worker now has 6 active job families under `services/worker/src/jobs`, plus
 | `run-workflow`        | `partial`     | Executes installed n8n workflows and persists normalized execution results; the remaining limit is the n8n-dependent lifecycle breadth                |
 | `schedule-trigger`    | `partial`     | Converts cron schedules into concrete run jobs                                                                                                       |
 | `approval-timeout`    | `partial`     | Applies timeout policies and writes audit events                                                                                                     |
-| `internal-work-order` | `implemented` | Executes the private internal-ops queue, including Telegram delivery, approval gates, native artifacts, and dispatch into installed agents/workflows |
 
 #### `packages/agent-engine`
 
@@ -239,7 +219,7 @@ service for email analysis.
 | Package                   | Status        | Notes                                                                                                             |
 | ------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------- |
 | `@agentmou/contracts`     | `implemented` | Central Zod-backed type package is now the enforced contract boundary for the active API, worker, and web runtime slices |
-| `@agentmou/db`            | `implemented` | Drizzle client and the growing shared schema back the API, worker, and private internal-ops subsystem             |
+| `@agentmou/db`            | `implemented` | Drizzle client and the shared schema back the API and worker runtime                                   |
 | `@agentmou/auth`          | `implemented` | JWT and password hashing are real                                                                                 |
 | `@agentmou/queue`         | `implemented` | Queue names and typed payloads are shared between API and worker                                                  |
 | `@agentmou/catalog-sdk`   | `partial`     | Real manifest loading works for current assets; API mappers project those manifests into the shared catalog contracts |
@@ -405,8 +385,8 @@ They need first-class repo checks instead of relying on operator memory.
 - Keep `pnpm lint:infra` wired into the root `pnpm lint`.
 - Validate all tracked Compose files with `docker compose config` against the
   checked-in env examples.
-- Update `infra/compose/.env.example` and `.env.openclaw.example` together with
-  any Compose-level config change.
+- Update `infra/compose/.env.example` together with any Compose-level config
+  change.
 
 ### 5. Keep Production Claims Evidence-Backed
 
@@ -477,4 +457,4 @@ today.
 | Tenant settings | The tenants mapper fills defaults and parses `TenantSettingsSchema` / `TenantSchema` before the API responds. | `services/api/src/modules/tenants/tenants.mapper.ts`, `services/api/src/modules/tenants/tenants.mapper.test.ts` |
 | Catalog payloads | API catalog mappers project manifest data into the shared catalog contracts, and the web client parses those envelopes at the boundary. | `services/api/src/modules/catalog/catalog.mapper.ts`, `apps/web/lib/api/client.test.ts` |
 | Web API boundary | The web API client parses server responses through shared contract schemas so malformed payloads fail loudly. | `apps/web/lib/api/client.ts`, `apps/web/lib/api/client.test.ts` |
-| Shared schema baseline | Contract tests assert canonical execution vocabularies, approval normalization, and internal-ops/OpenClaw schemas. | `packages/contracts/src/__tests__/schemas.test.ts` |
+| Shared schema baseline | Contract tests assert canonical execution vocabularies and approval normalization. | `packages/contracts/src/__tests__/schemas.test.ts` |

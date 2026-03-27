@@ -20,8 +20,6 @@ export const ApprovalActionTypeSchema = z.enum([
   'change_strategy',
   'run_agent_installation',
   'run_workflow_installation',
-  'sync_internal_state',
-  'notify_operator',
 ]);
 
 /** TypeScript view of approval-gated action types. */
@@ -38,7 +36,6 @@ export const ApprovalStatusSchema = z.enum(['pending', 'approved', 'rejected']);
 export const ApprovalSourceSchema = z.enum([
   'web',
   'telegram',
-  'internal_orchestrator',
 ]);
 
 /** Structured context captured alongside an approval request. */
