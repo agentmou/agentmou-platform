@@ -123,7 +123,7 @@ Get up and running with Agentmou in under 10 minutes.
 
 ## Step 1: Explore the Marketplace
 
-Browse agents by category (Core, Support, Sales, Research, Marketing, Finance, Ops, Personal) or search for specific use cases. Filter by availability to see what's ready now vs. planned.
+Browse agents by category (Core, Support, Sales, Research, Marketing, Finance, Ops, Personal) or search for specific use cases. Filter by availability to see what is generally available, in catalog (preview), or planned.
 
 ## Step 2: Try a Pack
 

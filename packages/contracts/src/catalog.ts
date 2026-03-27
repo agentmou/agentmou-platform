@@ -32,11 +32,27 @@ export const RiskLevelSchema = z.enum(['low', 'medium', 'high']);
 /** TypeScript view of supported risk levels. */
 export type RiskLevel = z.infer<typeof RiskLevelSchema>;
 
-/** Availability labels shown for catalog assets. */
-export const AvailabilitySchema = z.enum(['available', 'planned']);
+/**
+ * Listing readiness for catalog templates in the UI and catalog APIs.
+ *
+ * - `planned` — Not backed by an operational manifest (roadmap-only, demo-only
+ *   fiction outside the operational tree), or workflow manifests under planning
+ *   status.
+ * - `preview` — Operational manifest exists (eligible for the same lists as the
+ *   catalog API) but **not** cleared as generally available via product checklist.
+ * - `available` — Operational **and** explicitly marked generally available in
+ *   manifest `catalog.availability`.
+ */
+export const AvailabilitySchema = z.enum(['planned', 'preview', 'available']);
 
 /** TypeScript view of asset availability labels. */
 export type Availability = z.infer<typeof AvailabilitySchema>;
+
+/**
+ * Default listing tier when an operational manifest omits `catalog.availability`.
+ * Prefer this over assuming `available`, which implies GA / checklist sign-off.
+ */
+export const DEFAULT_OPERATIONAL_LISTING_AVAILABILITY: Availability = 'preview';
 
 /** Audience labels for templates and packs. */
 export const AudienceSchema = z.enum(['business', 'personal', 'both']);
@@ -264,6 +280,7 @@ export const PackCatalogMetadataSchema = z.object({
   featured: z.boolean().optional(),
   catalogGroup: CategorySchema.optional(),
   tags: z.array(z.string()).optional(),
+  availability: AvailabilitySchema.optional(),
 });
 
 /** TypeScript shape for nested pack catalog metadata. */
@@ -414,6 +431,8 @@ export const PackTemplateSchema = z.object({
   featured: z.boolean().optional(),
   catalogGroup: CategorySchema.optional(),
   tags: z.array(z.string()).optional(),
+  availability: AvailabilitySchema.optional(),
+  statusNote: z.string().optional(),
 });
 
 /** TypeScript shape for a pack template. */

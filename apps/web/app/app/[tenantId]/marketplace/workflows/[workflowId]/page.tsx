@@ -21,6 +21,7 @@ import { useProviderQuery } from '@/lib/data/use-provider-query'
 import { useDataProvider } from '@/lib/data'
 import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
 import { resolveHonestSurfaceState } from '@/lib/honest-ui'
+import { resolveCatalogAvailability } from '@/lib/catalog/availability'
 import type { WorkflowTemplate, Integration } from '@agentmou/contracts'
 
 const riskColors = {
@@ -83,7 +84,8 @@ export default function WorkflowDetailPage() {
   }
   
   const workflowIntegrations = integrations.filter(i => workflow.integrations.includes(i.id))
-  
+  const listingTier = resolveCatalogAvailability(workflow.availability)
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       {/* Back Button */}
@@ -102,7 +104,7 @@ export default function WorkflowDetailPage() {
             <h1 className="text-2xl font-bold mb-1">{workflow.name}</h1>
             <p className="text-lg text-muted-foreground">{workflow.summary}</p>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <AvailabilityBadge status={workflow.availability || 'available'} />
+              <AvailabilityBadge status={listingTier} />
               <Badge className={riskColors[workflow.riskLevel]} variant="secondary">
                 {workflow.riskLevel} risk
               </Badge>
@@ -112,7 +114,7 @@ export default function WorkflowDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          {(workflow.availability || 'available') === 'available' ? (
+          {listingTier === 'available' ? (
             <div className="flex flex-col gap-2 items-end">
               <div className="flex gap-2">
               <Button variant="outline" disabled>
@@ -138,6 +140,15 @@ export default function WorkflowDetailPage() {
                   {installState.description}
                 </p>
               )}
+            </div>
+          ) : listingTier === 'preview' ? (
+            <div className="flex flex-col gap-1 items-end">
+              <Button variant="outline" disabled>
+                In catalog (preview)
+              </Button>
+              <p className="text-xs text-muted-foreground max-w-[220px] text-right">
+                Listed in the repo catalog; not yet marked generally available for production install.
+              </p>
             </div>
           ) : (
             <div className="flex flex-col gap-1 items-end">

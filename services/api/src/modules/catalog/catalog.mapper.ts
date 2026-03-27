@@ -1,5 +1,6 @@
 import {
   AgentTemplateSchema,
+  DEFAULT_OPERATIONAL_LISTING_AVAILABILITY,
   PackTemplateSchema,
   WorkflowTemplateSchema,
   type AgentDomain,
@@ -65,7 +66,8 @@ export function mapAgentManifest(manifest: OperationalAgentManifest): AgentTempl
     channel: manifest.catalog?.channel ?? 'stable',
     setupTimeMinutes: manifest.catalog?.setupTimeMinutes ?? 15,
     monthlyPrice: manifest.catalog?.monthlyPrice ?? null,
-    availability: manifest.catalog?.availability ?? 'available',
+    availability:
+      manifest.catalog?.availability ?? DEFAULT_OPERATIONAL_LISTING_AVAILABILITY,
     audience: manifest.catalog?.audience,
     statusNote: manifest.catalog?.statusNote,
     source: manifest.catalog?.source ?? 'manifest',
@@ -112,7 +114,7 @@ export function mapWorkflowManifest(
     availability:
       manifest.status === 'planned'
         ? 'planned'
-        : manifest.catalog?.availability ?? 'available',
+        : manifest.catalog?.availability ?? DEFAULT_OPERATIONAL_LISTING_AVAILABILITY,
     source: manifest.catalog?.source ?? 'manifest',
     statusNote: manifest.catalog?.statusNote,
     catalogGroups:
@@ -145,6 +147,8 @@ export function mapPackManifest(manifest: OperationalPackManifest): PackTemplate
     featured: manifest.catalog?.featured,
     catalogGroup: manifest.catalog?.catalogGroup ?? toCategory(manifest.category) ?? undefined,
     tags: manifest.catalog?.tags,
+    availability:
+      manifest.catalog?.availability ?? DEFAULT_OPERATIONAL_LISTING_AVAILABILITY,
   });
 }
 

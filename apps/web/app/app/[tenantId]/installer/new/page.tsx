@@ -26,6 +26,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { normalizeCategory } from '@/lib/fleetops/category-config'
+import { resolveCatalogAvailability } from '@/lib/catalog/availability'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
 import type {
   AgentTemplate,
@@ -135,7 +136,7 @@ export default function InstallerWizardPage() {
   }, [agentTemplates, integrations, packTemplates, searchParams])
 
   const filteredAgents = agentTemplates.filter(a => {
-    if ((a.availability || 'available') !== 'available') return false
+    if (resolveCatalogAvailability(a.availability) !== 'available') return false
     if (a.visibility && a.visibility !== 'public') return false
     const agentCategory = normalizeCategory(a.catalogGroup || a.domain)
     return !selectedOutcome || agentCategory === selectedOutcome

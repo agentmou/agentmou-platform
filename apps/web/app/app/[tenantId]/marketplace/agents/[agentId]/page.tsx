@@ -25,6 +25,7 @@ import { useProviderQuery } from '@/lib/data/use-provider-query'
 import { useDataProvider } from '@/lib/data'
 import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
 import { resolveHonestSurfaceState } from '@/lib/honest-ui'
+import { resolveCatalogAvailability } from '@/lib/catalog/availability'
 import type { AgentTemplate, WorkflowTemplate, Integration } from '@agentmou/contracts'
 
 const riskColors = {
@@ -89,7 +90,8 @@ export default function AgentDetailPage() {
   const linkedWorkflows = workflowTemplates.filter(w => agent.workflows.includes(w.id))
   const requiredIntegrations = integrations.filter(i => agent.requiredIntegrations.includes(i.id))
   const missingIntegrations = requiredIntegrations.filter(i => i.status !== 'connected')
-  
+  const listingTier = resolveCatalogAvailability(agent.availability)
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       {/* Back Button */}
@@ -113,7 +115,7 @@ export default function AgentDetailPage() {
             </div>
             <p className="text-lg text-muted-foreground">{agent.outcome}</p>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <AvailabilityBadge status={agent.availability || 'available'} />
+              <AvailabilityBadge status={listingTier} />
               <DomainBadge domain={agent.domain} />
               {agent.audience && <AudienceBadge audience={agent.audience} />}
               <Badge className={riskColors[agent.riskLevel]} variant="secondary">
@@ -127,7 +129,7 @@ export default function AgentDetailPage() {
           <div className="text-2xl font-bold">
             {agent.monthlyPrice ? `$${agent.monthlyPrice}/mo` : 'Free'}
           </div>
-          {(agent.availability || 'available') === 'available' ? (
+          {listingTier === 'available' ? (
             installState.tone === 'demo' ? (
               <Link href={`/app/${tenantId}/installer/new?agent=${agent.id}`}>
                 <Button size="lg">
@@ -145,6 +147,15 @@ export default function AgentDetailPage() {
                 </p>
               </div>
             )
+          ) : listingTier === 'preview' ? (
+            <div className="flex flex-col gap-2 items-end">
+              <Button size="lg" variant="outline" disabled>
+                In catalog (preview)
+              </Button>
+              <p className="text-xs text-muted-foreground max-w-[220px] text-right">
+                Listed in the repo catalog; not yet marked generally available for production install.
+              </p>
+            </div>
           ) : (
             <div className="flex flex-col gap-2 items-end">
               <Button size="lg" variant="outline" disabled>

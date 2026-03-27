@@ -1,6 +1,7 @@
 'use client'
 
 import { normalizeCategory } from '@/lib/fleetops/category-config'
+import { resolveCatalogAvailability } from '@/lib/catalog/availability'
 import type { DataProvider } from '@/lib/data/provider'
 import { resolveHonestSurfaceState } from '@/lib/honest-ui'
 
@@ -66,7 +67,7 @@ export async function buildSearchIndex(tenantId: string, provider: DataProvider)
       agent.outcome, 
       ...agent.requiredIntegrations,
       ...(agent.tags || []),
-      agent.availability || 'available',
+      resolveCatalogAvailability(agent.availability),
       agent.audience || 'both',
     ].filter(Boolean)
     
@@ -91,7 +92,7 @@ export async function buildSearchIndex(tenantId: string, provider: DataProvider)
       ...(workflow.catalogGroups || []),
       workflow.family || '',
       ...(workflow.tags || []),
-      workflow.availability || 'available',
+      resolveCatalogAvailability(workflow.availability),
     ].filter(Boolean)
     
     items.push({

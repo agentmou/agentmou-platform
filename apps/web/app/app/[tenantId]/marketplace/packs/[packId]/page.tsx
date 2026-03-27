@@ -25,6 +25,7 @@ import { useProviderQuery } from '@/lib/data/use-provider-query'
 import { useDataProvider } from '@/lib/data'
 import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface'
 import { resolveHonestSurfaceState } from '@/lib/honest-ui'
+import { resolveCatalogAvailability } from '@/lib/catalog/availability'
 import type { AgentTemplate, WorkflowTemplate, PackTemplate, Integration } from '@agentmou/contracts'
 
 export default function PackDetailPage() {
@@ -97,10 +98,14 @@ export default function PackDetailPage() {
   const requiredIntegrationDetails = integrations.filter(i => allRequiredIntegrations.has(i.id))
   const missingIntegrations = requiredIntegrationDetails.filter(i => i.status !== 'connected')
   
-  // Check if any agents/workflows are planned (not available)
-  const hasPlannedItems = [
-    ...includedAgentDetails.filter(a => a.availability === 'planned'),
-    ...includedWorkflowDetails.filter(w => w.availability === 'planned'),
+  // Included assets that are not generally available yet (preview or planned)
+  const hasNonGaIncludedItems = [
+    ...includedAgentDetails.filter(
+      (a) => resolveCatalogAvailability(a.availability) !== 'available',
+    ),
+    ...includedWorkflowDetails.filter(
+      (w) => resolveCatalogAvailability(w.availability) !== 'available',
+    ),
   ].length > 0
   
   return (
@@ -150,9 +155,9 @@ export default function PackDetailPage() {
               </p>
             </div>
           )}
-          {hasPlannedItems && (
+          {hasNonGaIncludedItems && (
             <p className="text-xs text-muted-foreground max-w-[200px] text-right">
-              Some items in this pack are coming soon
+              Some items in this pack are preview or coming soon
             </p>
           )}
         </div>
@@ -216,7 +221,7 @@ export default function PackDetailPage() {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="font-medium">{agent.name}</p>
-                          <AvailabilityBadge status={agent.availability || 'available'} />
+                          <AvailabilityBadge status={resolveCatalogAvailability(agent.availability)} />
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-1">{agent.outcome}</p>
                       </div>
@@ -256,7 +261,7 @@ export default function PackDetailPage() {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="font-medium">{workflow.name}</p>
-                          <AvailabilityBadge status={workflow.availability || 'available'} />
+                          <AvailabilityBadge status={resolveCatalogAvailability(workflow.availability)} />
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-1">{workflow.summary}</p>
                       </div>

@@ -41,7 +41,7 @@ catalog:
   channel: stable
   setupTimeMinutes: 15
   monthlyPrice: null
-  availability: available
+  availability: preview
   audience: business
   source: manifest
   catalogGroup: core

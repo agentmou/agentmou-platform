@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': rootDir,
+      'server-only': fileURLToPath(new URL('./vitest-server-only-shim.ts', import.meta.url)),
     },
   },
   test: {

@@ -7,6 +7,7 @@ const EMPTY_PAYLOAD = {
   packs: [],
   demoTotals: { agents: 0, workflows: 0, packs: 0 },
   operationalFeaturedCounts: { agents: 0, workflows: 0, packs: 0 },
+  gaInventoryCounts: { agents: 0, workflows: 0, packs: 0 },
 };
 
 export async function GET() {
@@ -20,6 +21,7 @@ export async function GET() {
         packs: featured.packs,
         demoTotals: featured.demoTotals,
         operationalFeaturedCounts: featured.operationalFeaturedCounts,
+        gaInventoryCounts: featured.gaInventoryCounts,
         source: 'demo-featured',
       },
       {

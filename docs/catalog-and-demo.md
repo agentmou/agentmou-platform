@@ -51,17 +51,37 @@ See also [apps/web/lib/demo-catalog/README.md](../apps/web/lib/demo-catalog/READ
 ## Demo workspace behavior
 
 - Route layout selects `demoProvider` for `tenantId === demo-workspace`.
-- Items **without** a matching operational manifest (after ref resolution) show
-  **Coming soon** in the demo catalog views.
+- Items **without** a matching operational manifest (after ref resolution) are
+  forced to `availability: planned` and show **Coming soon** in the demo catalog
+  views (aligned with marketplace badges).
 - Install actions remain simulated (read-only demo).
+
+## Listing availability (planned / preview / available)
+
+| Value | Meaning |
+| --- | --- |
+| `planned` | No operational manifest (or planning-only workflow). |
+| `preview` | Operational manifest exists (API can list it); **not** GA yet. |
+| `available` | Operational **and** product checklist / GA sign-off in YAML (`catalog.availability`). |
+
+- API defaults omitted `catalog.availability` on operational manifests to
+  `preview` (`DEFAULT_OPERATIONAL_LISTING_AVAILABILITY` in `@agentmou/contracts`).
+- Mark `available` only in a PR that includes checklist evidence (tests, runbook
+  updates, or explicit reviewer sign-off per team policy). Regressions should drop
+  back to `preview`.
 
 ## Marketing
 
 - `GET /api/public-catalog` returns featured agents, workflows, and packs built
-  from the demo inventory, plus `demoTotals` and `operationalFeaturedCounts` for
-  honest hero statistics.
-- To change homepage cards, edit `marketing-featured.ts` (not the operational
-  tree).
+  from the demo inventory, plus:
+  - `demoTotals` — full demo inventory counts.
+  - `operationalFeaturedCounts` — featured rows after validation (operational +
+    `available`).
+  - `gaInventoryCounts` — operational + `available` counts across the **entire**
+    demo inventory (hero “generally available” stat).
+- To change homepage cards, edit `marketing-featured.ts`. Every listed id must be
+  operational and `availability: available` in demo data, or the server build
+  throws when assembling the payload.
 
 ## Marketplace (real tenants)
 
@@ -69,6 +89,7 @@ See also [apps/web/lib/demo-catalog/README.md](../apps/web/lib/demo-catalog/READ
 - Agent and workflow **tabs filter independently**; workflows are not hidden
   based on which agents are visible.
 
-## Related ADR
+## Related ADRs
 
 - [011 — Operational vs demo vs marketing](./adr/011-operational-demo-marketing-catalog.md)
+- [012 — Catalog availability (preview vs GA)](./adr/012-catalog-availability-preview-and-ga.md)

@@ -27,6 +27,7 @@ import { SpotlightCard } from '@/components/reactbits/spotlight-card'
 import { TiltedCard } from '@/components/reactbits/tilted-card'
 import { CATEGORY_OPTIONS, normalizeCategory } from '@/lib/fleetops/category-config'
 import { useProviderQuery } from '@/lib/data/use-provider-query'
+import { resolveCatalogAvailability } from '@/lib/catalog/availability'
 import type { AgentTemplate, WorkflowTemplate, PackTemplate } from '@agentmou/contracts'
 
 export default function MarketplacePage() {
@@ -63,7 +64,12 @@ export default function MarketplacePage() {
       const agentCategory = normalizeCategory(agent.catalogGroup || agent.domain)
       if (categoryFilter !== 'all' && agentCategory !== categoryFilter) return false
       if (riskFilter !== 'all' && agent.riskLevel !== riskFilter) return false
-      if (availabilityFilter !== 'all' && (agent.availability || 'available') !== availabilityFilter) return false
+      if (
+        availabilityFilter !== 'all' &&
+        resolveCatalogAvailability(agent.availability) !== availabilityFilter
+      ) {
+        return false
+      }
       if (audienceFilter !== 'all' && agent.audience && agent.audience !== 'both' && agent.audience !== audienceFilter) return false
       return true
     })
@@ -94,7 +100,10 @@ export default function MarketplacePage() {
       }
 
       if (riskFilter !== 'all' && workflow.riskLevel !== riskFilter) return false
-      if (availabilityFilter !== 'all' && (workflow.availability || 'available') !== availabilityFilter) {
+      if (
+        availabilityFilter !== 'all' &&
+        resolveCatalogAvailability(workflow.availability) !== availabilityFilter
+      ) {
         return false
       }
       return true
@@ -153,6 +162,7 @@ export default function MarketplacePage() {
           <SelectContent>
             <SelectItem value="all" className="text-xs">All Status</SelectItem>
             <SelectItem value="available" className="text-xs">Available</SelectItem>
+            <SelectItem value="preview" className="text-xs">In catalog</SelectItem>
             <SelectItem value="planned" className="text-xs">Planned</SelectItem>
           </SelectContent>
         </Select>
@@ -196,7 +206,7 @@ export default function MarketplacePage() {
                       <Bot className="h-4 w-4 text-foreground" />
                     </div>
                     <div className="flex gap-1.5">
-                      <AvailabilityBadge status={agent.availability || 'available'} />
+                      <AvailabilityBadge status={resolveCatalogAvailability(agent.availability)} />
                       <DomainBadge domain={normalizeCategory(agent.catalogGroup || agent.domain)} />
                       {agent.channel === 'beta' && <ChannelBadge channel="beta" />}
                     </div>
@@ -254,7 +264,7 @@ export default function MarketplacePage() {
                       <Workflow className="h-4 w-4 text-foreground" />
                     </div>
                     <div className="flex gap-1.5">
-                      <AvailabilityBadge status={workflow.availability || 'available'} />
+                      <AvailabilityBadge status={resolveCatalogAvailability(workflow.availability)} />
                       <RiskBadge level={workflow.riskLevel} showIcon={false} />
                     </div>
                   </div>

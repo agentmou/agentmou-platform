@@ -48,6 +48,12 @@ interface MarketingCatalogPayload {
     workflows: number
     packs: number
   }
+  /** Operational manifest on disk + generally available (`availability: available`). */
+  gaInventoryCounts?: {
+    agents: number
+    workflows: number
+    packs: number
+  }
 }
 
 const iconMap: Record<string, typeof Mail> = {
@@ -65,6 +71,7 @@ const emptyCatalog: MarketingCatalogPayload = {
   packs: [],
   demoTotals: { agents: 0, workflows: 0, packs: 0 },
   operationalFeaturedCounts: { agents: 0, workflows: 0, packs: 0 },
+  gaInventoryCounts: { agents: 0, workflows: 0, packs: 0 },
 }
 
 const securityFeatures = [
@@ -114,20 +121,20 @@ export default function HomePage() {
     workflows: catalog.workflows.length,
     packs: catalog.packs.length,
   }
-  const op = catalog.operationalFeaturedCounts ?? {
+  const ga = catalog.gaInventoryCounts ?? {
     agents: 0,
     workflows: 0,
     packs: 0,
   }
-  const liveFeaturedTotal = op.agents + op.workflows + op.packs
+  const gaTotal = ga.agents + ga.workflows + ga.packs
 
   const stats = [
     { value: `${totals.agents}+`, label: 'Demo catalog agents' },
     { value: `${totals.workflows}+`, label: 'Demo catalog workflows' },
     { value: `${totals.packs}`, label: 'Demo packs' },
     {
-      value: `${liveFeaturedTotal}`,
-      label: 'Featured items in repo catalog',
+      value: `${gaTotal}`,
+      label: 'Generally available in repo catalog',
     },
   ]
 
