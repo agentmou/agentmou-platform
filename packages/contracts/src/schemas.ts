@@ -11,6 +11,7 @@ export {
   CategorySchema,
   RiskLevelSchema,
   AvailabilitySchema,
+  DEFAULT_OPERATIONAL_LISTING_AVAILABILITY,
   AudienceSchema,
   HITLModeSchema,
   ComplexitySchema,

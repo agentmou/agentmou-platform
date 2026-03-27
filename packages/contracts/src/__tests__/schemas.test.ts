@@ -119,6 +119,20 @@ describe('AgentTemplateSchema', () => {
     expect(result.tags).toEqual(['email', 'automation']);
   });
 
+  it('accepts preview availability', () => {
+    const result = AgentTemplateSchema.parse({
+      ...validAgent,
+      availability: 'preview',
+    });
+    expect(result.availability).toBe('preview');
+  });
+
+  it('rejects invalid availability', () => {
+    expect(() =>
+      AgentTemplateSchema.parse({ ...validAgent, availability: 'soon' }),
+    ).toThrow();
+  });
+
   it('rejects invalid risk level', () => {
     expect(() =>
       AgentTemplateSchema.parse({ ...validAgent, riskLevel: 'extreme' }),
@@ -167,6 +181,38 @@ describe('Operational manifest schemas', () => {
 
     expect(manifest.runtime?.runtimeOwner).toBe('agent_engine');
     expect(manifest.catalog?.domain).toBe('support');
+  });
+
+  it('parses catalog.availability preview on operational agent manifests', () => {
+    const manifest = OperationalAgentManifestSchema.parse({
+      id: 'preview-agent',
+      name: 'Preview Agent',
+      version: '0.1.0',
+      description: 'Preview-only listing',
+      category: 'core',
+      runtime: {
+        requiredConnectors: [],
+        credentialStrategy: 'platform_managed',
+        installStrategy: 'platform_managed_installation',
+        runtimeOwner: 'agent_engine',
+        linkedWorkflows: [],
+      },
+      catalog: {
+        outcome: 'Preview',
+        domain: 'core',
+        inputs: [],
+        outputs: [],
+        riskLevel: 'low',
+        hitl: 'optional',
+        kpis: [{ name: 'k', description: 'd' }],
+        complexity: 'S',
+        channel: 'stable',
+        setupTimeMinutes: 5,
+        monthlyPrice: null,
+        availability: 'preview',
+      },
+    });
+    expect(manifest.catalog?.availability).toBe('preview');
   });
 
   it('parses an operational workflow manifest with an n8n-native credential exception', () => {
