@@ -44,6 +44,11 @@ installable assets.
   intentionally small early on; the homepage would under-represent the demo
   experience.
 
+## Related
+
+Availability semantics (`planned` / `preview` / `available`) and GA checklist
+rules are defined in [012 — Catalog availability](./012-catalog-availability-preview-and-ga.md).
+
 ## Consequences
 
 - After adding operational agents, workflows, or packs, run
