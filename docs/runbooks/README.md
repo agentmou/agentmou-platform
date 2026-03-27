@@ -28,6 +28,9 @@ here, then open the procedure that matches the task you need to perform.
 - [Postgres Credential Rename](./postgres-rename-to-agentmou.md) for the
   destructive migration that renames the production Postgres user and
   database from `n8n` to `agentmou`.
+- [Security dependencies](./security-dependencies.md) for `pnpm audit`,
+  Dependabot alignment, root `pnpm.overrides`, and revisiting the Drizzle /
+  `@esbuild-kit` chain after `drizzle-kit` upgrades.
 
 ## Runbook Rules
 
