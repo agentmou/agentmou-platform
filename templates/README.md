@@ -23,6 +23,6 @@ platform does not treat them as installable assets.
 
 ## Related Docs
 
-- [Template Library](../docs/template-library.md)
-- [Agent Authoring and Promotion](../docs/runbooks/agent-authoring-and-promotion.md)
-- [Workflow Authoring and Promotion](../docs/runbooks/workflow-authoring-and-promotion.md)
+- [Agent Authoring](../docs/runbooks/agent-authoring.md)
+- [Catalog, Demo, and Marketing](../docs/catalog-and-demo.md)
+- [Catalog System](../docs/architecture/catalog-system.md)

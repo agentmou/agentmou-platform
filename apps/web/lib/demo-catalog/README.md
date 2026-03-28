@@ -36,4 +36,5 @@ pnpm demo-catalog:generate
 | `marketing-featured.ts` | Ordered IDs for marketing hero sections (each must be operational + `availability: available`) |
 | `operational-ids.gen.json` | Generated operational ID lists (committed) |
 
-See [docs/catalog-and-demo.md](../../../../docs/catalog-and-demo.md) for the full model.
+See [docs/catalog-and-demo.md](../../../../docs/catalog-and-demo.md) for the
+full model.

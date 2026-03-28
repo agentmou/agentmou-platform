@@ -1,8 +1,7 @@
 # Infrastructure Overview
 
 The `infra/` directory contains the operational assets that support local
-development, the main Agentmou production VPS, and the separate OpenClaw
-runtime VPS used by internal ops.
+development and the main Agentmou VPS-backed production deployment.
 
 ## Directory Map
 
@@ -29,6 +28,6 @@ runtime VPS used by internal ops.
 
 ## Related Docs
 
-- [Deployment Guide](../docs/deployment.md)
+- [Deployment Guide](../docs/runbooks/deployment.md)
 - [Runbooks Index](../docs/runbooks/README.md)
 - [Architecture Overview](../docs/architecture/overview.md)

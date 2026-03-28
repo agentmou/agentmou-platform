@@ -10,7 +10,7 @@ Agentmou is a **multi-tenant AI agents platform** that enables organizations to 
 
 | Workspace | Description |
 | --------- | ----------- |
-| `apps/web` | Next.js 16 + React 19 frontend. Public marketing site (/, /pricing, /docs) and authenticated tenant control plane at `/app/[tenantId]/`. Includes dashboard, marketplace, fleet, runs, approvals, installer, settings. Uses Zustand for state, React Hook Form + Zod for validation, TailwindCSS 4 + shadcn/ui for styling. |
+| `apps/web` | Next.js 16 + React 19 frontend. Public marketing site, auth flows, web-owned API routes, and authenticated tenant control plane under `/app/[tenantId]/`. Uses provider modes to switch between demo inventory and real tenant data. |
 
 ### Services
 
@@ -39,9 +39,9 @@ Agentmou is a **multi-tenant AI agents platform** that enables organizations to 
 | Workspace | Description |
 | --------- | ----------- |
 | `infra/` | Docker Compose for local and production deployments. Includes Traefik reverse proxy config, backup scripts, and setup automation. |
-| `catalog/` | Agent/workflow/pack definitions in YAML with manifest, prompt, and policy files. Categories: productivity, support, sales, marketing, development, finance, hr, operations. |
+| `catalog/` | Operational product-agent manifests, pack definitions, and category taxonomy. |
 | `templates/` | Starter skeletons for creating new agents and workflows. |
-| `workflows/` | Pre-built n8n workflow JSON exports. |
+| `workflows/` | Installable public workflow assets plus planned workflow inventory. |
 | `scripts/` | Workspace utilities: tenant cleanup, catalog ID generation, E2E tests. |
 
 ### Tooling
@@ -63,33 +63,33 @@ pnpm dev
 
 ## Core Commands
 
-| Command                          | Purpose                                       |
-| -------------------------------- | --------------------------------------------- |
-| `pnpm dev`                       | Run workspace development tasks through Turbo |
-| `pnpm build`                     | Build all workspaces                          |
-| `pnpm format`                    | Format supported code and JSON files with Biome |
-| `pnpm typecheck`                 | Run TypeScript checks plus Python syntax validation for `services/agents` |
-| `pnpm lint`                      | Run workspace lint plus infrastructure shell and Compose validation |
-| `pnpm lint:infra`                | Validate `infra/scripts/*.sh` and all Compose manifests against tracked env examples |
-| `pnpm test`                      | Run tests across workspaces                   |
-| `pnpm test:agents`               | Run the Python unit tests for `services/agents` |
-| `make validate-content`          | Run relaxed Markdown and YAML validation for docs and config |
-| `pnpm db:generate`               | Generate Drizzle migrations                   |
-| `pnpm db:migrate`                | Run DB migrations                             |
-| `pnpm db:seed`                   | Seed the local database                       |
-| `pnpm cleanup:validation-tenant` | Preview or execute disposable tenant cleanup  |
-| `pnpm demo-catalog:generate`     | Regenerate `operational-ids.gen.json` after catalog changes |
-| `pnpm demo-catalog:check`        | Fail CI if the operational ID snapshot is out of date |
+| Command | Purpose |
+| --- | --- |
+| `pnpm dev` | Run workspace development tasks through Turbo |
+| `pnpm build` | Build all workspaces |
+| `pnpm format` | Format supported code and JSON files with Biome |
+| `pnpm typecheck` | Run TypeScript checks plus Python syntax validation for `services/agents` |
+| `pnpm lint` | Run workspace lint plus infrastructure shell and Compose validation |
+| `pnpm lint:infra` | Validate `infra/scripts/*.sh` and all Compose manifests against tracked env examples |
+| `pnpm test` | Run tests across workspaces |
+| `pnpm test:agents` | Run the Python unit tests for `services/agents` |
+| `make validate-content` | Run relaxed Markdown and YAML validation for docs and config |
+| `pnpm db:generate` | Generate Drizzle migrations |
+| `pnpm db:migrate` | Run DB migrations |
+| `pnpm db:seed` | Seed the local database |
+| `pnpm cleanup:validation-tenant` | Preview or execute disposable tenant cleanup |
+| `pnpm demo-catalog:generate` | Regenerate `operational-ids.gen.json` after catalog changes |
+| `pnpm demo-catalog:check` | Fail CI if the operational ID snapshot is out of date |
 
 ## Local Endpoints
 
-| Service                        | URL                     |
-| ------------------------------ | ----------------------- |
-| Web                            | `http://localhost:3000` |
-| API                            | `http://localhost:3001` |
-| n8n                            | `http://localhost:5678` |
-| PostgreSQL                     | `localhost:5432`        |
-| Redis                          | `localhost:6379`        |
+| Service | URL |
+| --- | --- |
+| Web | `http://localhost:3000` |
+| API | `http://localhost:3001` |
+| n8n | `http://localhost:5678` |
+| PostgreSQL | `localhost:5432` |
+| Redis | `localhost:6379` |
 
 ## Next Steps
 
@@ -98,7 +98,8 @@ pnpm dev
 1. Start with [Onboarding Guide](./docs/onboarding.md) for local setup
 2. Read [Glossary](./docs/glossary.md) to learn domain terminology
 3. Review [Architecture Overview](./docs/architecture/overview.md) for system design
-4. See [Repository Map](./docs/repo-map.md) for detailed workspace breakdown
+4. Read [apps/web Architecture](./docs/architecture/apps-web.md) for the frontend and provider model
+5. See [Repository Map](./docs/repo-map.md) for detailed workspace breakdown
 
 **For Specific Tasks:**
 
@@ -106,6 +107,7 @@ pnpm dev
 - **Troubleshooting**: [Troubleshooting Guide](./docs/troubleshooting.md) — Common issues and solutions
 - **Deployment**: [Deployment Guide](./docs/runbooks/deployment.md) — Production setup and Docker configuration
 - **API Development**: [API Routes](./docs/api-routes.md) — REST endpoint overview
+- **Catalog Work**: [Catalog, Demo, and Marketing](./docs/catalog-and-demo.md) — Operational vs demo inventory boundaries
 - **Configuration**: [Environment Variables](./docs/environment-variables.md) — Complete reference
 
 **Full Documentation Hub**: [docs/README.md](./docs/README.md) — Central index with role-based navigation

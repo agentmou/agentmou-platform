@@ -140,8 +140,9 @@ pnpm --filter @agentmou/api build
 
 ## Related Docs
 
+- [API Routes](../../docs/api-routes.md)
 - [Architecture Overview](../../docs/architecture/overview.md)
 - [Repository Map](../../docs/repo-map.md)
 - [ADR-007: n8n Workflow Provisioning](../../docs/adr/007-n8n-workflow-provisioning.md)
 - [ADR-008: Connector OAuth Token Storage](../../docs/adr/008-connector-oauth-token-storage.md)
-- [ADR-013: Enterprise Auth / SSO Strategy](../../docs/adr/013-enterprise-auth-sso-strategy.md)
+- [ADR-011: Enterprise Auth Strategy](../../docs/adr/011-enterprise-auth-strategy.md)
