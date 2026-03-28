@@ -1,7 +1,9 @@
 # Infrastructure Scripts
 
 These scripts are the canonical operational entrypoints for the VPS-backed
-deployment model.
+backend deployment model. The public web app is expected to live outside the
+VPS (for example, on Vercel), while this stack runs the API, worker, agents,
+n8n, PostgreSQL, Redis, Traefik, and uptime monitoring.
 
 ## Script Inventory
 
