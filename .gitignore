@@ -19,6 +19,7 @@ out
 .vscode
 .cursor
 .codex
+.claude
 .idea
 *.swp
 *.swo
