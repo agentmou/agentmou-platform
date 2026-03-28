@@ -29,5 +29,5 @@ asset.
 
 ## Promotion Path
 
-Follow [Workflow Authoring and Promotion](../../docs/runbooks/workflow-authoring-and-promotion.md)
+Follow [Agent Authoring](../../docs/runbooks/agent-authoring.md)
 before turning this reference into a real asset.

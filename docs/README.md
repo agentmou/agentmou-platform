@@ -15,10 +15,12 @@ you need to understand, develop, and operate the AI agents platform.
 Understand how Agentmou is structured and why:
 
 - **[Architecture Overview](./architecture/overview.md)** — System topology, control plane vs data plane, communication patterns, auth model.
+- **[apps/web Architecture](./architecture/apps-web.md)** — Route groups, provider modes, auth callback flow, and tenant UI boundaries.
 - **[Repository Map](./repo-map.md)** — Every app, service, package, and config file explained.
 - **[Data Model](./architecture/data-model.md)** — Database schema, entity relationships, migrations, encryption at rest.
 - **[Agent Engine](./architecture/agent-engine.md)** — Planner, PolicyEngine, Toolkit, execution flow, HITL approvals.
 - **[Catalog System](./architecture/catalog-system.md)** — Catalog layers, availability tiers, manifest structure, templates, promotion flow.
+- **[Catalog, Demo, and Marketing](./catalog-and-demo.md)** — Operational manifests vs demo inventory vs curated marketing surfaces.
 - **[Conventions](./architecture/conventions.md)** — Naming, imports, data modeling, error handling, typing guardrails.
 
 ## Development
@@ -67,13 +69,13 @@ Decisions that shaped the platform:
 
 ## Quick Navigation by Role
 
-**Frontend** — [Onboarding](./onboarding.md) → [Repo Map](./repo-map.md) → [Testing](./testing.md) → [Conventions](./architecture/conventions.md)
+**Frontend** — [Onboarding](./onboarding.md) → [apps/web Architecture](./architecture/apps-web.md) → [Repo Map](./repo-map.md) → [Testing](./testing.md)
 
 **Backend** — [Onboarding](./onboarding.md) → [Architecture](./architecture/overview.md) → [API Routes](./api-routes.md) → [Data Model](./architecture/data-model.md) → [Agent Engine](./architecture/agent-engine.md)
 
 **DevOps** — [Local Dev](./runbooks/local-development.md) → [Deployment](./runbooks/deployment.md) → [VPS Ops](./runbooks/vps-operations.md) → [Environment Variables](./environment-variables.md)
 
-**Product** — [Glossary](./glossary.md) → [Architecture Overview](./architecture/overview.md) → [Catalog System](./architecture/catalog-system.md)
+**Product** — [Glossary](./glossary.md) → [Catalog, Demo, and Marketing](./catalog-and-demo.md) → [Catalog System](./architecture/catalog-system.md)
 
 ## Key Commands
 

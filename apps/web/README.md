@@ -23,7 +23,7 @@ or workflows itself.
   `/reset-password` on the web; email delivery is not integrated yet (reset
   links are logged in non-production when `LOG_PASSWORD_RESET_LINK=1` or by
   default in dev on the API). **Enterprise SAML/OIDC** per tenant is planned
-  via an external provider (see `docs/adr/013-enterprise-auth-sso-strategy.md`);
+  via an external provider (see `docs/adr/011-enterprise-auth-strategy.md`);
   the UI shows a disabled SSO row with tooltip.
 - Protect tenant routes with Next.js proxy and a JWT cookie.
 - Consume the control-plane API through typed client helpers in `lib/api/`.
@@ -143,6 +143,7 @@ pnpm demo-catalog:generate
 
 - [Web App Architecture](../../docs/architecture/apps-web.md)
 - [Architecture Overview](../../docs/architecture/overview.md)
-- [Catalog, demo, and marketing](../../docs/catalog-and-demo.md)
+- [Catalog, Demo, and Marketing](../../docs/catalog-and-demo.md)
+- [ADR-011: Enterprise Auth Strategy](../../docs/adr/011-enterprise-auth-strategy.md)
 - [Honest UI Audit Map](./lib/honest-ui/audit.ts)
 - [Repository Map](../../docs/repo-map.md)

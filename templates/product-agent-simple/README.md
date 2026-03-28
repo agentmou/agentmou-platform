@@ -27,5 +27,5 @@ the installable runtime should live in `@agentmou/agent-engine`.
 
 ## Promotion Path
 
-Follow [Agent Authoring and Promotion](../../docs/runbooks/agent-authoring-and-promotion.md)
+Follow [Agent Authoring](../../docs/runbooks/agent-authoring.md)
 before turning this reference into a real asset.

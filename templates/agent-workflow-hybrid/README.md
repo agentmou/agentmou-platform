@@ -52,7 +52,6 @@ Keep the payload shape aligned across:
 - agent: `catalog/agents/<id>/`
 - workflow: `workflows/public/<id>/`
 
-Use both runbooks:
+Use the combined runbook:
 
-- [Agent Authoring and Promotion](../../docs/runbooks/agent-authoring-and-promotion.md)
-- [Workflow Authoring and Promotion](../../docs/runbooks/workflow-authoring-and-promotion.md)
+- [Agent Authoring](../../docs/runbooks/agent-authoring.md)
