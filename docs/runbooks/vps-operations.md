@@ -49,11 +49,13 @@ The platform uses Traefik as the reverse proxy:
 Traefik routes traffic based on domain:
 
 | Subdomain | Service |
-|-----------|---------|
-| `agentmou.io` | Web app (Next.js) |
+| ----------- | ------- |
+| `agentmou.io` | Frontend on Vercel or another external host (not served by this VPS) |
 | `api.agentmou.io` | Control plane API (Fastify) |
 | `n8n.agentmou.io` | n8n workflow editor (if exposed) |
 | `hooks.agentmou.io` | n8n webhook ingress |
+| `agents.agentmou.io` | Internal agents service behind BasicAuth |
+| `uptime.agentmou.io` | Uptime Kuma dashboard behind BasicAuth |
 
 ### Open Required Ports
 
@@ -203,7 +205,7 @@ Traefik automatically provisions TLS certificates from Let's Encrypt:
 docker compose -f infra/compose/docker-compose.prod.yml logs traefik | grep -i certificate
 
 # Check certificate details via openssl
-echo | openssl s_client -servername agentmou.io -connect agentmou.io:443 2>/dev/null | \
+echo | openssl s_client -servername api.agentmou.io -connect api.agentmou.io:443 2>/dev/null | \
   openssl x509 -noout -dates -subject
 ```
 
@@ -211,7 +213,7 @@ Expected output:
 ```
 notBefore=Jan 15 12:00:00 2024 GMT
 notAfter=Apr 15 12:00:00 2024 GMT
-subject=CN = agentmou.io
+subject=CN = api.agentmou.io
 ```
 
 ### Renew Certificates Manually
@@ -232,14 +234,14 @@ If certificates fail to renew:
 
 1. **Verify Let's Encrypt can reach the server**:
    ```bash
-   curl http://agentmou.io/.well-known/acme-challenge/test
+   curl http://api.agentmou.io/.well-known/acme-challenge/test
    ```
    Should not be blocked by firewall or WAF.
 
 2. **Check domain DNS is correct**:
    ```bash
-   dig agentmou.io
-   nslookup agentmou.io
+   dig api.agentmou.io
+   nslookup api.agentmou.io
    ```
 
 3. **Check Traefik logs**:
@@ -307,8 +309,7 @@ Monitor the health endpoints regularly:
 # Set up a simple health monitor (run on the VPS or externally)
 while true; do
   API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.agentmou.io/health)
-  WEB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://agentmou.io/health)
-  echo "$(date): API=$API_STATUS, Web=$WEB_STATUS"
+  echo "$(date): API=$API_STATUS"
   sleep 300  # Check every 5 minutes
 done
 ```

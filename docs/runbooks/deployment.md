@@ -24,6 +24,8 @@ Before deploying:
    - n8n encryption key (generated: `openssl rand -hex 24`)
    - Connector encryption key (generated: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
    - OAuth credentials (Google, Microsoft) from respective consoles
+   - Frontend-facing auth URLs point at the real web origin hosted outside the
+     VPS (`WEB_APP_BASE_URL`, `CORS_ORIGIN`, `AUTH_WEB_ORIGIN_ALLOWLIST`)
    - API keys (n8n, OpenAI)
 4. **GitHub credentials** (SSH key or personal access token) for pulling the repository
 5. **Backup strategy** reviewed and tested (see [VPS Operations](./vps-operations.md))
@@ -164,25 +166,25 @@ bash infra/scripts/deploy-prod.sh
 
 The script:
 1. Pulls the latest code from `origin/main`
-2. Validates required environment variables
-3. Rebuilds Docker images (api, worker, agents, db)
+2. Validates required environment variables, including the public frontend
+   origin used by auth and password reset flows
+3. Rebuilds Docker images (api, worker, agents, migrate)
 4. Waits for PostgreSQL to become healthy
 5. Runs database migrations
 6. Restarts the stack
-7. Verifies health of edge and public endpoints
+7. Verifies API edge health and runs the public smoke test
 
 **Expected output**:
 ```
 ==> Pulling latest code...
 ==> Validating environment variables...
 ==> Building Docker images...
-==> Waiting for PostgreSQL...
-OK: PostgreSQL healthy
-==> Running migrations...
+==> Running database migrations...
+OK: Migrations applied
 ==> Restarting stack...
 ==> Verifying health...
 OK: https://api.agentmou.io/health -> 200
-OK: https://agentmou.io/health -> 200
+OK: Public smoke test passed
 ==> Deployment successful
 ```
 
@@ -204,14 +206,20 @@ If you prefer manual control:
 # Pull latest code
 git pull origin main
 
-# Build images
-docker compose -f infra/compose/docker-compose.prod.yml build
+# Render the backend-only production stack with your real env file
+docker compose --env-file infra/compose/.env -f infra/compose/docker-compose.prod.yml config >/dev/null
 
-# Run migrations
-docker compose -f infra/compose/docker-compose.prod.yml exec -T api pnpm db:migrate
+# Build backend images and the migration job
+docker compose --env-file infra/compose/.env --profile ops -f infra/compose/docker-compose.prod.yml build api worker agents migrate
+
+# Start PostgreSQL first
+docker compose --env-file infra/compose/.env -f infra/compose/docker-compose.prod.yml up -d postgres
+
+# Run migrations using the dedicated one-off job
+docker compose --env-file infra/compose/.env --profile ops -f infra/compose/docker-compose.prod.yml run --rm migrate
 
 # Restart the stack
-docker compose -f infra/compose/docker-compose.prod.yml up -d
+docker compose --env-file infra/compose/.env -f infra/compose/docker-compose.prod.yml up -d
 ```
 
 ---
@@ -223,34 +231,26 @@ After deployment, verify the platform is healthy by checking these endpoints:
 ### API Health
 
 ```bash
-# Local HTTPS check (from the VPS)
-curl -k https://localhost/health
+# Local edge check through Traefik (from the VPS)
+curl -sk --resolve api.agentmou.io:443:127.0.0.1 https://api.agentmou.io/health
 
-# Remote HTTP check (from outside the VPS)
-curl http://<VPS_IP>:3001/health
-
-# Public check (if DNS is updated)
+# Public check (from anywhere)
 curl https://api.agentmou.io/health
 ```
 
 Expected response: `200 OK`
 
-### Web Health
+### n8n Status
 
 ```bash
-curl https://agentmou.io/health
-```
-
-### n8n Health
-
-```bash
-curl http://localhost:5678/health
+docker compose --env-file infra/compose/.env -f infra/compose/docker-compose.prod.yml ps n8n
+docker compose --env-file infra/compose/.env -f infra/compose/docker-compose.prod.yml logs --tail 50 n8n
 ```
 
 ### All Services Status
 
 ```bash
-docker compose -f infra/compose/docker-compose.prod.yml ps
+docker compose --env-file infra/compose/.env -f infra/compose/docker-compose.prod.yml ps
 ```
 
 All containers should show `Up` status.
@@ -259,13 +259,13 @@ All containers should show `Up` status.
 
 ```bash
 # View all logs
-docker compose -f infra/compose/docker-compose.prod.yml logs -f
+docker compose --env-file infra/compose/.env -f infra/compose/docker-compose.prod.yml logs -f
 
 # View specific service logs
-docker compose -f infra/compose/docker-compose.prod.yml logs -f api
-docker compose -f infra/compose/docker-compose.prod.yml logs -f worker
-docker compose -f infra/compose/docker-compose.prod.yml logs -f postgres
-docker compose -f infra/compose/docker-compose.prod.yml logs -f n8n
+docker compose --env-file infra/compose/.env -f infra/compose/docker-compose.prod.yml logs -f api
+docker compose --env-file infra/compose/.env -f infra/compose/docker-compose.prod.yml logs -f worker
+docker compose --env-file infra/compose/.env -f infra/compose/docker-compose.prod.yml logs -f postgres
+docker compose --env-file infra/compose/.env -f infra/compose/docker-compose.prod.yml logs -f n8n
 
 # Clear old logs (optional)
 docker system prune --volumes -f
@@ -280,10 +280,9 @@ bash infra/scripts/smoke-test.sh
 ```
 
 This tests:
-- Health endpoints
-- API connectivity
-- Database connectivity
-- n8n availability
+- API health through the public domain
+- Public catalog response shape
+- Auth validation on an invalid login payload
 
 ---
 
@@ -402,7 +401,9 @@ docker compose -f infra/compose/docker-compose.prod.yml up -d
 6. **Keep .env file backed up** and never commit it to Git
 7. **Review changes** before deployment (read commit messages, understand what's changing)
 8. **Run smoke tests** after every deployment
-9. **Keep Git history clean** for easy rollback
+9. **Verify web auth from the Vercel frontend** after backend deploys that
+   touch auth, CORS, or OAuth settings
+10. **Keep Git history clean** for easy rollback
 
 ---
 

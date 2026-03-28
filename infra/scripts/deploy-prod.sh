@@ -22,6 +22,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 COMPOSE_FILE="$REPO_ROOT/infra/compose/docker-compose.prod.yml"
 ENV_FILE="$REPO_ROOT/infra/compose/.env"
+COMPOSE_ARGS=(--env-file "$ENV_FILE" -f "$COMPOSE_FILE")
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -56,6 +57,19 @@ is_placeholder() {
   return 1
 }
 
+is_local_value() {
+  local value="${1:-}"
+  local lowered=""
+
+  lowered=$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')
+  case "$lowered" in
+    *localhost*|*127.0.0.1*|*0.0.0.0*)
+      return 0
+      ;;
+  esac
+  return 1
+}
+
 wait_for_postgres() {
   local retries=30
   local delay_seconds=2
@@ -63,7 +77,7 @@ wait_for_postgres() {
   local status=""
 
   for attempt in $(seq 1 "$retries"); do
-    container_id=$(docker compose -f "$COMPOSE_FILE" ps -q postgres)
+    container_id=$(docker compose "${COMPOSE_ARGS[@]}" ps -q postgres)
     if [ -n "$container_id" ]; then
       status=$(docker inspect --format '{{.State.Health.Status}}' "$container_id" 2>/dev/null || echo "unknown")
       if [ "$status" = "healthy" ]; then
@@ -115,6 +129,68 @@ check_env_var() {
   return 0
 }
 
+check_public_env_var() {
+  local name="$1"
+  local mode="$2"
+  local value="${!name:-}"
+
+  if ! check_env_var "$name" "$mode"; then
+    return 1
+  fi
+
+  if [ -n "$value" ] && is_local_value "$value"; then
+    warn "Production value must not point to localhost: $name=$value"
+    return 1
+  fi
+
+  return 0
+}
+
+check_optional_oauth_config() {
+  local label="$1"
+  local client_id_var="$2"
+  local client_secret_var="$3"
+  local redirect_var="$4"
+  local client_id="${!client_id_var:-}"
+  local client_secret="${!client_secret_var:-}"
+  local redirect_uri="${!redirect_var:-}"
+  local configured_count=0
+  local failed=0
+
+  if ! is_placeholder "$client_id"; then
+    configured_count=$((configured_count + 1))
+  fi
+  if ! is_placeholder "$client_secret"; then
+    configured_count=$((configured_count + 1))
+  fi
+  if ! is_placeholder "$redirect_uri"; then
+    configured_count=$((configured_count + 1))
+  fi
+
+  if [ "$configured_count" -eq 0 ]; then
+    warn "$label OAuth not configured; that login option will stay disabled"
+    return 0
+  fi
+
+  if ! check_env_var "$client_id_var" "required"; then
+    failed=1
+  fi
+  if ! check_env_var "$client_secret_var" "required"; then
+    failed=1
+  fi
+  if ! check_public_env_var "$redirect_var" "required"; then
+    failed=1
+  fi
+
+  if [ "$failed" -ne 0 ]; then
+    warn "$label OAuth is partially configured"
+    return 1
+  fi
+
+  ok "$label OAuth configuration is complete"
+  return 0
+}
+
 parse_args() {
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -151,7 +227,7 @@ fi
 source "$ENV_FILE"
 
 API_DOMAIN="${DOMAIN:-agentmou.io}"
-WEB_ORIGIN="${CORS_ORIGIN:-https://agentmou.io}"
+WEB_ORIGIN="${WEB_APP_BASE_URL:-${CORS_ORIGIN:-https://agentmou.io}}"
 
 required_env_vars=(
   DOMAIN
@@ -161,8 +237,6 @@ required_env_vars=(
   POSTGRES_USER
   POSTGRES_PASSWORD
   TZ
-  N8N_EDITOR_BASE_URL
-  WEBHOOK_URL
   N8N_PROXY_HOPS
   N8N_ENCRYPTION_KEY
   AGENTS_API_KEY
@@ -171,13 +245,21 @@ required_env_vars=(
   N8N_API_KEY
   GOOGLE_CLIENT_ID
   GOOGLE_CLIENT_SECRET
-  GOOGLE_REDIRECT_URI
   CONNECTOR_ENCRYPTION_KEY
 )
 
 optional_env_vars=(
-  CORS_ORIGIN
   N8N_API_URL
+  LOG_PASSWORD_RESET_LINK
+)
+
+public_env_vars=(
+  N8N_EDITOR_BASE_URL
+  WEBHOOK_URL
+  CORS_ORIGIN
+  WEB_APP_BASE_URL
+  AUTH_WEB_ORIGIN_ALLOWLIST
+  GOOGLE_REDIRECT_URI
 )
 
 missing_required=0
@@ -187,16 +269,38 @@ for var_name in "${required_env_vars[@]}"; do
   fi
 done
 
+for var_name in "${public_env_vars[@]}"; do
+  if ! check_public_env_var "$var_name" "required"; then
+    missing_required=1
+  fi
+done
+
 for var_name in "${optional_env_vars[@]}"; do
   check_env_var "$var_name" "optional"
 done
+
+if ! check_optional_oauth_config \
+  "Google" \
+  "GOOGLE_OAUTH_CLIENT_ID" \
+  "GOOGLE_OAUTH_CLIENT_SECRET" \
+  "GOOGLE_OAUTH_REDIRECT_URI"; then
+  missing_required=1
+fi
+
+if ! check_optional_oauth_config \
+  "Microsoft" \
+  "MICROSOFT_OAUTH_CLIENT_ID" \
+  "MICROSOFT_OAUTH_CLIENT_SECRET" \
+  "MICROSOFT_OAUTH_REDIRECT_URI"; then
+  missing_required=1
+fi
 
 if [ "$missing_required" -ne 0 ]; then
   fail "Populate the missing required production env vars in $ENV_FILE and rerun the deploy"
 fi
 
 step "Step 3/6 - Rebuilding API, worker, agents, and migrate images"
-docker compose --profile ops -f "$COMPOSE_FILE" build api worker agents migrate
+docker compose "${COMPOSE_ARGS[@]}" --profile ops build api worker agents migrate
 ok "Images rebuilt"
 
 if [ "$BUILD_ONLY" -eq 1 ]; then
@@ -205,18 +309,18 @@ if [ "$BUILD_ONLY" -eq 1 ]; then
 fi
 
 step "Step 4/6 - Running database migrations"
-docker compose -f "$COMPOSE_FILE" up -d postgres
+docker compose "${COMPOSE_ARGS[@]}" up -d postgres
 echo "Waiting for Postgres to become healthy..."
 if ! wait_for_postgres; then
-  docker compose -f "$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+  docker compose "${COMPOSE_ARGS[@]}" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
   fail "Postgres did not become healthy"
 fi
 
-docker compose --profile ops -f "$COMPOSE_FILE" run --rm migrate
+docker compose "${COMPOSE_ARGS[@]}" --profile ops run --rm migrate
 ok "Migrations applied"
 
 step "Step 5/6 - Restarting services"
-docker compose -f "$COMPOSE_FILE" up -d
+docker compose "${COMPOSE_ARGS[@]}" up -d
 ok "All services restarted"
 
 echo "Waiting 10 seconds for services to stabilize..."
@@ -227,16 +331,16 @@ step "Step 6/6 - Verifying local edge health and public smoke"
 API_HOST="api.${API_DOMAIN}"
 
 if ! check_local_https_health "$API_HOST" "API"; then
-  docker compose -f "$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+  docker compose "${COMPOSE_ARGS[@]}" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
   echo
-  docker compose -f "$COMPOSE_FILE" logs --tail 120 api || true
+  docker compose "${COMPOSE_ARGS[@]}" logs --tail 120 api || true
   echo
-  docker compose -f "$COMPOSE_FILE" logs --tail 120 traefik || true
+  docker compose "${COMPOSE_ARGS[@]}" logs --tail 120 traefik || true
   fail "Deploy failed because local edge/API health is unhealthy"
 fi
 
 echo
-docker compose -f "$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+docker compose "${COMPOSE_ARGS[@]}" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
 
 echo
 echo "Running public smoke test..."
