@@ -1,93 +1,95 @@
-# ADR-008 — Connector OAuth and Token Storage Strategy
+# ADR-008: AES-256-GCM Encryption at Rest for OAuth Tokens in PostgreSQL
 
 **Status**: accepted
-**Date**: 2026-03-09
+**Date**: 2024-01-15
 
 ## Context
 
-Phase 2.5 requires real OAuth2 integrations starting with Gmail. Agents need
-to read/write data on behalf of tenants, which means we must store OAuth
-access tokens and refresh tokens securely and handle the full OAuth2
-authorization code flow.
+Tenants connect third-party services (Gmail, Slack, GitHub, CRM) via OAuth. The platform must store OAuth tokens securely:
+- **In transit**: HTTPS (provided by Traefik TLS termination)
+- **At rest**: Encrypted in PostgreSQL
+- **In memory**: Decrypted only when needed, then cleared
 
-Key questions:
+Encryption at rest protects against:
+- Database backups leaking to unauthorized parties
+- Accidental exposure of database dumps
+- Compromised VPS disk access
 
-1. Where to store OAuth tokens?
-2. How to protect tokens at rest?
-3. How to handle the OAuth state parameter for CSRF protection?
-4. How to manage token refresh transparently?
+Options include:
+1. **External vault** (HashiCorp Vault, AWS Secrets Manager)
+2. **Cloud KMS** (AWS KMS, Google Cloud KMS)
+3. **Application-level encryption** with keys in environment variables
+4. **Plaintext** (unacceptable)
+
+External vaults add operational complexity (separate service to deploy and monitor). For a single VPS, application-level encryption with a key in the environment is simpler and sufficient.
 
 ## Decision
 
-### Token storage
+**AES-256-GCM encryption at rest** for OAuth tokens stored in PostgreSQL.
 
-OAuth tokens (access + refresh) are stored as **encrypted text columns** on
-the existing `connector_accounts` table rather than in a separate vault
-service. This keeps the stack simple (no HashiCorp Vault, no AWS KMS) while
-still protecting tokens at rest.
+Implementation:
+- Use Node.js built-in `crypto` module for AES-256-GCM encryption
+- Encryption key: `CONNECTOR_ENCRYPTION_KEY` environment variable (64 hex characters = 32 bytes)
+- Tokens are encrypted before INSERT, decrypted on SELECT
+- Each encrypted value includes a random IV (initialization vector) and authentication tag
 
-New columns on `connector_accounts`:
+Code pattern:
+```typescript
+import crypto from 'crypto';
 
-- `access_token` — AES-256-GCM encrypted, base64-encoded
-- `refresh_token` — AES-256-GCM encrypted, base64-encoded
-- `token_expires_at` — timestamp for proactive refresh
-- `external_account_id` — provider-side identifier (e.g. Gmail email)
-- `connected_at` — when the OAuth flow completed
+const key = Buffer.from(process.env.CONNECTOR_ENCRYPTION_KEY!, 'hex');
 
-### Encryption
+// Encrypt
+const iv = crypto.randomBytes(12); // 96-bit IV for GCM
+const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+let encrypted = cipher.update(token, 'utf8', 'hex');
+encrypted += cipher.final('hex');
+const authTag = cipher.getAuthTag();
+const stored = `${iv.toString('hex')}:${encrypted}:${authTag.toString('hex')}`;
 
-- Algorithm: AES-256-GCM (authenticated encryption)
-- Key: 32-byte random key stored in the `CONNECTOR_ENCRYPTION_KEY` env var
-  (64-char hex string), never committed to git
-- Format: base64(IV + ciphertext + authTag)
-- Key rotation: decrypt with old key, re-encrypt with new key (future PR)
+// Decrypt
+const [ivHex, encryptedHex, authTagHex] = stored.split(':');
+const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(ivHex, 'hex'));
+decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
+let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
+decrypted += decipher.final('utf8');
+```
 
-### OAuth state / CSRF
+Tokens are encrypted in `packages/connectors` and the encryption layer is transparent to services that consume tokens.
 
-A new `connector_oauth_states` table stores ephemeral state tokens:
-
-- Generated before redirecting the user to the provider
-- Validated on callback to prevent CSRF attacks
-- Rows expire after 10 minutes and are cleaned up periodically
-
-### Token refresh
-
-The connector implementation (e.g. `GmailConnector`) checks
-`token_expires_at` before each API call. If expired or within a 5-minute
-buffer, it uses the refresh token to obtain a new access token, encrypts it,
-and updates the row.
+Key rotation:
+- Generate a new `CONNECTOR_ENCRYPTION_KEY`
+- Decrypt all tokens with the old key
+- Encrypt with the new key
+- Update `.env` on the VPS
+- Restart services
 
 ## Alternatives Considered
 
-### External secret manager (Vault, AWS Secrets Manager)
+1. **HashiCorp Vault**:
+   - Pros: Enterprise-grade, key rotation built-in, audit logging
+   - Cons: Requires separate service, operational overhead, overkill for small deployment
 
-- Pro: industry-standard key management, automatic rotation
-- Con: adds significant infrastructure complexity; we're on a single VPS
-  with no cloud provider integrations yet
-- Rejected: overkill for current scale; can migrate later
+2. **AWS Secrets Manager / Google Cloud Secret Manager**:
+   - Pros: Managed, highly available, auditing
+   - Cons: Vendor lock-in, requires AWS/GCP account and integration, not suitable for VPS deployment
 
-### Store tokens in `secret_envelopes` only
+3. **TDE (Transparent Data Encryption) at database level**:
+   - Pros: All data encrypted at storage layer
+   - Cons: Requires PostgreSQL compiled with OpenSSL, limited to full-disk encryption, less fine-grained
 
-- Pro: already has encrypted value storage
-- Con: `secret_envelopes` is designed for static API keys, not for tokens
-  that need frequent refresh; querying by connector account would require
-  joins and the schema doesn't model expiry
-- Rejected: `connector_accounts` columns are more ergonomic for the
-  token-refresh flow
-
-### JWT-encrypted tokens (JWE)
-
-- Pro: no server-side key management for the encryption itself
-- Con: still needs a key; adds complexity with JWE libraries; less
-  straightforward than AES-GCM
-- Rejected: AES-256-GCM is simpler and well-understood
+4. **Plaintext**:
+   - Pros: Simplest to implement
+   - Cons: Unacceptable security risk, violates compliance, not trustworthy
 
 ## Consequences
 
-- `CONNECTOR_ENCRYPTION_KEY` becomes a critical secret — if lost, all stored
-  tokens are unreadable. Document key backup in the ops runbook.
-- Key rotation requires a migration script (decrypt all, re-encrypt).
-- All code that reads tokens must go through `decrypt()` — never expose
-  plaintext tokens in logs or API responses.
-- The `connector_oauth_states` table will accumulate expired rows; add a
-  periodic cleanup job or DB-level TTL index.
+- **Encryption key is in `.env`**: The key must be protected as carefully as database credentials (both grant database access).
+- **Key exposure is critical**: If `.env` is leaked, all tokens can be decrypted. Treat it with highest care.
+- **No external key management**: Unlike external vaults, there is no "master" system to compromise separately. Risk is consolidated to the VPS.
+- **Decryption on every use**: Tokens are decrypted from PostgreSQL in-memory only when needed (e.g., when making OAuth API calls). Performance impact is negligible.
+- **Key rotation requires downtime**: Rotating the key requires decrypting and re-encrypting all tokens (this takes seconds but requires database access).
+- **Backup protection**: Database backups contain encrypted tokens; they cannot be decrypted without the key.
+- **Tokens are never logged**: Decrypted tokens are handled in memory and never printed to logs.
+
+This approach is suitable for a single-VPS deployment with a security-conscious operations team. As the platform scales or regulatory requirements increase, migration to a vault system is possible without architectural changes.

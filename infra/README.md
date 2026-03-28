@@ -31,4 +31,4 @@ runtime VPS used by internal ops.
 
 - [Deployment Guide](../docs/deployment.md)
 - [Runbooks Index](../docs/runbooks/README.md)
-- [Current State](../docs/architecture/current-state.md)
+- [Architecture Overview](../docs/architecture/overview.md)

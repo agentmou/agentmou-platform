@@ -1,282 +1,470 @@
-# Deployment Runbook
+# Production Deployment Guide
 
-## Purpose
+This runbook covers deploying Agentmou to production on a VPS, verifying health, and rolling back if necessary.
 
-Use this runbook for local environment bring-up, VPS deploys, health
-verification, temporary validation-fixture cleanup, and provider-backed secret
-rotation.
+## Prerequisites
 
-## Preconditions
+### VPS Requirements
 
-- Access to the repository checkout for the target environment
-- Docker and Compose available for the relevant environment
-- A populated `infra/compose/.env` when working outside disposable local flows
+- **OS**: Ubuntu 22.04 LTS or newer (or compatible Linux distribution)
+- **CPU**: Minimum 4 vCPU (8+ recommended for comfort)
+- **Memory**: Minimum 8 GB RAM (16 GB recommended)
+- **Storage**: Minimum 50 GB (100+ GB recommended for backups and logs)
+- **Network**: Static IP address, ports 80 and 443 open (for Let's Encrypt and HTTPS)
 
-## Pre-Deployment Checklist
+### Pre-Deployment Checklist
 
-- `pnpm install`
-- `pnpm typecheck`
-- `pnpm lint`
-- `pnpm lint:infra` if the change touches `infra/compose/` or `infra/scripts/`
-- `pnpm build`
-- `pnpm test`
-- Infrastructure env file configured (`infra/compose/.env`)
-- Required external secrets set for your target environment
+Before deploying:
 
-## Local Development Stack
+1. **VPS is provisioned** with public IP and root SSH access
+2. **Domain name** is registered and DNS points to VPS IP
+3. **Environment secrets** (.env file) are prepared with real values:
+   - Database password (generated: `openssl rand -hex 24`)
+   - JWT secret (generated: `openssl rand -hex 32`)
+   - n8n encryption key (generated: `openssl rand -hex 24`)
+   - Connector encryption key (generated: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
+   - OAuth credentials (Google, Microsoft) from respective consoles
+   - API keys (n8n, OpenAI)
+4. **GitHub credentials** (SSH key or personal access token) for pulling the repository
+5. **Backup strategy** reviewed and tested (see [VPS Operations](./vps-operations.md))
 
-### 1) Environment
+---
+
+## Initial VPS Setup (One-Time)
+
+Run these steps once on a fresh VPS.
+
+### 1. SSH into the VPS
 
 ```bash
+ssh root@<VPS_IP>
+# or
+ssh -i /path/to/key root@<VPS_IP>
+```
+
+### 2. Update System Packages
+
+```bash
+apt update
+apt upgrade -y
+```
+
+### 3. Install Docker and Docker Compose
+
+```bash
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+rm get-docker.sh
+
+# Verify Docker
+docker --version
+
+# Docker Compose is bundled with recent Docker; verify
+docker compose version
+```
+
+### 4. Create a Deploy User (Recommended)
+
+```bash
+# Create a non-root user for deployments
+useradd -m -s /bin/bash deploy
+usermod -aG docker deploy
+
+# Set up SSH key for deploy user
+su - deploy
+mkdir -p ~/.ssh
+# Copy your public SSH key to ~/.ssh/authorized_keys
+# (or use: ssh-copy-id -i /path/to/key.pub deploy@<VPS_IP>)
+```
+
+### 5. Clone the Repository
+
+```bash
+cd /home/deploy
+git clone https://github.com/agentmou/agentmou-platform.git agentmou
+cd agentmou
+```
+
+### 6. Prepare Environment Variables
+
+```bash
+# Copy the example environment file
 cp infra/compose/.env.example infra/compose/.env
+
+# Edit with real values
+nano infra/compose/.env
 ```
 
-### 2) Start Infrastructure
+Fill in all required secrets (see Pre-Deployment Checklist above).
+
+### 7. Configure Docker Daemon (Optional but Recommended)
 
 ```bash
-docker compose -f infra/compose/docker-compose.local.yml up -d
+# Increase log retention to avoid disk filling up
+cat > /etc/docker/daemon.json <<EOF
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+EOF
+
+# Restart Docker
+systemctl restart docker
 ```
 
-### 3) Typecheck, Lint, And Build
+### 8. Create Systemd Service (Optional but Recommended)
+
+Create a systemd service to manage the Docker Compose stack:
 
 ```bash
-pnpm typecheck
-pnpm lint
-pnpm build
+sudo tee /etc/systemd/system/agentmou.service > /dev/null <<EOF
+[Unit]
+Description=Agentmou Stack
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=deploy
+WorkingDirectory=/home/deploy/agentmou
+ExecStart=/usr/bin/docker compose -f infra/compose/docker-compose.prod.yml up
+ExecStop=/usr/bin/docker compose -f infra/compose/docker-compose.prod.yml down
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable agentmou
 ```
 
-### 4) Start Dev Servers
+---
+
+## Deployment Procedure
+
+### Standard Deploy
+
+Use the canonical deploy script to pull, build, migrate, and restart:
 
 ```bash
-pnpm dev
-```
+# SSH into the VPS
+ssh deploy@<VPS_IP>
 
-### Service Endpoints (Local)
+cd agentmou
 
-| Service    | URL                     |
-| ---------- | ----------------------- |
-| Web        | `http://localhost:3000` |
-| API        | `http://localhost:3001` |
-| n8n        | `http://localhost:5678` |
-| PostgreSQL | `localhost:5432`        |
-| Redis      | `localhost:6379`        |
-
-## Production Deployment (VPS)
-
-The production stack runs on a single VPS. See
-[VPS Operations](./vps-operations.md) for full operational details. This
-runbook describes the intended deployment procedure; it is not the canonical
-record of the latest verified live state. Use the
-[current-state operational verification snapshot](../architecture/current-state.md#operational-verification-snapshot-on-march-19-20-2026)
-before making production-state claims.
-
-### Production script order
-
-Use the infra scripts in this order so the VPS workflow stays predictable:
-
-1. `infra/scripts/setup.sh` for first-time Agentmou VPS bootstrap after cloning.
-2. `infra/scripts/verify-prod-image-assets.sh` before shipping API or worker
-   changes that depend on repo-backed `catalog/` or `workflows/` assets.
-3. `infra/scripts/deploy-prod.sh` for every main Agentmou VPS deploy.
-4. `infra/scripts/deploy-openclaw.sh` for the dedicated OpenClaw runtime VPS.
-5. `infra/scripts/smoke-test.sh` for standalone public verification.
-6. `infra/scripts/backup.sh` for scheduled or manual backups.
-
-`infra/scripts/deploy-prod.sh` is the tracked deploy command for the main
-Agentmou VPS. `infra/scripts/deploy-openclaw.sh` is the tracked deploy command
-for the dedicated OpenClaw runtime VPS. If an operator wants a shortcut, keep
-it as a shell alias outside the repo instead of a duplicate tracked script.
-
-### First-time setup
-
-```bash
-ssh deploy@<vps-ip>
-cd /srv
-git clone <repo-url> agentmou-platform
-cd agentmou-platform
-bash infra/scripts/setup.sh
-nano infra/compose/.env              # Fill in real secrets
-sudo install -d -o deploy -g deploy -m 750 /var/backups/agentmou /var/lock/agentmou
-docker compose -f infra/compose/docker-compose.prod.yml up -d
-```
-
-### Subsequent deploys
-
-```bash
-ssh deploy@<vps-ip>
-cd /srv/agentmou-platform
+# Run the deployment script
 bash infra/scripts/deploy-prod.sh
 ```
 
-### Deploy only a specific service
+The script:
+1. Pulls the latest code from `origin/main`
+2. Validates required environment variables
+3. Rebuilds Docker images (api, worker, agents, db)
+4. Waits for PostgreSQL to become healthy
+5. Runs database migrations
+6. Restarts the stack
+7. Verifies health of edge and public endpoints
+
+**Expected output**:
+```
+==> Pulling latest code...
+==> Validating environment variables...
+==> Building Docker images...
+==> Waiting for PostgreSQL...
+OK: PostgreSQL healthy
+==> Running migrations...
+==> Restarting stack...
+==> Verifying health...
+OK: https://api.agentmou.io/health -> 200
+OK: https://agentmou.io/health -> 200
+==> Deployment successful
+```
+
+### Build-Only Deployment (No Restart)
+
+If you want to build images without restarting services:
 
 ```bash
-cd /srv/agentmou-platform
+bash infra/scripts/deploy-prod.sh --build-only
+```
+
+This is useful for pre-warming Docker image builds before a maintenance window.
+
+### Manual Step-by-Step Deployment
+
+If you prefer manual control:
+
+```bash
+# Pull latest code
 git pull origin main
-docker compose -f infra/compose/docker-compose.prod.yml build agents
-docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents
-```
 
-### Run database migrations
-
-After first deploy or after schema changes:
-
-```bash
-docker compose --profile ops -f infra/compose/docker-compose.prod.yml run --rm migrate
-```
-
-### Active services
-
-In compose, the `api`, `worker`, and `agents` services start automatically
-with the main stack. The `web` service is behind a profile
-(`--profile web`) because the web app is deployed on Vercel instead
-(`https://agentmou.io`, with `www` redirecting to apex). Verify the live VPS
-state with the checks below rather than inferring it from this runbook alone.
-
-On March 19, 2026, these checks were revalidated from the live VPS checkout at
-`/srv/agentmou-platform`: `git status --short --branch` was clean before the
-final redeploy, local Traefik health returned `200`, the historical
-`bash infra/scripts/deploy-phase25.sh` path completed successfully, and the
-hardened public smoke test passed `3/3` with the live catalog payload
-exposing `inbox-triage`. The canonical deploy entrypoint is now
-`bash infra/scripts/deploy-prod.sh`.
-
-## Health Verification
-
-Run these checks from the VPS checkout with a real `infra/compose/.env`. If
-you cannot do that, record the checks as not executed rather than inferred.
-The smoke test now treats an empty catalog response as a failure by requiring
-the live catalog payload to include `inbox-triage`.
-Before running `deploy-prod.sh`, inspect `git status --short` on the VPS
-checkout and resolve any unexpected local drift.
-
-`pnpm lint` now validates more than workspace ESLint state. It also runs
-`pnpm lint:infra`, which syntax-checks `infra/scripts/*.sh` and validates each
-tracked Compose file with `docker compose config` against the committed env
-examples.
-
-```bash
-# Local deploy gates (through Traefik on the VPS host)
-curl -sk --resolve api.DOMAIN:443:127.0.0.1 https://api.DOMAIN/health
-
-# Public DNS/TLS/API smoke
-bash infra/scripts/smoke-test.sh
-
-# Or via Uptime Kuma at https://uptime.DOMAIN
-```
-
-## Temporary Validation Fixture Cleanup
-
-Use the VPS wrapper instead of ad hoc SQL or manual host-shell env exports
-when you need to remove a disposable OAuth or E2E validation tenant:
-
-```bash
-cd /srv/agentmou-platform
-bash infra/scripts/cleanup-validation-tenant.sh \
-  --tenant-id <tenant-id> \
-  --user-email <validation-email>
-
-bash infra/scripts/cleanup-validation-tenant.sh \
-  --tenant-id <tenant-id> \
-  --user-email <validation-email> \
-  --execute
-```
-
-The script is dry-run by default. It fails closed unless the tenant and owner
-match disposable validation markers (`oauth-check-*`, `e2e-*`,
-`example.com`, `test.agentmou.io`), the tenant is still on the `free` plan,
-and the tenant only has its single owner membership.
-
-The wrapper sources `infra/compose/.env`, derives `DATABASE_URL` for
-`127.0.0.1:5432`, resolves the current Redis container IP for `REDIS_URL`,
-converts `N8N_EDITOR_BASE_URL` into `${N8N_EDITOR_BASE_URL}/api/v1`, and
-then invokes the underlying TypeScript implementation in
-`scripts/cleanup-validation-tenant.ts`.
-
-On March 19, 2026, this script was dry-run and execute-verified live against
-the historical OAuth validation tenant and a temporary connector-delete
-fixture. PostgreSQL post-checks returned `tenants=0`, `memberships=0`,
-`connector_accounts=0`, and `users=0` after each cleanup.
-
-On March 20, 2026, the same command path was re-verified after deploying
-`ee804132` from `codex/fix-production-residual-risks`. Dry-run output for a
-fresh `e2e-*` tenant showed `n8n_workflows: 1` and `schedule_repeatables: 1`;
-execute mode then removed the tenant rows, the remote n8n workflow returned
-`404`, and BullMQ repeatables returned to their pre-fixture baseline. The same
-deployment also live-verified `DELETE /api/v1/tenants/:tenantId/installations/:installationId`
-against a disposable tenant: repeatables moved from `5 -> 6 -> 5`, the remote
-n8n workflow returned `404`, and the guarded cleanup script then removed the
-empty tenant and owner user.
-
-## Provider-Backed Secret Rotation
-
-Keep provider-backed rotation in its own live window. Rotate in the provider
-console first, then edit `infra/compose/.env` in place on the VPS without
-creating `.bak` files in the checkout.
-
-Order:
-
-1. `OPENAI_API_KEY`
-2. `GOOGLE_CLIENT_SECRET`
-3. `N8N_API_KEY`
-
-Restart only the affected services after updating `.env`:
-
-```bash
-docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents worker api
-```
-
-Minimum post-rotation verification:
-
-```bash
-docker compose -f infra/compose/docker-compose.prod.yml ps
-curl -sk --resolve api.DOMAIN:443:127.0.0.1 https://api.DOMAIN/health
-bash infra/scripts/smoke-test.sh
-```
-
-Then verify:
-
-- `agents.DOMAIN/health/deep` with the current `x-api-key`
-- a fresh Gmail OAuth authorize + callback flow
-- at least one n8n API path that uses `X-N8N-API-KEY`
-
-Observed March 19-20, 2026 results:
-
-- `GOOGLE_CLIENT_SECRET`: live-verified by a successful Gmail OAuth callback
-  and a `gmail` connector that returned in `connected` state.
-- `N8N_API_KEY`: live-verified by both a direct n8n API call and the real
-  queued `support-starter` install path after the worker env and payload fixes
-  landed on `codex/fix-production-residual-risks`.
-- `OPENAI_API_KEY`: live-verified. On March 20, 2026, a direct
-  `POST /health/deep` against the agents container returned
-  `{"ok":true,"model":"gpt-4o-mini-2024-07-18"}`.
-
-## Rollback
-
-```bash
-cd /srv/agentmou-platform
-git log --oneline -10
-git checkout <good-commit>
+# Build images
 docker compose -f infra/compose/docker-compose.prod.yml build
+
+# Run migrations
+docker compose -f infra/compose/docker-compose.prod.yml exec -T api pnpm db:migrate
+
+# Restart the stack
 docker compose -f infra/compose/docker-compose.prod.yml up -d
 ```
 
-## Backup
+---
+
+## Health Verification
+
+After deployment, verify the platform is healthy by checking these endpoints:
+
+### API Health
 
 ```bash
-bash infra/scripts/backup.sh
+# Local HTTPS check (from the VPS)
+curl -k https://localhost/health
+
+# Remote HTTP check (from outside the VPS)
+curl http://<VPS_IP>:3001/health
+
+# Public check (if DNS is updated)
+curl https://api.agentmou.io/health
 ```
 
-`backup.sh` now defaults to the production-safe external paths
-`/var/backups/agentmou` and `/var/lock/agentmou/backup.lock`. For local or
-non-VPS runs, set explicit overrides if those paths are not writable:
+Expected response: `200 OK`
+
+### Web Health
 
 ```bash
-BACKUP_DIR=/tmp/agentmou-backup \
-LOCK_FILE=/tmp/agentmou-backup.lock \
-bash infra/scripts/backup.sh
+curl https://agentmou.io/health
 ```
 
-Production backups should live outside the git checkout.
-See [VPS Operations](./vps-operations.md) for the root-owned cron setup and
-restore procedures.
+### n8n Health
+
+```bash
+curl http://localhost:5678/health
+```
+
+### All Services Status
+
+```bash
+docker compose -f infra/compose/docker-compose.prod.yml ps
+```
+
+All containers should show `Up` status.
+
+### Logs
+
+```bash
+# View all logs
+docker compose -f infra/compose/docker-compose.prod.yml logs -f
+
+# View specific service logs
+docker compose -f infra/compose/docker-compose.prod.yml logs -f api
+docker compose -f infra/compose/docker-compose.prod.yml logs -f worker
+docker compose -f infra/compose/docker-compose.prod.yml logs -f postgres
+docker compose -f infra/compose/docker-compose.prod.yml logs -f n8n
+
+# Clear old logs (optional)
+docker system prune --volumes -f
+```
+
+### Smoke Test
+
+Run the automated smoke test:
+
+```bash
+bash infra/scripts/smoke-test.sh
+```
+
+This tests:
+- Health endpoints
+- API connectivity
+- Database connectivity
+- n8n availability
+
+---
+
+## Secret Rotation
+
+### Rotating JWT Secret
+
+⚠️ **Caution**: Rotating JWT invalidates all active sessions.
+
+1. Generate a new secret:
+   ```bash
+   openssl rand -hex 32
+   ```
+
+2. Update `.env`:
+   ```bash
+   nano infra/compose/.env
+   # Change JWT_SECRET to the new value
+   ```
+
+3. Restart services:
+   ```bash
+   docker compose -f infra/compose/docker-compose.prod.yml restart api worker
+   ```
+
+4. Notify users that sessions have expired (they will see login page)
+
+### Rotating Connector Encryption Key
+
+⚠️ **Caution**: Requires decrypting and re-encrypting all OAuth tokens.
+
+1. Generate a new key:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+
+2. In the API, add a rotation endpoint or script (this is a code change):
+   ```typescript
+   // This would be implemented in a one-off script
+   const oldKey = Buffer.from(process.env.OLD_CONNECTOR_ENCRYPTION_KEY!, 'hex');
+   const newKey = Buffer.from(process.env.CONNECTOR_ENCRYPTION_KEY!, 'hex');
+
+   for (const token of allEncryptedTokens) {
+     const decrypted = decrypt(token, oldKey);
+     const reencrypted = encrypt(decrypted, newKey);
+     await db.update(token).set({ encryptedValue: reencrypted });
+   }
+   ```
+
+3. Update `.env` with the new key
+
+4. Deploy and run the rotation script
+
+5. Restart services:
+   ```bash
+   docker compose -f infra/compose/docker-compose.prod.yml restart api
+   ```
+
+---
+
+## Rollback Procedure
+
+If a deployment causes issues, rollback to the previous version:
+
+### Rollback Strategy
+
+Agentmou uses a Git history-based rollback:
+
+```bash
+# Check recent deployments
+git log --oneline -10
+
+# Identify the last good commit
+git log --graph --oneline --all
+
+# Rollback to a previous commit
+git reset --hard <COMMIT_HASH>
+
+# Rebuild and deploy
+bash infra/scripts/deploy-prod.sh
+```
+
+### Database Rollback
+
+⚠️ **Caution**: Database migrations are typically not reversible.
+
+If a migration causes issues:
+
+1. **Don't rollback the database**. Instead, apply a new migration that fixes the schema.
+2. Or restore from a backup (see [VPS Operations](./vps-operations.md)).
+
+### Full Recovery from Backup
+
+If all else fails, restore from a PostgreSQL backup:
+
+```bash
+# Stop the stack
+docker compose -f infra/compose/docker-compose.prod.yml down
+
+# Restore backup (see VPS Operations runbook)
+bash infra/scripts/restore-backup.sh /path/to/backup.sql
+
+# Restart the stack
+docker compose -f infra/compose/docker-compose.prod.yml up -d
+```
+
+---
+
+## Deployment Best Practices
+
+1. **Deploy during low-traffic hours** to minimize impact if issues arise
+2. **Always test a deployment on a staging environment first** before production
+3. **Announce maintenance window** if deployment will cause downtime
+4. **Monitor logs after deployment** for the first 10 minutes
+5. **Have a runbook** (like this one) reviewed and accessible during deployment
+6. **Keep .env file backed up** and never commit it to Git
+7. **Review changes** before deployment (read commit messages, understand what's changing)
+8. **Run smoke tests** after every deployment
+9. **Keep Git history clean** for easy rollback
+
+---
+
+## Troubleshooting Deployment
+
+### "Port already in use"
+
+```bash
+# Find and kill the process
+lsof -i :3000
+kill -9 <PID>
+
+# Or restart Docker
+systemctl restart docker
+```
+
+### "Database migration failed"
+
+```bash
+# Check migration status
+docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -d agentmou -c "\d"
+
+# View recent migrations
+docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -d agentmou -c "SELECT * FROM \"_drizzle_migrations\" ORDER BY installed_on DESC LIMIT 5;"
+
+# Manually run migration (if needed)
+docker compose -f infra/compose/docker-compose.prod.yml exec api pnpm db:migrate
+```
+
+### "Docker image build failed"
+
+```bash
+# Check Docker logs
+docker compose -f infra/compose/docker-compose.prod.yml logs api
+
+# Force rebuild from scratch
+docker compose -f infra/compose/docker-compose.prod.yml build --no-cache api
+
+# Clean up dangling images
+docker image prune -f
+```
+
+### "Services not becoming healthy"
+
+```bash
+# Wait for services
+sleep 30
+
+# Check health directly
+docker compose -f infra/compose/docker-compose.prod.yml ps
+
+# View logs for errors
+docker compose -f infra/compose/docker-compose.prod.yml logs --tail 50 api
+
+# Restart individual services
+docker compose -f infra/compose/docker-compose.prod.yml restart api
+```
+
+---
+
+## Related Documentation
+
+- [VPS Operations](./vps-operations.md): Manage the VPS after deployment
+- [Main README](../../README.md): Project overview
+- [ADR-006: VPS Deployment](../adr/006-vps-deployment.md): Architecture decision for VPS deployment

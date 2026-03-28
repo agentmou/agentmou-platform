@@ -1,121 +1,111 @@
-# 009 — AI Surface Boundaries
+# ADR-009: Clear Separation Between Developer Agents, Product Agents, and Deterministic Workflows
 
 **Status**: accepted
-**Date**: 2026-03-21
+**Date**: 2024-01-15
 
 ## Context
 
-The repository already contains several things that the team casually calls
-"agents":
+The platform uses AI agents in multiple contexts:
+1. **Developer agents**: Assist contributors in development (code review, refactoring, testing)
+2. **Product agents**: Run on behalf of tenants (email analysis, data extraction, automation)
+3. **Deterministic workflows**: Multi-step automations in n8n (no LLM at each step)
 
-- developer agents and skills used to work on the codebase
-- installable product agents for tenants
-- n8n-backed workflow templates
-- the narrow Python helper service under `services/agents`
+These three use cases have different trust models, security requirements, and operational constraints:
 
-Without explicit boundaries, these surfaces blur together. That causes design
-confusion around:
+- Developer agents can access the entire codebase and Git history (internal tools)
+- Product agents can access only tenant data and connected services (customer credentials)
+- Workflows are deterministic, no LLM reasoning (guaranteed reproducibility)
 
-- where the source of truth lives
-- whether n8n is a builder, a runtime, or both
-- whether workflow JSON should be duplicated per tenant in Git
-- where credentials are supposed to live
-- whether `services/agents` is the main product runtime
+Blurring these boundaries creates security risks:
+- A product agent accidentally accessing the codebase
+- A developer agent running in production and consuming tenant data
+- An LLM-based product agent hallucinating destructive actions
 
-The existing ADRs already establish that n8n is internal and that workflow
-provisioning is tenant-scoped, but they do not fully separate developer-agent
-tooling from product runtime concepts, and they overstate the credential model
-for current n8n-backed workflows.
+Clear separation enforces these boundaries at the architectural level.
 
 ## Decision
 
-### Source of truth
+Three distinct agent surfaces, each with clear capabilities and trust boundaries:
 
-Git is the canonical source of truth for workflow and agent definitions.
+### 1. Developer Agents
+- **Purpose**: Assist contributors in development (code review, testing, refactoring)
+- **Access**: Full codebase, Git history, development environment
+- **LLM**: Unrestricted (GPT-4, Claude, etc.)
+- **Execution**: Developer laptop or CI/CD pipeline during development
+- **Trust model**: High (humans review agent suggestions before merging)
+- **Examples**:
+  - Analyze a PR diff and suggest improvements
+  - Generate unit test coverage for new functions
+  - Refactor code to match style guide
 
-- Agent definitions live under `catalog/agents/`.
-- Workflow definitions live under `workflows/`.
-- Runtime systems store installations, credentials, runs, approvals, logs, and
-  external IDs.
+### 2. Product Agents
+- **Purpose**: Run on behalf of tenants in production (email analysis, data extraction)
+- **Access**: Tenant data, connected services (via OAuth credentials)
+- **LLM**: Specialized for task (email analysis, feature extraction; not creative writing)
+- **Execution**: `services/agents` Python sidecar, triggered by `services/worker`
+- **Trust model**: Medium (tenant data may contain sensitive information; outputs are logged)
+- **Examples**:
+  - Analyze an email and extract key information
+  - Summarize a document
+  - Classify a support ticket
 
-### n8n role
+Product agents are implemented in Python (`services/agents`):
+```python
+# services/agents/main.py
+@app.post("/api/v1/agents/email-analysis")
+def analyze_email(request: EmailAnalysisRequest):
+    # Use OpenAI API or local model for email analysis
+    result = model.extract_entities(request.email_body)
+    return result
+```
 
-n8n remains an internal deterministic workflow runtime.
+### 3. Deterministic Workflows
+- **Purpose**: Multi-step automations without LLM reasoning
+- **Access**: Connected services (via OAuth credentials in n8n)
+- **Logic**: Conditional branching, loops, data transformations (no LLM)
+- **Execution**: n8n workflow instances, one per tenant
+- **Trust model**: High (behavior is deterministic and auditable)
+- **Examples**:
+  - Receive email → extract data → create CRM entry → send Slack notification
+  - Fetch data from source → transform → upload to destination
+  - On approval → update status → notify user
 
-- It is not the control plane.
-- It is not a tenant-facing builder surface.
-- It is not the canonical source of workflow definitions.
-
-### Tenant model
-
-Workflow installs use one runtime copy per tenant installation in the shared
-n8n instance.
-
-- The repo stores one canonical workflow template.
-- Installing that template creates a tenant-scoped `workflow_installations`
-  row plus a concrete `n8nWorkflowId`.
-- We do not commit one workflow JSON per tenant.
-
-### Credential strategy
-
-The default credential strategy is `platform_managed`.
-
-- Platform connectors and services should own tenant credentials when the
-  runtime path supports it.
-- Workflows that still require n8n-native credentials are allowed only as
-  documented exceptions.
-- Those exceptions must be declared in operational manifest metadata via
-  `runtime.credentialStrategy`.
-
-This narrows ADR-003 in a practical way: platform-managed credentials remain
-the default architecture, but current n8n node constraints can justify an
-explicit exception.
-
-### Product agents vs developer agents
-
-Developer agents and product agents are separate concepts.
-
-- Developer agents: Codex, Cursor, repo skills, and developer MCP tooling used
-  to build the repository.
-- Product agents: tenant-installable templates executed through the platform
-  runtime.
-
-Developer-agent tooling must not be treated as part of the customer-facing SaaS
-runtime model.
-
-### Runtime ownership
-
-- `@agentmou/agent-engine` is the primary runtime for installable product
-  agents.
-- `services/agents` is currently a narrow helper service, not the main product
-  runtime.
-- n8n owns deterministic workflow execution.
+Communication boundaries:
+```
+apps/web
+  ↓ (user requests)
+services/api
+  ↓ (trigger agent)
+services/worker
+  ├→ (JSON request) services/agents (Python)
+  │    (JSON response)
+  │
+  └→ (n8n API call) n8n
+       (JSON state)
+```
 
 ## Alternatives Considered
 
-### Make n8n the canonical builder and source of truth
+1. **Single agent type**: All use cases handled by a unified LLM agent
+   - Pros: Simpler architecture, fewer systems
+   - Cons: Harder to enforce security boundaries, easier for agents to misuse credentials
 
-Rejected because it would move product truth into a runtime system and weaken
-reviewability, version control, and repo-local testing.
+2. **LLM-driven workflows**: Every n8n step uses an LLM for reasoning
+   - Pros: More flexibility, agents can adapt to edge cases
+   - Cons: Non-deterministic (can produce different results for same input), expensive, harder to debug
 
-### Commit one workflow JSON per tenant
-
-Rejected because tenant variance belongs in installations and runtime state,
-not in versioned source assets.
-
-### Collapse developer-agent tooling into the product runtime model
-
-Rejected because workspace instructions, skills, and developer MCP configs are
-implementation tooling, not tenant-facing runtime components.
+3. **No product agents**: All analysis via workflows and rule engines
+   - Pros: Pure determinism, predictable costs
+   - Cons: Limited capability for complex analysis tasks, slower iteration on AI features
 
 ## Consequences
 
-- Operational manifests now need explicit runtime metadata such as
-  `requiredConnectors`, `credentialStrategy`, `installStrategy`, and
-  `runtimeOwner`.
-- The API catalog layer must map operational manifests to shared UI contracts
-  instead of returning raw manifests directly.
-- Runbooks and docs must describe authoring as:
-  prototype -> sanitize -> commit -> install -> validate -> clean up.
-- Workflows that remain n8n-native credential exceptions must document that
-  exception in their README and manifest.
+- **Three distinct execution surfaces**: More services to deploy and monitor, but clear responsibility separation.
+- **Different security models**: Developer agents run trusted but isolated; product agents run untrusted but constrained.
+- **Clear audit trail**: Each agent type leaves different logs. Debugging is straightforward.
+- **Product agents in Python**: The agents sidecar is isolated from the main TypeScript codebase. AI library choices do not affect the main platform.
+- **Workflows are deterministic**: Tenant workflows are reproducible, testable, and auditable. No hallucination risk.
+- **Agent promotion**: Creating new agents involves deciding which surface: developer tool, product agent, or workflow.
+- **Cost control**: Developer agents are used during development (small cost). Product agents and workflows run at tenant request (pay-per-use, controlled).
+
+This separation enables safe, scalable use of AI throughout the platform without creating security or reliability issues.

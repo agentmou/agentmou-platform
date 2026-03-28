@@ -1,61 +1,92 @@
-# Documentation Hub
+# Agentmou Platform Documentation
 
-Use this directory as the canonical entrypoint for repository documentation.
-The docs below are organized so newcomers can find one source of truth per
-topic instead of bouncing between architecture notes, planning artifacts, and
-historical logs.
+Welcome to the Agentmou Platform documentation. This hub organizes everything
+you need to understand, develop, and operate the AI agents platform.
 
-## Start Here
+## Getting Started
 
-- [Onboarding](./onboarding.md) for the recommended reading order, local setup,
-  and first-day workflow.
-- [Architecture Overview](./architecture/overview.md) for the short map of the
-  system and the most important supporting docs.
-- [AI Surfaces](./architecture/ai-surfaces.md) for the boundary between
-  developer agents, product agents, workflows, and runtime ownership.
-- [Catalog, demo, and marketing](./catalog-and-demo.md) for operational vs
-  demo inventory, marketing featured cards, and ID sync.
-- [Template Library](./template-library.md) for reference skeletons that show
-  how to start new agents, workflows, and hybrid assets without polluting the
-  live catalog.
-- [Repository Map](./repo-map.md) for the current workspace layout and runtime
-  boundaries.
-- [Testing Guide](./testing.md) for validation commands and where tests live.
-- [Deployment Guide](./deployment.md) for the deployment entrypoint and links
-  to detailed runbooks.
-- [Troubleshooting Guide](./troubleshooting.md) for common failures and the
-  first checks to run.
+**New to Agentmou?** Start here:
+
+- **[Onboarding Guide](./onboarding.md)** — Prerequisites, local setup, key concepts, and first tasks.
+- **[Glossary](./glossary.md)** — Domain terms and concepts used throughout the platform.
 
 ## Architecture
 
-- [Current State](./architecture/current-state.md) is the code-verified
-  architecture and operations snapshot.
-- [Architecture Overview](./architecture/overview.md) is the short landing page
-  for architecture readers.
-- [AI Surfaces](./architecture/ai-surfaces.md) explains where workflows,
-  product agents, developer agents, manifests, and runtime state belong.
-- [Web App Architecture](./architecture/apps-web.md) describes the current
-  `apps/web` structure and constraints.
-- [Engineering Conventions](./architecture/conventions.md) captures repo-wide
-  implementation rules.
-- [ADRs](./adr/) contains hard-to-reverse architectural decisions, including
-  [013 — Enterprise auth / SSO strategy](./adr/013-enterprise-auth-sso-strategy.md)
-  for SAML/OIDC direction versus in-app B2C OAuth.
+Understand how Agentmou is structured and why:
+
+- **[Architecture Overview](./architecture/overview.md)** — System topology, control plane vs data plane, communication patterns, auth model.
+- **[Repository Map](./repo-map.md)** — Every app, service, package, and config file explained.
+- **[Data Model](./architecture/data-model.md)** — Database schema, entity relationships, migrations, encryption at rest.
+- **[Agent Engine](./architecture/agent-engine.md)** — Planner, PolicyEngine, Toolkit, execution flow, HITL approvals.
+- **[Catalog System](./architecture/catalog-system.md)** — Catalog layers, availability tiers, manifest structure, templates, promotion flow.
+- **[Conventions](./architecture/conventions.md)** — Naming, imports, data modeling, error handling, typing guardrails.
+
+## Development
+
+Guidelines for contributing:
+
+- **[Testing Guide](./testing.md)** — Vitest patterns, test categories, AAA pattern, mocking, coverage expectations.
+- **[API Routes](./api-routes.md)** — REST API endpoint reference for all 15 route modules.
+- **[Environment Variables](./environment-variables.md)** — Complete configuration reference.
+
+Commit, branching, and PR conventions live in `.cursor/rules/` and `.codex/rules/`
+(applied automatically by AI assistants).
 
 ## Operations
 
-- [Deployment Guide](./deployment.md) explains which procedure to use in local
-  development versus on the VPS.
-- [Runbooks](./runbooks/README.md) indexes detailed operational procedures.
-- [Agent Authoring and Promotion](./runbooks/agent-authoring-and-promotion.md)
-  explains how to promote a reference skeleton into a real product-agent
-  template.
-- [Workflow Authoring and Promotion](./runbooks/workflow-authoring-and-promotion.md)
-  explains how to promote a sanitized n8n workflow template into a real asset.
-- [Infrastructure Overview](../infra/README.md) explains the files under
-  `infra/` and where to make production changes.
+Guides for running Agentmou in production:
 
-## Planning
+- **[Runbooks Index](./runbooks/README.md)** — Quick reference for all operational runbooks.
+- **[Local Development](./runbooks/local-development.md)** — Setup, hot reload, database operations, running tests.
+- **[Deployment](./runbooks/deployment.md)** — VPS requirements, deploy procedure, health verification, rollback.
+- **[VPS Operations](./runbooks/vps-operations.md)** — Server management, backups, certificates, monitoring.
+- **[Agent Authoring](./runbooks/agent-authoring.md)** — Creating agents and workflows from templates to production.
+- **[Security & Dependencies](./runbooks/security-dependencies.md)** — Auditing, dependency updates, secrets management.
 
-- [Roadmap](./planning/roadmap.md) is the only planning document that stays in
-  the main navigation.
+## Troubleshooting
+
+- **[Troubleshooting Guide](./troubleshooting.md)** — Common problems and solutions for Docker, database, auth, build, queues, n8n, and Python services.
+
+## Architecture Decision Records
+
+Decisions that shaped the platform:
+
+| ADR | Title |
+| --- | --- |
+| [001](./adr/001-monorepo-structure.md) | Monorepo with pnpm + Turborepo |
+| [002](./adr/002-shared-contracts-type-system.md) | Shared contracts type system (Zod) |
+| [003](./adr/003-n8n-role.md) | n8n as internal workflow engine |
+| [004](./adr/004-typescript-runtime-first.md) | TypeScript runtime first |
+| [005](./adr/005-postgres-pgvector-redis.md) | PostgreSQL + pgvector + Redis |
+| [006](./adr/006-vps-deployment.md) | Docker Compose on VPS |
+| [007](./adr/007-n8n-workflow-provisioning.md) | One n8n workflow per tenant installation |
+| [008](./adr/008-connector-oauth-token-storage.md) | AES-256-GCM token encryption |
+| [009](./adr/009-ai-surface-boundaries.md) | AI surface boundaries |
+| [010](./adr/010-catalog-availability-tiers.md) | Catalog availability tiers |
+| [011](./adr/011-enterprise-auth-strategy.md) | Enterprise auth strategy |
+
+## Quick Navigation by Role
+
+**Frontend** — [Onboarding](./onboarding.md) → [Repo Map](./repo-map.md) → [Testing](./testing.md) → [Conventions](./architecture/conventions.md)
+
+**Backend** — [Onboarding](./onboarding.md) → [Architecture](./architecture/overview.md) → [API Routes](./api-routes.md) → [Data Model](./architecture/data-model.md) → [Agent Engine](./architecture/agent-engine.md)
+
+**DevOps** — [Local Dev](./runbooks/local-development.md) → [Deployment](./runbooks/deployment.md) → [VPS Ops](./runbooks/vps-operations.md) → [Environment Variables](./environment-variables.md)
+
+**Product** — [Glossary](./glossary.md) → [Architecture Overview](./architecture/overview.md) → [Catalog System](./architecture/catalog-system.md)
+
+## Key Commands
+
+```bash
+pnpm install                # Install dependencies
+pnpm dev                    # Start all services in dev mode
+pnpm test                   # Run all tests
+pnpm lint                   # Lint all code
+pnpm typecheck              # TypeScript type checking
+pnpm format                 # Auto-format code
+pnpm db:generate            # Generate migrations
+pnpm db:migrate             # Run migrations
+pnpm db:seed                # Seed test data
+```
+
+For the complete list, see the root [README.md](../README.md).

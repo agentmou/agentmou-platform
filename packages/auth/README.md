@@ -56,4 +56,4 @@ pnpm --filter @agentmou/auth test
 
 ## Related Docs
 
-- [Current State](../../docs/architecture/current-state.md)
+- [Architecture Overview](../../docs/architecture/overview.md)

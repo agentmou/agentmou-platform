@@ -89,6 +89,6 @@ pnpm --filter @agentmou/db why @esbuild-kit/esm-loader
 
 ## Related Docs
 
-- [Current State](../../docs/architecture/current-state.md)
+- [Architecture Overview](../../docs/architecture/overview.md)
 - [Repository Map](../../docs/repo-map.md)
 - [Deployment Runbook](../../docs/runbooks/deployment.md)

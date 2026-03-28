@@ -94,6 +94,6 @@ API and web app.
 
 ## Related Docs
 
-- [Current State](../../docs/architecture/current-state.md)
+- [Architecture Overview](../../docs/architecture/overview.md)
 - [Repository Map](../../docs/repo-map.md)
 - [VPS Operations Runbook](../../docs/runbooks/vps-operations.md)

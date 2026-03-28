@@ -142,7 +142,7 @@ pnpm demo-catalog:generate
 ## Related Docs
 
 - [Web App Architecture](../../docs/architecture/apps-web.md)
-- [Current State](../../docs/architecture/current-state.md)
+- [Architecture Overview](../../docs/architecture/overview.md)
 - [Catalog, demo, and marketing](../../docs/catalog-and-demo.md)
 - [Honest UI Audit Map](./lib/honest-ui/audit.ts)
 - [Repository Map](../../docs/repo-map.md)
