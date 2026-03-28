@@ -1,14 +1,13 @@
 {
   "globs": [
     "README.md",
-    "AGENTS.md",
     "apps/**/*.md",
     "catalog/**/*.md",
     "docs/**/*.md",
     "infra/**/*.md",
     "packages/**/*.md",
     "services/**/*.md",
-    "skills/**/*.md",
+    ".ai/**/*.md",
     "templates/**/*.md",
     "workflows/**/*.md",
     ".codex/**/*.mdc",

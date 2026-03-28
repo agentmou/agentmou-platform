@@ -1,7 +1,7 @@
 PYTHON ?= python3
 MARKDOWNLINT ?= pnpm exec markdownlint-cli2
 YAMLLINT ?= $(PYTHON) -m yamllint
-YAML_TARGETS := .github infra catalog templates workflows skills pnpm-workspace.yaml
+YAML_TARGETS := .github infra catalog templates workflows pnpm-workspace.yaml
 
 .PHONY: validate-markdown validate-yaml validate-content
 

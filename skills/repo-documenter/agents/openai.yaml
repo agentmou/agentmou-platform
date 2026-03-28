@@ -1,4 +1,0 @@
-interface:
-  display_name: "Repo Documenter"
-  short_description: "Map and document any software repository"
-  default_prompt: "Use $repo-documenter to understand this codebase, map its structure, improve its docs, and update TSDoc or OpenAPI docs when needed."

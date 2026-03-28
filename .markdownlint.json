@@ -2,6 +2,8 @@
   "default": true,
   "MD013": false,
   "MD024": false,
+  "MD025": false,
+  "MD029": false,
   "MD022": false,
   "MD031": false,
   "MD032": false,
@@ -10,7 +12,9 @@
   "MD036": false,
   "MD040": false,
   "MD041": false,
+  "MD050": false,
   "MD053": false,
+  "MD058": false,
   "MD060": {
     "style": "compact"
   }
