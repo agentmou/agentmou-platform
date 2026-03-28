@@ -374,26 +374,25 @@ describe('TenantService (Integration)', () => {
 
 ### E2E Tests
 
-Test complete user flows from UI through backend.
+Test complete user flows across the API and async workers.
 
 ```typescript
 // scripts/test-e2e-triage.ts
-import { describe, it, expect } from 'vitest';
-import { browser, loginAs, navigateTo } from '../test-browser';
-
-describe('Inbox Triage E2E', () => {
-  it('should triage email from dashboard', async () => {
-    await loginAs('testuser@example.com');
-    await navigateTo('/app/tenant-123/fleet');
-    await browser.click('[data-test="install-agent"]');
-    // ... complete flow
-    expect(await browser.textContent('[data-test="run-status"]')).toBe('completed');
-  });
+const register = await fetch(`${API_URL}/api/v1/auth/register`, { method: 'POST', ... });
+const install = await fetch(`${API_URL}/api/v1/tenants/${tenantId}/installations/packs`, {
+  method: 'POST',
+  ...
+});
+const installations = await pollForInstallations();
+const agentInstallationId = installations.installations?.agents?.[0]?.id;
+const run = await fetch(`${API_URL}/api/v1/tenants/${tenantId}/runs`, {
+  method: 'POST',
+  body: JSON.stringify({ agentInstallationId }),
 });
 ```
 
-**Example E2E test:**
-- `scripts/test-e2e-triage.ts`
+**Example E2E / smoke script:**
+- `scripts/test-e2e-triage.ts` — API-driven validation of the Gmail inbox triage slice
 
 ## Coverage Expectations
 
