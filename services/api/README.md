@@ -140,7 +140,7 @@ pnpm --filter @agentmou/api build
 
 ## Related Docs
 
-- [Current State](../../docs/architecture/current-state.md)
+- [Architecture Overview](../../docs/architecture/overview.md)
 - [Repository Map](../../docs/repo-map.md)
 - [ADR-007: n8n Workflow Provisioning](../../docs/adr/007-n8n-workflow-provisioning.md)
 - [ADR-008: Connector OAuth Token Storage](../../docs/adr/008-connector-oauth-token-storage.md)

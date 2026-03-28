@@ -40,6 +40,6 @@ pnpm --filter @agentmou/catalog-sdk lint
 ## Related Docs
 
 - [Catalog, demo, and marketing](../../docs/catalog-and-demo.md)
-- [Current State](../../docs/architecture/current-state.md)
+- [Architecture Overview](../../docs/architecture/overview.md)
 - [Repository Map](../../docs/repo-map.md)
 - [ADR-001: Monorepo Structure](../../docs/adr/001-monorepo-structure.md)

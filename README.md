@@ -1,20 +1,54 @@
 # Agentmou Platform
 
-Agentmou is a monorepo for an AI agents platform with a tenant control plane,
-workflow orchestration via n8n, and background execution infrastructure.
+Agentmou is a **multi-tenant AI agents platform** that enables organizations to install, execute, and manage AI agents with human-in-the-loop approvals. It combines a React/Next.js control plane, a Fastify REST API, background job processing via BullMQ, and workflow orchestration through n8n.
 
-The canonical documentation entrypoint is [`docs/README.md`](./docs/README.md).
+**Start here:** Read the [Documentation Hub](./docs/README.md) for comprehensive guides on setup, architecture, testing, and operations.
 
 ## Workspace Map
 
-- `apps/web`: public marketing site plus authenticated tenant control plane
-- `services/api`: Fastify control-plane API
-- `services/worker`: BullMQ worker for installs, executions, schedules, and
-  approval timeout handling
-- `services/agents`: narrow Python FastAPI sidecar for email analysis and deep
-  health
-- `packages/*`: shared contracts, DB, queueing, catalog SDK, connectors, auth,
-  observability, and runtime helpers
+### Applications
+
+| Workspace | Description |
+| --------- | ----------- |
+| `apps/web` | Next.js 16 + React 19 frontend. Public marketing site (/, /pricing, /docs) and authenticated tenant control plane at `/app/[tenantId]/`. Includes dashboard, marketplace, fleet, runs, approvals, installer, settings. Uses Zustand for state, React Hook Form + Zod for validation, TailwindCSS 4 + shadcn/ui for styling. |
+
+### Services
+
+| Workspace | Description |
+| --------- | ----------- |
+| `services/api` | Fastify 5 REST API. 15 route modules: auth, tenants, catalog, installations, runs, approvals, connectors, webhooks, etc. JWT authentication with role-based access control. Zod validation on all inputs. |
+| `services/worker` | BullMQ background job processor. 5 queues: INSTALL_PACK, RUN_AGENT, RUN_WORKFLOW, SCHEDULE_TRIGGER, APPROVAL_TIMEOUT. Redis-backed with exponential backoff retry logic. |
+| `services/agents` | Python FastAPI sidecar for specialized AI tasks. Provides `/analyze-email` endpoint using GPT-4o-mini. X-API-Key authentication. |
+
+### Packages (Shared Libraries)
+
+| Workspace | Description |
+| --------- | ----------- |
+| `packages/contracts` | Zod schemas and TypeScript types for validation and type safety across services. Covers catalog, tenancy, installations, execution, and approvals. |
+| `packages/db` | Drizzle ORM + PostgreSQL 16. 30+ tables covering auth, tenancy, connectors, installations, executions, approvals, billing, audit, knowledge base. |
+| `packages/queue` | BullMQ queue definitions with typed payloads for all job types. |
+| `packages/auth` | JWT token generation and verification using jose library. |
+| `packages/connectors` | OAuth connectors for Gmail and extensible connector registry pattern. Handles credential encryption (AES-256-GCM). |
+| `packages/catalog-sdk` | YAML manifest loading and validation for agents and workflows. |
+| `packages/agent-engine` | Core agent runtime with Planner (GPT-4o), PolicyEngine, Toolkit, MemoryManager, WorkflowDispatcher, ApprovalGateManager, RunLogger, TemplatesManager. |
+| `packages/observability` | Structured logging with Pino logger. |
+| `packages/n8n-client` | Thin HTTP client wrapper for n8n API using axios. |
+
+### Infrastructure & Configuration
+
+| Workspace | Description |
+| --------- | ----------- |
+| `infra/` | Docker Compose for local and production deployments. Includes Traefik reverse proxy config, backup scripts, and setup automation. |
+| `catalog/` | Agent/workflow/pack definitions in YAML with manifest, prompt, and policy files. Categories: productivity, support, sales, marketing, development, finance, hr, operations. |
+| `templates/` | Starter skeletons for creating new agents and workflows. |
+| `workflows/` | Pre-built n8n workflow JSON exports. |
+| `scripts/` | Workspace utilities: tenant cleanup, catalog ID generation, E2E tests. |
+
+### Tooling
+
+- **Root tools:** pnpm 9.15, Turborepo, Biome, ESLint, Vitest, TypeScript strict mode
+- **CI/CD:** GitHub Actions (lint, typecheck, test, Python validation)
+- **Runtime:** Node 22 LTS, Python 3.12, PostgreSQL 16, Redis 7, n8n 1.76.1
 
 ## Quick Start
 
@@ -57,11 +91,21 @@ pnpm dev
 | PostgreSQL                     | `localhost:5432`        |
 | Redis                          | `localhost:6379`        |
 
-## Read Next
+## Next Steps
 
-- [Documentation Hub](./docs/README.md)
-- [Architecture Overview](./docs/architecture/overview.md)
-- [Current State](./docs/architecture/current-state.md)
-- [Repository Map](./docs/repo-map.md)
-- [Catalog, demo, and marketing](./docs/catalog-and-demo.md)
-- [Deployment Guide](./docs/deployment.md)
+**New to Agentmou?**
+
+1. Start with [Onboarding Guide](./docs/onboarding.md) for local setup
+2. Read [Glossary](./docs/glossary.md) to learn domain terminology
+3. Review [Architecture Overview](./docs/architecture/overview.md) for system design
+4. See [Repository Map](./docs/repo-map.md) for detailed workspace breakdown
+
+**For Specific Tasks:**
+
+- **Testing**: [Testing Guide](./docs/testing.md) — Vitest patterns, AAA pattern, mocking strategies
+- **Troubleshooting**: [Troubleshooting Guide](./docs/troubleshooting.md) — Common issues and solutions
+- **Deployment**: [Deployment Guide](./docs/runbooks/deployment.md) — Production setup and Docker configuration
+- **API Development**: [API Routes](./docs/api-routes.md) — REST endpoint overview
+- **Configuration**: [Environment Variables](./docs/environment-variables.md) — Complete reference
+
+**Full Documentation Hub**: [docs/README.md](./docs/README.md) — Central index with role-based navigation

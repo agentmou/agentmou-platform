@@ -56,6 +56,6 @@ pnpm --filter @agentmou/contracts lint
 
 ## Related Docs
 
-- [Current State](../../docs/architecture/current-state.md)
+- [Architecture Overview](../../docs/architecture/overview.md)
 - [Repository Map](../../docs/repo-map.md)
 - [ADR-002: Shared Contracts](../../docs/adr/002-shared-contracts-type-system.md)

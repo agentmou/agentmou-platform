@@ -1,448 +1,520 @@
-# VPS Operations
+# VPS Operations and Maintenance
 
-This runbook documents the main Agentmou production VPS. Pair it with the
-[current-state operational verification snapshot](../architecture/current-state.md#operational-verification-snapshot-on-march-19-20-2026)
-before making claims about the live state that is currently verified.
+This runbook covers day-to-day management of the production VPS after deployment, including backups, monitoring, certificate management, and troubleshooting.
 
-The March 19, 2026 live verification used the current VPS checkout at
-`/srv/agentmou-platform`.
+## Server Access and Overview
 
-## Server Specs
-
-| Resource | Value               |
-| -------- | ------------------- |
-| Provider | (your provider)     |
-| OS       | Ubuntu (latest LTS) |
-| RAM      | 8 GB                |
-| Disk     | 150 GB SSD          |
-| CPU      | Shared vCPUs        |
-| IP       | Static public IPv4  |
-| SSH user | `deploy`            |
-| Hostname | `vps-n8n-agents`    |
-
-## Network and Firewall
-
-UFW rules (deny all incoming by default):
-
-| Port | Protocol | Source   | Purpose         |
-| ---- | -------- | -------- | --------------- |
-| 22   | TCP      | Anywhere | SSH             |
-| 80   | TCP      | Anywhere | HTTP (redirect) |
-| 443  | TCP      | Anywhere | HTTPS           |
-
-No other ports are exposed. All services communicate over Docker internal
-networks.
-
-## Docker Networks
-
-| Network    | Type     | Services                                                     |
-| ---------- | -------- | ------------------------------------------------------------ |
-| `web`      | External | Traefik, n8n, agents, api, worker, uptime-kuma               |
-| `internal` | Internal | Postgres, Redis, n8n, api, worker                            |
-
-`internal` is a true Docker internal network — no outbound internet
-access. n8n is on both networks: `web` for HTTP traffic and `internal` to
-reach Postgres and Redis.
-
-## Subdomains and Routing
-
-All traffic enters through Traefik on ports 80/443. HTTP redirects to
-HTTPS automatically. The routing table below describes the compose and Traefik
-intent from the repository; live reachability still needs separate
-verification.
-
-Public web traffic is served by Vercel:
-
-- Canonical web domain: `https://agentmou.io`
-- `https://www.agentmou.io` redirects permanently to apex
-
-| Subdomain       | Service           | Auth       | Middlewares                               |
-| --------------- | ----------------- | ---------- | ----------------------------------------- |
-| `api.DOMAIN`    | Control Plane API | None (JWT) | secure-headers, rate-limit, noindex       |
-| `n8n.DOMAIN`    | n8n editor        | —          | secure-headers, noindex                   |
-| `hooks.DOMAIN`  | n8n webhooks      | None       | secure-headers, rate-limit, noindex       |
-| `agents.DOMAIN` | agents API        | BasicAuth  | auth, secure-headers, noindex             |
-| `uptime.DOMAIN` | Uptime Kuma       | BasicAuth  | auth, secure-headers, rate-limit, noindex |
-
-Replace `DOMAIN` with the value of the `DOMAIN` env var
-(e.g., `agentmou.io`).
-
-### Traefik Middlewares
-
-Defined as labels on the Traefik service in the compose file:
-
-- **auth**: HTTP Basic Authentication via `BASIC_AUTH_USERS` env var.
-- **secure-headers**: HSTS (1 year, includeSubdomains, preload), frameDeny,
-  contentTypeNosniff, referrerPolicy no-referrer.
-- **rate-limit**: 30 req/s average, 60 burst.
-- **noindex**: `X-Robots-Tag: noindex, nofollow, noarchive, nosnippet`.
-
-## Directory Structure
-
-After cloning the repo on the VPS:
-
-```
-/srv/agentmou-platform/           # Git clone of agentmou-platform
-├── infra/
-│   ├── compose/
-│   │   ├── docker-compose.prod.yml
-│   │   ├── docker-compose.local.yml
-│   │   ├── .env.example
-│   │   └── .env                  # Real secrets — NOT in git
-│   └── scripts/
-│       ├── backup.sh
-│       ├── cleanup-validation-tenant.sh
-│       ├── deploy-prod.sh
-│       ├── setup.sh
-│       ├── smoke-test.sh
-│       └── verify-prod-image-assets.sh
-├── services/agents/              # Python FastAPI source
-├── postgres/data/                # Bind mount — NOT in git
-├── redis/data/                   # Bind mount — NOT in git
-├── n8n/data/                     # Bind mount — NOT in git
-├── traefik/letsencrypt/          # Bind mount — NOT in git
-├── uptime-kuma/data/             # Bind mount — NOT in git
-└── (no production backups in git checkout)
-
-/var/backups/agentmou/            # Backup output
-/var/lock/agentmou/backup.lock    # Backup lock file
-```
-
-## First-Time Setup
+### SSH Access
 
 ```bash
-ssh deploy@<vps-ip>
-cd /srv
-git clone <repo-url> agentmou-platform
-cd agentmou-platform
-bash infra/scripts/setup.sh
-# Edit .env:
-nano infra/compose/.env
-sudo install -d -o deploy -g deploy -m 750 /var/backups/agentmou /var/lock/agentmou
-# Start:
-docker compose -f infra/compose/docker-compose.prod.yml up -d
+# Connect to the VPS
+ssh deploy@<VPS_IP>
+
+# Or with an SSH key
+ssh -i /path/to/key deploy@<VPS_IP>
 ```
 
-## Script Roles
-
-Use the scripts below in this order so the VPS workflow stays coherent:
-
-| Script                                       | When to use it                                     | Why it exists                                                                                                                                                                                                       |
-| -------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `infra/scripts/setup.sh`                     | Once per VPS after clone                           | Creates `.env` from the tracked example, ensures Docker networks exist, and prepares the bind-mounted service data directories                                                                                      |
-| `infra/scripts/verify-prod-image-assets.sh`  | Before shipping API or worker image changes        | Confirms the built runtime images still contain repo-backed `catalog/` and `workflows/` assets that production resolves at runtime                                                                                  |
-| `infra/scripts/deploy-prod.sh`               | Every production deploy                            | Pulls `origin/main`, validates required production env vars, rebuilds `api`, `worker`, `agents`, and `migrate`, runs migrations, restarts the stack, gates on local edge health, and runs the hardened public smoke test |
-| `infra/scripts/smoke-test.sh`                | After deploys or during incident checks            | Verifies public API health, catalog content, and auth behavior without requiring a redeploy                                                                                                                         |
-| `infra/scripts/backup.sh`                    | Daily cron or manual backup                        | Dumps PostgreSQL, snapshots Redis, exports n8n workflows, and captures bind-mounted state while writing outside the git checkout by default                                                                         |
-| `infra/scripts/cleanup-validation-tenant.sh` | Disposable OAuth or E2E fixture cleanup on the VPS | Wraps the TypeScript cleanup implementation with the host-shell `DATABASE_URL`, `REDIS_URL`, and `N8N_API_URL` values that production cleanup needs                                                                 |
-
-`infra/scripts/deploy-prod.sh` is the tracked deploy command for the main
-Agentmou VPS. If an operator wants a shortcut, keep it as a shell alias
-outside the repo instead of a duplicate tracked script.
-
-## Deploy (Manual)
+### Check Server Health
 
 ```bash
-ssh deploy@<vps-ip>
-cd /srv/agentmou-platform
-bash infra/scripts/deploy-prod.sh
+# System resources
+uptime
+free -h                          # Memory usage
+df -h                            # Disk usage
+ps aux | head -20                # Running processes
+top                              # Interactive resource monitor (press q to exit)
+
+# Docker status
+docker ps -a                     # All containers
+docker stats                     # Resource usage per container
 ```
 
-The canonical deploy script does:
+### Environment Variables
 
-1. `git pull origin main`
-2. validates the required production env vars in `infra/compose/.env`
-3. rebuilds `api`, `worker`, `agents`, and `migrate`
-4. waits for PostgreSQL to become healthy and runs migrations
-5. restarts the stack
-6. gates success on local edge health (`--resolve ... 127.0.0.1`)
-7. runs the hardened public smoke test in `infra/scripts/smoke-test.sh`
+All secrets and configuration are stored in `/home/deploy/agentmou/infra/compose/.env`. **Never** commit this file to Git.
 
-It should be run only from an intentionally clean or reviewed worktree. On
-March 19, 2026 Epic D first cleaned the known untracked drift, then reran the
-historical `deploy-phase25.sh` path from `main` until the hardened smoke test
-passed. That deploy gate now lives in `deploy-prod.sh`.
+---
 
-### Deploy a specific service only
+## Network and Firewall Configuration
+
+### Current Network Setup
+
+The platform uses Traefik as the reverse proxy:
+- **Traefik** listens on ports 80 (HTTP) and 443 (HTTPS)
+- **Internal services** (API on :3001, n8n on :5678, etc.) are only accessible via Traefik
+- **Let's Encrypt** automatically provisions and renews TLS certificates
+
+### Subdomain Routing
+
+Traefik routes traffic based on domain:
+
+| Subdomain | Service |
+|-----------|---------|
+| `agentmou.io` | Web app (Next.js) |
+| `api.agentmou.io` | Control plane API (Fastify) |
+| `n8n.agentmou.io` | n8n workflow editor (if exposed) |
+| `hooks.agentmou.io` | n8n webhook ingress |
+
+### Open Required Ports
+
+From the VPS, verify these ports are accessible from the internet:
 
 ```bash
-cd /srv/agentmou-platform
-git pull origin main
-docker compose -f infra/compose/docker-compose.prod.yml build agents
-docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents
+# Check if ports 80 and 443 are listening
+sudo netstat -tlnp | grep -E ':80|:443'
+
+# Or with ss (modern alternative)
+sudo ss -tlnp | grep -E ':80|:443'
 ```
 
-## Rollback
+If not accessible, configure the firewall:
 
 ```bash
-cd /srv/agentmou-platform
-git log --oneline -10              # Find the good commit
-git checkout <commit-sha>
-docker compose -f infra/compose/docker-compose.prod.yml build
-docker compose -f infra/compose/docker-compose.prod.yml up -d
+# Using UFW (Uncomplicated Firewall)
+sudo ufw allow 22/tcp    # SSH (critical: do this first!)
+sudo ufw allow 80/tcp    # HTTP
+sudo ufw allow 443/tcp   # HTTPS
+sudo ufw enable
+
+# Verify
+sudo ufw status
 ```
 
-To return to latest main:
+### View Current Traefik Configuration
+
+Traefik's configuration is generated from Docker Compose labels. View the active config:
 
 ```bash
-git checkout main && git pull origin main
-docker compose -f infra/compose/docker-compose.prod.yml up -d
+# Check Traefik logs
+docker logs traefik
+
+# View Traefik dashboard (if enabled)
+# curl http://localhost:8080 (not exposed by default; requires editing docker-compose.prod.yml)
 ```
 
-## Backups
+---
 
-Run manually with the production-safe defaults:
+## Database Backups and Recovery
+
+### Automatic Backup Strategy
+
+PostgreSQL should be backed up daily. The backup script is located at `infra/scripts/backup.sh`.
+
+### Manual Backup
+
+Create an immediate backup:
 
 ```bash
+cd /home/deploy/agentmou
+
+# Run the backup script
 bash infra/scripts/backup.sh
 ```
 
-For local or non-VPS runs, set explicit overrides if those defaults are not
-writable:
+This creates a file like `/home/deploy/agentmou/backups/backup-2024-03-28-120000.sql`.
+
+### Automated Backups with Cron
+
+Schedule automatic daily backups:
 
 ```bash
-BACKUP_DIR=/tmp/agentmou-backup \
-LOCK_FILE=/tmp/agentmou-backup.lock \
-bash infra/scripts/backup.sh
+# Edit crontab
+crontab -e
+
+# Add this line (runs backup at 2 AM daily)
+0 2 * * * cd /home/deploy/agentmou && bash infra/scripts/backup.sh
 ```
 
-The script backs up:
-
-- **PostgreSQL**: full `pg_dumpall` compressed with gzip.
-- **Redis**: `dump.rdb` snapshot.
-- **n8n workflows**: exported via `n8n export:workflow --all`.
-- **Files**: tar.gz of n8n data, Traefik certs, uptime-kuma data.
-
-Production output should go to `/var/backups/agentmou`, not into the repo
-checkout. Backups older than 14 days are automatically deleted.
-
-### Cron example (daily at 04:30)
+Verify the cron job:
 
 ```bash
-sudo install -d -o deploy -g deploy -m 750 /var/backups/agentmou /var/lock/agentmou
-
-sudo tee /etc/cron.d/agentmou-backup >/dev/null <<'EOF'
-SHELL=/bin/bash
-PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-30 4 * * * deploy BACKUP_DIR=/var/backups/agentmou LOCK_FILE=/var/lock/agentmou/backup.lock /bin/bash /srv/agentmou-platform/infra/scripts/backup.sh >> /var/backups/agentmou/backup.log 2>&1
-EOF
-
-sudo rm -f /etc/cron.d/stack-backup
+crontab -l
 ```
 
-On March 19, 2026, Epic D confirmed that the tracked backup script runs cleanly
-outside the checkout by writing to `/tmp/agentmou-backup`. Later the same day,
-the residual-risk cleanup installed `/etc/cron.d/agentmou-backup`, removed
-`/etc/cron.d/stack-backup`, created `/var/backups/agentmou` and
-`/var/lock/agentmou`, and manually ran the tracked backup script with
-production output paths while leaving `git status` clean.
+### Monitor Backup Storage
 
-## Temporary Validation Fixture Cleanup
-
-Use the repo-tracked cleanup script instead of direct SQL whenever you need to
-remove a disposable OAuth or E2E validation tenant:
+Backups consume disk space. Monitor and clean old backups:
 
 ```bash
-cd /srv/agentmou-platform
-bash infra/scripts/cleanup-validation-tenant.sh \
-  --tenant-id <tenant-id> \
-  --user-email <validation-email>
+# List backups by size and date
+du -sh /home/deploy/agentmou/backups/*
+ls -lh /home/deploy/agentmou/backups/ | tail -20
 
-bash infra/scripts/cleanup-validation-tenant.sh \
-  --tenant-id <tenant-id> \
-  --user-email <validation-email> \
-  --execute
+# Remove backups older than 30 days (keep recent ones)
+find /home/deploy/agentmou/backups -name "backup-*.sql" -mtime +30 -delete
+
+# Or compress old backups to save space
+find /home/deploy/agentmou/backups -name "backup-*.sql" -mtime +7 ! -name "*$(date +%Y-%m-%d)*" -exec gzip {} \;
 ```
 
-The script is dry-run by default and prints the exact deletion plan first. It
-refuses to run unless the tenant and owner email match the disposable fixture
-markers used in this repo (`oauth-check-*`, `e2e-*`, `example.com`,
-`test.agentmou.io`), the tenant remains on the `free` plan, and the tenant is
-still a single-owner workspace.
+### Restore from Backup
 
-The wrapper exists because the underlying TypeScript implementation runs on
-the VPS host, not inside Docker. It sources `infra/compose/.env`, builds a
-host-reachable `DATABASE_URL` via `127.0.0.1:5432`, resolves the current
-Redis container IP for `REDIS_URL`, derives `N8N_API_URL` from
-`${N8N_EDITOR_BASE_URL}/api/v1`, and then executes
-`scripts/cleanup-validation-tenant.ts`.
-
-On March 19, 2026, this script was dry-run and execute-verified live against
-both the historical OAuth validation tenant and a temporary connector-delete
-fixture. PostgreSQL post-checks returned `tenants=0`, `memberships=0`,
-`connector_accounts=0`, and `users=0` after each cleanup.
-
-On March 20, 2026, the same command path was re-verified after deploying
-`ee804132` from `codex/fix-production-residual-risks`. Dry-run output for a
-fresh `e2e-*` tenant showed `n8n_workflows: 1` and `schedule_repeatables: 1`;
-execute mode then removed the tenant rows, the remote n8n workflow returned
-`404`, and BullMQ repeatables returned to baseline. The same deployment also
-live-verified the normal uninstall path: a disposable tenant moved repeatables
-from `5 -> 6 -> 5`, the remote n8n workflow returned `404` after uninstall,
-and the guarded cleanup script then removed the empty tenant and owner user.
-
-## Provider-Backed Secret Rotation
-
-The March 19-20 provider-backed rotation window covered:
-
-- `OPENAI_API_KEY`
-- `GOOGLE_CLIENT_SECRET`
-- `N8N_API_KEY`
-
-Rotate each value in its source system first, then edit
-`/srv/agentmou-platform/infra/compose/.env` in place without leaving `.bak`
-files in the checkout.
-
-Restart only the affected services:
+To restore from a backup:
 
 ```bash
-cd /srv/agentmou-platform
-docker compose -f infra/compose/docker-compose.prod.yml up -d --no-deps agents worker api
+# Stop the stack
+cd /home/deploy/agentmou
+docker compose -f infra/compose/docker-compose.prod.yml down
+
+# Restore the backup
+docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -d agentmou -f /path/to/backup.sql
+
+# Restart the stack
+docker compose -f infra/compose/docker-compose.prod.yml up -d
+
+# Verify data is restored
+docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -d agentmou -c "SELECT COUNT(*) FROM users;"
 ```
 
-Post-rotation verification matrix:
+### Test Backup Restoration
+
+Periodically (monthly), test that backups can be restored:
 
 ```bash
-docker compose -f infra/compose/docker-compose.prod.yml ps
-curl -sk --resolve api.agentmou.io:443:127.0.0.1 https://api.agentmou.io/health
-bash infra/scripts/smoke-test.sh
+# Restore a recent backup to a test database
+BACKUP_FILE=$(ls -t /home/deploy/agentmou/backups/backup-*.sql | head -1)
+
+docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -c "CREATE DATABASE agentmou_test;"
+
+docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -d agentmou_test -f "$BACKUP_FILE"
+
+# Verify
+docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -d agentmou_test -c "SELECT COUNT(*) FROM users;"
+
+# Clean up test database
+docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -c "DROP DATABASE agentmou_test;"
 ```
 
-Then verify:
+---
 
-- `https://agents.agentmou.io/health/deep` with the current `x-api-key`
-- a fresh Gmail OAuth authorize URL, callback, and `connected` connector state
-- a direct n8n API path that uses `X-N8N-API-KEY`
+## Certificate Management (Let's Encrypt)
 
-Observed March 19-20, 2026 results:
+### Current TLS Setup
 
-- `GOOGLE_CLIENT_SECRET`: live-verified. A fresh Gmail OAuth authorize URL
-  completed successfully and the connectors API returned `gmail` in
-  `connected` state.
-- `N8N_API_KEY`: live-verified. A direct n8n API call succeeded, and after
-  deploying `cabbab85`, `9911bc38`, and `5dbaa108`, the real queued
-  `support-starter` install path reached `workflow.status = active`.
-- `OPENAI_API_KEY`: live-verified. On March 20, 2026, a direct
-  `POST /health/deep` against the agents container returned
-  `{"ok":true,"model":"gpt-4o-mini-2024-07-18"}`.
+Traefik automatically provisions TLS certificates from Let's Encrypt:
+- **Certificates** are stored in Traefik's state file
+- **Auto-renewal**: Traefik renews certificates 30 days before expiry
+- **No manual action needed** in normal operation
 
-### Restore PostgreSQL
+### Check Certificate Status
 
 ```bash
-gunzip -c /var/backups/agentmou/agentmou-stack_postgres_2026-03-08_043001.sql.gz | \
-  docker compose -f infra/compose/docker-compose.prod.yml exec -T postgres \
-  psql -U "$POSTGRES_USER"
+# View Traefik logs for cert messages
+docker compose -f infra/compose/docker-compose.prod.yml logs traefik | grep -i certificate
+
+# Check certificate details via openssl
+echo | openssl s_client -servername agentmou.io -connect agentmou.io:443 2>/dev/null | \
+  openssl x509 -noout -dates -subject
 ```
 
-### Restore n8n workflows
-
-```bash
-docker cp /var/backups/agentmou/agentmou-stack_n8n-workflows_2026-03-08.json \
-  $(docker compose -f infra/compose/docker-compose.prod.yml ps -q n8n):/tmp/import.json
-docker compose -f infra/compose/docker-compose.prod.yml exec n8n \
-  n8n import:workflow --input=/tmp/import.json
+Expected output:
+```
+notBefore=Jan 15 12:00:00 2024 GMT
+notAfter=Apr 15 12:00:00 2024 GMT
+subject=CN = agentmou.io
 ```
 
-## Monitoring
+### Renew Certificates Manually
 
-Uptime Kuma runs at `uptime.DOMAIN` and should monitor:
-
-- `https://api.DOMAIN/health` — API public TLS and route health
-- `https://agents.DOMAIN/health` — agents service health
-- `https://n8n.DOMAIN` — n8n editor reachability
-- `https://hooks.DOMAIN/webhook-test` — n8n webhook endpoint
-- TCP `postgres:5432` (via Docker internal) — database
-- TCP `redis:6379` (via Docker internal) — cache/queue
-
-## Useful Commands
+If certificates need to be renewed immediately:
 
 ```bash
-# Service status
-docker compose -f infra/compose/docker-compose.prod.yml ps
+# Restart Traefik (it will attempt renewal)
+docker compose -f infra/compose/docker-compose.prod.yml restart traefik
 
-# Logs (all or specific service)
+# Monitor renewal attempt
+docker compose -f infra/compose/docker-compose.prod.yml logs traefik --follow
+```
+
+### Troubleshoot Certificate Issues
+
+If certificates fail to renew:
+
+1. **Verify Let's Encrypt can reach the server**:
+   ```bash
+   curl http://agentmou.io/.well-known/acme-challenge/test
+   ```
+   Should not be blocked by firewall or WAF.
+
+2. **Check domain DNS is correct**:
+   ```bash
+   dig agentmou.io
+   nslookup agentmou.io
+   ```
+
+3. **Check Traefik logs**:
+   ```bash
+   docker compose -f infra/compose/docker-compose.prod.yml logs traefik | tail -50
+   ```
+
+4. **Verify `.env` has correct email**:
+   ```bash
+   grep LE_EMAIL infra/compose/.env
+   ```
+
+---
+
+## Monitoring and Logs
+
+### View Service Logs
+
+```bash
+# All services
 docker compose -f infra/compose/docker-compose.prod.yml logs -f
-docker compose -f infra/compose/docker-compose.prod.yml logs -f n8n
 
-# Restart a single service
-docker compose -f infra/compose/docker-compose.prod.yml restart agents
+# Specific service
+docker compose -f infra/compose/docker-compose.prod.yml logs -f api
+docker compose -f infra/compose/docker-compose.prod.yml logs -f worker
+docker compose -f infra/compose/docker-compose.prod.yml logs -f postgres
 
-# Shell into a container
-docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou
-docker compose -f infra/compose/docker-compose.prod.yml exec n8n sh
+# Last N lines
+docker compose -f infra/compose/docker-compose.prod.yml logs --tail 100 api
 
-# Disk usage
-sudo du -h --max-depth=2 /srv/agentmou-platform | sort -h | tail -20
-
-# Check resources
-free -h && uptime && df -h /
+# Timestamps
+docker compose -f infra/compose/docker-compose.prod.yml logs --timestamps api
 ```
 
-## Secrets Management
-
-- All secrets live in `infra/compose/.env` which is gitignored.
-- `BASIC_AUTH_USERS` uses htpasswd format with doubled `$$` for compose.
-- `N8N_ENCRYPTION_KEY` encrypts n8n credentials at rest — **do not lose
-  this key** or stored n8n credentials become unrecoverable.
-- `AGENTS_API_KEY` is consumed directly by `services/agents` and
-  `services/worker`. If any n8n workflow also calls the agents service,
-  rotate that workflow-side credential separately because the n8n container
-  does not currently receive `AGENTS_API_KEY` via compose.
-- Generate strong values: `openssl rand -hex 32`
-
-### March 19, 2026 Cleanup Follow-Up
-
-- Root-level cleanup completed: `/etc/cron.d/agentmou-backup` replaced the
-  legacy `/etc/cron.d/stack-backup` entry, and `/srv/stack` was confirmed
-  absent on the host.
-- VPS-local secret rotation completed for `JWT_SECRET`, `AGENTS_API_KEY`, and
-  `BASIC_AUTH_USERS`. Provider-backed secret rotation still remains a separate
-  operator task.
-- Public route validation completed after the rotation:
-  - `https://api.DOMAIN/health` returned `200`
-  - `https://agents.DOMAIN/health` returned `401` without BasicAuth and `200`
-    with the rotated credential
-  - `https://uptime.DOMAIN/` returned `401` without auth and `302 /dashboard`
-    with the rotated credential
-  - `https://n8n.DOMAIN/` returned `200`
-- Gmail OAuth was validated live against the production API. The first attempt
-  expired the 10-minute OAuth state; the second attempt completed
-  successfully, and the connectors API showed a `gmail` connector in
-  `connected` status for the temporary validation tenant.
-- The temporary `sudoers` file used for the root-level cleanup was removed
-  after the intervention.
-
-## Migration from Legacy Stack
-
-If migrating from the old `/srv/stack/` layout:
+### Search Logs for Errors
 
 ```bash
-# 1. Clone repo
-cd /srv
-git clone <repo-url> agentmou-platform
-cd agentmou-platform
-bash infra/scripts/setup.sh
+# Errors in API
+docker compose -f infra/compose/docker-compose.prod.yml logs api | grep -i error
 
-# 2. Copy .env (adapt variable names if needed)
-cp /srv/stack/.env infra/compose/.env
+# Errors in all services
+docker compose -f infra/compose/docker-compose.prod.yml logs | grep -i error
 
-# 3. Symlink existing data to avoid copying
-ln -sf /srv/stack/postgres/data   postgres/data
-ln -sf /srv/stack/redis/data      redis/data
-ln -sf /srv/stack/n8n/data        n8n/data
-ln -sf /srv/stack/traefik/letsencrypt traefik/letsencrypt
-ln -sf /srv/stack/uptime-kuma/data    uptime-kuma/data
-
-# 4. Stop old stack
-cd /srv/stack && docker compose down
-
-# 5. Start new stack
-cd /srv/agentmou-platform
-docker compose -f infra/compose/docker-compose.prod.yml up -d
-
-# 6. Verify everything works, then clean up
-docker compose -f infra/compose/docker-compose.prod.yml ps
-# If all good, optionally move data instead of symlinks:
-#   mv /srv/stack/postgres/data postgres/data  (etc.)
+# Specific pattern
+docker compose -f infra/compose/docker-compose.prod.yml logs | grep "OAuth\|token\|auth"
 ```
+
+### Set Up Persistent Logging
+
+Docker logs are ephemeral by default. Configure persistent logs during the
+initial Docker/VPS setup in the deployment workflow.
+
+To export logs to an external service (optional):
+
+```bash
+# Send logs to a centralized logging service (e.g., LogRocket, Datadog)
+# This requires Docker log driver configuration in /etc/docker/daemon.json
+```
+
+### Health Check Monitoring
+
+Monitor the health endpoints regularly:
+
+```bash
+# Set up a simple health monitor (run on the VPS or externally)
+while true; do
+  API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.agentmou.io/health)
+  WEB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://agentmou.io/health)
+  echo "$(date): API=$API_STATUS, Web=$WEB_STATUS"
+  sleep 300  # Check every 5 minutes
+done
+```
+
+Or set up external monitoring with tools like:
+- **Uptime.com**: HTTP endpoint monitoring
+- **Datadog**: Infrastructure and application monitoring
+- **New Relic**: Full-stack observability
+
+---
+
+## Secret Rotation
+
+### Connector Encryption Key Rotation
+
+The `CONNECTOR_ENCRYPTION_KEY` encrypts OAuth tokens at rest. Rotate it periodically:
+
+1. **Generate a new key**:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+
+2. **Update `.env`** (this requires decrypting and re-encrypting all tokens):
+   ```bash
+   nano infra/compose/.env
+   # Update CONNECTOR_ENCRYPTION_KEY to the new value
+   ```
+
+3. **Deploy with rotation script** (implement in code, then run):
+   - This is a code-level operation; a database migration that decrypts and re-encrypts all tokens is required.
+   - See [ADR-008](../adr/008-connector-oauth-token-storage.md) for details.
+
+4. **Restart services**:
+   ```bash
+   docker compose -f infra/compose/docker-compose.prod.yml restart api
+   ```
+
+### n8n Encryption Key Rotation
+
+n8n has its own encryption key. Rotate it:
+
+1. **Generate a new key**:
+   ```bash
+   openssl rand -base64 24
+   ```
+
+2. **Update `.env`**:
+   ```bash
+   nano infra/compose/.env
+   # Update N8N_ENCRYPTION_KEY to the new value
+   ```
+
+3. **Important**: n8n does not automatically re-encrypt data when the key changes. You may need to:
+   - Export workflows and credentials before key rotation
+   - Delete the n8n container and volume to reset state
+   - Re-import workflows and credentials
+
+4. **Restart n8n**:
+   ```bash
+   docker compose -f infra/compose/docker-compose.prod.yml restart n8n
+   ```
+
+---
+
+## Scaling and Resource Management
+
+### Monitor Resource Usage
+
+```bash
+# Real-time resource usage
+docker stats
+
+# Historical usage (if logging is configured)
+docker compose -f infra/compose/docker-compose.prod.yml logs --tail 1000 | grep "memory\|cpu"
+```
+
+### Scale Up (Increase VPS Size)
+
+When the VPS is approaching capacity:
+
+1. **Upgrade the VPS** (double memory, CPU, or both)
+2. **Restart services** to use new resources:
+   ```bash
+   docker compose -f infra/compose/docker-compose.prod.yml restart
+   ```
+3. **Verify** services are healthy:
+   ```bash
+   docker compose -f infra/compose/docker-compose.prod.yml ps
+   ```
+
+### Database Optimization
+
+If queries are slow:
+
+```bash
+# Analyze query performance
+docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -d agentmou -c "\l+"
+
+# Check table sizes
+docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -d agentmou -c "SELECT schemaname, tablename, pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) FROM pg_tables WHERE schemaname != 'pg_catalog' ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;"
+
+# Vacuum and analyze (maintenance)
+docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -d agentmou -c "VACUUM ANALYZE;"
+```
+
+---
+
+## Troubleshooting Common Issues
+
+### Services crashing immediately
+
+```bash
+# Check logs
+docker compose -f infra/compose/docker-compose.prod.yml logs api
+
+# Restart with more details
+docker compose -f infra/compose/docker-compose.prod.yml up api
+# (press Ctrl+C to stop)
+```
+
+### Out of disk space
+
+```bash
+# Check usage
+df -h
+
+# Clean up Docker images and containers
+docker system prune -a --volumes -f
+
+# Delete old backups (see Backup Management section)
+find /home/deploy/agentmou/backups -name "backup-*.sql" -mtime +30 -delete
+```
+
+### Database connection errors
+
+```bash
+# Check PostgreSQL is running
+docker compose -f infra/compose/docker-compose.prod.yml ps postgres
+
+# Check logs
+docker compose -f infra/compose/docker-compose.prod.yml logs postgres
+
+# Test connection
+docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -c "SELECT 1;"
+```
+
+### Worker not processing jobs
+
+```bash
+# Check worker logs
+docker compose -f infra/compose/docker-compose.prod.yml logs worker
+
+# Check Redis
+docker compose -f infra/compose/docker-compose.prod.yml exec redis redis-cli
+
+# View queued jobs
+LRANGE bull:jobs:0 0 -1
+
+# Clear stuck jobs
+FLUSHALL
+```
+
+### n8n webhooks not triggering
+
+```bash
+# Check n8n logs
+docker compose -f infra/compose/docker-compose.prod.yml logs n8n
+
+# Verify webhook URL is correct
+grep WEBHOOK_URL infra/compose/.env
+
+# Test webhook endpoint
+curl https://hooks.agentmou.io/webhook/test
+```
+
+---
+
+## Maintenance Windows
+
+### Scheduled Maintenance
+
+Announce maintenance windows when doing:
+- Database backups and maintenance
+- Dependency updates
+- Secrets rotation
+- System updates (kernel, Docker, etc.)
+
+### Performing Maintenance
+
+```bash
+# Example: Update Docker and system packages
+sudo apt update
+sudo apt upgrade -y
+
+# Restart Docker
+sudo systemctl restart docker
+
+# Restart the stack
+docker compose -f infra/compose/docker-compose.prod.yml restart
+```
+
+---
+
+## Related Documentation
+
+- [Deployment Guide](./deployment.md): Deploying to production
+- [Local Development](./local-development.md): Development environment setup
+- [ADR-006: VPS Deployment](../adr/006-vps-deployment.md): Architecture decision for VPS
+- [ADR-008: Connector Encryption](../adr/008-connector-oauth-token-storage.md): Token encryption details

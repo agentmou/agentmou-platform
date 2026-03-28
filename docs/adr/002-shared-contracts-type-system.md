@@ -1,52 +1,70 @@
-# ADR-002 — Shared Contracts as Type Source of Truth
+# ADR-002: Shared Contracts and Type System with Zod
 
 **Status**: accepted
-**Date**: 2026-03-08
+**Date**: 2024-01-15
 
 ## Context
 
-The monorepo has multiple workspaces that share domain concepts: `apps/web`
-(Next.js frontend), `services/api` (Fastify control plane), `services/worker`
-(BullMQ jobs), and several shared packages. Without a single source of truth
-for domain types, each workspace would maintain its own definitions, leading
-to drift, duplication, and integration bugs.
+The platform consists of multiple services (API, worker, agents, web frontend) that communicate via HTTP and message queues. Without a shared contract layer, these services drift over time:
 
-The initial bootstrap created a minimal `packages/contracts` with 3 trivial
-schemas (Agent, Workflow, Pack), while the real domain complexity (~25+
-types, rich enums, nested objects) lived only inside `apps/web`.
+- Changes to an API endpoint are not reflected in the frontend until manually synced
+- Database schema migrations must be manually coordinated across services
+- Queue message types are not validated until runtime
+- Type mismatches between frontend and backend cause bugs at the edges
+
+A shared contracts package allows all services to import the same TypeScript types, ensuring compile-time safety and consistency across the entire platform.
 
 ## Decision
 
-`packages/contracts` is the single source of truth for all domain schemas
-and types shared across workspaces.
+Create `@agentmou/contracts` as a single source of truth for all shared data types and API contracts. Use **Zod** for schema definition and runtime validation.
 
-Implementation:
+Zod provides:
+- **Declarative schemas**: Single definition for both TypeScript types and runtime validators
+- **Automatic type inference**: TypeScript types are derived from schemas with `z.infer<typeof schema>`
+- **Runtime validation**: All external inputs (HTTP requests, queue messages, OAuth tokens) are validated against Zod schemas
+- **Error reporting**: Clear, actionable validation errors
 
-- Domain types are defined as Zod schemas with inferred TypeScript types.
-- Schemas are organized by bounded context: `catalog.ts`, `tenancy.ts`,
-  `installations.ts`, `execution.ts`, `approvals.ts`, `connectors.ts`,
-  `security.ts`, `billing.ts`, `dashboard.ts`.
-- Consumer packages import types from `@agentmou/contracts`.
-- UI-only type extensions (e.g., `CatalogGroup` alias, `DashboardMetrics`)
-  live in contracts when they represent domain concepts, and remain local
-  only if they are purely presentational.
+Structure of `@agentmou/contracts`:
+- `src/api/`: API request/response types (shared between services/api and apps/web)
+- `src/queues/`: BullMQ job payload types (shared between services/api and services/worker)
+- `src/db/`: Database entity types (derived from Drizzle schema in @agentmou/db)
+- `src/connectors/`: Connector configuration and OAuth token types
+- `src/agents/`: Agent execution types (shared between services/api, services/worker, and services/agents)
+
+All services import from `@agentmou/contracts` and validate inputs:
+```typescript
+import { z } from 'zod';
+import { schemas } from '@agentmou/contracts';
+
+// In API endpoint
+const result = schemas.api.CreateInstallRequest.parse(req.body);
+
+// In Worker
+const job = await queue.getJob(jobId);
+const payload = schemas.queues.ExecuteAgentJob.parse(job.data);
+```
 
 ## Alternatives Considered
 
-1. **Keep types local per workspace**: rejected because it guarantees drift
-   between frontend and backend representations.
-2. **Use a separate OpenAPI spec as source of truth**: rejected for this
-   phase — adds complexity before the API is mature enough to stabilize
-   endpoint contracts.
-3. **Use TypeScript interfaces without Zod**: rejected because Zod provides
-   runtime validation for API boundaries and manifest parsing.
+1. **Protocol Buffers (protobuf)**:
+   - Pros: Language-agnostic, strong typing, compact serialization
+   - Cons: Requires code generation, unfamiliar to frontend developers, adds tooling complexity
+
+2. **JSON Schema**:
+   - Pros: Standard format, tooling support
+   - Cons: No automatic TypeScript inference, verbose for complex types, runtime validation is a separate library
+
+3. **Manual type definitions**:
+   - Pros: Simple initial setup
+   - Cons: No runtime validation, types easily drift from actual API behavior, no single source of truth
 
 ## Consequences
 
-- All workspaces must depend on `@agentmou/contracts` for shared domain
-  types.
-- Adding or changing a domain type requires updating contracts first.
-- Runtime validation is available at API boundaries and catalog loading
-  via Zod `.parse()`.
-- The Turbo dependency graph ensures contracts are always built before
-  consumers.
+- **Single import path**: All services use `import { schemas } from '@agentmou/contracts'`. Changes to contracts propagate immediately during build.
+- **Compile-time safety**: TypeScript catches mismatches between services at build time, not in production.
+- **API-first development**: New features require updating the contract first, then implementing in each service.
+- **Runtime safety**: All external inputs are validated; invalid data is rejected early with clear errors.
+- **Type inference**: Developers do not manually maintain separate type definitions; they emerge from schemas.
+- **Changes require coordination**: Modifying a contract impacts all consuming services; breaking changes must be handled carefully (e.g., with versioning or deprecation windows).
+
+The contracts package is lightweight and has no runtime dependencies (Zod is the only external dependency), so it can be imported everywhere without bloat.

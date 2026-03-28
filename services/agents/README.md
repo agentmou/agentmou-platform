@@ -83,6 +83,6 @@ Use an HTTP Request node with:
 
 ## Related Docs
 
-- [Current State](../../docs/architecture/current-state.md)
+- [Architecture Overview](../../docs/architecture/overview.md)
 - [Deployment Runbook](../../docs/runbooks/deployment.md)
 - [VPS Operations Runbook](../../docs/runbooks/vps-operations.md)
