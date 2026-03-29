@@ -1,0 +1,23 @@
+[Unit]
+Description=Agentmou offsite backup snapshot
+Wants=network-online.target
+After=network-online.target docker.service
+ConditionPathExists=/etc/agentmou/restic.env
+ConditionPathExists=/etc/agentmou/restic-password
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/srv/agentmou-platform
+ExecStart=/srv/agentmou-platform/infra/scripts/backup-offsite.sh --mode=daily
+Nice=10
+IOSchedulingClass=best-effort
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/srv/agentmou-platform /var/backups/agentmou /var/lock/agentmou /var/cache/restic /var/tmp
+
+[Install]
+WantedBy=multi-user.target

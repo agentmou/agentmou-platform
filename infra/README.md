@@ -10,8 +10,8 @@ development and the main Agentmou VPS-backed production deployment.
 - `scripts/`
   - Canonical setup, deploy, smoke-test, backup, and cleanup scripts.
 - `backups/`
-  - Placeholder directory for tracked metadata only. Production backups are
-    written outside the repo checkout.
+  - Backup metadata, env templates, and systemd units. Production backup
+    artifacts are written outside the repo checkout.
 - `traefik/`
   - Persistent certificate storage used by the production Traefik container.
 

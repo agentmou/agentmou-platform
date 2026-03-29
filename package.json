@@ -37,7 +37,10 @@
     "test:agents": "python3 -m unittest discover -s services/agents -p 'test_*.py'",
     "typecheck:agents": "python3 -m py_compile services/agents/main.py",
     "setup": "bash infra/scripts/setup.sh",
-    "backup": "bash infra/scripts/backup.sh"
+    "backup": "bash infra/scripts/backup.sh",
+    "backup:offsite": "bash infra/scripts/backup-offsite.sh",
+    "backup:restore-smoke": "bash infra/scripts/restore-offsite-smoke.sh",
+    "backup:install-offsite": "bash infra/scripts/install-offsite-backup.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.6",
