@@ -31,7 +31,7 @@ docker stats                     # Resource usage per container
 
 ### Environment Variables
 
-All secrets and configuration are stored in `/home/deploy/agentmou/infra/compose/.env`. **Never** commit this file to Git.
+All secrets and configuration are stored in `/srv/agentmou-platform/infra/compose/.env`. **Never** commit this file to Git.
 
 ---
 
@@ -100,37 +100,39 @@ docker logs traefik
 
 ### Automatic Backup Strategy
 
-PostgreSQL should be backed up daily. The backup script is located at `infra/scripts/backup.sh`.
+The production VPS uses a hybrid backup model:
+
+- `04:30 UTC`: local application-aware backup via `infra/scripts/backup.sh`
+- `05:00 UTC`: offsite restic snapshot via `infra/scripts/backup-offsite.sh`
+
+The local layer remains canonical because it exports PostgreSQL, Redis, n8n
+workflows, and bind-mounted files in stack-aware formats. The offsite layer
+copies those generated artifacts plus `infra/compose/.env` to Backblaze B2.
 
 ### Manual Backup
 
-Create an immediate backup:
+Create an immediate local backup:
 
 ```bash
-cd /home/deploy/agentmou
+cd /srv/agentmou-platform
 
-# Run the backup script
+# Run the local backup script
 bash infra/scripts/backup.sh
 ```
 
-This creates a file like `/home/deploy/agentmou/backups/backup-2024-03-28-120000.sql`.
+This writes artifacts to `/var/backups/agentmou`, for example:
+
+- `agentmou-stack_postgres_YYYY-MM-DD_HHMMSS.sql.gz`
+- `agentmou-stack_redis_YYYY-MM-DD_HHMMSS.rdb`
+- `agentmou-stack_n8n-workflows_YYYY-MM-DD_HHMMSS.json`
+- `agentmou-stack_files_YYYY-MM-DD_HHMMSS.tar.gz`
 
 ### Automated Backups with Cron
 
-Schedule automatic daily backups:
+The local backup is scheduled through `/etc/cron.d/agentmou-backup`:
 
 ```bash
-# Edit crontab
-crontab -e
-
-# Add this line (runs backup at 2 AM daily)
-0 2 * * * cd /home/deploy/agentmou && bash infra/scripts/backup.sh
-```
-
-Verify the cron job:
-
-```bash
-crontab -l
+cat /etc/cron.d/agentmou-backup
 ```
 
 ### Monitor Backup Storage
@@ -139,53 +141,72 @@ Backups consume disk space. Monitor and clean old backups:
 
 ```bash
 # List backups by size and date
-du -sh /home/deploy/agentmou/backups/*
-ls -lh /home/deploy/agentmou/backups/ | tail -20
+du -sh /var/backups/agentmou
+ls -lh /var/backups/agentmou | tail -20
 
-# Remove backups older than 30 days (keep recent ones)
-find /home/deploy/agentmou/backups -name "backup-*.sql" -mtime +30 -delete
-
-# Or compress old backups to save space
-find /home/deploy/agentmou/backups -name "backup-*.sql" -mtime +7 ! -name "*$(date +%Y-%m-%d)*" -exec gzip {} \;
+# The local backup script already rotates backup artifacts older than 14 days.
+# Do not add a second ad hoc deletion rule unless you also update the script.
 ```
 
 ### Restore from Backup
 
-To restore from a backup:
+To restore the latest PostgreSQL dump from the local backup set:
 
 ```bash
-# Stop the stack
-cd /home/deploy/agentmou
-docker compose -f infra/compose/docker-compose.prod.yml down
+cd /srv/agentmou-platform
+BACKUP_FILE=$(find /var/backups/agentmou -maxdepth 1 -type f -name 'agentmou-stack_postgres_*.sql.gz' | sort | tail -1)
 
-# Restore the backup
-docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -d agentmou -f /path/to/backup.sql
-
-# Restart the stack
-docker compose -f infra/compose/docker-compose.prod.yml up -d
-
-# Verify data is restored
-docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -d agentmou -c "SELECT COUNT(*) FROM users;"
+gunzip -c "$BACKUP_FILE" | \
+  docker compose --env-file infra/compose/.env -f infra/compose/docker-compose.prod.yml \
+  exec -T postgres sh -c 'psql -U "$POSTGRES_USER"'
 ```
+
+Redis, n8n workflow exports, and bind-mounted file archives are restored from
+their sibling artifacts in `/var/backups/agentmou` as needed.
+
+### Offsite Backup Installation and Scheduling
+
+```bash
+cd /srv/agentmou-platform
+sudo bash infra/scripts/install-offsite-backup.sh
+```
+
+This installs:
+
+- `restic`
+- `/etc/agentmou/restic.env`
+- `/etc/agentmou/restic-password`
+- `agentmou-backup-offsite.service`
+- `agentmou-backup-offsite.timer`
+
+After filling in the real credentials, run:
+
+```bash
+cd /srv/agentmou-platform
+sudo bash infra/scripts/backup-offsite.sh --mode=manual
+sudo bash infra/scripts/restore-offsite-smoke.sh
+sudo systemctl enable --now agentmou-backup-offsite.timer
+```
+
+The timer is expected to run daily at `05:00 UTC`, after the local cron job at
+`04:30 UTC`.
 
 ### Test Backup Restoration
 
-Periodically (monthly), test that backups can be restored:
+Run the offsite restore smoke test periodically:
 
 ```bash
-# Restore a recent backup to a test database
-BACKUP_FILE=$(ls -t /home/deploy/agentmou/backups/backup-*.sql | head -1)
-
-docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -c "CREATE DATABASE agentmou_test;"
-
-docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -d agentmou_test -f "$BACKUP_FILE"
-
-# Verify
-docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -d agentmou_test -c "SELECT COUNT(*) FROM users;"
-
-# Clean up test database
-docker compose -f infra/compose/docker-compose.prod.yml exec postgres psql -U agentmou -c "DROP DATABASE agentmou_test;"
+cd /srv/agentmou-platform
+sudo bash infra/scripts/restore-offsite-smoke.sh
 ```
+
+It restores the latest offsite snapshot into `/var/tmp/...` and verifies:
+
+- a PostgreSQL dump exists and passes `gzip -t`
+- a Redis `.rdb` exists
+- an n8n workflow export exists
+- a `files_*.tar.gz` archive exists and passes `tar -tzf`
+- `infra/compose/.env` exists in the restored tree
 
 ---
 
@@ -439,8 +460,9 @@ df -h
 # Clean up Docker images and containers
 docker system prune -a --volumes -f
 
-# Delete old backups (see Backup Management section)
-find /home/deploy/agentmou/backups -name "backup-*.sql" -mtime +30 -delete
+# Review the current local backup footprint
+du -sh /var/backups/agentmou
+ls -lh /var/backups/agentmou | tail -20
 ```
 
 ### Database connection errors

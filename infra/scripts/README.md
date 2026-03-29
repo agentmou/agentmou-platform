@@ -14,6 +14,9 @@ n8n, PostgreSQL, Redis, Traefik, and uptime monitoring.
 | `deploy-prod.sh` | Canonical production deploy entrypoint |
 | `smoke-test.sh` | Public API/catalog/auth verification check |
 | `backup.sh` | Production-safe backup entrypoint |
+| `backup-offsite.sh` | Offsite restic snapshot of the local backup artifacts |
+| `restore-offsite-smoke.sh` | Restore the latest offsite snapshot into a temp path and verify artifacts |
+| `install-offsite-backup.sh` | Install restic plus the offsite systemd timer on the VPS |
 | `cleanup-validation-tenant.sh` | VPS wrapper around disposable fixture cleanup |
 
 ## Operating Rules

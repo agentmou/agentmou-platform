@@ -132,7 +132,7 @@ Requires=docker.service
 [Service]
 Type=simple
 User=deploy
-WorkingDirectory=/home/deploy/agentmou
+WorkingDirectory=/srv/agentmou-platform
 ExecStart=/usr/bin/docker compose -f infra/compose/docker-compose.prod.yml up
 ExecStop=/usr/bin/docker compose -f infra/compose/docker-compose.prod.yml down
 Restart=always
@@ -382,8 +382,11 @@ If all else fails, restore from a PostgreSQL backup:
 # Stop the stack
 docker compose -f infra/compose/docker-compose.prod.yml down
 
-# Restore backup (see VPS Operations runbook)
-bash infra/scripts/restore-backup.sh /path/to/backup.sql
+# Restore backup (see VPS Operations runbook for the full procedure)
+BACKUP_FILE=/var/backups/agentmou/agentmou-stack_postgres_YYYY-MM-DD_HHMMSS.sql.gz
+gunzip -c "$BACKUP_FILE" | \
+  docker compose --env-file infra/compose/.env -f infra/compose/docker-compose.prod.yml \
+  exec -T postgres sh -c 'psql -U "$POSTGRES_USER"'
 
 # Restart the stack
 docker compose -f infra/compose/docker-compose.prod.yml up -d
