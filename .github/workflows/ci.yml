@@ -72,3 +72,33 @@ jobs:
         run: |
           python -m py_compile services/agents/main.py
           python -m unittest discover -s services/agents -p 'test_*.py'
+
+  deploy-prod:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [check, agents]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Configure SSH
+        env:
+          PROD_VPS_SSH_KEY: ${{ secrets.PROD_VPS_SSH_KEY }}
+          PROD_VPS_SSH_HOST: ${{ secrets.PROD_VPS_SSH_HOST }}
+          PROD_VPS_SSH_USER: ${{ secrets.PROD_VPS_SSH_USER }}
+        run: |
+          test -n "$PROD_VPS_SSH_KEY"
+          test -n "$PROD_VPS_SSH_HOST"
+          test -n "$PROD_VPS_SSH_USER"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$PROD_VPS_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$PROD_VPS_SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy production
+        env:
+          PROD_VPS_SSH_HOST: ${{ secrets.PROD_VPS_SSH_HOST }}
+          PROD_VPS_SSH_USER: ${{ secrets.PROD_VPS_SSH_USER }}
+          PROD_VPS_REPO_PATH: ${{ secrets.PROD_VPS_REPO_PATH }}
+        run: |
+          test -n "$PROD_VPS_REPO_PATH"
+          ssh "$PROD_VPS_SSH_USER@$PROD_VPS_SSH_HOST" \
+            "cd \"$PROD_VPS_REPO_PATH\" && bash infra/scripts/deploy-prod.sh"
