@@ -22,24 +22,29 @@ const parsed = AgentTemplateSchema.parse(rawData);
 
 ### Domain Modules
 
-| Module          | Entities                                                                                                                                   |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `catalog`       | Category, AgentTemplate, WorkflowTemplate, PackTemplate, WorkflowNode, enums (RiskLevel, HITLMode, Complexity, etc.)                       |
-| `tenancy`       | Tenant, TenantMember, UserRole, TenantType, TenantPlan                                                                                     |
-| `installations` | InstalledAgent, InstalledWorkflow, InstallStep, InstallRun                                                                                 |
-| `execution`     | ExecutionRun, ExecutionStep, ExecutionStatus                                                                                               |
-| `approvals`     | ApprovalRequest, ApprovalActionType                                                                                                        |
-| `connectors`    | Integration, N8nConnection                                                                                                                 |
-| `security`      | SecurityFinding, SecurityPolicy, TenantSecurityScore                                                                                       |
-| `billing`       | Invoice, UsageMetric                                                                                                                       |
-| `dashboard`     | DashboardMetrics                                                                                                                           |
-| `chat`          | PublicChatRequest, PublicChatResponse, citations, and actions                                                                              |
+- `catalog`: Category, AgentTemplate, WorkflowTemplate, PackTemplate,
+  WorkflowNode, and enums such as `RiskLevel`, `HITLMode`, and `Complexity`
+- `tenancy`: Tenant, TenantMember, UserRole, TenantType, TenantPlan
+- `installations`: InstalledAgent, InstalledWorkflow, InstallStep, InstallRun
+- `execution`: ExecutionRun, ExecutionStep, ExecutionStatus
+- `approvals`: ApprovalRequest, ApprovalActionType
+- `connectors`: Integration, N8nConnection
+- `security`: SecurityFinding, SecurityPolicy, TenantSecurityScore
+- `billing`: Invoice, UsageMetric
+- `dashboard`: DashboardMetrics
+- `chat`: PublicChatRequest, PublicChatResponse, citations, and actions
+- `clinic`: ClinicProfile, TenantModule, Patient, ConversationThread,
+  Appointment, dashboard/read models, filters, and clinic action bodies
 
 ### Barrel Exports
 
 - `schemas.ts` — re-exports all Zod schemas.
 - `types.ts` — re-exports all inferred TypeScript types.
 - `index.ts` — re-exports everything from all domain modules.
+
+The clinic module is the shared contract surface for the vertical data layer:
+it exposes clinic entities, dashboard payloads, list/detail envelopes, filter
+schemas, and request bodies that later API/UI phases can consume directly.
 
 ## Development
 

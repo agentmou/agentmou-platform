@@ -124,3 +124,6 @@ export type {
   PublicChatRequest,
   PublicChatResponse,
 } from './chat';
+
+/** Re-exported clinic types. */
+export type * from './clinic';

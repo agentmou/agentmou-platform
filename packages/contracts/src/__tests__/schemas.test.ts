@@ -27,6 +27,12 @@ import {
   OperationalPackManifestSchema,
   WorkflowTemplatesResponseSchema,
   PackTemplatesResponseSchema,
+  ClinicProfileSchema,
+  ClinicDashboardResponseSchema,
+  PatientsResponseSchema,
+  CreatePatientBodySchema,
+  OfferGapBodySchema,
+  ModuleKeySchema,
 } from '../index';
 
 describe('CategorySchema', () => {
@@ -74,6 +80,116 @@ describe('TenantSchema', () => {
     });
 
     expect(result.tenants[0].settings.timezone).toBe('UTC');
+  });
+});
+
+describe('Clinic domain schemas', () => {
+  it('parses a clinic profile with policy payloads', () => {
+    const result = ClinicProfileSchema.parse({
+      id: 'clinic-profile-1',
+      tenantId: 'tenant-1',
+      vertical: 'clinic_dental',
+      specialty: 'implantology',
+      displayName: 'Sonrisa Norte Dental',
+      timezone: 'Europe/Madrid',
+      businessHours: {
+        monday: [{ start: '09:00', end: '18:30' }],
+      },
+      defaultInboundChannel: 'whatsapp',
+      requiresNewPatientForm: true,
+      confirmationPolicy: {
+        enabled: true,
+        leadHours: 24,
+      },
+      gapRecoveryPolicy: {
+        enabled: true,
+        maxOffersPerGap: 5,
+      },
+      reactivationPolicy: {
+        enabled: true,
+        defaultCampaignType: 'hygiene_recall',
+      },
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-02T00:00:00Z',
+    });
+
+    expect(result.defaultInboundChannel).toBe('whatsapp');
+    expect(result.gapRecoveryPolicy.maxOffersPerGap).toBe(5);
+  });
+
+  it('parses clinic dashboard and patient list envelopes', () => {
+    const patients = PatientsResponseSchema.parse({
+      patients: [
+        {
+          id: 'patient-1',
+          tenantId: 'tenant-1',
+          externalPatientId: 'DENTAL-001',
+          status: 'existing',
+          isExisting: true,
+          firstName: 'Lucia',
+          lastName: 'Perez',
+          fullName: 'Lucia Perez',
+          phone: '+34600111222',
+          email: 'lucia@example.com',
+          dateOfBirth: '1989-05-16',
+          notes: null,
+          consentFlags: { whatsapp: true },
+          source: 'import',
+          lastInteractionAt: '2024-01-01T00:00:00Z',
+          nextSuggestedActionAt: '2024-01-02T00:00:00Z',
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          upcomingAppointmentCount: 1,
+          hasPendingForm: false,
+          isReactivationCandidate: false,
+        },
+      ],
+      total: 1,
+    });
+
+    const dashboard = ClinicDashboardResponseSchema.parse({
+      dashboard: {
+        tenantId: 'tenant-1',
+        generatedAt: '2024-01-01T00:00:00Z',
+        kpis: {
+          openThreads: 2,
+          pendingConfirmations: 1,
+          pendingForms: 1,
+          activeGaps: 1,
+          activeCampaigns: 1,
+          todaysAppointments: 3,
+          patientsNew: 1,
+          patientsExisting: 2,
+        },
+        prioritizedInbox: [],
+        agenda: [],
+        pendingForms: [],
+        pendingConfirmations: [],
+        activeGaps: [],
+        activeCampaigns: [],
+        patientMix: {
+          newPatients: 1,
+          existingPatients: 2,
+        },
+      },
+    });
+
+    expect(patients.total).toBe(1);
+    expect(dashboard.dashboard.kpis.activeCampaigns).toBe(1);
+  });
+
+  it('validates clinic action payloads and enums', () => {
+    expect(ModuleKeySchema.parse('growth')).toBe('growth');
+
+    const createPatientBody = CreatePatientBodySchema.parse({
+      firstName: 'Carlos',
+      lastName: 'Navarro',
+      phone: '+34600333444',
+      source: 'whatsapp_inbound',
+    });
+
+    expect(createPatientBody.firstName).toBe('Carlos');
+    expect(() => OfferGapBodySchema.parse({ patientIds: [], channelType: 'whatsapp' })).toThrow();
   });
 });
 

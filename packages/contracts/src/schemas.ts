@@ -170,3 +170,6 @@ export {
   PublicChatRequestSchema,
   PublicChatResponseSchema,
 } from './chat';
+
+/** Re-exported clinic schemas. */
+export * from './clinic';

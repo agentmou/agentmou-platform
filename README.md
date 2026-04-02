@@ -24,8 +24,8 @@ Agentmou is a **multi-tenant AI agents platform** that enables organizations to 
 
 | Workspace | Description |
 | --------- | ----------- |
-| `packages/contracts` | Zod schemas and TypeScript types for validation and type safety across services. Covers catalog, tenancy, installations, execution, and approvals. |
-| `packages/db` | Drizzle ORM + PostgreSQL 16. 30+ tables covering auth, tenancy, connectors, installations, executions, approvals, billing, audit, knowledge base. |
+| `packages/contracts` | Zod schemas and TypeScript types for validation and type safety across services. Covers the platform control plane plus the clinic-domain contracts for patients, conversations, appointments, follow-up, gaps, and reactivation. |
+| `packages/db` | Drizzle ORM + PostgreSQL 16. Tracks the platform control-plane schema plus clinic-domain tables for clinic config, patients, conversations, calls, forms, appointments, follow-up, gap recovery, and reactivation. |
 | `packages/queue` | BullMQ queue definitions with typed payloads for all job types. |
 | `packages/auth` | JWT token generation and verification using jose library. |
 | `packages/connectors` | OAuth connectors for Gmail and extensible connector registry pattern. Handles credential encryption (AES-256-GCM). |

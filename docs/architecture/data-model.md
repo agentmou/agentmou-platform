@@ -603,10 +603,10 @@ publicKnowledgeDocuments (1) ────── (many) publicKnowledgeChunks
 ### How Migrations Work
 
 1. **Defining Schema**: Edit `packages/db/src/schema.ts` with Drizzle definitions
-2. **Generating Migration**: `pnpm db:generate` produces SQL in `packages/db/migrations/`
+2. **Generating Migration**: `pnpm db:generate` produces SQL in `packages/db/drizzle/`
 3. **Reviewing**: Inspect generated SQL for correctness
 4. **Applying**: `pnpm db:migrate` executes pending migrations against database
-5. **Seeding**: `pnpm db:seed` loads initial data (users, tenants, catalog mappings)
+5. **Seeding**: `pnpm db:seed` loads demo users, tenants, and clinic-domain fixtures
 
 ### Example: Adding a Column
 
@@ -616,15 +616,63 @@ publicKnowledgeDocuments (1) ────── (many) publicKnowledgeChunks
 
 # 2. Generate migration
 pnpm db:generate
-# → creates migrations/0003_add_max_runs_per_day.sql
+# → creates drizzle/0003_add_max_runs_per_day.sql
 
 # 3. Review SQL
-cat packages/db/migrations/0003_add_max_runs_per_day.sql
+cat packages/db/drizzle/0003_add_max_runs_per_day.sql
 # → ALTER TABLE agent_installations ADD COLUMN maximum_runs_per_day INTEGER DEFAULT 100;
 
 # 4. Apply
 pnpm db:migrate
 ```
+
+---
+
+## Clinic Domain Foundation
+
+The schema now includes a clinic-domain layer that coexists with the original
+platform control-plane tables.
+
+### Clinic configuration
+
+- `clinic_profiles`
+- `tenant_modules`
+- `clinic_channels`
+
+### Patients and inbox
+
+- `patients`
+- `patient_identities`
+- `conversation_threads`
+- `conversation_messages`
+- `call_sessions`
+
+### Forms and scheduling catalogs
+
+- `intake_form_templates`
+- `intake_form_submissions`
+- `clinic_services`
+- `practitioners`
+- `clinic_locations`
+
+### Appointments and follow-up
+
+- `appointments`
+- `appointment_events`
+- `reminder_jobs`
+- `confirmation_requests`
+
+### Recovery and growth workflows
+
+- `waitlist_requests`
+- `gap_opportunities`
+- `gap_outreach_attempts`
+- `reactivation_campaigns`
+- `reactivation_recipients`
+
+These tables are all tenant-scoped and are designed to support the clinic data
+layer first. The clinic API families and clinic UI surfaces are added in later
+phases.
 
 ---
 
@@ -656,10 +704,13 @@ When a user connects a Gmail account:
 
 Initial data loaded via `pnpm db:seed`:
 
-1. **Demo User**: username=demo@example.com, password=demo (dev only)
-2. **Demo Tenant**: "Demo Organization"
-3. **Sample Agents**: Mappings for inbox-triage, sales-pipeline (operational IDs)
-4. **Feature Flags**: Tenant.settings with beta features enabled for demo
+1. **Admin User**: `admin@agentmou.dev`
+2. **Generic Tenant**: `Demo Workspace`
+3. **Clinic Tenant**: `Dental Demo Clinic`
+4. **Clinic Fixtures**: clinic profile, enabled modules, WhatsApp and voice
+   channels, seeded patients, conversation threads, call session, intake form
+   template/submission, appointments, reminder/confirmation state, an open gap,
+   and a running reactivation campaign
 
 ---
 
