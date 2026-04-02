@@ -11,29 +11,33 @@ persistence.
 
 ## Schema
 
-The schema covers the full domain model:
+The schema covers both the original platform model and the clinic-domain
+foundation used by the new vertical experience.
 
-| Table                            | Purpose                                              |
-| -------------------------------- | ---------------------------------------------------- |
-| `users`                          | Platform users                                       |
-| `user_identities`                | Linked OAuth identities per user (B2C providers)     |
-| `user_oauth_states`              | CSRF/state rows for user-login OAuth (not connectors)|
-| `oauth_login_codes`              | One-time codes exchanged for JWT after OAuth success |
-| `password_reset_tokens`          | Hashed tokens for password reset flow                |
-| `tenant_sso_connections`         | Placeholder for future enterprise IdP bindings       |
-| `tenants`                        | Workspaces / organizations                           |
-| `memberships`                    | User-to-tenant membership with roles                 |
-| `connector_accounts`             | OAuth/integration connections per tenant             |
-| `connector_oauth_states`         | Short-lived OAuth state rows for CSRF protection     |
-| `secret_envelopes`               | Encrypted secrets per tenant                         |
-| `agent_installations`            | Agents installed by a tenant                         |
-| `workflow_installations`         | Workflows installed by a tenant                      |
-| `schedules`                      | Cron-backed schedules created by installation flows  |
-| `execution_runs`                 | Agent/workflow execution records                     |
-| `execution_steps`                | Individual steps within a run                        |
-| `approval_requests`              | HITL approval requests                               |
-| `audit_events`                   | Audit trail events                                   |
-| `usage_events`                   | Usage metering records                               |
+### Platform control plane
+
+- Identity and auth: `users`, `user_identities`, `user_oauth_states`,
+  `oauth_login_codes`, `password_reset_tokens`, `tenant_sso_connections`
+- Tenancy and integrations: `tenants`, `memberships`, `connector_accounts`,
+  `connector_oauth_states`, `secret_envelopes`
+- Runtime and governance: `agent_installations`, `workflow_installations`,
+  `execution_runs`, `execution_steps`, `approval_requests`, `audit_events`,
+  `schedules`, `webhook_events`
+- Billing and observability: `usage_events`, `billing_accounts`,
+  `billing_subscriptions`, `billing_invoices`, `billable_usage_ledger`
+- Retrieval support: `public_knowledge_documents`, `public_knowledge_chunks`
+
+### Clinic domain foundation
+
+- Clinic configuration: `clinic_profiles`, `tenant_modules`, `clinic_channels`
+- Patients and inbox: `patients`, `patient_identities`, `conversation_threads`,
+  `conversation_messages`, `call_sessions`
+- Forms and scheduling: `intake_form_templates`, `intake_form_submissions`,
+  `clinic_services`, `practitioners`, `clinic_locations`, `appointments`,
+  `appointment_events`
+- Follow-up and recovery: `reminder_jobs`, `confirmation_requests`,
+  `waitlist_requests`, `gap_opportunities`, `gap_outreach_attempts`,
+  `reactivation_campaigns`, `reactivation_recipients`
 
 ## Usage
 
@@ -44,8 +48,8 @@ import { tenants, executionRuns } from '@agentmou/db';
 
 ## Configuration
 
-Requires `DATABASE_URL` environment variable. Defaults to
-`postgres://localhost:5432/agentmou`.
+Requires a valid `DATABASE_URL` environment variable when used outside tests.
+The package does not provide a runtime default for local development.
 
 ## Development
 
@@ -53,8 +57,22 @@ Requires `DATABASE_URL` environment variable. Defaults to
 pnpm --filter @agentmou/db generate   # Generate migrations
 pnpm --filter @agentmou/db migrate    # Run migrations
 pnpm --filter @agentmou/db studio     # Open Drizzle Studio
+pnpm --filter @agentmou/db seed       # Seed demo data
 pnpm --filter @agentmou/db typecheck
 ```
+
+Tracked SQL migrations live in `packages/db/drizzle/` alongside Drizzle
+snapshot metadata in `packages/db/drizzle/meta/`.
+
+## Seed Data
+
+`pnpm db:seed` is idempotent and currently provisions:
+
+- one admin user: `admin@agentmou.dev`
+- one generic platform tenant: `Demo Workspace`
+- one clinic demo tenant: `Dental Demo Clinic`
+- clinic demo data covering modules, channels, patients, inbox threads, calls,
+  forms, appointments, confirmations, gaps, and a running reactivation campaign
 
 ## Drizzle Kit and transitive dependencies
 

@@ -1,13 +1,15 @@
 import {
-  pgTable,
-  text,
-  timestamp,
-  uuid,
   boolean,
+  date,
+  index,
   integer,
   jsonb,
+  pgTable,
   real,
+  text,
+  timestamp,
   uniqueIndex,
+  uuid,
 } from 'drizzle-orm/pg-core';
 
 // ---------------------------------------------------------------------------
@@ -189,6 +191,621 @@ export const secretEnvelopes = pgTable('secret_envelopes', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   rotatedAt: timestamp('rotated_at'),
 });
+
+// ---------------------------------------------------------------------------
+// Clinic domain
+// ---------------------------------------------------------------------------
+
+/** Tenant-scoped clinic profile that powers the vertical product experience. */
+export const clinicProfiles = pgTable(
+  'clinic_profiles',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    vertical: text('vertical').notNull().default('clinic_dental'),
+    specialty: text('specialty'),
+    displayName: text('display_name').notNull(),
+    timezone: text('timezone').notNull(),
+    businessHours: jsonb('business_hours').default({}),
+    defaultInboundChannel: text('default_inbound_channel'),
+    requiresNewPatientForm: boolean('requires_new_patient_form').notNull().default(false),
+    confirmationPolicy: jsonb('confirmation_policy').default({}),
+    gapRecoveryPolicy: jsonb('gap_recovery_policy').default({}),
+    reactivationPolicy: jsonb('reactivation_policy').default({}),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('clinic_profiles_tenant_uidx').on(table.tenantId),
+    index('clinic_profiles_vertical_idx').on(table.vertical),
+  ]
+);
+
+/** Product modules that can be enabled or hidden per tenant. */
+export const tenantModules = pgTable(
+  'tenant_modules',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    moduleKey: text('module_key').notNull(),
+    status: text('status').notNull().default('enabled'),
+    visibleToClient: boolean('visible_to_client').notNull().default(true),
+    planLevel: text('plan_level').notNull().default('free'),
+    config: jsonb('config').default({}),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('tenant_modules_tenant_key_uidx').on(table.tenantId, table.moduleKey),
+    index('tenant_modules_tenant_status_idx').on(table.tenantId, table.status),
+  ]
+);
+
+/** Channel configuration for WhatsApp and voice connectivity. */
+export const clinicChannels = pgTable(
+  'clinic_channels',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    channelType: text('channel_type').notNull(),
+    directionPolicy: jsonb('direction_policy').default({}),
+    provider: text('provider').notNull(),
+    connectorAccountId: uuid('connector_account_id').references(() => connectorAccounts.id),
+    status: text('status').notNull().default('inactive'),
+    phoneNumber: text('phone_number'),
+    config: jsonb('config').default({}),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('clinic_channels_tenant_idx').on(table.tenantId),
+    index('clinic_channels_tenant_status_idx').on(table.tenantId, table.status),
+    index('clinic_channels_tenant_phone_idx').on(table.tenantId, table.phoneNumber),
+    index('clinic_channels_tenant_type_status_idx').on(table.tenantId, table.channelType, table.status),
+  ]
+);
+
+/** Canonical patient records surfaced to clinic staff. */
+export const patients = pgTable(
+  'patients',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    externalPatientId: text('external_patient_id'),
+    status: text('status').notNull().default('new_lead'),
+    isExisting: boolean('is_existing').notNull().default(false),
+    firstName: text('first_name').notNull(),
+    lastName: text('last_name').notNull(),
+    fullName: text('full_name').notNull(),
+    phone: text('phone'),
+    email: text('email'),
+    dateOfBirth: date('date_of_birth', { mode: 'string' }),
+    notes: text('notes'),
+    consentFlags: jsonb('consent_flags').default({}),
+    source: text('source').notNull().default('manual'),
+    lastInteractionAt: timestamp('last_interaction_at'),
+    nextSuggestedActionAt: timestamp('next_suggested_action_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('patients_tenant_external_uidx').on(table.tenantId, table.externalPatientId),
+    index('patients_tenant_status_idx').on(table.tenantId, table.status),
+    index('patients_tenant_phone_idx').on(table.tenantId, table.phone),
+    index('patients_tenant_last_inter_idx').on(table.tenantId, table.lastInteractionAt),
+    index('patients_tenant_next_action_idx').on(table.tenantId, table.nextSuggestedActionAt),
+  ]
+);
+
+/** Alternate identities used to match inbound traffic to patients. */
+export const patientIdentities = pgTable(
+  'patient_identities',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id),
+    identityType: text('identity_type').notNull(),
+    identityValue: text('identity_value').notNull(),
+    isPrimary: boolean('is_primary').notNull().default(false),
+    confidenceScore: real('confidence_score').notNull().default(1),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('patient_identities_value_uidx').on(
+      table.tenantId,
+      table.patientId,
+      table.identityType,
+      table.identityValue
+    ),
+    index('patient_identities_match_idx').on(table.tenantId, table.identityType, table.identityValue),
+    index('patient_identities_patient_idx').on(table.patientId),
+  ]
+);
+
+/** Omnichannel inbox threads that group messages and operational actions. */
+export const conversationThreads = pgTable(
+  'conversation_threads',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    patientId: uuid('patient_id').references(() => patients.id),
+    channelType: text('channel_type').notNull(),
+    status: text('status').notNull().default('new'),
+    intent: text('intent').notNull().default('general_inquiry'),
+    priority: text('priority').notNull().default('normal'),
+    source: text('source').notNull().default('system'),
+    assignedUserId: uuid('assigned_user_id').references(() => users.id),
+    lastMessageAt: timestamp('last_message_at'),
+    lastInboundAt: timestamp('last_inbound_at'),
+    lastOutboundAt: timestamp('last_outbound_at'),
+    requiresHumanReview: boolean('requires_human_review').notNull().default(false),
+    resolution: text('resolution'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('conversation_threads_tenant_status_idx').on(table.tenantId, table.status),
+    index('conversation_threads_tenant_last_msg_idx').on(table.tenantId, table.lastMessageAt),
+    index('conversation_threads_tenant_type_status_idx').on(
+      table.tenantId,
+      table.channelType,
+      table.status
+    ),
+    index('conversation_threads_patient_idx').on(table.patientId),
+  ]
+);
+
+/** Individual messages and system events captured inside a conversation thread. */
+export const conversationMessages = pgTable(
+  'conversation_messages',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    threadId: uuid('thread_id')
+      .notNull()
+      .references(() => conversationThreads.id),
+    patientId: uuid('patient_id').references(() => patients.id),
+    direction: text('direction').notNull(),
+    channelType: text('channel_type').notNull(),
+    messageType: text('message_type').notNull().default('text'),
+    body: text('body').notNull().default(''),
+    payload: jsonb('payload').default({}),
+    deliveryStatus: text('delivery_status').notNull().default('received'),
+    providerMessageId: text('provider_message_id'),
+    sentAt: timestamp('sent_at'),
+    receivedAt: timestamp('received_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('conversation_messages_provider_uidx').on(table.tenantId, table.providerMessageId),
+    index('conversation_messages_thread_idx').on(table.threadId),
+    index('conversation_messages_tenant_thread_idx').on(table.tenantId, table.threadId),
+    index('conversation_messages_tenant_status_idx').on(table.tenantId, table.deliveryStatus),
+  ]
+);
+
+/** Voice sessions linked to patients and inbox threads when available. */
+export const callSessions = pgTable(
+  'call_sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    patientId: uuid('patient_id').references(() => patients.id),
+    threadId: uuid('thread_id').references(() => conversationThreads.id),
+    direction: text('direction').notNull(),
+    status: text('status').notNull().default('received'),
+    providerCallId: text('provider_call_id'),
+    fromNumber: text('from_number').notNull(),
+    toNumber: text('to_number').notNull(),
+    startedAt: timestamp('started_at').notNull(),
+    endedAt: timestamp('ended_at'),
+    durationSeconds: integer('duration_seconds').notNull().default(0),
+    summary: text('summary'),
+    transcript: text('transcript'),
+    resolution: text('resolution'),
+    requiresHumanReview: boolean('requires_human_review').notNull().default(false),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('call_sessions_provider_uidx').on(table.tenantId, table.providerCallId),
+    index('call_sessions_tenant_status_idx').on(table.tenantId, table.status),
+    index('call_sessions_tenant_started_idx').on(table.tenantId, table.startedAt),
+    index('call_sessions_patient_idx').on(table.patientId),
+    index('call_sessions_thread_idx').on(table.threadId),
+  ]
+);
+
+/** Reusable intake form templates sent to patients as part of booking flows. */
+export const intakeFormTemplates = pgTable(
+  'intake_form_templates',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    name: text('name').notNull(),
+    slug: text('slug').notNull(),
+    version: text('version').notNull(),
+    schema: jsonb('schema').default({}),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('intake_form_templates_uidx').on(table.tenantId, table.slug, table.version),
+    index('intake_form_templates_tenant_active_idx').on(table.tenantId, table.isActive),
+  ]
+);
+
+/** Individual form deliveries and submission states for a patient or thread. */
+export const intakeFormSubmissions = pgTable(
+  'intake_form_submissions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    templateId: uuid('template_id')
+      .notNull()
+      .references(() => intakeFormTemplates.id),
+    patientId: uuid('patient_id').references(() => patients.id),
+    threadId: uuid('thread_id').references(() => conversationThreads.id),
+    status: text('status').notNull().default('pending'),
+    answers: jsonb('answers').default({}),
+    sentAt: timestamp('sent_at'),
+    openedAt: timestamp('opened_at'),
+    completedAt: timestamp('completed_at'),
+    expiresAt: timestamp('expires_at'),
+    requiredForBooking: boolean('required_for_booking').notNull().default(false),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('intake_form_submissions_tenant_status_idx').on(table.tenantId, table.status),
+    index('intake_form_submissions_patient_idx').on(table.patientId),
+    index('intake_form_submissions_thread_idx').on(table.threadId),
+    index('intake_form_submissions_template_idx').on(table.templateId),
+  ]
+);
+
+/** Service catalog visible to the clinic for booking and waitlist workflows. */
+export const clinicServices = pgTable(
+  'clinic_services',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    externalServiceId: text('external_service_id'),
+    name: text('name').notNull(),
+    slug: text('slug').notNull(),
+    durationMinutes: integer('duration_minutes').notNull().default(30),
+    active: boolean('active').notNull().default(true),
+    metadata: jsonb('metadata').default({}),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('clinic_services_tenant_slug_uidx').on(table.tenantId, table.slug),
+    uniqueIndex('clinic_services_tenant_ext_uidx').on(table.tenantId, table.externalServiceId),
+    index('clinic_services_tenant_active_idx').on(table.tenantId, table.active),
+  ]
+);
+
+/** Provider catalog used for appointment routing and queue filtering. */
+export const practitioners = pgTable(
+  'practitioners',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    externalPractitionerId: text('external_practitioner_id'),
+    name: text('name').notNull(),
+    specialty: text('specialty'),
+    active: boolean('active').notNull().default(true),
+    metadata: jsonb('metadata').default({}),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('practitioners_tenant_ext_uidx').on(table.tenantId, table.externalPractitionerId),
+    index('practitioners_tenant_active_idx').on(table.tenantId, table.active),
+  ]
+);
+
+/** Clinic locations used for multi-site scheduling and future enterprise support. */
+export const clinicLocations = pgTable(
+  'clinic_locations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    externalLocationId: text('external_location_id'),
+    name: text('name').notNull(),
+    address: text('address'),
+    phone: text('phone'),
+    active: boolean('active').notNull().default(true),
+    metadata: jsonb('metadata').default({}),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('clinic_locations_tenant_ext_uidx').on(table.tenantId, table.externalLocationId),
+    index('clinic_locations_tenant_active_idx').on(table.tenantId, table.active),
+  ]
+);
+
+/** Canonical appointment records for the clinic-facing control center. */
+export const appointments = pgTable(
+  'appointments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id),
+    externalAppointmentId: text('external_appointment_id'),
+    serviceId: uuid('service_id').references(() => clinicServices.id),
+    practitionerId: uuid('practitioner_id').references(() => practitioners.id),
+    locationId: uuid('location_id').references(() => clinicLocations.id),
+    threadId: uuid('thread_id').references(() => conversationThreads.id),
+    status: text('status').notNull().default('draft'),
+    source: text('source').notNull().default('manual'),
+    startsAt: timestamp('starts_at').notNull(),
+    endsAt: timestamp('ends_at').notNull(),
+    bookedAt: timestamp('booked_at').notNull().defaultNow(),
+    confirmationStatus: text('confirmation_status').notNull().default('pending'),
+    reminderStatus: text('reminder_status').notNull().default('pending'),
+    cancellationReason: text('cancellation_reason'),
+    metadata: jsonb('metadata').default({}),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('appointments_tenant_ext_uidx').on(table.tenantId, table.externalAppointmentId),
+    index('appointments_tenant_status_idx').on(table.tenantId, table.status),
+    index('appointments_tenant_starts_at_idx').on(table.tenantId, table.startsAt),
+    index('appointments_tenant_conf_idx').on(table.tenantId, table.confirmationStatus),
+    index('appointments_patient_idx').on(table.patientId),
+  ]
+);
+
+/** Immutable appointment event log for auditability and timeline rendering. */
+export const appointmentEvents = pgTable(
+  'appointment_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    appointmentId: uuid('appointment_id')
+      .notNull()
+      .references(() => appointments.id),
+    eventType: text('event_type').notNull(),
+    actorType: text('actor_type').notNull(),
+    payload: jsonb('payload').default({}),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('appointment_events_appt_idx').on(table.appointmentId),
+    index('appointment_events_tenant_event_idx').on(table.tenantId, table.eventType),
+  ]
+);
+
+/** Scheduled reminder attempts for upcoming appointments. */
+export const reminderJobs = pgTable(
+  'reminder_jobs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    appointmentId: uuid('appointment_id')
+      .notNull()
+      .references(() => appointments.id),
+    channelType: text('channel_type').notNull(),
+    status: text('status').notNull().default('scheduled'),
+    scheduledFor: timestamp('scheduled_for').notNull(),
+    sentAt: timestamp('sent_at'),
+    templateKey: text('template_key').notNull(),
+    attemptCount: integer('attempt_count').notNull().default(0),
+    lastError: text('last_error'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('reminder_jobs_tenant_status_idx').on(table.tenantId, table.status),
+    index('reminder_jobs_tenant_sched_idx').on(table.tenantId, table.scheduledFor),
+    index('reminder_jobs_appt_idx').on(table.appointmentId),
+  ]
+);
+
+/** Confirmation workflows linked to specific appointments. */
+export const confirmationRequests = pgTable(
+  'confirmation_requests',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    appointmentId: uuid('appointment_id')
+      .notNull()
+      .references(() => appointments.id),
+    channelType: text('channel_type').notNull(),
+    status: text('status').notNull().default('pending'),
+    requestedAt: timestamp('requested_at').notNull().defaultNow(),
+    dueAt: timestamp('due_at').notNull(),
+    respondedAt: timestamp('responded_at'),
+    responsePayload: jsonb('response_payload').default({}),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('confirmation_requests_tenant_status_idx').on(table.tenantId, table.status),
+    index('confirmation_requests_tenant_due_idx').on(table.tenantId, table.dueAt),
+    index('confirmation_requests_appt_idx').on(table.appointmentId),
+  ]
+);
+
+/** Patient waitlist preferences used to fill gaps proactively. */
+export const waitlistRequests = pgTable(
+  'waitlist_requests',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id),
+    serviceId: uuid('service_id').references(() => clinicServices.id),
+    practitionerId: uuid('practitioner_id').references(() => practitioners.id),
+    locationId: uuid('location_id').references(() => clinicLocations.id),
+    preferredWindows: jsonb('preferred_windows').default([]),
+    status: text('status').notNull().default('active'),
+    priorityScore: real('priority_score').notNull().default(0),
+    notes: text('notes'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('waitlist_requests_tenant_status_idx').on(table.tenantId, table.status),
+    index('waitlist_requests_patient_idx').on(table.patientId),
+  ]
+);
+
+/** Open schedule gaps that can be offered to the waitlist or reactivated patients. */
+export const gapOpportunities = pgTable(
+  'gap_opportunities',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    originAppointmentId: uuid('origin_appointment_id').references(() => appointments.id),
+    serviceId: uuid('service_id').references(() => clinicServices.id),
+    practitionerId: uuid('practitioner_id').references(() => practitioners.id),
+    locationId: uuid('location_id').references(() => clinicLocations.id),
+    startsAt: timestamp('starts_at').notNull(),
+    endsAt: timestamp('ends_at').notNull(),
+    status: text('status').notNull().default('open'),
+    origin: text('origin').notNull().default('cancellation'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('gap_opps_tenant_status_idx').on(table.tenantId, table.status),
+    index('gap_opps_tenant_starts_idx').on(table.tenantId, table.startsAt),
+    index('gap_opps_origin_appt_idx').on(table.originAppointmentId),
+  ]
+);
+
+/** Outreach attempts made to fill a gap with a specific patient. */
+export const gapOutreachAttempts = pgTable(
+  'gap_outreach_attempts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    gapOpportunityId: uuid('gap_opportunity_id')
+      .notNull()
+      .references(() => gapOpportunities.id),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id),
+    channelType: text('channel_type').notNull(),
+    status: text('status').notNull().default('pending'),
+    sentAt: timestamp('sent_at'),
+    respondedAt: timestamp('responded_at'),
+    result: text('result'),
+    metadata: jsonb('metadata').default({}),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('gap_outreach_tenant_status_idx').on(table.tenantId, table.status),
+    index('gap_outreach_gap_idx').on(table.gapOpportunityId),
+    index('gap_outreach_patient_idx').on(table.patientId),
+  ]
+);
+
+/** Reactivation campaigns that target inactive patients or follow-up cohorts. */
+export const reactivationCampaigns = pgTable(
+  'reactivation_campaigns',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    name: text('name').notNull(),
+    campaignType: text('campaign_type').notNull(),
+    status: text('status').notNull().default('draft'),
+    audienceDefinition: jsonb('audience_definition').default({}),
+    messageTemplate: jsonb('message_template').default({}),
+    channelPolicy: jsonb('channel_policy').default({}),
+    scheduledAt: timestamp('scheduled_at'),
+    startedAt: timestamp('started_at'),
+    completedAt: timestamp('completed_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('reactivation_campaigns_tenant_status_idx').on(table.tenantId, table.status),
+    index('reactivation_campaigns_tenant_sched_idx').on(table.tenantId, table.scheduledAt),
+  ]
+);
+
+/** Per-patient campaign delivery state and resulting outcomes. */
+export const reactivationRecipients = pgTable(
+  'reactivation_recipients',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    campaignId: uuid('campaign_id')
+      .notNull()
+      .references(() => reactivationCampaigns.id),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id),
+    status: text('status').notNull().default('pending'),
+    lastContactAt: timestamp('last_contact_at'),
+    lastResponseAt: timestamp('last_response_at'),
+    result: text('result'),
+    generatedAppointmentId: uuid('generated_appointment_id').references(() => appointments.id),
+    metadata: jsonb('metadata').default({}),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('reactivation_recipients_tenant_campaign_idx').on(table.tenantId, table.campaignId),
+    index('reactivation_recipients_tenant_status_idx').on(table.tenantId, table.status),
+    index('reactivation_recipients_patient_idx').on(table.patientId),
+  ]
+);
 
 // ---------------------------------------------------------------------------
 // Agent Installations

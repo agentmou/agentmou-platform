@@ -111,6 +111,21 @@ boundary.
 connection helpers. The current repo-tracked migration history lives in
 `packages/db/drizzle/`.
 
+In addition to the original platform tables for tenancy, connectors,
+installations, runs, approvals, billing, and audit, the schema now includes a
+clinic-domain foundation for:
+
+- clinic configuration and module visibility
+- patients and patient identities
+- conversations, messages, and call sessions
+- intake forms and scheduling catalogs
+- appointments, reminders, and confirmations
+- waitlist, gap recovery, and reactivation campaigns
+
+This phase is storage-first: it adds schema, migrations, shared contracts, and
+seed/demo data, but it does not yet add clinic-specific API route families or
+the clinic app shell.
+
 ### Redis and `@agentmou/queue`
 
 `packages/queue` centralizes queue names, payload types, and shared BullMQ
@@ -120,7 +135,9 @@ connection helpers used by both the API and worker.
 
 `packages/contracts` provides shared Zod schemas and inferred TypeScript types
 for catalog data, tenants, installations, runs, approvals, billing, security,
-and public chat.
+public chat, and the new clinic domain. The clinic module exposes entity
+schemas, dashboard/read models, filters, and action payloads so later backend
+and frontend phases can build on a shared typed surface.
 
 ## Key Flows
 

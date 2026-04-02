@@ -154,8 +154,8 @@ services/agents/
 | `packages/auth` | JWT helpers and auth support code |
 | `packages/catalog-sdk` | Loads and validates operational manifests from disk |
 | `packages/connectors` | Connector providers and OAuth support |
-| `packages/contracts` | Shared Zod schemas and TypeScript types |
-| `packages/db` | Drizzle schema, migrations, seed, and DB helpers |
+| `packages/contracts` | Shared Zod schemas and TypeScript types for the control plane plus clinic-domain contracts |
+| `packages/db` | Drizzle schema, tracked migrations, seed, and DB helpers for both platform and clinic-domain data |
 | `packages/n8n-client` | Thin client for n8n HTTP operations |
 | `packages/observability` | Shared logging helpers |
 | `packages/queue` | Queue names, payloads, and BullMQ connection helpers |
@@ -174,7 +174,7 @@ packages/db/
 │   ├── schema.ts
 │   └── seed.ts
 └── drizzle/
-    ├── 0000_*.sql ... 0006_*.sql
+    ├── 0000_*.sql ... 0007_*.sql
     └── meta/
 ```
 

@@ -319,17 +319,18 @@ Agents and packs in the catalog also have versions. Installations track which ve
 Database schema changes managed by Drizzle. Process:
 1. Edit `packages/db/src/schema.ts`
 2. Run `pnpm db:generate` to create migration file
-3. Review `packages/db/migrations/*.sql`
+3. Review `packages/db/drizzle/*.sql`
 4. Run `pnpm db:migrate` to apply
 
 Migrations are version-controlled and ordered by timestamp.
 
 ### Seeding
 Populating the database with initial/test data. The seed script:
-- Creates test users and tenants
-- Installs sample agents
-- Creates example runs
-- Sets up connectors
+- Creates the admin development user
+- Creates the generic `Demo Workspace`
+- Creates the `Dental Demo Clinic`
+- Seeds clinic-domain demo data such as modules, channels, patients,
+  conversations, appointments, confirmations, gaps, and reactivation state
 
 Run with `pnpm db:seed`. Idempotent by default.
 
