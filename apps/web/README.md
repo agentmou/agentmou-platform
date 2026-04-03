@@ -27,6 +27,8 @@ or workflows itself.
   the UI shows a disabled SSO row with tooltip.
 - Protect tenant routes with Next.js proxy and a JWT cookie.
 - Consume the control-plane API through typed client helpers in `lib/api/`.
+- Export typed clinic backend fetchers in `lib/api/clinic.ts` while keeping the
+  visible tenant UI on the existing `DataProvider` surfaces for now.
 - Serve marketing homepage cards from `/api/public-catalog`, built from the
   **curated demo featured list** (`lib/demo-catalog/marketing-featured.ts`) plus
   `demoTotals`, `operationalFeaturedCounts`, and `gaInventoryCounts` (see
@@ -43,7 +45,8 @@ or workflows itself.
 
 `@agentmou/web` sits on top of the rest of the platform:
 - Reads domain types from `@agentmou/contracts`.
-- Talks to `services/api` through `lib/api/client.ts` and `lib/auth/api.ts`.
+- Talks to `services/api` through `lib/api/client.ts`, `lib/api/clinic.ts`, and
+  `lib/auth/api.ts`.
 - Uses `DataProviderContext` so tenant pages can stay stable while the backing
   implementation evolves.
 - Displays runs, approvals, connectors, and installations that are created and
@@ -90,7 +93,13 @@ pnpm --filter @agentmou/web start
 - `proxy.ts` redirects unauthenticated traffic away from `/app/*` except
   the public `demo-workspace`, and keeps authenticated users out of `/login`
   and `/register`.
-- `lib/api/client.ts` contains typed fetchers for tenants, catalog, runs, approvals, connectors, and installations.
+- `lib/api/core.ts` contains shared request, error, and query-string helpers
+  for the web API clients.
+- `lib/api/client.ts` contains typed fetchers for tenants, catalog, runs,
+  approvals, connectors, and installations.
+- `lib/api/clinic.ts` contains typed fetchers for the clinic backend families
+  and parses structured `409 clinic_feature_unavailable` responses into
+  `ClinicFeatureUnavailableApiError`.
 - `lib/data/api-provider.ts` adapts the real API to the `DataProvider` interface.
 - `lib/data/demo-provider.ts` powers `demo-workspace` with read-only demo data
   and operational vs non-operational availability (`planned` + status note).
@@ -109,6 +118,10 @@ pnpm --filter @agentmou/web start
   `PasswordInput`) used by `app/(auth)`.
 - `components/ui/` is the current source of truth for reusable UI primitives;
   there is no live `packages/ui` workspace package.
+
+The clinic fetchers are intentionally not wired into `DataProvider` yet. This
+PR adds typed backend access for later UI phases without changing the current
+tenant page surface.
 
 ## Configuration
 

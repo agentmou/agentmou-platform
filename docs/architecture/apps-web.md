@@ -10,7 +10,8 @@ small set of Next.js API routes used by the frontend itself.
 - Handle login, registration, password reset, and the B2C OAuth return flow
   under `app/(auth)`.
 - Render the authenticated control plane under `app/app/[tenantId]/`.
-- Consume `services/api` through typed client helpers in `lib/api/`.
+- Consume `services/api` through typed client helpers in `lib/api/`, including
+  the clinic backend fetchers added for the new tenant-scoped domain routes.
 - Expose web-owned API routes for marketing chat and the public catalog cards.
 - Keep demo and operational catalog experiences separated through the
   `DataProvider` abstraction.
@@ -98,9 +99,21 @@ The control plane uses a single `DataProvider` interface in
 This separation lets the UI keep a stable shape while some surfaces are fully
 live and others are still demo-backed or read-only.
 
+The clinic fetchers in `lib/api/clinic.ts` are intentionally below the
+`DataProvider` layer for now. This PR adds typed access to the backend clinic
+API, but it does not yet widen `DataProvider` or add visible clinic pages under
+`app/app/[tenantId]`.
+
 ## Important Supporting Modules
 
-- `lib/api/` contains typed fetchers and hooks for `services/api`.
+- `lib/api/core.ts` centralizes request/error helpers shared by all web API
+  clients.
+- `lib/api/client.ts` remains the typed fetcher layer for the original control
+  plane.
+- `lib/api/clinic.ts` adds typed fetchers for clinic dashboard, profile,
+  modules, channels, patients, conversations, calls, appointments, forms,
+  follow-up, and reactivation. It also parses structured `409`
+  `clinic_feature_unavailable` responses into a dedicated client error.
 - `lib/auth/` owns cookie hydration, auth requests, and the active tenant store.
 - `lib/data/` contains the provider abstraction and the tenant dashboard metric
   helpers.

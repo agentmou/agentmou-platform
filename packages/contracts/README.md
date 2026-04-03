@@ -34,7 +34,8 @@ const parsed = AgentTemplateSchema.parse(rawData);
 - `dashboard`: DashboardMetrics
 - `chat`: PublicChatRequest, PublicChatResponse, citations, and actions
 - `clinic`: ClinicProfile, TenantModule, Patient, ConversationThread,
-  Appointment, dashboard/read models, filters, and clinic action bodies
+  Appointment, dashboard/read models, list/detail envelopes, mutation wrappers,
+  filters, clinic action bodies, and `clinic_feature_unavailable` errors
 
 ### Barrel Exports
 
@@ -43,8 +44,10 @@ const parsed = AgentTemplateSchema.parse(rawData);
 - `index.ts` — re-exports everything from all domain modules.
 
 The clinic module is the shared contract surface for the vertical data layer:
-it exposes clinic entities, dashboard payloads, list/detail envelopes, filter
-schemas, and request bodies that later API/UI phases can consume directly.
+it exposes clinic entities, dashboard payloads, list/detail envelopes, singular
+mutation wrappers for module/channel/reminder/confirmation/waitlist/gap
+operations, filter schemas, request bodies, and the structured feature
+unavailable error used by the backend and typed web clients.
 
 ## Development
 

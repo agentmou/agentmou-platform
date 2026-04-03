@@ -1,7 +1,8 @@
 # @agentmou/api
 
 Fastify-based control-plane API for tenants, catalog access, installations,
-connectors, approvals, public chat, and run orchestration.
+connectors, approvals, public chat, run orchestration, and the clinic backend
+surface.
 
 ## Purpose
 
@@ -18,6 +19,14 @@ BullMQ.
 - Validate selected request bodies with Zod-based validators.
 - Persist tenants, memberships, connectors, secrets, installations, runs, and
   approvals through `@agentmou/db`.
+- Expose clinic tenant-scoped route families for dashboard, profile, modules,
+  channels, patients, inbox, calls, appointments, forms, follow-up, and
+  reactivation.
+- Enforce clinic role checks, tenant-module gating, channel activation checks,
+  and structured `409 clinic_feature_unavailable` responses for inactive
+  features.
+- Build clinic read models for the web control-center clients instead of
+  exposing raw table rows.
 - Queue long-running work such as pack installation and run execution.
 - Handle Gmail OAuth initiation and callback flows.
 - Proxy selected n8n workflow management operations through `@agentmou/n8n-client`.
@@ -27,7 +36,8 @@ BullMQ.
 ## How It Fits Into The System
 
 `@agentmou/api` is the control-plane backend between the UI and the data plane:
-- `apps/web` calls this service for auth, tenant data, and workflow management.
+- `apps/web` calls this service for auth, tenant data, workflow management, and
+  the typed clinic backend fetchers in `lib/api/clinic.ts`.
 - `services/worker` consumes jobs that this API enqueues.
 - `@agentmou/contracts` provides shared types and schemas.
 - `@agentmou/db` provides the PostgreSQL schema and client.
@@ -63,7 +73,7 @@ curl http://localhost:3001/health
 | `/health` | Liveness check |
 | `/api/v1/auth` | Register, login, me, B2C OAuth (Google/Microsoft), one-time code exchange, forgot/reset password |
 | `/api/v1/catalog` | Agent, pack, workflow, category, and search access |
-| `/public/chat` | Public chat route backed by shared contracts |
+| `/api/v1/public/chat` | Public chat route backed by shared contracts |
 | `/api/v1/oauth/callback` | Public Google OAuth callback |
 
 ### Authenticated Routes
@@ -77,7 +87,19 @@ curl http://localhost:3001/health
 | Secrets | `/api/v1/tenants/:tenantId/secrets/*` |
 | Approvals | `/api/v1/tenants/:tenantId/approvals/*` |
 | Runs | `/api/v1/tenants/:tenantId/runs/*` |
+| Usage | `/api/v1/tenants/:tenantId/usage/*` |
+| Billing | `/api/v1/tenants/:tenantId/billing/*` |
+| Security | `/api/v1/tenants/:tenantId/security/*` |
+| Webhooks | `/api/v1/tenants/:tenantId/webhooks/*` |
 | n8n | `/api/v1/tenants/:tenantId/n8n/*` |
+| Clinic dashboard + settings | `/api/v1/tenants/:tenantId/clinic/dashboard`, `/api/v1/tenants/:tenantId/clinic/profile`, `/api/v1/tenants/:tenantId/clinic/modules/:moduleKey`, `/api/v1/tenants/:tenantId/clinic/channels/:channelType` |
+| Patients | `/api/v1/tenants/:tenantId/patients`, `/api/v1/tenants/:tenantId/patients/:patientId/reactivate`, `/api/v1/tenants/:tenantId/patients/:patientId/waitlist` |
+| Conversations | `/api/v1/tenants/:tenantId/conversations`, `/api/v1/tenants/:tenantId/conversations/:threadId/messages`, `/api/v1/tenants/:tenantId/conversations/:threadId/reply` |
+| Calls | `/api/v1/tenants/:tenantId/calls`, `/api/v1/tenants/:tenantId/calls/:callId/callback`, `/api/v1/tenants/:tenantId/calls/:callId/resolve` |
+| Appointments | `/api/v1/tenants/:tenantId/appointments`, `/api/v1/tenants/:tenantId/appointments/:appointmentId/reschedule`, `/api/v1/tenants/:tenantId/appointments/:appointmentId/cancel`, `/api/v1/tenants/:tenantId/appointments/:appointmentId/confirm` |
+| Forms | `/api/v1/tenants/:tenantId/forms/templates`, `/api/v1/tenants/:tenantId/forms/submissions/:submissionId/send`, `/api/v1/tenants/:tenantId/forms/submissions/:submissionId/mark-complete`, `/api/v1/tenants/:tenantId/forms/submissions/:submissionId/waive` |
+| Follow-up | `/api/v1/tenants/:tenantId/follow-up/reminders`, `/api/v1/tenants/:tenantId/follow-up/confirmations/:confirmationId/remind`, `/api/v1/tenants/:tenantId/follow-up/confirmations/:confirmationId/escalate`, `/api/v1/tenants/:tenantId/follow-up/gaps/:gapId/offer`, `/api/v1/tenants/:tenantId/follow-up/gaps/:gapId/close` |
+| Reactivation | `/api/v1/tenants/:tenantId/reactivation/campaigns`, `/api/v1/tenants/:tenantId/reactivation/campaigns/:campaignId/start`, `/api/v1/tenants/:tenantId/reactivation/campaigns/:campaignId/pause`, `/api/v1/tenants/:tenantId/reactivation/campaigns/:campaignId/resume`, `/api/v1/tenants/:tenantId/reactivation/recipients` |
 
 Stub modules for usage, billing, security, and webhooks are registered so the
 route shape exists even where the implementation is still thin.
@@ -98,6 +120,12 @@ route shape exists even where the implementation is still thin.
 - `src/modules/n8n` adapts workflow import/export/execute operations to `@agentmou/n8n-client`.
 - `src/modules/public-chat` exposes the public chat route and its backing
   service.
+- `src/modules/clinic-*` plus `patients`, `conversations`, `calls`,
+  `appointments`, `forms`, `follow-up`, and `reactivation` implement the
+  tenant-scoped clinic backend families.
+- `src/modules/clinic-shared` centralizes clinic access control, Zod query
+  coercion, structured route errors, mappers, test fixtures, and read-model
+  joins.
 
 ## Configuration
 
