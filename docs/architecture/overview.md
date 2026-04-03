@@ -122,9 +122,10 @@ clinic-domain foundation for:
 - appointments, reminders, and confirmations
 - waitlist, gap recovery, and reactivation campaigns
 
-This phase is storage-first: it adds schema, migrations, shared contracts, and
-seed/demo data, but it does not yet add clinic-specific API route families or
-the clinic app shell.
+The repo now includes the clinic-domain schema, shared contracts, tenant-scoped
+API route families, backend services/read models, and typed web API clients.
+The dedicated clinic app shell and `DataProvider` expansion still land in later
+phases.
 
 ### Redis and `@agentmou/queue`
 
@@ -135,9 +136,11 @@ connection helpers used by both the API and worker.
 
 `packages/contracts` provides shared Zod schemas and inferred TypeScript types
 for catalog data, tenants, installations, runs, approvals, billing, security,
-public chat, and the new clinic domain. The clinic module exposes entity
-schemas, dashboard/read models, filters, and action payloads so later backend
-and frontend phases can build on a shared typed surface.
+public chat, and the new clinic domain. The clinic module now exposes entity
+schemas, dashboard/read models, list/detail envelopes, mutation wrappers,
+filters, action payloads, and the structured
+`clinic_feature_unavailable` error surface used by the backend and typed web
+clients.
 
 ## Key Flows
 

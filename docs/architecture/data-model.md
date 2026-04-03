@@ -670,8 +670,8 @@ platform control-plane tables.
 - `reactivation_campaigns`
 - `reactivation_recipients`
 
-These tables are all tenant-scoped and are designed to support the clinic data
-layer first. The clinic API families and clinic UI surfaces are added in later
+These tables are all tenant-scoped and now back the active clinic API families
+in `services/api`. The dedicated clinic UI surfaces still land in later
 phases.
 
 ---

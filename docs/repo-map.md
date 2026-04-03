@@ -59,6 +59,10 @@ apps/web/
 ├── components/
 ├── lib/
 │   ├── api/
+│   │   ├── core.ts
+│   │   ├── client.ts
+│   │   ├── clinic.ts
+│   │   └── hooks.ts
 │   ├── auth/
 │   ├── data/
 │   ├── demo-catalog/
@@ -77,6 +81,9 @@ Notes:
 - There is no `tailwind.config.ts`; Tailwind v4 is wired through PostCSS and
   `globals.css`.
 - `proxy.ts` is part of the auth and tenant-access story.
+- `lib/api/core.ts` is the shared request/error boundary for the web clients;
+  `client.ts` serves the existing control plane and `clinic.ts` serves the
+  tenant-scoped clinic backend.
 - `lib/data/` and `lib/demo-catalog/` are the key boundaries to understand
   before editing tenant or marketplace surfaces.
 
@@ -97,23 +104,38 @@ services/api/src/
 │   ├── approvals/
 │   ├── auth/
 │   ├── billing/
+│   ├── calls/
 │   ├── catalog/
+│   ├── clinic-channels/
+│   ├── clinic-dashboard/
+│   ├── clinic-modules/
+│   ├── clinic-profile/
+│   ├── clinic-shared/
 │   ├── connectors/
+│   ├── conversations/
+│   ├── follow-up/
+│   ├── forms/
 │   ├── installations/
 │   ├── memberships/
 │   ├── n8n/
+│   ├── patients/
 │   ├── public-chat/
+│   ├── reactivation/
 │   ├── runs/
 │   ├── secrets/
 │   ├── security/
 │   ├── tenants/
 │   ├── usage/
+│   ├── appointments/
 │   └── webhooks/
 └── routes/zod-validator.ts
 ```
 
 `app.ts` is the best starting point for understanding how modules are wired,
-which routes are public, and which routes are tenant-scoped.
+which routes are public, which routes are tenant-scoped, and how the clinic
+families are layered on top of the original control plane. `modules/clinic-shared`
+is the key support package for role checks, module/channel gating, route
+errors, mappers, fixtures, and read-model joins.
 
 ### services/worker
 

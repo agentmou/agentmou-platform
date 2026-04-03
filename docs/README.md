@@ -28,7 +28,7 @@ Understand how Agentmou is structured and why:
 Guidelines for contributing:
 
 - **[Testing Guide](./testing.md)** — Vitest patterns, test categories, AAA pattern, mocking, coverage expectations.
-- **[API Routes](./api-routes.md)** — REST API endpoint reference for all 15 route modules.
+- **[API Routes](./api-routes.md)** — REST API endpoint reference for the platform control plane and clinic route families.
 - **[Environment Variables](./environment-variables.md)** — Complete configuration reference.
 
 Commit, branching, and PR conventions live in `.cursor/rules/` and `.codex/rules/`

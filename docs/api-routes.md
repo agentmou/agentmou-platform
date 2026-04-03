@@ -69,6 +69,30 @@ These routes require a valid JWT plus access to the tenant in the path:
 | Security | `GET /api/v1/tenants/:tenantId/security/overview`, `GET /api/v1/tenants/:tenantId/security/findings`, `GET /api/v1/tenants/:tenantId/security/policies`, `GET /api/v1/tenants/:tenantId/security/audit-logs` |
 | Webhooks | `GET /api/v1/tenants/:tenantId/webhooks`, `POST /api/v1/tenants/:tenantId/webhooks`, `POST /api/v1/tenants/:tenantId/webhooks/:webhookId/deliveries/:deliveryId/retry` |
 | n8n | `GET /api/v1/tenants/:tenantId/n8n/status`, `GET /api/v1/tenants/:tenantId/n8n/workflows`, `POST /api/v1/tenants/:tenantId/n8n/workflows/import`, `POST /api/v1/tenants/:tenantId/n8n/workflows/:workflowId/execute` |
+| Clinic dashboard and settings | `GET /api/v1/tenants/:tenantId/clinic/dashboard`, `GET /api/v1/tenants/:tenantId/clinic/profile`, `PUT /api/v1/tenants/:tenantId/clinic/profile`, `GET /api/v1/tenants/:tenantId/clinic/modules`, `PUT /api/v1/tenants/:tenantId/clinic/modules/:moduleKey`, `GET /api/v1/tenants/:tenantId/clinic/channels`, `PUT /api/v1/tenants/:tenantId/clinic/channels/:channelType` |
+| Patients | `GET /api/v1/tenants/:tenantId/patients`, `GET /api/v1/tenants/:tenantId/patients/:patientId`, `POST /api/v1/tenants/:tenantId/patients`, `PUT /api/v1/tenants/:tenantId/patients/:patientId`, `POST /api/v1/tenants/:tenantId/patients/:patientId/reactivate`, `POST /api/v1/tenants/:tenantId/patients/:patientId/waitlist` |
+| Conversations | `GET /api/v1/tenants/:tenantId/conversations`, `GET /api/v1/tenants/:tenantId/conversations/:threadId`, `GET /api/v1/tenants/:tenantId/conversations/:threadId/messages`, `POST /api/v1/tenants/:tenantId/conversations/:threadId/assign`, `POST /api/v1/tenants/:tenantId/conversations/:threadId/escalate`, `POST /api/v1/tenants/:tenantId/conversations/:threadId/resolve`, `POST /api/v1/tenants/:tenantId/conversations/:threadId/reply` |
+| Calls | `GET /api/v1/tenants/:tenantId/calls`, `GET /api/v1/tenants/:tenantId/calls/:callId`, `POST /api/v1/tenants/:tenantId/calls/:callId/callback`, `POST /api/v1/tenants/:tenantId/calls/:callId/resolve` |
+| Appointments | `GET /api/v1/tenants/:tenantId/appointments`, `GET /api/v1/tenants/:tenantId/appointments/:appointmentId`, `POST /api/v1/tenants/:tenantId/appointments`, `PUT /api/v1/tenants/:tenantId/appointments/:appointmentId`, `POST /api/v1/tenants/:tenantId/appointments/:appointmentId/reschedule`, `POST /api/v1/tenants/:tenantId/appointments/:appointmentId/cancel`, `POST /api/v1/tenants/:tenantId/appointments/:appointmentId/confirm` |
+| Forms | `GET /api/v1/tenants/:tenantId/forms/templates`, `GET /api/v1/tenants/:tenantId/forms/submissions`, `GET /api/v1/tenants/:tenantId/forms/submissions/:submissionId`, `POST /api/v1/tenants/:tenantId/forms/submissions/:submissionId/send`, `POST /api/v1/tenants/:tenantId/forms/submissions/:submissionId/mark-complete`, `POST /api/v1/tenants/:tenantId/forms/submissions/:submissionId/waive` |
+| Follow-up | `GET /api/v1/tenants/:tenantId/follow-up/reminders`, `GET /api/v1/tenants/:tenantId/follow-up/confirmations`, `POST /api/v1/tenants/:tenantId/follow-up/confirmations/:confirmationId/remind`, `POST /api/v1/tenants/:tenantId/follow-up/confirmations/:confirmationId/escalate`, `GET /api/v1/tenants/:tenantId/follow-up/gaps`, `POST /api/v1/tenants/:tenantId/follow-up/gaps/:gapId/offer`, `POST /api/v1/tenants/:tenantId/follow-up/gaps/:gapId/close` |
+| Reactivation | `GET /api/v1/tenants/:tenantId/reactivation/campaigns`, `GET /api/v1/tenants/:tenantId/reactivation/campaigns/:campaignId`, `POST /api/v1/tenants/:tenantId/reactivation/campaigns`, `POST /api/v1/tenants/:tenantId/reactivation/campaigns/:campaignId/start`, `POST /api/v1/tenants/:tenantId/reactivation/campaigns/:campaignId/pause`, `POST /api/v1/tenants/:tenantId/reactivation/campaigns/:campaignId/resume`, `GET /api/v1/tenants/:tenantId/reactivation/recipients` |
+
+### Clinic route rules
+
+- All clinic routes live under `/api/v1/tenants/:tenantId/*` and are registered
+  inside the existing JWT + tenant-membership scope.
+- Role handling normalizes `member` to `operator` for clinic access checks.
+- Read routes allow `owner`, `admin`, `operator`, and `viewer`.
+- Operational mutations allow `owner`, `admin`, and `operator`.
+- Profile, module, channel, and campaign management stays on `owner` and
+  `admin`.
+- Module gating uses `tenant_modules`; channel gating uses `clinic_channels`.
+- Inactive modules or channels return `409` with the machine-readable
+  `clinic_feature_unavailable` payload so clients can distinguish feature
+  gating from empty result sets.
+- List endpoints use clinic contracts for filters and clamp `limit` to `100`,
+  with query coercion for boolean and numeric values.
 
 ## Module Map
 
@@ -89,6 +113,18 @@ These routes require a valid JWT plus access to the tenant in the path:
 | `modules/webhooks` | Tenant outbound webhooks plus Stripe ingest |
 | `modules/n8n` | Workflow engine status and n8n management helpers |
 | `modules/public-chat` | Public chat endpoint used by the marketing experience |
+| `modules/clinic-dashboard` | Vertical dashboard KPI and queue read model |
+| `modules/clinic-profile` | Clinic profile read/update endpoints |
+| `modules/clinic-modules` | Tenant clinic entitlements and module configuration |
+| `modules/clinic-channels` | Clinic channel read/update endpoints |
+| `modules/patients` | Patients, detail views, reactivation, and waitlist creation |
+| `modules/conversations` | Unified inbox threads, messages, and thread actions |
+| `modules/calls` | Call queue, callback scheduling, and call resolution |
+| `modules/appointments` | Appointment list/detail plus create/update/reschedule/cancel/confirm |
+| `modules/forms` | Intake form templates, submissions, and submission actions |
+| `modules/follow-up` | Reminder queues, confirmations, and gap operations |
+| `modules/reactivation` | Campaigns, lifecycle actions, and recipients |
+| `modules/clinic-shared` | Clinic access checks, route errors, query schemas, mappers, fixtures, and read-model joins |
 
 ## Working With Routes
 
