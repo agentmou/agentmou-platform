@@ -37,7 +37,7 @@ Data Layer (ORM + Database)
 ## Key Modules
 
 | Module | Responsibility | Public Exports | Configuration | Entry Point |
-|--------|-----------------|----------------|----------------|-------------|
+| -------- | ----------------- | ---------------- | ---------------- | ------------- |
 | `src/api/` | HTTP request handlers and routing | Route handlers, middleware | None | `src/api/index.ts` |
 | `src/services/` | Business logic and validation | Service classes/functions | None | `src/services/index.ts` |
 | `src/db/` | Database models and queries | Sequelize models, queries | DATABASE_URL | `src/db/index.ts` |
@@ -61,7 +61,7 @@ Where code starts running:
 Environment variables and their purpose:
 
 | Variable | Required | Default | Purpose |
-|----------|----------|---------|---------|
+| ---------- | ---------- | --------- | --------- |
 | DATABASE_URL | Yes | none | PostgreSQL connection string |
 | PORT | No | 3000 | HTTP server port |
 | JWT_SECRET | No | random | Secret for signing JWT tokens |
@@ -317,7 +317,7 @@ See [Deployment Guide](../DEPLOYMENT.md).
 **"I need to..."**
 
 | Task | Where to Look |
-|------|----------------|
+| ------ | ---------------- |
 | Add a new API endpoint | `src/api/routes/` then `src/api/handlers/` |
 | Add business logic | `src/services/` |
 | Add a database model | `src/db/models/` then migration |

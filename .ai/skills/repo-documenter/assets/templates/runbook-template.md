@@ -40,7 +40,7 @@ curl https://example.com/health
 Check these dashboards:
 
 | Metric | Expected | Link |
-|--------|----------|------|
+| -------- | ---------- | ------ |
 | Error rate | < 1% | [Datadog Error Rate](https://monitoring.example.com) |
 | API latency (p95) | < 200ms | [Datadog Latency](https://monitoring.example.com) |
 | Database connections | < 80% | [Database Console](https://db.example.com) |
@@ -222,7 +222,7 @@ SELECT count(*) FROM pg_stat_activity;  # Connection count
 **Possible causes & fixes:**
 
 | Cause | Check | Fix |
-|-------|-------|-----|
+| ------- | ------- | ----- |
 | Recent bad deployment | Commit history | `npm run rollback:prod` |
 | Database down | Connection test | Restart DB / switch failover |
 | Memory exhausted | `kubectl top` | Restart pods / increase memory |
@@ -258,7 +258,7 @@ npm run cache:stats
 **Possible causes & fixes:**
 
 | Cause | Fix |
-|-------|-----|
+| ------- | ----- |
 | Database slow | Optimize queries, add indexes, restart connection pool |
 | High memory usage | Restart pods (memory leak) |
 | High CPU usage | Scale up (add more instances) |
@@ -473,7 +473,7 @@ CTO / Head of Engineering
 ## Emergency Contacts
 
 | Role | Name | Slack | Phone |
-|------|------|-------|-------|
+| ------ | ------ | ------- | ------- |
 | Team Lead | [Name] | @[slack] | [Phone] |
 | Manager | [Name] | @[slack] | [Phone] |
 | Database Admin | [Name] | @[slack] | [Phone] |

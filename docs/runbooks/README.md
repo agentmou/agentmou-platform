@@ -18,7 +18,7 @@ Runbooks are step-by-step guides for common operational and development tasks. S
 ## Quick Reference
 
 | Task | Runbook | Audience |
-|------|---------|----------|
+| ------ | --------- | ---------- |
 | Set up local dev environment | [Local Development](./local-development.md) | Engineers, contributors |
 | Run tests locally | [Local Development](./local-development.md) | Engineers |
 | Create a new agent | [Agent Authoring](./agent-authoring.md) | Product, engineers |

@@ -189,7 +189,7 @@
 ## Sign-Off
 
 | Role | Name | Date | Status |
-|------|------|------|--------|
+| ------ | ------ | ------ | -------- |
 | Decision Maker | [Name] | [Date] | Approved / Pending |
 | Tech Lead | [Name] | [Date] | Approved / Pending |
 | Architect | [Name] | [Date] | Approved / Pending |
@@ -301,7 +301,7 @@ PostgreSQL provides ACID compliance, strong schema validation, and complex query
 ## Sign-Off
 
 | Role | Name | Date | Status |
-|------|------|------|--------|
+| ------ | ------ | ------ | -------- |
 | Tech Lead | Bob | 2024-03-16 | Approved |
 | CTO | Carol | 2024-03-16 | Approved |
 

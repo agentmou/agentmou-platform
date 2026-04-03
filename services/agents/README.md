@@ -12,12 +12,12 @@ verifies OpenAI connectivity with the configured service credentials.
 
 ## Endpoints
 
-| Method | Path              | Auth               | Description                        |
+| Method | Path | Auth | Description |
 | ------ | ----------------- | ------------------ | ---------------------------------- |
-| GET    | `/health`         | None               | Shallow health check               |
-| POST   | `/health/deep`    | `x-api-key` header | Deep check — verifies OpenAI conn  |
-| GET    | `/hello`          | `x-api-key` header | Legacy protected hello             |
-| POST   | `/analyze-email`  | `x-api-key` header | Classify email via GPT-4o-mini     |
+| GET | `/health` | None | Shallow health check |
+| POST | `/health/deep` | `x-api-key` header | Deep check — verifies OpenAI conn |
+| GET | `/hello` | `x-api-key` header | Legacy protected hello |
+| POST | `/analyze-email` | `x-api-key` header | Classify email via GPT-4o-mini |
 
 ## Authentication
 
@@ -26,10 +26,10 @@ All non-health endpoints require the `x-api-key` header matching the
 
 ## Configuration
 
-| Env var          | Required | Description                       |
+| Env var | Required | Description |
 | ---------------- | -------- | --------------------------------- |
-| `AGENTS_API_KEY` | Yes      | Shared secret for service auth    |
-| `OPENAI_API_KEY` | Yes      | OpenAI API key for LLM inference  |
+| `AGENTS_API_KEY` | Yes | Shared secret for service auth |
+| `OPENAI_API_KEY` | Yes | OpenAI API key for LLM inference |
 
 ## `/analyze-email`
 

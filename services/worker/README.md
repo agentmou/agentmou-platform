@@ -50,13 +50,13 @@ pnpm --filter @agentmou/worker start
 
 `src/index.ts` currently starts workers for these queues:
 
-| Queue                 | Processor                  | What it does                                                                                                                                                 |
+| Queue | Processor | What it does |
 | --------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `install-pack`        | `processInstallPack`       | Installs available agents/workflows from a pack manifest, provisions workflows in n8n, and creates schedules                                                 |
-| `run-agent`           | `processRunAgent`          | Loads prompt/policy/connectors and runs `AgentEngine.execute()`                                                                                              |
-| `run-workflow`        | `processRunWorkflow`       | Executes an installed n8n workflow and persists run status                                                                                                   |
-| `schedule-trigger`    | `processScheduleTrigger`   | Converts a cron trigger into a concrete execution run and follow-up job                                                                                      |
-| `approval-timeout`    | `processApprovalTimeout`   | Applies auto-approve, auto-reject, or escalation logic after timeout                                                                                         |
+| `install-pack` | `processInstallPack` | Installs available agents/workflows from a pack manifest, provisions workflows in n8n, and creates schedules |
+| `run-agent` | `processRunAgent` | Loads prompt/policy/connectors and runs `AgentEngine.execute()` |
+| `run-workflow` | `processRunWorkflow` | Executes an installed n8n workflow and persists run status |
+| `schedule-trigger` | `processScheduleTrigger` | Converts a cron trigger into a concrete execution run and follow-up job |
+| `approval-timeout` | `processApprovalTimeout` | Applies auto-approve, auto-reject, or escalation logic after timeout |
 
 The worker deliberately no longer carries placeholder job families that are not
 started by `src/index.ts`. Shared runtime helpers now live under
@@ -67,18 +67,18 @@ job surface is easier to navigate.
 
 Important environment variables:
 
-| Variable                          | Purpose                                                           |
+| Variable | Purpose |
 | --------------------------------- | ----------------------------------------------------------------- |
-| `REDIS_URL`                       | BullMQ connection string                                          |
-| `DATABASE_URL`                    | PostgreSQL connection via `@agentmou/db`                          |
-| `OPENAI_API_KEY`                  | Enables LLM-backed planning in `@agentmou/agent-engine`           |
-| `AGENTS_API_URL`                  | Base URL for the Python agents service                            |
-| `AGENTS_API_KEY`                  | Optional auth key for the Python agents service                   |
-| `N8N_API_URL`                     | n8n API base URL                                                  |
-| `N8N_API_KEY`                     | n8n API key                                                       |
-| `GOOGLE_CLIENT_ID`                | Needed when loading Gmail connectors                              |
-| `GOOGLE_CLIENT_SECRET`            | Needed when loading Gmail connectors                              |
-| `CONNECTOR_ENCRYPTION_KEY`        | Decrypts stored connector tokens                                  |
+| `REDIS_URL` | BullMQ connection string |
+| `DATABASE_URL` | PostgreSQL connection via `@agentmou/db` |
+| `OPENAI_API_KEY` | Enables LLM-backed planning in `@agentmou/agent-engine` |
+| `AGENTS_API_URL` | Base URL for the Python agents service |
+| `AGENTS_API_KEY` | Optional auth key for the Python agents service |
+| `N8N_API_URL` | n8n API base URL |
+| `N8N_API_KEY` | n8n API key |
+| `GOOGLE_CLIENT_ID` | Needed when loading Gmail connectors |
+| `GOOGLE_CLIENT_SECRET` | Needed when loading Gmail connectors |
+| `CONNECTOR_ENCRYPTION_KEY` | Decrypts stored connector tokens |
 
 ## Development
 

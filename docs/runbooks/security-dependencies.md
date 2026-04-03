@@ -449,7 +449,7 @@ Create a spreadsheet or document to track:
 Example:
 
 | CVE | Package | Severity | Status | Fix | Date |
-|-----|---------|----------|--------|-----|------|
+| ----- | --------- | ---------- | -------- | ----- | ------ |
 | CVE-2024-1234 | lodash | High | Fixed | v4.17.21 | 2024-01-15 |
 | CVE-2024-5678 | express | Critical | Fixed | v4.18.2 | 2024-02-01 |
 

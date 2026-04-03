@@ -71,7 +71,7 @@ Quickly identify the tech stack without reading source code.
 
 ### Language Signals
 | File | Language |
-|------|----------|
+| ------ | ---------- |
 | package.json | Node.js (JavaScript/TypeScript) |
 | go.mod | Go |
 | requirements.txt, pyproject.toml | Python |
@@ -84,7 +84,7 @@ Quickly identify the tech stack without reading source code.
 
 ### Framework & Build System Signals
 | File | Framework/System |
-|------|-----------------|
+| ------ | ----------------- |
 | vite.config.js, webpack.config.js | JavaScript build tool |
 | tsconfig.json | TypeScript |
 | next.json, nuxt.config | Next.js / Nuxt.js |
@@ -95,7 +95,7 @@ Quickly identify the tech stack without reading source code.
 
 ### Database & Persistence
 | Artifact | Indicates |
-|----------|-----------|
+| ---------- | ----------- |
 | docker-compose with postgres/mysql service | SQL database |
 | mongodb in docker-compose | NoSQL (MongoDB) |
 | .prisma/ folder | Prisma ORM |
@@ -220,7 +220,7 @@ Understand how the app is configured at runtime.
 
 Create a table:
 | Variable | Required | Default | Purpose |
-|----------|----------|---------|---------|
+| ---------- | ---------- | --------- | --------- |
 | DATABASE_URL | Yes | none | PostgreSQL connection |
 | PORT | No | 3000 | Server listen port |
 | LOG_LEVEL | No | info | Logging verbosity |

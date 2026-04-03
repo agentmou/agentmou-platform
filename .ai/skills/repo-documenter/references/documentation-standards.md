@@ -9,7 +9,7 @@ This document defines the quality bar for all repository documentation. Use thes
 Every repository should have these core documentation pieces. If your repo doesn't need one, explicitly document why (e.g., "This is a library, not a service, so no deployment runbook").
 
 | Artifact | Purpose | Location | Who Reads | Urgency |
-|----------|---------|----------|-----------|---------|
+| ---------- | --------- | ---------- | ----------- | --------- |
 | **Root README** | Repo purpose, tech stack, quick start | `/README.md` | Everyone | Critical |
 | **Architecture Overview** | System design, layers, data flow, external integrations | `/docs/ARCHITECTURE.md` | Developers, Architects | Critical |
 | **Module/Package READMEs** | Purpose, exports, configuration, development | Each module's `README.md` | Developers working in that module | High |

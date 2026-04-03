@@ -120,7 +120,7 @@ Show configuration points and their purpose:
 ## Critical Configuration
 
 | Variable | Required | Default | Purpose |
-|----------|----------|---------|---------|
+| ---------- | ---------- | --------- | --------- |
 | DATABASE_URL | Yes | none | PostgreSQL connection string |
 | JWT_SECRET | Yes | none | Secret for signing authentication tokens |
 | PORT | No | 3000 | HTTP server port |
@@ -262,7 +262,7 @@ Use clear, concise language to describe what each folder does:
 When creating module tables, these fields are useful:
 
 | Field | Purpose | Example |
-|-------|---------|---------|
+| ------- | --------- | --------- |
 | **Module** | Folder name | `src/services/tasks/` |
 | **Responsibility** | What it does | "Task creation, updates, deletion" |
 | **Public Exports** | Functions/classes visible to other modules | `createTask`, `updateTask`, `deleteTask` |
@@ -404,7 +404,7 @@ Three-tier architecture:
 ## Key Modules
 
 | Module | Responsibility | Public Exports | Config | Entry Point |
-|--------|-----------------|----------------|--------|-------------|
+| -------- | ----------------- | ---------------- | -------- | ------------- |
 | api/routes/ | HTTP endpoint definitions | Express Router | None | api/index.ts |
 | api/services/ | Business logic (expenses, categories, reports) | createExpense, getReport, etc. | DATABASE_URL | api/services/index.ts |
 | api/db/ | Database models (User, Expense, Category) | Sequelize models | DATABASE_URL | api/db/index.ts |
@@ -418,7 +418,7 @@ Three-tier architecture:
 ## Critical Configuration
 
 | Variable | Required | Default | Purpose |
-|----------|----------|---------|---------|
+| ---------- | ---------- | --------- | --------- |
 | DATABASE_URL | Yes | none | PostgreSQL connection |
 | PORT | No | 5000 | API server port |
 | REACT_APP_API_URL | No | http://localhost:5000 | API endpoint for frontend |

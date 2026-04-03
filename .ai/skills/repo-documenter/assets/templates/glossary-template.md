@@ -7,7 +7,7 @@ Domain terminology, acronyms, and abbreviations used in [project name].
 ## Acronyms
 
 | Acronym | Full Form | Definition |
-|---------|-----------|-----------|
+| --------- | ----------- | ----------- |
 | API | Application Programming Interface | Interface for communication between software components |
 | HTTP | HyperText Transfer Protocol | Protocol for transferring web data |
 | REST | Representational State Transfer | API architecture style using HTTP |
@@ -178,7 +178,7 @@ Estimate of task complexity (1, 2, 3, 5, 8, 13).
 ## Common Phrases
 
 | Phrase | Meaning |
-|--------|---------|
+| -------- | --------- |
 | "Ship it" | Deploy to production |
 | "Break the build" | Commit code that breaks CI/CD |
 | "Hotfix" | Urgent fix for production |
@@ -195,7 +195,7 @@ Estimate of task complexity (1, 2, 3, 5, 8, 13).
 ## Tools & Services
 
 | Tool | Purpose |
-|------|---------|
+| ------ | --------- |
 | **GitHub** | Code repository and collaboration |
 | **Jest** | JavaScript testing framework |
 | **Sequelize** | ORM for Node.js |

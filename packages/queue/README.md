@@ -25,15 +25,15 @@ await queue.add('run-agent', {
 
 ## Key Exports
 
-| Export                     | Purpose                                              |
+| Export | Purpose |
 | -------------------------- | ---------------------------------------------------- |
-| `QUEUE_NAMES`              | Canonical queue identifiers                          |
-| `InstallPackPayload`       | Payload for pack installation jobs                   |
-| `RunAgentPayload`          | Payload for agent execution jobs                     |
-| `RunWorkflowPayload`       | Payload for workflow execution jobs                  |
-| `ScheduleTriggerPayload`   | Payload for cron trigger fan-out jobs                |
-| `getConnectionOptions()`   | Parse a shared BullMQ Redis config from `REDIS_URL`  |
-| `getQueue(name)`           | Lazily create and cache a BullMQ queue instance      |
+| `QUEUE_NAMES` | Canonical queue identifiers |
+| `InstallPackPayload` | Payload for pack installation jobs |
+| `RunAgentPayload` | Payload for agent execution jobs |
+| `RunWorkflowPayload` | Payload for workflow execution jobs |
+| `ScheduleTriggerPayload` | Payload for cron trigger fan-out jobs |
+| `getConnectionOptions()` | Parse a shared BullMQ Redis config from `REDIS_URL` |
+| `getQueue(name)` | Lazily create and cache a BullMQ queue instance |
 
 ## Queue Inventory
 
@@ -51,7 +51,7 @@ removed so the shared package only advertises real surfaces.
 
 ## Configuration
 
-| Variable    | Purpose                                                       |
+| Variable | Purpose |
 | ----------- | ------------------------------------------------------------- |
 | `REDIS_URL` | Redis connection string; defaults to `redis://localhost:6379` |
 
