@@ -478,7 +478,7 @@ const name = getValue(user, 'name');  // ✓ Valid
 ### What Goes Where?
 
 | Package | Purpose | Examples |
-|---------|---------|----------|
+| --------- | --------- | ---------- |
 | **contracts** | Shared types & schemas | Zod types, API contracts, execution models |
 | **db** | Database schema & queries | Drizzle schema, migrations, seeders |
 | **queue** | Job definitions & payloads | BullMQ queue names, typed payloads |
@@ -589,7 +589,7 @@ logger.info(`Agent ${templateId} started for tenant ${tenantId}`);
 ### Log Levels
 
 | Level | When | Example |
-|-------|------|---------|
+| ------- | ------ | --------- |
 | **debug** | Internal details, verbose | Policy evaluation result, plan steps |
 | **info** | Important events | Agent started, step completed |
 | **warn** | Recoverable issues | Retry attempt, quota approaching |

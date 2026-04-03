@@ -90,7 +90,7 @@ User clicks "Save"
 [Does this system call external APIs or services?]
 
 | Service | Purpose | Authentication | Failure Mode |
-|---------|---------|-----------------|-------------|
+| --------- | --------- | ----------------- | ------------- |
 | [Service Name] | [What for?] | [API key, OAuth, etc.] | [What happens if it's down?] |
 
 ### Databases
@@ -98,7 +98,7 @@ User clicks "Save"
 [What data stores are used and why?]
 
 | Database | Purpose | Backup Strategy | Recovery RTO |
-|----------|---------|-----------------|-------------|
+| ---------- | --------- | ----------------- | ------------- |
 | PostgreSQL | Primary data store | Daily snapshots, WAL archiving | < 1 hour |
 | Redis | Caching and sessions | No backup needed (ephemeral) | N/A |
 
@@ -153,7 +153,7 @@ User clicks "Save"
 [What are the performance goals?]
 
 | Metric | Target | Current | Status |
-|--------|--------|---------|--------|
+| -------- | -------- | --------- | -------- |
 | API response time (p95) | < 200ms | 150ms | Good |
 | Page load time | < 2s | 1.5s | Good |
 | Database query time (p95) | < 100ms | 80ms | Good |
@@ -199,7 +199,7 @@ User clicks "Save"
 ### Environments
 
 | Environment | Purpose | Update Frequency | Data |
-|-------------|---------|------------------|------|
+| ------------- | --------- | ------------------ | ------ |
 | Development | Local testing | Per commit | Synthetic |
 | Staging | Pre-production validation | On PR merge | Copy of prod |
 | Production | Live service | Deployments | Real customer data |
@@ -252,7 +252,7 @@ See [Deployment Guide](../DEPLOYMENT.md) for detailed steps.
 [Why was the system designed this way? What tradeoffs were made?]
 
 | Decision | Rationale | Tradeoff |
-|----------|-----------|----------|
+| ---------- | ----------- | ---------- |
 | Monolithic backend | Simpler to start, shared code | Harder to scale individual services later |
 | PostgreSQL | ACID guarantees, relational data | Complex queries require optimization |
 | React frontend | Large ecosystem, developer familiar | Larger bundle size |

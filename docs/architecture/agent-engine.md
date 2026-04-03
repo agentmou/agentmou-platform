@@ -249,7 +249,7 @@ interface ToolDefinition {
 **Built-in Tools**:
 
 | Tool | Input | Output | Connector | Notes |
-|------|-------|--------|-----------|-------|
+| ------ | ------- | -------- | ----------- | ------- |
 | gmail-read | query, maxResults | Message[] | gmail | Read emails |
 | gmail-label | messageIds, label | { count } | gmail | Apply label |
 | gmail-send | to, subject, body | { messageId } | gmail | Send email |
@@ -810,7 +810,7 @@ constraints:
 ### Risk Levels
 
 | Level | Examples | Default Approval? |
-|-------|----------|-------------------|
+| ------- | ---------- | ------------------- |
 | low | Read email, list files | No |
 | medium | Label email, post message | Optional |
 | high | Send email, delete record, invoke API | Yes |
@@ -844,7 +844,7 @@ try {
 ### Common Failures
 
 | Error | Cause | Recovery |
-|-------|-------|----------|
+| ------- | ------- | ---------- |
 | OpenAI timeout | API slow | Retry (backoff) |
 | Gmail auth failed | Token expired | Refresh token |
 | Rate limit (429) | Too many requests | Exponential backoff |
@@ -883,7 +883,7 @@ const costBreakdown = {
 ### Latency Budget (per run)
 
 | Phase | Typical | Max |
-|-------|---------|-----|
+| ------- | --------- | ----- |
 | Plan generation (GPT-4o) | 2-5s | 10s |
 | Step execution (tools) | 0.1-2s each | 30s |
 | Policy evaluation | <10ms | 100ms |

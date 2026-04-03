@@ -249,7 +249,7 @@ See `infra/kubernetes/` for manifests.
 ### Key Metrics
 
 | Metric | Threshold | Action |
-|--------|-----------|--------|
+| -------- | ----------- | -------- |
 | Error rate | > 1% | Page on-call |
 | API latency (p95) | > 500ms | Investigate |
 | Disk usage | > 80% | Increase capacity |

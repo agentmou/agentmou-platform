@@ -110,7 +110,7 @@ You should see output indicating services are starting:
 Open your browser to the local endpoints:
 
 | Service | URL |
-|---------|-----|
+| --------- | ----- |
 | Web (control plane + marketing) | http://localhost:3000 |
 | API | http://localhost:3001 |
 | n8n workflows | http://localhost:5678 |

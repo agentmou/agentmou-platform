@@ -7,7 +7,7 @@ How we test [project name] — what to test, how to write tests, and coverage ta
 We use a layered testing approach:
 
 | Layer | Tool | Files | Purpose | Coverage Target |
-|-------|------|-------|---------|-----------------|
+| ------- | ------ | ------- | --------- | ----------------- |
 | **Unit** | Jest | `__tests__/unit/` | Test individual functions in isolation | 85%+ |
 | **Integration** | Jest | `__tests__/integration/` | Test modules working together | 75%+ |
 | **End-to-End** | Playwright / Cypress | `e2e/` | Test full user workflows | 50%+ |
@@ -246,7 +246,7 @@ beforeAll(async () => {
 ## Coverage Requirements
 
 | Module Type | Minimum Coverage | Why |
-|-------------|-----------------|-----|
+| ------------- | ----------------- | ----- |
 | Services (business logic) | 85%+ | Core functionality, complex logic |
 | API handlers | 80%+ | Request handling, error cases |
 | Database models | 70%+ | Schema definitions, basic methods |

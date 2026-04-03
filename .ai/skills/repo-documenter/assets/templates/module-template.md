@@ -43,7 +43,7 @@ console.log(result); // Output: ...
 Environment variables and config files used by this module.
 
 | Variable | Required | Default | Purpose |
-|----------|----------|---------|---------|
+| ---------- | ---------- | --------- | --------- |
 | MY_CONFIG_VAR | Yes | none | What this configures |
 | OPTIONAL_VAR | No | 'default' | What this configures |
 
@@ -103,7 +103,7 @@ npm run type:check        # TypeScript checking
 External packages this module depends on.
 
 | Package | Version | Purpose |
-|---------|---------|---------|
+| --------- | --------- | --------- |
 | [package-name] | ^1.0.0 | What it's used for |
 
 [Or list as prose: "This module uses `uuid` for generating IDs and `joi` for validation"]

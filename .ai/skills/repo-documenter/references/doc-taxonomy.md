@@ -273,7 +273,7 @@ When deciding which documentation to write, use this priority order:
 For each category in your repo:
 
 | Category | Exists? | Current? | Clear? | Complete? | Action |
-|----------|---------|----------|--------|-----------|--------|
+| ---------- | --------- | ---------- | -------- | ----------- | -------- |
 | Functional | ✓ | Stale | ✓ | Partial | Update examples |
 | Technical | ✓ | ✓ | ✓ | ✓ | Good |
 | Architectural | ✗ | N/A | N/A | N/A | Create ADRs |
