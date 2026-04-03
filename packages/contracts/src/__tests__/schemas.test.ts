@@ -29,10 +29,17 @@ import {
   PackTemplatesResponseSchema,
   ClinicProfileSchema,
   ClinicDashboardResponseSchema,
+  ClinicFeatureUnavailableErrorSchema,
+  ClinicChannelResponseSchema,
+  ConfirmationRequestResponseSchema,
+  GapOpportunityResponseSchema,
   PatientsResponseSchema,
   CreatePatientBodySchema,
   OfferGapBodySchema,
   ModuleKeySchema,
+  ReminderJobResponseSchema,
+  TenantModuleResponseSchema,
+  WaitlistRequestResponseSchema,
 } from '../index';
 
 describe('CategorySchema', () => {
@@ -190,6 +197,131 @@ describe('Clinic domain schemas', () => {
 
     expect(createPatientBody.firstName).toBe('Carlos');
     expect(() => OfferGapBodySchema.parse({ patientIds: [], channelType: 'whatsapp' })).toThrow();
+  });
+
+  it('parses clinic mutation wrappers and feature-unavailable errors', () => {
+    const moduleEnvelope = TenantModuleResponseSchema.parse({
+      module: {
+        id: 'module-1',
+        tenantId: 'tenant-1',
+        moduleKey: 'voice',
+        status: 'enabled',
+        visibleToClient: true,
+        planLevel: 'pro',
+        config: {},
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+    });
+
+    const channelEnvelope = ClinicChannelResponseSchema.parse({
+      channel: {
+        id: 'channel-1',
+        tenantId: 'tenant-1',
+        channelType: 'voice',
+        directionPolicy: {
+          inboundEnabled: true,
+        },
+        provider: 'twilio',
+        connectorAccountId: null,
+        status: 'active',
+        phoneNumber: '+34911122334',
+        config: {},
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+    });
+
+    const reminderEnvelope = ReminderJobResponseSchema.parse({
+      reminder: {
+        id: 'reminder-1',
+        tenantId: 'tenant-1',
+        appointmentId: 'appointment-1',
+        channelType: 'whatsapp',
+        status: 'scheduled',
+        scheduledFor: '2024-01-02T00:00:00Z',
+        sentAt: null,
+        templateKey: 'appointment_reminder',
+        attemptCount: 0,
+        lastError: null,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+    });
+
+    const confirmationEnvelope = ConfirmationRequestResponseSchema.parse({
+      confirmation: {
+        id: 'confirmation-1',
+        tenantId: 'tenant-1',
+        appointmentId: 'appointment-1',
+        channelType: 'whatsapp',
+        status: 'pending',
+        requestedAt: '2024-01-01T00:00:00Z',
+        dueAt: '2024-01-02T00:00:00Z',
+        respondedAt: null,
+        responsePayload: {},
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+    });
+
+    const waitlistEnvelope = WaitlistRequestResponseSchema.parse({
+      waitlistRequest: {
+        id: 'waitlist-1',
+        tenantId: 'tenant-1',
+        patientId: 'patient-1',
+        serviceId: null,
+        practitionerId: null,
+        locationId: null,
+        preferredWindows: [],
+        status: 'active',
+        priorityScore: 50,
+        notes: null,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+    });
+
+    const gapEnvelope = GapOpportunityResponseSchema.parse({
+      gap: {
+        id: 'gap-1',
+        tenantId: 'tenant-1',
+        originAppointmentId: 'appointment-1',
+        serviceId: null,
+        practitionerId: null,
+        locationId: null,
+        startsAt: '2024-01-03T09:00:00Z',
+        endsAt: '2024-01-03T09:30:00Z',
+        status: 'open',
+        origin: 'cancellation',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        outreachAttempts: [],
+      },
+    });
+
+    const featureUnavailable = ClinicFeatureUnavailableErrorSchema.parse({
+      error: 'Clinic feature unavailable',
+      code: 'clinic_feature_unavailable',
+      reason: 'module_inactive',
+      moduleKey: 'voice',
+      detail: 'Voice is disabled for this tenant.',
+    });
+
+    expect(moduleEnvelope.module.moduleKey).toBe('voice');
+    expect(channelEnvelope.channel.status).toBe('active');
+    expect(reminderEnvelope.reminder.templateKey).toBe('appointment_reminder');
+    expect(confirmationEnvelope.confirmation.status).toBe('pending');
+    expect(waitlistEnvelope.waitlistRequest.priorityScore).toBe(50);
+    expect(gapEnvelope.gap.status).toBe('open');
+    expect(featureUnavailable.reason).toBe('module_inactive');
+    expect(() =>
+      ClinicFeatureUnavailableErrorSchema.parse({
+        error: 'Clinic feature unavailable',
+        code: 'clinic_feature_unavailable',
+        reason: 'unsupported',
+      })
+    ).toThrow();
   });
 });
 

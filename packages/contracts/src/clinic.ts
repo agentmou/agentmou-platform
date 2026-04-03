@@ -807,10 +807,20 @@ export const ClinicModulesResponseSchema = z.object({
 });
 export type ClinicModulesResponse = z.infer<typeof ClinicModulesResponseSchema>;
 
+export const TenantModuleResponseSchema = z.object({
+  module: TenantModuleSchema,
+});
+export type TenantModuleResponse = z.infer<typeof TenantModuleResponseSchema>;
+
 export const ClinicChannelsResponseSchema = z.object({
   channels: z.array(ClinicChannelSchema),
 });
 export type ClinicChannelsResponse = z.infer<typeof ClinicChannelsResponseSchema>;
+
+export const ClinicChannelResponseSchema = z.object({
+  channel: ClinicChannelSchema,
+});
+export type ClinicChannelResponse = z.infer<typeof ClinicChannelResponseSchema>;
 
 export const PatientsResponseSchema = z.object({
   patients: z.array(PatientListItemSchema),
@@ -885,20 +895,40 @@ export const ReminderJobsResponseSchema = z.object({
 });
 export type ReminderJobsResponse = z.infer<typeof ReminderJobsResponseSchema>;
 
+export const ReminderJobResponseSchema = z.object({
+  reminder: ReminderJobSchema,
+});
+export type ReminderJobResponse = z.infer<typeof ReminderJobResponseSchema>;
+
 export const ConfirmationRequestsResponseSchema = z.object({
   confirmations: z.array(ConfirmationRequestSchema),
 });
 export type ConfirmationRequestsResponse = z.infer<typeof ConfirmationRequestsResponseSchema>;
+
+export const ConfirmationRequestResponseSchema = z.object({
+  confirmation: ConfirmationRequestSchema,
+});
+export type ConfirmationRequestResponse = z.infer<typeof ConfirmationRequestResponseSchema>;
 
 export const WaitlistRequestsResponseSchema = z.object({
   waitlist: z.array(WaitlistRequestSchema),
 });
 export type WaitlistRequestsResponse = z.infer<typeof WaitlistRequestsResponseSchema>;
 
+export const WaitlistRequestResponseSchema = z.object({
+  waitlistRequest: WaitlistRequestSchema,
+});
+export type WaitlistRequestResponse = z.infer<typeof WaitlistRequestResponseSchema>;
+
 export const GapOpportunitiesResponseSchema = z.object({
   gaps: z.array(GapOpportunityDetailSchema),
 });
 export type GapOpportunitiesResponse = z.infer<typeof GapOpportunitiesResponseSchema>;
+
+export const GapOpportunityResponseSchema = z.object({
+  gap: GapOpportunityDetailSchema,
+});
+export type GapOpportunityResponse = z.infer<typeof GapOpportunityResponseSchema>;
 
 export const ReactivationCampaignsResponseSchema = z.object({
   campaigns: z.array(ReactivationCampaignSchema),
@@ -915,6 +945,23 @@ export const ReactivationRecipientsResponseSchema = z.object({
   recipients: z.array(ReactivationRecipientSchema),
 });
 export type ReactivationRecipientsResponse = z.infer<typeof ReactivationRecipientsResponseSchema>;
+
+export const ClinicFeatureUnavailableReasonSchema = z.enum([
+  'module_inactive',
+  'channel_inactive',
+  'channel_missing',
+]);
+export type ClinicFeatureUnavailableReason = z.infer<typeof ClinicFeatureUnavailableReasonSchema>;
+
+export const ClinicFeatureUnavailableErrorSchema = z.object({
+  error: z.string(),
+  code: z.literal('clinic_feature_unavailable'),
+  reason: ClinicFeatureUnavailableReasonSchema,
+  moduleKey: ModuleKeySchema.optional(),
+  channelType: ChannelTypeSchema.optional(),
+  detail: z.string().optional(),
+});
+export type ClinicFeatureUnavailableError = z.infer<typeof ClinicFeatureUnavailableErrorSchema>;
 
 // ---------------------------------------------------------------------------
 // Filters and query shapes
