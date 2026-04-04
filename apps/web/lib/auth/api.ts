@@ -24,6 +24,14 @@ export interface AuthTenant {
   name: string;
   plan: string;
   role?: string;
+  settings?: {
+    timezone: string;
+    defaultHITL: boolean;
+    logRetentionDays: number;
+    memoryRetentionDays: number;
+    verticalClinicUi?: boolean;
+    clinicDentalMode?: boolean;
+  };
 }
 
 export interface RegisterResponse {

@@ -6,6 +6,7 @@ import type { DataProvider } from '@/lib/data/provider';
 import { resolveHonestSurfaceState } from '@/lib/honest-ui';
 
 export type SearchItemType = 'navigate' | 'agent' | 'workflow' | 'pack' | 'run' | 'action';
+export type SearchMode = 'clinic' | 'platform';
 
 export interface SearchItem {
   type: SearchItemType;
@@ -19,7 +20,7 @@ export interface SearchItem {
 }
 
 // Navigation items - available globally in the app
-const navigationItems: Omit<SearchItem, 'href'>[] = [
+const platformNavigationItems: Omit<SearchItem, 'href'>[] = [
   {
     type: 'navigate',
     id: 'nav-dashboard',
@@ -94,11 +95,178 @@ const navigationItems: Omit<SearchItem, 'href'>[] = [
   },
 ];
 
+const clinicNavigationItems: Omit<SearchItem, 'href'>[] = [
+  {
+    type: 'navigate',
+    id: 'nav-dashboard',
+    label: 'Resumen',
+    keywords: ['home', 'resumen', 'kpis', 'operacion'],
+    icon: 'layout-dashboard',
+    description: 'Vista operativa del centro de recepcion',
+  },
+  {
+    type: 'navigate',
+    id: 'nav-bandeja',
+    label: 'Bandeja',
+    keywords: ['inbox', 'whatsapp', 'llamadas', 'escalados'],
+    icon: 'inbox',
+    description: 'Conversaciones y llamadas en curso',
+  },
+  {
+    type: 'navigate',
+    id: 'nav-agenda',
+    label: 'Agenda',
+    keywords: ['citas', 'calendar', 'agenda'],
+    icon: 'calendar-days',
+    description: 'Citas del dia y cambios recientes',
+  },
+  {
+    type: 'navigate',
+    id: 'nav-pacientes',
+    label: 'Pacientes',
+    keywords: ['pacientes', 'nuevos', 'existentes', 'reactivacion'],
+    icon: 'users',
+    description: 'Listado y contexto del paciente',
+  },
+  {
+    type: 'navigate',
+    id: 'nav-seguimiento',
+    label: 'Seguimiento',
+    keywords: ['formularios', 'confirmaciones', 'huecos'],
+    icon: 'clipboard-list',
+    description: 'Colas de seguimiento y tareas pendientes',
+  },
+  {
+    type: 'navigate',
+    id: 'nav-reactivacion',
+    label: 'Reactivacion',
+    keywords: ['campanas', 'recall', 'reactivacion'],
+    icon: 'refresh-cw',
+    description: 'Campanas y pacientes por recuperar',
+  },
+  {
+    type: 'navigate',
+    id: 'nav-rendimiento',
+    label: 'Rendimiento',
+    keywords: ['kpis', 'conversion', 'ingresos', 'rendimiento'],
+    icon: 'chart-column',
+    description: 'Metricas de negocio y recuperacion',
+  },
+  {
+    type: 'navigate',
+    id: 'nav-configuracion',
+    label: 'Configuracion',
+    keywords: ['modulos', 'canales', 'reglas', 'configuracion'],
+    icon: 'settings',
+    description: 'Configuracion del centro de recepcion',
+  },
+];
+
 export async function buildSearchIndex(
   tenantId: string,
-  provider: DataProvider
+  provider: DataProvider,
+  mode: SearchMode = 'platform'
 ): Promise<SearchItem[]> {
   const items: SearchItem[] = [];
+  const navigationItems = mode === 'clinic' ? clinicNavigationItems : platformNavigationItems;
+
+  if (mode === 'clinic') {
+    for (const navItem of navigationItems) {
+      const href =
+        navItem.id === 'nav-dashboard'
+          ? `/app/${tenantId}/dashboard`
+          : `/app/${tenantId}/${navItem.id.replace('nav-', '')}`;
+
+      items.push({
+        ...navItem,
+        href,
+      });
+    }
+
+    const [patients, conversations, appointments, campaigns] = await Promise.all([
+      provider.listClinicPatients(tenantId, { limit: 8 }).catch(() => ({ patients: [] })),
+      provider.listClinicConversations(tenantId).catch(() => ({ threads: [] })),
+      provider.listClinicAppointments(tenantId, { limit: 8 }).catch(() => ({ appointments: [] })),
+      provider
+        .listClinicReactivationCampaigns(tenantId)
+        .catch(() => ({ campaigns: [] })),
+    ]);
+
+    items.push(
+      ...patients.patients.slice(0, 6).map((patient) => ({
+        type: 'action' as const,
+        id: `patient-${patient.id}`,
+        label: patient.fullName,
+        keywords: [patient.status, patient.phone ?? '', patient.email ?? ''].filter(Boolean),
+        href: `/app/${tenantId}/pacientes`,
+        icon: 'users',
+        description: patient.isReactivationCandidate
+          ? 'Paciente para reactivar'
+          : patient.hasPendingForm
+            ? 'Paciente con formulario pendiente'
+            : 'Abrir listado de pacientes',
+        category: patient.isExisting ? 'Paciente existente' : 'Nuevo paciente',
+      })),
+      ...conversations.threads.slice(0, 6).map((thread) => ({
+        type: 'action' as const,
+        id: `thread-${thread.id}`,
+        label: thread.patient?.fullName ?? 'Conversacion sin identificar',
+        keywords: [thread.channelType, thread.status, thread.intent, thread.priority],
+        href: `/app/${tenantId}/bandeja`,
+        icon: thread.channelType === 'voice' ? 'phone' : 'inbox',
+        description: thread.lastMessagePreview ?? 'Abrir bandeja',
+        category: 'Bandeja',
+      })),
+      ...appointments.appointments.slice(0, 6).map((appointment) => ({
+        type: 'action' as const,
+        id: `appointment-${appointment.id}`,
+        label: appointment.patient?.fullName ?? 'Cita agendada',
+        keywords: [
+          appointment.status,
+          appointment.confirmationStatus,
+          appointment.location?.name ?? '',
+          appointment.service?.name ?? '',
+        ].filter(Boolean),
+        href: `/app/${tenantId}/agenda`,
+        icon: 'calendar-days',
+        description: `Cita ${new Date(appointment.startsAt).toLocaleString()}`,
+        category: 'Agenda',
+      })),
+      ...campaigns.campaigns.slice(0, 4).map((campaign) => ({
+        type: 'action' as const,
+        id: `campaign-${campaign.id}`,
+        label: campaign.name,
+        keywords: [campaign.campaignType, campaign.status],
+        href: `/app/${tenantId}/reactivacion`,
+        icon: 'refresh-cw',
+        description: `Campana ${campaign.status}`,
+        category: 'Reactivacion',
+      })),
+      {
+        type: 'action',
+        id: 'action-forms',
+        label: 'Abrir formularios pendientes',
+        keywords: ['formularios', 'seguimiento', 'pendientes'],
+        href: `/app/${tenantId}/seguimiento/formularios`,
+        icon: 'clipboard-list',
+        description: 'Revisar formularios enviados y pendientes',
+        category: 'Seguimiento',
+      },
+      {
+        type: 'action',
+        id: 'action-gaps',
+        label: 'Abrir huecos activos',
+        keywords: ['huecos', 'cancelaciones', 'gaps'],
+        href: `/app/${tenantId}/seguimiento/huecos`,
+        icon: 'calendar-days',
+        description: 'Ver huecos y oportunidades de relleno',
+        category: 'Seguimiento',
+      }
+    );
+
+    return items;
+  }
+
   const marketplaceAgents = await provider.listMarketplaceAgentTemplates();
   const marketplaceWorkflows = await provider.listMarketplaceWorkflowTemplates();
   const packTemplates = await provider.listPackTemplates();

@@ -48,6 +48,7 @@ import { Logo } from '@/components/brand';
 import { CommandPalette } from '@/components/control-plane/command-palette';
 import { useAuthStore } from '@/lib/auth/store';
 import { useDataProvider } from '@/lib/providers/context';
+import { getPlatformPath, useTenantExperience } from '@/lib/tenant-experience';
 
 const navSections = [
   {
@@ -99,6 +100,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
   }, [hydrate]);
 
   const provider = useDataProvider();
+  const experience = useTenantExperience();
   const isDemoWorkspace = tenantId === 'demo-workspace';
   const hasTenantAccess = isDemoWorkspace || authTenants.some((tenant) => tenant.id === tenantId);
 
@@ -192,12 +194,19 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
   }
 
   const isActive = (href: string) => {
-    const fullPath = `/app/${tenantId}${href}`;
+    const fullPath = getShellHref(href);
     if (href === '/dashboard') {
-      return pathname === `/app/${tenantId}` || pathname === `/app/${tenantId}/dashboard`;
+      return pathname === `/app/${tenantId}` || pathname === fullPath;
     }
     return pathname.startsWith(fullPath);
   };
+
+  const platformBasePath =
+    experience.isClinicTenant && experience.mode === 'platform' ? '/platform' : '';
+  const getShellHref = (href: string) =>
+    platformBasePath
+      ? getPlatformPath(tenantId, href)
+      : `/app/${tenantId}${href}`;
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-sidebar">
@@ -225,7 +234,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
         }
       >
         <Link
-          href={`/app/${tenantId}/dashboard`}
+          href={getShellHref('/dashboard')}
           className={cn('flex items-center min-w-0 shrink-0', collapsed && 'pointer-events-none')}
         >
           <Logo variant={collapsed ? 'sidebarCollapsed' : 'sidebar'} />
@@ -267,7 +276,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                 return (
                   <Link
                     key={item.href}
-                    href={`/app/${tenantId}${item.href}`}
+                    href={getShellHref(item.href)}
                     className={cn(
                       'group flex items-center gap-3 rounded-sm px-3 py-2 text-[11px] uppercase tracking-[0.05em] font-medium transition-colors',
                       active
@@ -303,7 +312,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
 
       {/* Settings - bottom of sidebar */}
       <div className="border-t border-border/50 p-3 flex flex-col gap-2">
-        <Link href={`/app/${tenantId}/settings`} onClick={() => setMobileOpen(false)}>
+        <Link href={getShellHref('/settings')} onClick={() => setMobileOpen(false)}>
           <Button
             variant="outline"
             className={cn(
@@ -376,7 +385,12 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
               <DropdownMenuSeparator />
               {tenants.map((tenant) => (
                 <DropdownMenuItem key={tenant.id} asChild>
-                  <Link href={`/app/${tenant.id}/dashboard`} className="flex items-center gap-2">
+                  <Link
+                    href={
+                      platformBasePath ? getPlatformPath(tenant.id, '/dashboard') : `/app/${tenant.id}/dashboard`
+                    }
+                    className="flex items-center gap-2"
+                  >
                     {tenant.type === 'business' ? (
                       <Building2 className="h-4 w-4" />
                     ) : (
@@ -437,7 +451,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href={`/app/${tenantId}/settings`}>
+                  <Link href={getShellHref('/settings')}>
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
                   </Link>
@@ -462,7 +476,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
       </div>
 
       {/* Command Palette */}
-      <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />
+      <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} mode="platform" />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -31,7 +32,7 @@ import { useProviderQuery } from '@/lib/data/use-provider-query';
 import { resolveCatalogAvailability } from '@/lib/catalog/availability';
 import type { AgentTemplate, WorkflowTemplate, PackTemplate } from '@agentmou/contracts';
 
-export default function MarketplacePage() {
+function MarketplacePageContent() {
   const params = useParams();
   const tenantId = params.tenantId as string;
   const { data: agentTemplates } = useProviderQuery<AgentTemplate[]>(
@@ -432,4 +433,14 @@ export default function MarketplacePage() {
       </div>
     </div>
   );
+}
+
+export default function MarketplacePage() {
+  const redirected = useLegacyPlatformRedirect('/marketplace');
+
+  if (redirected) {
+    return null;
+  }
+
+  return <MarketplacePageContent />;
 }
