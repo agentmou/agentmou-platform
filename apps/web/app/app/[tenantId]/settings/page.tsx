@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { useTheme } from 'next-themes';
 import {
   Card,
@@ -55,7 +56,7 @@ function formatInvoiceMonth(date: string): string {
   }).format(new Date(date));
 }
 
-export default function SettingsPage() {
+function SettingsPageContent() {
   const params = useParams();
   const tenantId = params.tenantId as string;
   const provider = useDataProvider();
@@ -617,4 +618,14 @@ export default function SettingsPage() {
       </Tabs>
     </div>
   );
+}
+
+export default function SettingsPage() {
+  const redirected = useLegacyPlatformRedirect('/settings');
+
+  if (redirected) {
+    return null;
+  }
+
+  return <SettingsPageContent />;
 }

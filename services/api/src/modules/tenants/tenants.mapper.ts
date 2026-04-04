@@ -15,6 +15,8 @@ const DEFAULT_TENANT_SETTINGS: TenantSettings = {
   defaultHITL: false,
   logRetentionDays: 30,
   memoryRetentionDays: 7,
+  verticalClinicUi: false,
+  clinicDentalMode: false,
 };
 
 export function normalizeTenantSettings(settings: unknown): TenantSettings {
@@ -37,6 +39,14 @@ export function normalizeTenantSettings(settings: unknown): TenantSettings {
       typeof settings.memoryRetentionDays === 'number'
         ? settings.memoryRetentionDays
         : DEFAULT_TENANT_SETTINGS.memoryRetentionDays,
+    verticalClinicUi:
+      typeof settings.verticalClinicUi === 'boolean'
+        ? settings.verticalClinicUi
+        : DEFAULT_TENANT_SETTINGS.verticalClinicUi,
+    clinicDentalMode:
+      typeof settings.clinicDentalMode === 'boolean'
+        ? settings.clinicDentalMode
+        : DEFAULT_TENANT_SETTINGS.clinicDentalMode,
   });
 }
 

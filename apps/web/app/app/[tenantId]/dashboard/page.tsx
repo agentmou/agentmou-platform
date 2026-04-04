@@ -26,7 +26,9 @@ import { useDataProvider } from '@/lib/providers/context';
 import { HonestSurfaceBadge, HonestSurfaceNotice } from '@/components/honest-surface';
 import { resolveHonestSurfaceState } from '@/lib/honest-ui';
 import { EmptyState } from '@/components/control-plane/empty-state';
+import { ClinicOverviewPage } from '@/components/clinic/clinic-pages';
 import { Store } from 'lucide-react';
+import { useTenantExperience } from '@/lib/tenant-experience';
 import type {
   AgentTemplate,
   WorkflowTemplate,
@@ -54,7 +56,7 @@ const emptyMetrics: DashboardMetrics = {
   errorsByType: [],
 };
 
-export default function DashboardPage() {
+function PlatformDashboardPageContent() {
   const params = useParams();
   const tenantId = params.tenantId as string;
   const provider = useDataProvider();
@@ -576,4 +578,14 @@ export default function DashboardPage() {
       </div>
     </div>
   );
+}
+
+export default function DashboardPage() {
+  const experience = useTenantExperience();
+
+  if (experience.isClinicTenant) {
+    return <ClinicOverviewPage />;
+  }
+
+  return <PlatformDashboardPageContent />;
 }

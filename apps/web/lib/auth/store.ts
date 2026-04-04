@@ -58,7 +58,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         token: res.token,
         user: res.user,
-        tenants: res.tenants,
+        tenants: res.tenants.map((tenant) => ({
+          ...tenant,
+          role: tenant.role ?? 'member',
+        })),
         activeTenantId: tenantId,
         isLoading: false,
       });

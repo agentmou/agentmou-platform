@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
+import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -37,7 +38,7 @@ function findingStatus(severity: SecurityFinding['severity']) {
   return 'pending';
 }
 
-export default function SecurityPage() {
+function SecurityPageContent() {
   const params = useParams();
   const tenantId = params.tenantId as string;
   const provider = useDataProvider();
@@ -551,4 +552,14 @@ export default function SecurityPage() {
       </Tabs>
     </div>
   );
+}
+
+export default function SecurityPage() {
+  const redirected = useLegacyPlatformRedirect('/security');
+
+  if (redirected) {
+    return null;
+  }
+
+  return <SecurityPageContent />;
 }

@@ -4,6 +4,7 @@ import { createToken } from '@agentmou/auth';
 import { eq, and, lt } from 'drizzle-orm';
 import { findOrCreateUserFromOAuthProfile, type OAuthProfile } from './identity.service.js';
 import { isAllowedAuthCallbackUrl, parseWebOriginAllowlist } from './oauth-allowlist.js';
+import { normalizeTenantSettings } from '../tenants/tenants.mapper.js';
 
 const CODE_TTL_MS = 5 * 60 * 1000;
 const STATE_TTL_MS = 15 * 60 * 1000;
@@ -291,7 +292,13 @@ export async function exchangeOAuthLoginCode(plainCode: string): Promise<{
   }
 
   const userTenants = await db
-    .select({ id: tenants.id, name: tenants.name, plan: tenants.plan })
+    .select({
+      id: tenants.id,
+      name: tenants.name,
+      plan: tenants.plan,
+      role: memberships.role,
+      settings: tenants.settings,
+    })
     .from(memberships)
     .innerJoin(tenants, eq(memberships.tenantId, tenants.id))
     .where(eq(memberships.userId, user.id));
@@ -305,6 +312,9 @@ export async function exchangeOAuthLoginCode(plainCode: string): Promise<{
       email: user.email,
       name: user.name ?? null,
     },
-    tenants: userTenants,
+    tenants: userTenants.map((tenant) => ({
+      ...tenant,
+      settings: normalizeTenantSettings(tenant.settings),
+    })),
   };
 }

@@ -1,0 +1,92 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { apiProvider } from './api-provider';
+import { demoProvider } from './demo-provider';
+import { mockProvider } from './mock-provider';
+
+describe('clinic data providers', () => {
+  const originalFetch = globalThis.fetch;
+  const originalNodeEnv = process.env.NODE_ENV;
+  const originalApiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const env = process.env as Record<string, string | undefined>;
+
+  beforeEach(() => {
+    vi.resetModules();
+    env.NODE_ENV = 'development';
+    env.NEXT_PUBLIC_API_URL = 'http://localhost:3001';
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    env.NODE_ENV = originalNodeEnv;
+    env.NEXT_PUBLIC_API_URL = originalApiUrl;
+    vi.restoreAllMocks();
+  });
+
+  it('returns deterministic clinic fixtures from the mock provider', async () => {
+    const patients = await mockProvider.listClinicPatients('demo-workspace', {
+      hasPendingForm: true,
+    });
+    const calls = await mockProvider.listClinicCalls('demo-workspace', {
+      channelType: 'voice',
+    });
+
+    expect(patients.patients.map((patient) => patient.fullName)).toEqual(['Ana Garcia']);
+    expect(calls.calls).toHaveLength(1);
+    expect(calls.calls[0]?.status).toBe('callback_required');
+  });
+
+  it('keeps clinic demo data available through the demo provider', async () => {
+    const dashboard = await demoProvider.getClinicDashboard('demo-workspace');
+    const campaigns = await demoProvider.listClinicReactivationCampaigns('demo-workspace');
+
+    expect(dashboard.kpis.pendingConfirmations).toBe(1);
+    expect(campaigns.campaigns[0]?.name).toContain('Revision');
+  });
+
+  it('unwraps appointment mutation responses in the api provider', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          appointment: {
+            id: 'appointment-1',
+            tenantId: 'tenant-1',
+            patientId: 'patient-1',
+            externalAppointmentId: null,
+            serviceId: null,
+            practitionerId: null,
+            locationId: null,
+            threadId: null,
+            status: 'scheduled',
+            source: 'manual',
+            startsAt: '2025-01-15T10:00:00.000Z',
+            endsAt: '2025-01-15T10:30:00.000Z',
+            bookedAt: '2025-01-15T09:00:00.000Z',
+            confirmationStatus: 'pending',
+            reminderStatus: 'pending',
+            cancellationReason: null,
+            metadata: {},
+            createdAt: '2025-01-15T09:00:00.000Z',
+            updatedAt: '2025-01-15T09:00:00.000Z',
+            patient: null,
+            service: null,
+            practitioner: null,
+            location: null,
+            events: [],
+          },
+        }),
+        { status: 200 }
+      )
+    ) as typeof fetch;
+
+    const appointment = await apiProvider.createClinicAppointment('tenant-1', {
+      patientId: 'patient-1',
+      startsAt: '2025-01-15T10:00:00.000Z',
+      endsAt: '2025-01-15T10:30:00.000Z',
+      source: 'manual',
+    });
+
+    expect(appointment.id).toBe('appointment-1');
+    expect(appointment.status).toBe('scheduled');
+  });
+});

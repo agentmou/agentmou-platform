@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FadeContent } from '@/components/reactbits/fade-content';
 import { Button } from '@/components/ui/button';
@@ -85,7 +86,7 @@ const statusIcons = {
   skipped: Clock,
 };
 
-export default function ObservabilityPage() {
+function ObservabilityPageContent() {
   const params = useParams();
   const router = useRouter();
   const tenantId = params.tenantId as string;
@@ -702,4 +703,14 @@ export default function ObservabilityPage() {
       </Card>
     </div>
   );
+}
+
+export default function ObservabilityPage() {
+  const redirected = useLegacyPlatformRedirect('/observability');
+
+  if (redirected) {
+    return null;
+  }
+
+  return <ObservabilityPageContent />;
 }

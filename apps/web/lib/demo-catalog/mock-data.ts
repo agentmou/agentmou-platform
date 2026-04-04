@@ -41,6 +41,8 @@ export const tenants: Tenant[] = [
       defaultHITL: true,
       logRetentionDays: 30,
       memoryRetentionDays: 7,
+      verticalClinicUi: true,
+      clinicDentalMode: true,
     },
   },
   {
@@ -55,6 +57,8 @@ export const tenants: Tenant[] = [
       defaultHITL: true,
       logRetentionDays: 30,
       memoryRetentionDays: 7,
+      verticalClinicUi: false,
+      clinicDentalMode: false,
     },
   },
   {
@@ -69,6 +73,8 @@ export const tenants: Tenant[] = [
       defaultHITL: false,
       logRetentionDays: 7,
       memoryRetentionDays: 0,
+      verticalClinicUi: false,
+      clinicDentalMode: false,
     },
   },
 ];

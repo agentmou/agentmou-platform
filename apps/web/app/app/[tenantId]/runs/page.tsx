@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
+import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -66,7 +67,7 @@ import type { AgentTemplate, WorkflowTemplate, ExecutionRun } from '@agentmou/co
 type SortField = 'startedAt' | 'durationMs' | 'costEstimate' | 'tokensUsed';
 type SortOrder = 'asc' | 'desc';
 
-export default function RunsListPage() {
+function RunsListPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const tenantId = params.tenantId as string;
@@ -683,4 +684,14 @@ export default function RunsListPage() {
       </Dialog>
     </div>
   );
+}
+
+export default function RunsListPage() {
+  const redirected = useLegacyPlatformRedirect('/runs');
+
+  if (redirected) {
+    return null;
+  }
+
+  return <RunsListPageContent />;
 }

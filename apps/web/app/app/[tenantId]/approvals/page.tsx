@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
+import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -79,7 +80,7 @@ const generateAuditLog = (approval: ApprovalRequest) => [
     : []),
 ];
 
-export default function ApprovalsPage() {
+function ApprovalsPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const tenantId = params.tenantId as string;
@@ -618,4 +619,14 @@ export default function ApprovalsPage() {
       </Dialog>
     </div>
   );
+}
+
+export default function ApprovalsPage() {
+  const redirected = useLegacyPlatformRedirect('/approvals');
+
+  if (redirected) {
+    return null;
+  }
+
+  return <ApprovalsPageContent />;
 }

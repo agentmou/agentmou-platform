@@ -13,6 +13,9 @@ import {
 } from '@/components/ui/command';
 import {
   Activity,
+  CalendarDays,
+  ChartColumn,
+  ClipboardList,
   LayoutDashboard,
   Store,
   Download,
@@ -29,11 +32,15 @@ import {
   Plus,
   XCircle,
   Clock,
+  Inbox,
+  Phone,
+  Users,
 } from 'lucide-react';
 import {
   buildSearchIndex,
   searchItems,
   groupSearchItems,
+  type SearchMode,
   type SearchItem,
 } from '@/lib/search-index';
 import { useDataProvider } from '@/lib/providers/context';
@@ -56,14 +63,25 @@ const iconMap: Record<string, React.ElementType> = {
   plus: Plus,
   'x-circle': XCircle,
   clock: Clock,
+  inbox: Inbox,
+  phone: Phone,
+  users: Users,
+  'calendar-days': CalendarDays,
+  'clipboard-list': ClipboardList,
+  'chart-column': ChartColumn,
 };
 
 interface CommandPaletteProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  mode?: SearchMode;
 }
 
-export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
+export function CommandPalette({
+  open,
+  onOpenChange,
+  mode = 'platform',
+}: CommandPaletteProps) {
   const router = useRouter();
   const params = useParams();
   const tenantId = params.tenantId as string;
@@ -74,10 +92,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   // Build search index with current tenant
   const [searchIndex, setSearchIndex] = React.useState<SearchItem[]>([]);
   React.useEffect(() => {
-    buildSearchIndex(tenantId, provider)
+    buildSearchIndex(tenantId, provider, mode)
       .then(setSearchIndex)
       .catch(() => setSearchIndex([]));
-  }, [tenantId, provider]);
+  }, [mode, tenantId, provider]);
 
   // Filter items based on query
   const filteredItems = React.useMemo(() => {
@@ -123,15 +141,27 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       open={open}
       onOpenChange={onOpenChange}
       title="Command Palette"
-      description="Search for pages, agents, workflows, and preview shortcuts"
+      description={
+        mode === 'clinic'
+          ? 'Busca pacientes, citas, conversaciones y tareas operativas'
+          : 'Search for pages, agents, workflows, and preview shortcuts'
+      }
     >
       <CommandInput
-        placeholder="Search pages, agents, workflows, or shortcuts..."
+        placeholder={
+          mode === 'clinic'
+            ? 'Buscar pacientes, citas, conversaciones o seguimientos...'
+            : 'Search pages, agents, workflows, or shortcuts...'
+        }
         value={query}
         onValueChange={setQuery}
       />
       <CommandList>
-        <CommandEmpty>No matching pages or previews found.</CommandEmpty>
+        <CommandEmpty>
+          {mode === 'clinic'
+            ? 'No se encontraron pacientes, citas o accesos directos.'
+            : 'No matching pages or previews found.'}
+        </CommandEmpty>
 
         {Object.entries(groupedItems).map(([groupName, items], index) => (
           <React.Fragment key={groupName}>

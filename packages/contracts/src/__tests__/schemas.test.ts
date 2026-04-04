@@ -75,6 +75,8 @@ describe('TenantSchema', () => {
     const result = TenantSchema.parse(validTenant);
     expect(result.id).toBe('tenant-1');
     expect(result.plan).toBe('pro');
+    expect(result.settings.verticalClinicUi).toBe(false);
+    expect(result.settings.clinicDentalMode).toBe(false);
   });
 
   it('rejects missing required fields', () => {

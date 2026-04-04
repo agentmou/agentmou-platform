@@ -9,7 +9,7 @@
  * App routes use ApiProvider (real tenant data).
  */
 
-import type {
+import {
   Tenant,
   TenantMember,
   AgentTemplate,
@@ -25,6 +25,65 @@ import type {
   N8nConnection,
   Invoice,
   DashboardMetrics,
+  type AppointmentDetail,
+  type AppointmentFilters,
+  type AppointmentsResponse,
+  type AssignConversationBody,
+  type CallbackCallBody,
+  type CallFilters,
+  type CallSessionDetail,
+  type CallsResponse,
+  type CampaignFilters,
+  type CancelAppointmentBody,
+  type ClinicChannel,
+  type ClinicDashboard,
+  type ClinicProfile,
+  type CloseGapBody,
+  type CompleteIntakeFormSubmissionBody,
+  type ConfirmationFilters,
+  type ConfirmationRequest,
+  type ConversationMessage,
+  type ConversationThreadDetail,
+  type ConversationsResponse,
+  type ConfirmAppointmentBody,
+  type CreateAppointmentBody,
+  type CreatePatientBody,
+  type CreateReactivationCampaignBody,
+  type CreateWaitlistRequestBody,
+  type EscalateConfirmationBody,
+  type EscalateConversationBody,
+  type GapOpportunityDetail,
+  type GapFilters,
+  type IntakeFormSubmission,
+  type IntakeFormTemplate,
+  type ModuleKey,
+  type OfferGapBody,
+  type PatientFilters,
+  type PatientResponse,
+  type PatientsResponse,
+  type PauseReactivationCampaignBody,
+  type ReactivatePatientBody,
+  type ReactivationCampaign,
+  type ReactivationCampaignDetail,
+  type ReactivationCampaignsResponse,
+  type ReactivationRecipient,
+  type ReminderJob,
+  type RescheduleAppointmentBody,
+  type RemindConfirmationBody,
+  type ReplyConversationBody,
+  type ResolveCallBody,
+  type ResolveConversationBody,
+  type ResumeReactivationCampaignBody,
+  type SendIntakeFormSubmissionBody,
+  type StartReactivationCampaignBody,
+  type TenantModule,
+  type UpdateAppointmentBody,
+  type UpdateClinicChannelBody,
+  type UpdateClinicProfileBody,
+  type UpdatePatientBody,
+  type UpdateTenantModuleBody,
+  type WaiveIntakeFormSubmissionBody,
+  type WaitlistRequest,
 } from '@agentmou/contracts';
 
 export type DataProviderMode = 'api' | 'demo' | 'mock';
@@ -164,6 +223,212 @@ export interface ConnectorMethods {
   getTenantN8nConnection(tenantId: string): Promise<N8nConnection | null>;
 }
 
+// ---------------------------------------------------------------------------
+// Clinic
+// ---------------------------------------------------------------------------
+
+export interface ClinicConfigurationMethods {
+  getClinicDashboard(tenantId: string): Promise<ClinicDashboard>;
+  getClinicProfile(tenantId: string): Promise<ClinicProfile | null>;
+  updateClinicProfile(tenantId: string, body: UpdateClinicProfileBody): Promise<ClinicProfile>;
+  listClinicModules(tenantId: string): Promise<TenantModule[]>;
+  updateClinicModule(
+    tenantId: string,
+    moduleKey: ModuleKey,
+    body: UpdateTenantModuleBody
+  ): Promise<TenantModule>;
+  listClinicChannels(tenantId: string): Promise<ClinicChannel[]>;
+  updateClinicChannel(
+    tenantId: string,
+    channelType: 'whatsapp' | 'voice',
+    body: UpdateClinicChannelBody
+  ): Promise<ClinicChannel>;
+}
+
+export interface ClinicPatientMethods {
+  listClinicPatients(tenantId: string, filters?: PatientFilters): Promise<PatientsResponse>;
+  getClinicPatient(tenantId: string, patientId: string): Promise<PatientResponse>;
+  createClinicPatient(tenantId: string, body: CreatePatientBody): Promise<PatientResponse>;
+  updateClinicPatient(
+    tenantId: string,
+    patientId: string,
+    body: UpdatePatientBody
+  ): Promise<PatientResponse>;
+  reactivateClinicPatient(
+    tenantId: string,
+    patientId: string,
+    body: ReactivatePatientBody
+  ): Promise<PatientResponse>;
+  createClinicWaitlistRequest(
+    tenantId: string,
+    patientId: string,
+    body: CreateWaitlistRequestBody
+  ): Promise<WaitlistRequest>;
+}
+
+export interface ClinicConversationMethods {
+  listClinicConversations(
+    tenantId: string,
+    filters?: Record<string, string | number | boolean | null | undefined>
+  ): Promise<ConversationsResponse>;
+  getClinicConversation(tenantId: string, threadId: string): Promise<ConversationThreadDetail>;
+  listClinicConversationMessages(tenantId: string, threadId: string): Promise<ConversationMessage[]>;
+  assignClinicConversation(
+    tenantId: string,
+    threadId: string,
+    body: AssignConversationBody
+  ): Promise<ConversationThreadDetail>;
+  escalateClinicConversation(
+    tenantId: string,
+    threadId: string,
+    body: EscalateConversationBody
+  ): Promise<ConversationThreadDetail>;
+  resolveClinicConversation(
+    tenantId: string,
+    threadId: string,
+    body: ResolveConversationBody
+  ): Promise<ConversationThreadDetail>;
+  replyClinicConversation(
+    tenantId: string,
+    threadId: string,
+    body: ReplyConversationBody
+  ): Promise<ConversationThreadDetail>;
+}
+
+export interface ClinicCallMethods {
+  listClinicCalls(tenantId: string, filters?: CallFilters): Promise<CallsResponse>;
+  getClinicCall(tenantId: string, callId: string): Promise<CallSessionDetail>;
+  requestClinicCallCallback(
+    tenantId: string,
+    callId: string,
+    body: CallbackCallBody
+  ): Promise<CallSessionDetail>;
+  resolveClinicCall(
+    tenantId: string,
+    callId: string,
+    body: ResolveCallBody
+  ): Promise<CallSessionDetail>;
+}
+
+export interface ClinicAppointmentMethods {
+  listClinicAppointments(
+    tenantId: string,
+    filters?: AppointmentFilters
+  ): Promise<AppointmentsResponse>;
+  getClinicAppointment(tenantId: string, appointmentId: string): Promise<AppointmentDetail>;
+  createClinicAppointment(
+    tenantId: string,
+    body: CreateAppointmentBody
+  ): Promise<AppointmentDetail>;
+  updateClinicAppointment(
+    tenantId: string,
+    appointmentId: string,
+    body: UpdateAppointmentBody
+  ): Promise<AppointmentDetail>;
+  rescheduleClinicAppointment(
+    tenantId: string,
+    appointmentId: string,
+    body: RescheduleAppointmentBody
+  ): Promise<AppointmentDetail>;
+  cancelClinicAppointment(
+    tenantId: string,
+    appointmentId: string,
+    body: CancelAppointmentBody
+  ): Promise<AppointmentDetail>;
+  confirmClinicAppointment(
+    tenantId: string,
+    appointmentId: string,
+    body: ConfirmAppointmentBody
+  ): Promise<AppointmentDetail>;
+}
+
+export interface ClinicFormMethods {
+  listClinicFormTemplates(tenantId: string): Promise<IntakeFormTemplate[]>;
+  listClinicFormSubmissions(tenantId: string): Promise<IntakeFormSubmission[]>;
+  getClinicFormSubmission(tenantId: string, submissionId: string): Promise<IntakeFormSubmission>;
+  sendClinicFormSubmission(
+    tenantId: string,
+    submissionId: string,
+    body: SendIntakeFormSubmissionBody
+  ): Promise<IntakeFormSubmission>;
+  completeClinicFormSubmission(
+    tenantId: string,
+    submissionId: string,
+    body: CompleteIntakeFormSubmissionBody
+  ): Promise<IntakeFormSubmission>;
+  waiveClinicFormSubmission(
+    tenantId: string,
+    submissionId: string,
+    body: WaiveIntakeFormSubmissionBody
+  ): Promise<IntakeFormSubmission>;
+}
+
+export interface ClinicFollowUpMethods {
+  listClinicReminders(
+    tenantId: string,
+    query?: Record<string, string | number | boolean | null | undefined>
+  ): Promise<ReminderJob[]>;
+  listClinicConfirmations(
+    tenantId: string,
+    filters?: ConfirmationFilters
+  ): Promise<ConfirmationRequest[]>;
+  remindClinicConfirmation(
+    tenantId: string,
+    confirmationId: string,
+    body: RemindConfirmationBody
+  ): Promise<ReminderJob>;
+  escalateClinicConfirmation(
+    tenantId: string,
+    confirmationId: string,
+    body: EscalateConfirmationBody
+  ): Promise<ConfirmationRequest>;
+  listClinicGaps(tenantId: string, filters?: GapFilters): Promise<GapOpportunityDetail[]>;
+  offerClinicGap(
+    tenantId: string,
+    gapId: string,
+    body: OfferGapBody
+  ): Promise<GapOpportunityDetail>;
+  closeClinicGap(
+    tenantId: string,
+    gapId: string,
+    body: CloseGapBody
+  ): Promise<GapOpportunityDetail>;
+}
+
+export interface ClinicReactivationMethods {
+  listClinicReactivationCampaigns(
+    tenantId: string,
+    filters?: CampaignFilters
+  ): Promise<ReactivationCampaignsResponse>;
+  getClinicReactivationCampaign(
+    tenantId: string,
+    campaignId: string
+  ): Promise<ReactivationCampaignDetail>;
+  createClinicReactivationCampaign(
+    tenantId: string,
+    body: CreateReactivationCampaignBody
+  ): Promise<ReactivationCampaign>;
+  startClinicReactivationCampaign(
+    tenantId: string,
+    campaignId: string,
+    body: StartReactivationCampaignBody
+  ): Promise<ReactivationCampaign>;
+  pauseClinicReactivationCampaign(
+    tenantId: string,
+    campaignId: string,
+    body: PauseReactivationCampaignBody
+  ): Promise<ReactivationCampaign>;
+  resumeClinicReactivationCampaign(
+    tenantId: string,
+    campaignId: string,
+    body: ResumeReactivationCampaignBody
+  ): Promise<ReactivationCampaign>;
+  listClinicReactivationRecipients(
+    tenantId: string,
+    query?: Record<string, string | number | boolean | null | undefined>
+  ): Promise<ReactivationRecipient[]>;
+}
+
 export interface ProviderMetadata {
   providerMode: DataProviderMode;
 }
@@ -182,4 +447,12 @@ export interface DataProvider
     SecurityMethods,
     BillingMethods,
     DashboardMethods,
-    ConnectorMethods {}
+    ConnectorMethods,
+    ClinicConfigurationMethods,
+    ClinicPatientMethods,
+    ClinicConversationMethods,
+    ClinicCallMethods,
+    ClinicAppointmentMethods,
+    ClinicFormMethods,
+    ClinicFollowUpMethods,
+    ClinicReactivationMethods {}

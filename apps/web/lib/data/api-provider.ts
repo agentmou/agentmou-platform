@@ -1,44 +1,97 @@
 /**
- * ApiProvider — wraps the real API client for authenticated app routes.
+ * ApiProvider — wraps the real API clients for authenticated app routes.
  *
- * Security, billing, and workflow engine surfaces now fetch live tenant data
- * where the backend is available, while dashboard rollups are still derived
- * from run history on the client side.
+ * Platform surfaces keep using the existing control-plane endpoints while the
+ * clinic control center delegates to the typed clinic client.
  */
 
 import type { DataProvider } from './provider';
 import {
+  approveRequest as apiApprove,
   fetchBillingOverview,
-  fetchTenants,
-  fetchTenant,
-  fetchTenantMembers,
-  fetchCatalogAgents,
   fetchCatalogAgent,
-  fetchCatalogPacks,
+  fetchCatalogAgents,
   fetchCatalogPack,
+  fetchCatalogPacks,
   fetchCatalogWorkflows,
+  fetchConnectors,
   fetchInstalledAgents,
   fetchInstalledWorkflows,
-  installAgent as apiInstallAgent,
-  installPack as apiInstallPack,
-  fetchConnectors,
-  fetchTenantRuns,
-  fetchTenantRun,
+  fetchTenant,
   fetchTenantApprovals,
   fetchTenantAuditLogs,
   fetchTenantInvoices,
+  fetchTenantMembers,
+  fetchTenantRun,
+  fetchTenantRuns,
   fetchTenantSecrets,
   fetchTenantSecurityFindings,
   fetchTenantSecurityPolicies,
+  fetchTenants,
   fetchWorkflowEngineStatus,
-  approveRequest as apiApprove,
+  installAgent as apiInstallAgent,
+  installPack as apiInstallPack,
   rejectRequest as apiReject,
 } from '@/lib/api/client';
+import {
+  assignConversation,
+  cancelAppointment,
+  closeGap,
+  confirmAppointment,
+  createAppointment,
+  createPatient,
+  createReactivationCampaign,
+  createWaitlistRequest,
+  escalateConfirmation,
+  escalateConversation,
+  fetchAppointment,
+  fetchAppointments,
+  fetchCall,
+  fetchCalls,
+  fetchClinicChannels,
+  fetchClinicDashboard,
+  fetchClinicModules,
+  fetchClinicProfile,
+  fetchConfirmations,
+  fetchConversation,
+  fetchConversationMessages,
+  fetchConversations,
+  fetchFormSubmission,
+  fetchFormSubmissions,
+  fetchFormTemplates,
+  fetchGaps,
+  fetchPatient,
+  fetchPatients,
+  fetchReactivationCampaign,
+  fetchReactivationCampaigns,
+  fetchReactivationRecipients,
+  fetchReminders,
+  markFormSubmissionComplete,
+  offerGap,
+  pauseReactivationCampaign,
+  reactivatePatient,
+  remindConfirmation,
+  replyConversation,
+  requestCallCallback,
+  rescheduleAppointment,
+  resolveCall,
+  resolveConversation,
+  resumeReactivationCampaign,
+  sendFormSubmission,
+  startReactivationCampaign,
+  updateAppointment,
+  updateClinicChannel,
+  updateClinicModule,
+  updateClinicProfile,
+  updatePatient,
+  waiveFormSubmission,
+} from '@/lib/api/clinic';
 
 import { buildDashboardMetrics } from './dashboard-metrics';
 
 export const apiProvider: DataProvider = {
   providerMode: 'api',
+
   // Catalog
   listCatalogAgentTemplates: () => fetchCatalogAgents(),
   listMarketplaceAgentTemplates: () => fetchCatalogAgents(),
@@ -47,12 +100,15 @@ export const apiProvider: DataProvider = {
   listMarketplaceWorkflowTemplates: () => fetchCatalogWorkflows(),
   getWorkflowTemplate: async (id) => {
     const all = await fetchCatalogWorkflows();
-    return all.find((w) => w.id === id) ?? null;
+    return all.find((workflow) => workflow.id === id) ?? null;
   },
   listPackTemplates: () => fetchCatalogPacks(),
   getPackTemplate: (id) => fetchCatalogPack(id),
   listIntegrations: async (tenantId?: string) => {
-    if (!tenantId) return [];
+    if (!tenantId) {
+      return [];
+    }
+
     return fetchConnectors(tenantId);
   },
 
@@ -76,7 +132,7 @@ export const apiProvider: DataProvider = {
   approveRequest: (tenantId, approvalId, reason) => apiApprove(tenantId, approvalId, reason),
   rejectRequest: (tenantId, approvalId, reason) => apiReject(tenantId, approvalId, reason),
 
-  // Security — backed by live tenant aggregates where available
+  // Security
   listTenantSecurityFindings: (id) => fetchTenantSecurityFindings(id),
   listTenantSecurityPolicies: (id) => fetchTenantSecurityPolicies(id),
   listTenantSecrets: async (id) => {
@@ -114,11 +170,9 @@ export const apiProvider: DataProvider = {
   // Billing
   listTenantInvoices: (id) => fetchTenantInvoices(id),
   getTenantBillingInfo: async (id) => {
-    const [overview, agents] = await Promise.all([
-      fetchBillingOverview(id),
-      fetchInstalledAgents(id),
-    ]);
+    const [overview, agents] = await Promise.all([fetchBillingOverview(id), fetchInstalledAgents(id)]);
     const primaryPaymentMethod = overview.paymentMethods.find((method) => method.isDefault);
+
     return {
       plan: overview.subscription.plan,
       monthlySpend: overview.subscription.monthlyBaseAmount,
@@ -136,7 +190,7 @@ export const apiProvider: DataProvider = {
     };
   },
 
-  // Dashboard — computed from real runs until the API exposes rollups
+  // Dashboard
   getTenantDashboardMetrics: async (tenantId, period) => {
     const runs = await fetchTenantRuns(tenantId);
     return buildDashboardMetrics(tenantId, runs, period);
@@ -161,4 +215,100 @@ export const apiProvider: DataProvider = {
       platformManaged: status.platformManaged,
     };
   },
+
+  // Clinic configuration
+  getClinicDashboard: (tenantId) => fetchClinicDashboard(tenantId),
+  getClinicProfile: async (tenantId) => {
+    try {
+      return await fetchClinicProfile(tenantId);
+    } catch {
+      return null;
+    }
+  },
+  updateClinicProfile: (tenantId, body) => updateClinicProfile(tenantId, body),
+  listClinicModules: (tenantId) => fetchClinicModules(tenantId),
+  updateClinicModule: (tenantId, moduleKey, body) => updateClinicModule(tenantId, moduleKey, body),
+  listClinicChannels: (tenantId) => fetchClinicChannels(tenantId),
+  updateClinicChannel: (tenantId, channelType, body) =>
+    updateClinicChannel(tenantId, channelType, body),
+
+  // Clinic patients
+  listClinicPatients: (tenantId, filters) => fetchPatients(tenantId, filters),
+  getClinicPatient: (tenantId, patientId) => fetchPatient(tenantId, patientId),
+  createClinicPatient: (tenantId, body) => createPatient(tenantId, body),
+  updateClinicPatient: (tenantId, patientId, body) => updatePatient(tenantId, patientId, body),
+  reactivateClinicPatient: (tenantId, patientId, body) =>
+    reactivatePatient(tenantId, patientId, body),
+  createClinicWaitlistRequest: (tenantId, patientId, body) =>
+    createWaitlistRequest(tenantId, patientId, body),
+
+  // Clinic conversations
+  listClinicConversations: (tenantId, filters) => fetchConversations(tenantId, filters),
+  getClinicConversation: (tenantId, threadId) => fetchConversation(tenantId, threadId),
+  listClinicConversationMessages: (tenantId, threadId) =>
+    fetchConversationMessages(tenantId, threadId),
+  assignClinicConversation: (tenantId, threadId, body) =>
+    assignConversation(tenantId, threadId, body),
+  escalateClinicConversation: (tenantId, threadId, body) =>
+    escalateConversation(tenantId, threadId, body),
+  resolveClinicConversation: (tenantId, threadId, body) =>
+    resolveConversation(tenantId, threadId, body),
+  replyClinicConversation: (tenantId, threadId, body) => replyConversation(tenantId, threadId, body),
+
+  // Clinic calls
+  listClinicCalls: (tenantId, filters) => fetchCalls(tenantId, filters),
+  getClinicCall: (tenantId, callId) => fetchCall(tenantId, callId),
+  requestClinicCallCallback: (tenantId, callId, body) =>
+    requestCallCallback(tenantId, callId, body),
+  resolveClinicCall: (tenantId, callId, body) => resolveCall(tenantId, callId, body),
+
+  // Clinic appointments
+  listClinicAppointments: (tenantId, filters) => fetchAppointments(tenantId, filters),
+  getClinicAppointment: (tenantId, appointmentId) => fetchAppointment(tenantId, appointmentId),
+  createClinicAppointment: async (tenantId, body) => (await createAppointment(tenantId, body)).appointment,
+  updateClinicAppointment: (tenantId, appointmentId, body) =>
+    updateAppointment(tenantId, appointmentId, body).then((response) => response.appointment),
+  rescheduleClinicAppointment: (tenantId, appointmentId, body) =>
+    rescheduleAppointment(tenantId, appointmentId, body).then((response) => response.appointment),
+  cancelClinicAppointment: (tenantId, appointmentId, body) =>
+    cancelAppointment(tenantId, appointmentId, body).then((response) => response.appointment),
+  confirmClinicAppointment: (tenantId, appointmentId, body) =>
+    confirmAppointment(tenantId, appointmentId, body).then((response) => response.appointment),
+
+  // Clinic forms
+  listClinicFormTemplates: (tenantId) => fetchFormTemplates(tenantId),
+  listClinicFormSubmissions: (tenantId) => fetchFormSubmissions(tenantId),
+  getClinicFormSubmission: (tenantId, submissionId) => fetchFormSubmission(tenantId, submissionId),
+  sendClinicFormSubmission: (tenantId, submissionId, body) =>
+    sendFormSubmission(tenantId, submissionId, body),
+  completeClinicFormSubmission: (tenantId, submissionId, body) =>
+    markFormSubmissionComplete(tenantId, submissionId, body),
+  waiveClinicFormSubmission: (tenantId, submissionId, body) =>
+    waiveFormSubmission(tenantId, submissionId, body),
+
+  // Clinic follow-up
+  listClinicReminders: (tenantId, query) => fetchReminders(tenantId, query),
+  listClinicConfirmations: (tenantId, filters) => fetchConfirmations(tenantId, filters),
+  remindClinicConfirmation: (tenantId, confirmationId, body) =>
+    remindConfirmation(tenantId, confirmationId, body),
+  escalateClinicConfirmation: (tenantId, confirmationId, body) =>
+    escalateConfirmation(tenantId, confirmationId, body),
+  listClinicGaps: (tenantId, filters) => fetchGaps(tenantId, filters),
+  offerClinicGap: (tenantId, gapId, body) => offerGap(tenantId, gapId, body),
+  closeClinicGap: (tenantId, gapId, body) => closeGap(tenantId, gapId, body),
+
+  // Clinic reactivation
+  listClinicReactivationCampaigns: (tenantId, filters) =>
+    fetchReactivationCampaigns(tenantId, filters),
+  getClinicReactivationCampaign: (tenantId, campaignId) =>
+    fetchReactivationCampaign(tenantId, campaignId),
+  createClinicReactivationCampaign: (tenantId, body) => createReactivationCampaign(tenantId, body),
+  startClinicReactivationCampaign: (tenantId, campaignId, body) =>
+    startReactivationCampaign(tenantId, campaignId, body),
+  pauseClinicReactivationCampaign: (tenantId, campaignId, body) =>
+    pauseReactivationCampaign(tenantId, campaignId, body),
+  resumeClinicReactivationCampaign: (tenantId, campaignId, body) =>
+    resumeReactivationCampaign(tenantId, campaignId, body),
+  listClinicReactivationRecipients: (tenantId, query) =>
+    fetchReactivationRecipients(tenantId, query),
 };

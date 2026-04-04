@@ -3,6 +3,7 @@ import { db, users, tenants, memberships, passwordResetTokens } from '@agentmou/
 import { createToken, verifyToken, hashPassword, verifyPassword } from '@agentmou/auth';
 import { eq } from 'drizzle-orm';
 import { getApiConfig } from '../../config.js';
+import { normalizeTenantSettings } from '../tenants/tenants.mapper.js';
 
 export class AuthService {
   /**
@@ -36,7 +37,12 @@ export class AuthService {
           plan: 'free',
           ownerId: user.id,
         })
-        .returning({ id: tenants.id, name: tenants.name, plan: tenants.plan });
+        .returning({
+          id: tenants.id,
+          name: tenants.name,
+          plan: tenants.plan,
+          settings: tenants.settings,
+        });
 
       await tx.insert(memberships).values({
         tenantId: tenant.id,
@@ -51,7 +57,10 @@ export class AuthService {
 
     return {
       user: result.user,
-      tenant: result.tenant,
+      tenant: {
+        ...result.tenant,
+        settings: normalizeTenantSettings(result.tenant.settings),
+      },
       token,
     };
   }
@@ -73,7 +82,13 @@ export class AuthService {
     }
 
     const userTenants = await db
-      .select({ id: tenants.id, name: tenants.name, plan: tenants.plan })
+      .select({
+        id: tenants.id,
+        name: tenants.name,
+        plan: tenants.plan,
+        role: memberships.role,
+        settings: tenants.settings,
+      })
       .from(memberships)
       .innerJoin(tenants, eq(memberships.tenantId, tenants.id))
       .where(eq(memberships.userId, user.id));
@@ -82,7 +97,10 @@ export class AuthService {
 
     return {
       user: { id: user.id, email: user.email, name: user.name },
-      tenants: userTenants,
+      tenants: userTenants.map((tenant) => ({
+        ...tenant,
+        settings: normalizeTenantSettings(tenant.settings),
+      })),
       token,
     };
   }
@@ -113,12 +131,19 @@ export class AuthService {
         name: tenants.name,
         plan: tenants.plan,
         role: memberships.role,
+        settings: tenants.settings,
       })
       .from(memberships)
       .innerJoin(tenants, eq(memberships.tenantId, tenants.id))
       .where(eq(memberships.userId, user.id));
 
-    return { ...user, tenants: userTenants };
+    return {
+      ...user,
+      tenants: userTenants.map((tenant) => ({
+        ...tenant,
+        settings: normalizeTenantSettings(tenant.settings),
+      })),
+    };
   }
 
   /**

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -86,7 +87,7 @@ interface ActionState {
   itemName: string;
 }
 
-export default function FleetPage() {
+function FleetPageContent() {
   const params = useParams();
   const tenantId = params.tenantId as string;
 
@@ -727,4 +728,14 @@ export default function FleetPage() {
       </AlertDialog>
     </div>
   );
+}
+
+export default function FleetPage() {
+  const redirected = useLegacyPlatformRedirect('/fleet');
+
+  if (redirected) {
+    return null;
+  }
+
+  return <FleetPageContent />;
 }
