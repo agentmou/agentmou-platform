@@ -120,13 +120,15 @@ Multi-tenant data scoping and membership management.
   type: TEXT DEFAULT 'business' ('business' | 'personal'),
   plan: TEXT DEFAULT 'free' (billing tier),
   ownerId: UUID (FK → users, creator),
-  settings: JSONB (feature flags, preferences),
+  settings: JSONB (feature flags, preferences, and tenant experience flags),
   createdAt: TIMESTAMP DEFAULT now(),
   updatedAt: TIMESTAMP DEFAULT now(),
 }
 ```
 - Top-level tenant record scoping all data
 - One owner (creator); other members added via invites
+- Persists `verticalClinicUi`, `clinicDentalMode`, and
+  `internalPlatformVisible` alongside the original platform defaults
 
 #### memberships
 ```typescript
@@ -134,7 +136,7 @@ Multi-tenant data scoping and membership management.
   id: UUID (PK),
   tenantId: UUID (FK → tenants),
   userId: UUID (FK → users),
-  role: TEXT DEFAULT 'viewer' ('admin' | 'editor' | 'viewer'),
+  role: TEXT DEFAULT 'viewer' ('owner' | 'admin' | 'operator' | 'viewer'),
   joinedAt: TIMESTAMP DEFAULT now(),
   lastActiveAt: TIMESTAMP DEFAULT now(),
 }
@@ -142,6 +144,8 @@ Multi-tenant data scoping and membership management.
 - Join table linking users to tenants with a role
 - Role-based access control (RBAC) for API endpoints
 - Composite key: (tenantId, userId) unique
+- Legacy stored `member` values are still accepted for compatibility, but API
+  payloads and clinic entitlement checks normalize them to `operator`
 
 ---
 
@@ -638,6 +642,10 @@ platform control-plane tables.
 - `clinic_profiles`
 - `tenant_modules`
 - `clinic_channels`
+
+`tenant_modules` now behaves as a plan-aware entitlement layer rather than a
+simple set of UI toggles: the backend starts from the tenant plan baseline and
+then applies persisted tenant overrides for status, visibility, and config.
 
 ### Patients and inbox
 

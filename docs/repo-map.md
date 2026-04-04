@@ -56,6 +56,16 @@ apps/web/
 │   │       ├── observability/page.tsx
 │   │       ├── pacientes/page.tsx
 │   │       ├── platform/
+│   │       │   ├── layout.tsx
+│   │       │   ├── approvals/page.tsx
+│   │       │   ├── dashboard/page.tsx
+│   │       │   ├── fleet/page.tsx
+│   │       │   ├── installer/new/page.tsx
+│   │       │   ├── marketplace/
+│   │       │   ├── observability/page.tsx
+│   │       │   ├── runs/
+│   │       │   ├── security/page.tsx
+│   │       │   └── settings/page.tsx
 │   │       ├── reactivacion/page.tsx
 │   │       ├── rendimiento/page.tsx
 │   │       ├── runs/
@@ -97,15 +107,15 @@ Notes:
   `client.ts` serves the existing control plane and `clinic.ts` serves the
   tenant-scoped clinic backend.
 - `app/app/[tenantId]/layout.tsx` and `lib/tenant-experience.tsx` are the key
-  boundaries for understanding shell resolution, capability flags, and
-  `/platform/*` routing in clinic tenants.
+  boundaries for understanding resolved experience mode, capability flags,
+  `/platform/*` guards, and clinic navigation gating in vertical tenants.
 - `lib/data/` now carries the shared `DataProvider` contract for both platform
   and clinic surfaces.
 - `components/clinic/` is the new domain UI boundary for the vertical control
   center, while `components/control-plane/` still owns the original platform
   shell.
-- `lib/search-index.ts` splits search and command palette behavior into clinic
-  and platform modes.
+- `lib/search-index.ts` splits search and command palette behavior into
+  `clinic` and `platform_internal` modes from the resolved experience payload.
 
 ## services/
 
@@ -117,8 +127,11 @@ Notes:
 services/api/src/
 ├── app.ts
 ├── config.ts
+├── lib/
+│   └── tenant-roles.ts
 ├── middleware/
 │   ├── auth.ts
+│   ├── internal-platform-access.ts
 │   └── tenant-access.ts
 ├── modules/
 │   ├── approvals/
@@ -128,6 +141,7 @@ services/api/src/
 │   ├── catalog/
 │   ├── clinic-channels/
 │   ├── clinic-dashboard/
+│   ├── clinic-experience/
 │   ├── clinic-modules/
 │   ├── clinic-profile/
 │   ├── clinic-shared/
@@ -154,8 +168,11 @@ services/api/src/
 `app.ts` is the best starting point for understanding how modules are wired,
 which routes are public, which routes are tenant-scoped, and how the clinic
 families are layered on top of the original control plane. `modules/clinic-shared`
-is the key support package for role checks, module/channel gating, route
-errors, mappers, fixtures, and read-model joins.
+is the key support package for role checks, entitlement resolution,
+module/channel gating, route errors, mappers, fixtures, and read-model joins.
+`middleware/internal-platform-access.ts` adds the extra guard layer for the
+platform-only route families that sit behind `/app/[tenantId]/platform/*` in
+the web app.
 
 ### services/worker
 

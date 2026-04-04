@@ -10,11 +10,13 @@ It is intentionally grounded in the route modules wired in `src/app.ts`.
 
 ## Registration Model
 
-`services/api/src/app.ts` registers routes in three layers:
+`services/api/src/app.ts` registers routes in four layers:
 
 1. public routes with no auth middleware
 2. authenticated routes guarded by JWT
 3. tenant-scoped routes guarded by JWT plus tenant membership checks
+4. tenant-scoped internal-platform routes guarded by
+   `requireInternalPlatformAccess`
 
 This is why some routes live directly under `/api/v1/*` while others live under
 `/api/v1/tenants/:tenantId/*`.
@@ -69,7 +71,7 @@ These routes require a valid JWT plus access to the tenant in the path:
 | Security | `GET /api/v1/tenants/:tenantId/security/overview`, `GET /api/v1/tenants/:tenantId/security/findings`, `GET /api/v1/tenants/:tenantId/security/policies`, `GET /api/v1/tenants/:tenantId/security/audit-logs` |
 | Webhooks | `GET /api/v1/tenants/:tenantId/webhooks`, `POST /api/v1/tenants/:tenantId/webhooks`, `POST /api/v1/tenants/:tenantId/webhooks/:webhookId/deliveries/:deliveryId/retry` |
 | n8n | `GET /api/v1/tenants/:tenantId/n8n/status`, `GET /api/v1/tenants/:tenantId/n8n/workflows`, `POST /api/v1/tenants/:tenantId/n8n/workflows/import`, `POST /api/v1/tenants/:tenantId/n8n/workflows/:workflowId/execute` |
-| Clinic dashboard and settings | `GET /api/v1/tenants/:tenantId/clinic/dashboard`, `GET /api/v1/tenants/:tenantId/clinic/profile`, `PUT /api/v1/tenants/:tenantId/clinic/profile`, `GET /api/v1/tenants/:tenantId/clinic/modules`, `PUT /api/v1/tenants/:tenantId/clinic/modules/:moduleKey`, `GET /api/v1/tenants/:tenantId/clinic/channels`, `PUT /api/v1/tenants/:tenantId/clinic/channels/:channelType` |
+| Clinic dashboard and settings | `GET /api/v1/tenants/:tenantId/clinic/dashboard`, `GET /api/v1/tenants/:tenantId/clinic/experience`, `GET /api/v1/tenants/:tenantId/clinic/profile`, `PUT /api/v1/tenants/:tenantId/clinic/profile`, `GET /api/v1/tenants/:tenantId/clinic/modules`, `PUT /api/v1/tenants/:tenantId/clinic/modules/:moduleKey`, `GET /api/v1/tenants/:tenantId/clinic/channels`, `PUT /api/v1/tenants/:tenantId/clinic/channels/:channelType` |
 | Patients | `GET /api/v1/tenants/:tenantId/patients`, `GET /api/v1/tenants/:tenantId/patients/:patientId`, `POST /api/v1/tenants/:tenantId/patients`, `PUT /api/v1/tenants/:tenantId/patients/:patientId`, `POST /api/v1/tenants/:tenantId/patients/:patientId/reactivate`, `POST /api/v1/tenants/:tenantId/patients/:patientId/waitlist` |
 | Conversations | `GET /api/v1/tenants/:tenantId/conversations`, `GET /api/v1/tenants/:tenantId/conversations/:threadId`, `GET /api/v1/tenants/:tenantId/conversations/:threadId/messages`, `POST /api/v1/tenants/:tenantId/conversations/:threadId/assign`, `POST /api/v1/tenants/:tenantId/conversations/:threadId/escalate`, `POST /api/v1/tenants/:tenantId/conversations/:threadId/resolve`, `POST /api/v1/tenants/:tenantId/conversations/:threadId/reply` |
 | Calls | `GET /api/v1/tenants/:tenantId/calls`, `GET /api/v1/tenants/:tenantId/calls/:callId`, `POST /api/v1/tenants/:tenantId/calls/:callId/callback`, `POST /api/v1/tenants/:tenantId/calls/:callId/resolve` |
@@ -82,17 +84,33 @@ These routes require a valid JWT plus access to the tenant in the path:
 
 - All clinic routes live under `/api/v1/tenants/:tenantId/*` and are registered
   inside the existing JWT + tenant-membership scope.
-- Role handling normalizes `member` to `operator` for clinic access checks.
+- `GET /clinic/experience` is the canonical payload for shell mode,
+  permissions, flags, allowed navigation, and enriched module entitlements.
+- Role handling normalizes legacy `member` to `operator` for outward-facing
+  payloads and clinic access checks.
 - Read routes allow `owner`, `admin`, `operator`, and `viewer`.
 - Operational mutations allow `owner`, `admin`, and `operator`.
 - Profile, module, channel, and campaign management stays on `owner` and
   `admin`.
-- Module gating uses `tenant_modules`; channel gating uses `clinic_channels`.
+- Module gating resolves a plan baseline first and then applies `tenant_modules`
+  overrides; channel gating uses `clinic_channels`.
 - Inactive modules or channels return `409` with the machine-readable
-  `clinic_feature_unavailable` payload so clients can distinguish feature
-  gating from empty result sets.
+  `clinic_feature_unavailable` payload so clients can distinguish
+  `not_in_plan`, `hidden_internal_only`, `disabled_by_tenant`,
+  `requires_configuration`, `channel_inactive`, and `channel_missing`
+  from empty result sets.
 - List endpoints use clinic contracts for filters and clamp `limit` to `100`,
   with query coercion for boolean and numeric values.
+
+### Internal-platform route rules
+
+- `installations`, `approvals`, `runs`, and `usage` now sit behind the extra
+  `requireInternalPlatformAccess` tenant-scoped guard.
+- Internal access is derived from normalized role (`owner|admin`), the
+  resolved `internal_platform` module entitlement, and
+  `tenant.settings.internalPlatformVisible`.
+- Shared tenant and clinic configuration routes stay outside that internal-only
+  layer because the clinic shell still needs them.
 
 ## Module Map
 
@@ -114,6 +132,7 @@ These routes require a valid JWT plus access to the tenant in the path:
 | `modules/n8n` | Workflow engine status and n8n management helpers |
 | `modules/public-chat` | Public chat endpoint used by the marketing experience |
 | `modules/clinic-dashboard` | Vertical dashboard KPI and queue read model |
+| `modules/clinic-experience` | Resolved clinic mode, flags, permissions, navigation, and entitlements |
 | `modules/clinic-profile` | Clinic profile read/update endpoints |
 | `modules/clinic-modules` | Tenant clinic entitlements and module configuration |
 | `modules/clinic-channels` | Clinic channel read/update endpoints |
@@ -124,7 +143,7 @@ These routes require a valid JWT plus access to the tenant in the path:
 | `modules/forms` | Intake form templates, submissions, and submission actions |
 | `modules/follow-up` | Reminder queues, confirmations, and gap operations |
 | `modules/reactivation` | Campaigns, lifecycle actions, and recipients |
-| `modules/clinic-shared` | Clinic access checks, route errors, query schemas, mappers, fixtures, and read-model joins |
+| `modules/clinic-shared` | Clinic access checks, entitlement resolution, route errors, query schemas, mappers, fixtures, and read-model joins |
 
 ## Working With Routes
 

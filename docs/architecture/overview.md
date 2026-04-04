@@ -56,6 +56,8 @@ It now also resolves the tenant experience itself:
 - clinic tenants render a dedicated clinic shell at the tenant root
 - internal platform routes stay available under `/app/[tenantId]/platform/*`
 - non-clinic tenants keep the original platform shell and legacy route tree
+- the resolved clinic experience payload drives permissions, navigation,
+  feature flags, and whether `platform_internal` is available at all
 
 ### services/api
 
@@ -69,6 +71,9 @@ authenticated, and tenant-scoped route modules that split into:
 
 It persists state through `@agentmou/db`, loads operational manifests through
 `@agentmou/catalog-sdk`, and enqueues long-running work via `@agentmou/queue`.
+For the clinic vertical it also centralizes entitlement resolution across plan,
+tenant-module overrides, clinic profile/channel configuration, and tenant
+settings so the web shell and clinic APIs consume one coherent access model.
 
 ### services/worker
 
@@ -131,8 +136,12 @@ clinic-domain foundation for:
 The repo now includes the clinic-domain schema, shared contracts, tenant-scoped
 API route families, backend services/read models, typed web API clients, the
 clinic tenant shell, and the widened `DataProvider` used by the web app.
-Later phases now focus on deeper vertical surfaces and dedicated endpoints,
-not on introducing the clinic shell itself.
+It now also includes the resolved clinic experience layer for permissions,
+flags, and internal-mode gating. The internal mode is not a separate staff user
+model; it is derived from normalized tenant role plus the `internal_platform`
+entitlement and `tenant.settings.internalPlatformVisible`. Later phases now
+focus on deeper vertical surfaces and dedicated endpoints, not on introducing
+the clinic shell itself.
 
 ### Redis and `@agentmou/queue`
 

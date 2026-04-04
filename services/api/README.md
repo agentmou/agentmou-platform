@@ -22,9 +22,14 @@ BullMQ.
 - Expose clinic tenant-scoped route families for dashboard, profile, modules,
   channels, patients, inbox, calls, appointments, forms, follow-up, and
   reactivation.
+- Resolve clinic experience, permissions, navigation, and module visibility
+  from tenant plan, `tenant_modules`, `clinic_channels`, `clinic_profiles`,
+  and tenant settings.
 - Enforce clinic role checks, tenant-module gating, channel activation checks,
   and structured `409 clinic_feature_unavailable` responses for inactive
   features.
+- Gate internal platform API surfaces behind the resolved `internal_platform`
+  entitlement plus `tenant.settings.internalPlatformVisible`.
 - Build clinic read models for the web control-center clients instead of
   exposing raw table rows.
 - Queue long-running work such as pack installation and run execution.
@@ -92,7 +97,7 @@ curl http://localhost:3001/health
 | Security | `/api/v1/tenants/:tenantId/security/*` |
 | Webhooks | `/api/v1/tenants/:tenantId/webhooks/*` |
 | n8n | `/api/v1/tenants/:tenantId/n8n/*` |
-| Clinic dashboard + settings | `/api/v1/tenants/:tenantId/clinic/dashboard`, `/api/v1/tenants/:tenantId/clinic/profile`, `/api/v1/tenants/:tenantId/clinic/modules/:moduleKey`, `/api/v1/tenants/:tenantId/clinic/channels/:channelType` |
+| Clinic dashboard + settings | `/api/v1/tenants/:tenantId/clinic/dashboard`, `/api/v1/tenants/:tenantId/clinic/experience`, `/api/v1/tenants/:tenantId/clinic/profile`, `/api/v1/tenants/:tenantId/clinic/modules/:moduleKey`, `/api/v1/tenants/:tenantId/clinic/channels/:channelType` |
 | Patients | `/api/v1/tenants/:tenantId/patients`, `/api/v1/tenants/:tenantId/patients/:patientId/reactivate`, `/api/v1/tenants/:tenantId/patients/:patientId/waitlist` |
 | Conversations | `/api/v1/tenants/:tenantId/conversations`, `/api/v1/tenants/:tenantId/conversations/:threadId/messages`, `/api/v1/tenants/:tenantId/conversations/:threadId/reply` |
 | Calls | `/api/v1/tenants/:tenantId/calls`, `/api/v1/tenants/:tenantId/calls/:callId/callback`, `/api/v1/tenants/:tenantId/calls/:callId/resolve` |
@@ -103,6 +108,11 @@ curl http://localhost:3001/health
 
 Stub modules for usage, billing, security, and webhooks are registered so the
 route shape exists even where the implementation is still thin.
+
+For clinic tenants, installations, approvals, runs, and usage now sit behind
+the dedicated `requireInternalPlatformAccess` guard. Shared tenant and clinic
+configuration APIs remain available to the clinic UI outside that internal-only
+layer.
 
 ## Important Modules
 
@@ -120,12 +130,19 @@ route shape exists even where the implementation is still thin.
 - `src/modules/n8n` adapts workflow import/export/execute operations to `@agentmou/n8n-client`.
 - `src/modules/public-chat` exposes the public chat route and its backing
   service.
+- `src/modules/clinic-experience` resolves the canonical clinic experience
+  payload used by the web shell for mode, permissions, flags, navigation, and
+  enriched module entitlements.
 - `src/modules/clinic-*` plus `patients`, `conversations`, `calls`,
   `appointments`, `forms`, `follow-up`, and `reactivation` implement the
   tenant-scoped clinic backend families.
 - `src/modules/clinic-shared` centralizes clinic access control, Zod query
-  coercion, structured route errors, mappers, test fixtures, and read-model
-  joins.
+  coercion, plan/module entitlement resolution, structured route errors,
+  mappers, test fixtures, and read-model joins.
+- `src/middleware/internal-platform-access.ts` protects the platform-only API
+  families that back `/app/[tenantId]/platform/*`.
+- `src/lib/tenant-roles.ts` normalizes legacy membership values such as
+  `member -> operator` before outward-facing payloads and entitlement checks.
 
 ## Configuration
 

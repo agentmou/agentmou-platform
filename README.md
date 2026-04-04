@@ -10,13 +10,13 @@ Agentmou is a **multi-tenant AI agents platform** that enables organizations to 
 
 | Workspace | Description |
 | --------- | ----------- |
-| `apps/web` | Next.js 16 + React 19 frontend. Public marketing site, auth flows, web-owned API routes, and authenticated tenant control center under `/app/[tenantId]/`. Resolves a clinic shell or the original platform shell per tenant, keeps internal platform routes under `/app/[tenantId]/platform/*`, and uses provider modes to switch between real tenant data and demo overlays. |
+| `apps/web` | Next.js 16 + React 19 frontend. Public marketing site, auth flows, web-owned API routes, and authenticated tenant control center under `/app/[tenantId]/`. Resolves a tenant-aware `clinic` or `platform_internal` shell from the resolved clinic experience, filters navigation and search from that payload, keeps internal platform routes under `/app/[tenantId]/platform/*`, and uses provider modes to switch between real tenant data and demo overlays. |
 
 ### Services
 
 | Workspace | Description |
 | --------- | ----------- |
-| `services/api` | Fastify 5 REST API. Serves the existing control plane plus clinic tenant-scoped route families for dashboard, profile, modules, channels, patients, inbox, calls, appointments, forms, follow-up, and reactivation. JWT authentication with role-based access control and Zod validation on inputs. |
+| `services/api` | Fastify 5 REST API. Serves the existing control plane plus clinic tenant-scoped route families for dashboard, experience, profile, modules, channels, patients, inbox, calls, appointments, forms, follow-up, and reactivation. Resolves clinic entitlements from plan, modules, channels, and tenant settings; gates internal platform APIs for `/platform/*`; and uses JWT authentication with role-based access control and Zod validation on inputs. |
 | `services/worker` | BullMQ background job processor. 5 queues: INSTALL_PACK, RUN_AGENT, RUN_WORKFLOW, SCHEDULE_TRIGGER, APPROVAL_TIMEOUT. Redis-backed with exponential backoff retry logic. |
 | `services/agents` | Python FastAPI sidecar for specialized AI tasks. Provides `/analyze-email` endpoint using GPT-4o-mini. X-API-Key authentication. |
 
