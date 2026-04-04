@@ -23,7 +23,7 @@ entrypoints, route trees, and workspace boundaries over exhaustive file dumps.
 ### apps/web
 
 `apps/web` is the Next.js frontend for marketing, auth, and the tenant control
-plane.
+center.
 
 ```text
 apps/web/
@@ -45,18 +45,28 @@ apps/web/
 │   ├── app/
 │   │   ├── page.tsx
 │   │   └── [tenantId]/
+│   │       ├── agenda/page.tsx
 │   │       ├── approvals/page.tsx
+│   │       ├── bandeja/page.tsx
+│   │       ├── configuracion/page.tsx
 │   │       ├── dashboard/page.tsx
 │   │       ├── fleet/page.tsx
 │   │       ├── installer/new/page.tsx
 │   │       ├── marketplace/
 │   │       ├── observability/page.tsx
+│   │       ├── pacientes/page.tsx
+│   │       ├── platform/
+│   │       ├── reactivacion/page.tsx
+│   │       ├── rendimiento/page.tsx
 │   │       ├── runs/
 │   │       ├── security/page.tsx
+│   │       ├── seguimiento/
 │   │       └── settings/page.tsx
 │   ├── globals.css
 │   └── layout.tsx
 ├── components/
+│   ├── clinic/
+│   └── control-plane/
 ├── lib/
 │   ├── api/
 │   │   ├── core.ts
@@ -67,7 +77,9 @@ apps/web/
 │   ├── data/
 │   ├── demo-catalog/
 │   ├── demo/
+│   │   └── clinic-read-model.ts
 │   ├── honest-ui/
+│   ├── tenant-experience.tsx
 │   └── marketing/
 ├── components.json
 ├── next.config.mjs
@@ -84,8 +96,16 @@ Notes:
 - `lib/api/core.ts` is the shared request/error boundary for the web clients;
   `client.ts` serves the existing control plane and `clinic.ts` serves the
   tenant-scoped clinic backend.
-- `lib/data/` and `lib/demo-catalog/` are the key boundaries to understand
-  before editing tenant or marketplace surfaces.
+- `app/app/[tenantId]/layout.tsx` and `lib/tenant-experience.tsx` are the key
+  boundaries for understanding shell resolution, capability flags, and
+  `/platform/*` routing in clinic tenants.
+- `lib/data/` now carries the shared `DataProvider` contract for both platform
+  and clinic surfaces.
+- `components/clinic/` is the new domain UI boundary for the vertical control
+  center, while `components/control-plane/` still owns the original platform
+  shell.
+- `lib/search-index.ts` splits search and command palette behavior into clinic
+  and platform modes.
 
 ## services/
 

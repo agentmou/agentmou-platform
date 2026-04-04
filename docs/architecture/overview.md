@@ -51,10 +51,16 @@ The web app uses a provider abstraction so the same UI can render:
 - the read-only `demo-workspace`
 - marketing/demo inventory backed by local demo data
 
+It now also resolves the tenant experience itself:
+
+- clinic tenants render a dedicated clinic shell at the tenant root
+- internal platform routes stay available under `/app/[tenantId]/platform/*`
+- non-clinic tenants keep the original platform shell and legacy route tree
+
 ### services/api
 
-`services/api` is the control-plane source of truth. It registers 15 route
-modules and splits them into:
+`services/api` is the control-plane source of truth. It registers public,
+authenticated, and tenant-scoped route modules that split into:
 
 - public routes for auth, catalog, public chat, connector callback, and Stripe
   webhooks
@@ -123,9 +129,10 @@ clinic-domain foundation for:
 - waitlist, gap recovery, and reactivation campaigns
 
 The repo now includes the clinic-domain schema, shared contracts, tenant-scoped
-API route families, backend services/read models, and typed web API clients.
-The dedicated clinic app shell and `DataProvider` expansion still land in later
-phases.
+API route families, backend services/read models, typed web API clients, the
+clinic tenant shell, and the widened `DataProvider` used by the web app.
+Later phases now focus on deeper vertical surfaces and dedicated endpoints,
+not on introducing the clinic shell itself.
 
 ### Redis and `@agentmou/queue`
 

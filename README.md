@@ -10,7 +10,7 @@ Agentmou is a **multi-tenant AI agents platform** that enables organizations to 
 
 | Workspace | Description |
 | --------- | ----------- |
-| `apps/web` | Next.js 16 + React 19 frontend. Public marketing site, auth flows, web-owned API routes, and authenticated tenant control plane under `/app/[tenantId]/`. Uses provider modes to switch between demo inventory and real tenant data. |
+| `apps/web` | Next.js 16 + React 19 frontend. Public marketing site, auth flows, web-owned API routes, and authenticated tenant control center under `/app/[tenantId]/`. Resolves a clinic shell or the original platform shell per tenant, keeps internal platform routes under `/app/[tenantId]/platform/*`, and uses provider modes to switch between real tenant data and demo overlays. |
 
 ### Services
 
