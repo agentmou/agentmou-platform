@@ -15,7 +15,7 @@ you need to understand, develop, and operate the AI agents platform.
 Understand how Agentmou is structured and why:
 
 - **[Architecture Overview](./architecture/overview.md)** — System topology, control plane vs data plane, communication patterns, auth model.
-- **[apps/web Architecture](./architecture/apps-web.md)** — Route groups, clinic/platform shell resolution, provider modes, auth callback flow, and tenant UI boundaries.
+- **[apps/web Architecture](./architecture/apps-web.md)** — Route groups, resolved clinic experience, clinic vs `platform_internal` shell resolution, provider modes, auth callback flow, and tenant UI boundaries.
 - **[Repository Map](./repo-map.md)** — Every app, service, package, and config file explained.
 - **[Data Model](./architecture/data-model.md)** — Database schema, entity relationships, migrations, encryption at rest.
 - **[Agent Engine](./architecture/agent-engine.md)** — Planner, PolicyEngine, Toolkit, execution flow, HITL approvals.
@@ -28,7 +28,7 @@ Understand how Agentmou is structured and why:
 Guidelines for contributing:
 
 - **[Testing Guide](./testing.md)** — Vitest patterns, test categories, AAA pattern, mocking, coverage expectations.
-- **[API Routes](./api-routes.md)** — REST API endpoint reference for the platform control plane and clinic route families.
+- **[API Routes](./api-routes.md)** — REST API endpoint reference for the platform control plane, clinic route families, and internal-platform gating.
 - **[Environment Variables](./environment-variables.md)** — Complete configuration reference.
 
 Commit, branching, and PR conventions live in `.cursor/rules/` and `.codex/rules/`

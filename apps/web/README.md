@@ -30,8 +30,9 @@ or workflows itself.
 - Resolve clinic vs platform tenant experience in `app/app/[tenantId]/layout.tsx`
   using `tenant.settings.verticalClinicUi` with fallback to a loaded clinic
   profile.
-- Preserve `verticalClinicUi` and `clinicDentalMode` through auth and tenancy
-  payloads so shell resolution happens before navigation renders.
+- Preserve `verticalClinicUi`, `clinicDentalMode`, and
+  `internalPlatformVisible` through auth and tenancy payloads so shell
+  resolution happens before navigation renders.
 - Export typed clinic backend fetchers in `lib/api/clinic.ts` and consume them
   through the same `DataProvider` abstraction used by the rest of the tenant UI.
 - Serve marketing homepage cards from `/api/public-catalog`, built from the
@@ -60,7 +61,9 @@ or workflows itself.
 - Displays runs, approvals, connectors, and installations that are created and
   executed elsewhere in the stack.
 - Resolves a tenant-aware shell that keeps clinic UX at the tenant root and the
-  original platform surfaces under `/app/[tenantId]/platform/*`.
+  original platform surfaces under `/app/[tenantId]/platform/*`, using the
+  resolved clinic experience payload as the canonical source of mode,
+  permissions, navigation, and flags.
 
 ## Local Usage
 
@@ -128,20 +131,23 @@ pnpm --filter @agentmou/web start
 - `lib/marketing/public-catalog.ts` remains for optional API/filesystem catalog
   helpers; homepage cards no longer depend on it.
 - `lib/auth/store.ts` owns login, registration, cookie hydration, and active-tenant selection.
-- `lib/tenant-experience.tsx` resolves shell mode, clinic capability flags,
-  platform access, and fallback behavior for tenants whose settings payloads
-  lag behind clinic profile availability.
+- `lib/tenant-experience.tsx` exposes `useResolvedTenantExperience`, which
+  prefers `GET /clinic/experience` and only falls back to tenant/profile/module
+  reads when the resolved payload is missing.
 - `components/auth/` provides the tabbed sign-in / register UI (`AuthForm`,
   `PasswordInput`) used by `app/(auth)`.
 - `components/clinic/` contains the clinic shell, inbox/detail views, agenda
   board, follow-up cards, KPI cards, and the internal platform switch shown
-  only to `owner|admin` users with `internal_platform` enabled.
+  only to `owner|admin` users with `internal_platform` enabled and
+  `tenant.settings.internalPlatformVisible === true`.
 - `components/control-plane/legacy-platform-redirect.tsx` redirects clinic
   tenants from legacy root platform routes like `/runs` or `/marketplace` into
-  `/platform/*`.
-- `lib/search-index.ts` and the command palette switch between clinic and
-  platform search inventories so clinic tenants search patients, appointments,
-  conversations, forms, gaps, and campaigns instead of marketplace and runs.
+  `/platform/*` when internal access is allowed, otherwise back to the clinic
+  dashboard.
+- `lib/search-index.ts` and the command palette switch between `clinic` and
+  `platform_internal` inventories so clinic tenants search patients,
+  appointments, conversations, forms, gaps, and campaigns instead of
+  marketplace and runs.
 - `components/ui/` is the current source of truth for reusable UI primitives;
   there is no live `packages/ui` workspace package.
 
@@ -156,6 +162,11 @@ Clinical tenants now use:
 The original platform pages remain available under
 `/app/[tenantId]/platform/*`. Non-clinic tenants stay on the original shell and
 legacy route structure.
+
+For clinic tenants without internal access, manual entry to `/platform/*`
+redirects back to the clinic dashboard. `demo-workspace` keeps a realistic
+clinic shell but hides the internal switch and blocks `/platform/*` by
+default.
 
 ## Configuration
 

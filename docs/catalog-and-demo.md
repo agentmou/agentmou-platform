@@ -69,7 +69,8 @@ The web app uses provider mode to decide how much of the catalog is “real”.
 The `demo-workspace` intentionally stays read-only even when a matching
 operational asset exists. That read-only policy now applies to both the
 catalog/marketplace surfaces and the clinic control-center experience rendered
-for the demo tenant.
+for the demo tenant. The clinic demo remains visible and realistic, but the
+internal mode stays hidden and `/platform/*` is blocked by default.
 
 ## Generated Snapshot Workflow
 

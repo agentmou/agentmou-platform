@@ -18,7 +18,8 @@ frontend itself.
 - Keep demo and operational catalog experiences separated through the
   `DataProvider` abstraction.
 - Keep clinic and internal-platform navigation coherent for vertical tenants
-  through tenant-aware routing, capability resolution, and redirect helpers.
+  through the resolved `ClinicExperience` payload, tenant-aware routing,
+  capability resolution, and redirect helpers.
 
 ## Route Layout
 
@@ -115,6 +116,18 @@ Non-clinic tenants keep the original `AgentmouShell` and legacy root routes.
 does not need ad hoc heuristics to recognize the vertical before rendering
 navigation.
 
+Once the tenant is inside the app, `useResolvedTenantExperience` prefers
+`GET /clinic/experience` as the canonical source for:
+
+- `clinic` vs `platform_internal` mode
+- normalized role and permissions
+- resolved feature flags
+- allowed navigation
+- enriched module entitlements
+
+It only falls back to separate tenant/profile/module requests when that payload
+is not available.
+
 ### Next.js API routes
 
 ```text
@@ -145,6 +158,10 @@ The clinic fetchers in `lib/api/clinic.ts` now sit under the same
 clinic shell, the demo tenant, and mock-backed tests on the same frontend read
 surface without page-level `fetch` calls.
 
+The provider contract now also carries the resolved clinic experience so
+navigation, guards, command palette items, and internal-mode eligibility all
+derive from the same payload instead of each page re-implementing gating.
+
 ## Important Supporting Modules
 
 - `lib/api/core.ts` centralizes request/error helpers shared by all web API
@@ -152,19 +169,21 @@ surface without page-level `fetch` calls.
 - `lib/api/client.ts` remains the typed fetcher layer for the original control
   plane.
 - `lib/api/clinic.ts` adds typed fetchers for clinic dashboard, profile,
-  modules, channels, patients, conversations, calls, appointments, forms,
-  follow-up, and reactivation. It also parses structured `409`
+  experience, modules, channels, patients, conversations, calls,
+  appointments, forms, follow-up, and reactivation. It also parses structured `409`
   `clinic_feature_unavailable` responses into a dedicated client error.
 - `lib/auth/` owns cookie hydration, auth requests, and the active tenant store.
 - `lib/data/` contains the provider abstraction, clinic/provider adapters, and
   tenant dashboard metric helpers.
 - `lib/tenant-experience.tsx` resolves shell mode, clinic capability flags,
-  internal-platform access, and clinic fallbacks from tenant state.
+  internal-platform access, allowed navigation, and clinic fallbacks from
+  tenant state plus the resolved experience payload.
 - `components/clinic/` contains the reusable domain UI used by the clinic
   shell, including `ClinicShell`, `ClinicSidebar`, `ClinicTopbar`,
   `ClinicCommandSurface`, domain cards, and `InternalModeSwitch`.
 - `components/control-plane/legacy-platform-redirect.tsx` moves clinic tenants
-  from legacy platform roots into `/platform/*`.
+  from legacy platform roots into `/platform/*` only when internal access is
+  allowed; otherwise it sends them back to the clinic dashboard.
 - `lib/demo-catalog/` stores the curated demo inventory, featured marketing
   IDs, and the generated operational ID index.
 - `lib/demo/clinic-read-model.ts` provides deterministic clinic fixtures for
@@ -172,9 +191,23 @@ surface without page-level `fetch` calls.
 - `lib/marketing/featured-from-demo.ts` builds the homepage catalog payload.
 - `lib/honest-ui/` centralizes preview and placeholder labeling for the UI.
 - `lib/search-index.ts` and the command palette now support `clinic` and
-  `platform` modes so the clinic shell surfaces patients, appointments,
-  conversations, forms, gaps, and campaigns instead of marketplace and runs.
+  `platform_internal` modes so the clinic shell surfaces patients,
+  appointments, conversations, forms, gaps, and campaigns instead of
+  marketplace and runs.
 - `components/` groups reusable UI and domain components used across the app.
+
+Hidden clinic routes now render controlled unavailable states based on the same
+resolved navigation and entitlement data; they do not rely on uncaught render
+errors to express access control.
+
+The internal switch is visible only when all of these are true:
+
+- normalized role is `owner` or `admin`
+- the resolved `internal_platform` module entitlement is enabled
+- `tenant.settings.internalPlatformVisible` is `true`
+
+`demo-workspace` keeps realistic clinic data but intentionally fails that final
+visibility condition so the internal switch stays hidden.
 
 ## How It Fits Into The Platform
 

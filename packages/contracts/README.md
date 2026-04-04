@@ -34,8 +34,10 @@ const parsed = AgentTemplateSchema.parse(rawData);
 - `dashboard`: DashboardMetrics
 - `chat`: PublicChatRequest, PublicChatResponse, citations, and actions
 - `clinic`: ClinicProfile, TenantModule, Patient, ConversationThread,
-  Appointment, dashboard/read models, list/detail envelopes, mutation wrappers,
-  filters, clinic action bodies, and `clinic_feature_unavailable` errors
+  Appointment, `ExperienceMode`, `ClinicPermission`,
+  `ClinicModuleEntitlement`, `ClinicExperience`, dashboard/read models,
+  list/detail envelopes, mutation wrappers, filters, clinic action bodies,
+  resolved clinic flags, and `clinic_feature_unavailable` errors
 
 ### Barrel Exports
 
@@ -46,8 +48,12 @@ const parsed = AgentTemplateSchema.parse(rawData);
 The clinic module is the shared contract surface for the vertical data layer:
 it exposes clinic entities, dashboard payloads, list/detail envelopes, singular
 mutation wrappers for module/channel/reminder/confirmation/waitlist/gap
-operations, filter schemas, request bodies, and the structured feature
-unavailable error used by the backend and typed web clients.
+operations, filter schemas, request bodies, resolved experience payloads for
+shell/navigation gating, and the structured feature unavailable error used by
+the backend and typed web clients.
+
+The tenancy module now also carries the persisted experience flag
+`internalPlatformVisible` alongside `verticalClinicUi` and `clinicDentalMode`.
 
 ## Development
 
