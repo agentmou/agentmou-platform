@@ -671,8 +671,9 @@ platform control-plane tables.
 - `reactivation_recipients`
 
 These tables are all tenant-scoped and now back the active clinic API families
-in `services/api`. The dedicated clinic UI surfaces still land in later
-phases.
+in `services/api`. The same model now also backs the clinic tenant shell in
+`apps/web`; later phases add deeper vertical endpoints and richer management
+surfaces, not the initial clinic UI foundation.
 
 ---
 

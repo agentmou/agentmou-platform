@@ -1,20 +1,24 @@
 # apps/web Architecture
 
 `apps/web` is the user-facing surface of the monorepo. It combines the public
-marketing site, authentication flows, a tenant-scoped control plane, and a
-small set of Next.js API routes used by the frontend itself.
+marketing site, authentication flows, a tenant-scoped control center with
+clinic and platform modes, and a small set of Next.js API routes used by the
+frontend itself.
 
 ## Responsibilities
 
 - Render the public marketing experience under `app/(marketing)`.
 - Handle login, registration, password reset, and the B2C OAuth return flow
   under `app/(auth)`.
-- Render the authenticated control plane under `app/app/[tenantId]/`.
+- Render the authenticated tenant experience under `app/app/[tenantId]/`,
+  choosing between the clinic shell and the original platform shell.
 - Consume `services/api` through typed client helpers in `lib/api/`, including
   the clinic backend fetchers added for the new tenant-scoped domain routes.
 - Expose web-owned API routes for marketing chat and the public catalog cards.
 - Keep demo and operational catalog experiences separated through the
   `DataProvider` abstraction.
+- Keep clinic and internal-platform navigation coherent for vertical tenants
+  through tenant-aware routing, capability resolution, and redirect helpers.
 
 ## Route Layout
 
@@ -48,14 +52,17 @@ Important behavior:
   provider handshake.
 - `reset-password` handles password reset tokens issued by the API.
 
-### Tenant control-plane routes
+### Tenant control-center routes
 
 ```text
 app/app/
 ├── page.tsx
 └── [tenantId]/
+    ├── agenda/page.tsx
     ├── layout.tsx
     ├── approvals/page.tsx
+    ├── bandeja/page.tsx
+    ├── configuracion/page.tsx
     ├── dashboard/page.tsx
     ├── fleet/page.tsx
     ├── installer/new/page.tsx
@@ -64,15 +71,49 @@ app/app/
     ├── marketplace/packs/[packId]/page.tsx
     ├── marketplace/workflows/[workflowId]/page.tsx
     ├── observability/page.tsx
+    ├── pacientes/page.tsx
+    ├── platform/
+    │   ├── layout.tsx
+    │   ├── approvals/page.tsx
+    │   ├── dashboard/page.tsx
+    │   ├── fleet/page.tsx
+    │   ├── installer/new/page.tsx
+    │   ├── marketplace/
+    │   ├── observability/page.tsx
+    │   ├── runs/
+    │   ├── security/page.tsx
+    │   └── settings/page.tsx
+    ├── reactivacion/page.tsx
+    ├── rendimiento/page.tsx
     ├── runs/page.tsx
     ├── runs/[runId]/page.tsx
     ├── security/page.tsx
+    ├── seguimiento/
+    │   ├── page.tsx
+    │   ├── formularios/page.tsx
+    │   ├── confirmaciones/page.tsx
+    │   └── huecos/page.tsx
     └── settings/page.tsx
 ```
 
 The `proxy.ts` file protects `/app/*` traffic, keeps authenticated users away
 from the login and register pages, and preserves public access to the
 `demo-workspace` tenant.
+
+`app/app/[tenantId]/layout.tsx` is the experience switch. It resolves the shell
+using `tenant.settings.verticalClinicUi` as the canonical signal and falls back
+to a loaded `clinic_profile` for older payloads. Clinical tenants render:
+
+- `ClinicShell` for `dashboard` (`Resumen`), `bandeja`, `agenda`, `pacientes`,
+  `seguimiento/*`, `reactivacion`, `rendimiento`, and `configuracion`
+- `AgentmouShell` only for `/platform/*`
+- redirects from legacy platform roots like `/runs` or `/marketplace` into
+  `/platform/*`
+
+Non-clinic tenants keep the original `AgentmouShell` and legacy root routes.
+`clinicDentalMode` travels in the same tenant settings payload so the web app
+does not need ad hoc heuristics to recognize the vertical before rendering
+navigation.
 
 ### Next.js API routes
 
@@ -87,22 +128,22 @@ app/api/
 
 ## Data Access Model
 
-The control plane uses a single `DataProvider` interface in
+The tenant control center uses a single `DataProvider` interface in
 `lib/data/provider.ts`. There are three concrete modes:
 
 | Provider | Mode | Used by | Backing source |
 | --- | --- | --- | --- |
-| `mockProvider` | `mock` | Marketing layouts and synchronous demo reads | `lib/demo/read-model.ts` |
-| `demoProvider` | `demo` | `demo-workspace` tenant routes | Demo catalog plus operational overlays |
-| `apiProvider` | `api` | Authenticated real tenants | `services/api` |
+| `mockProvider` | `mock` | Marketing layouts and synchronous mock reads | `lib/demo/read-model.ts` plus clinic demo read models |
+| `demoProvider` | `demo` | `demo-workspace` tenant routes | Demo catalog plus operational and clinic overlays |
+| `apiProvider` | `api` | Authenticated real tenants | `services/api` through `lib/api/client.ts` and `lib/api/clinic.ts` |
 
 This separation lets the UI keep a stable shape while some surfaces are fully
 live and others are still demo-backed or read-only.
 
-The clinic fetchers in `lib/api/clinic.ts` are intentionally below the
-`DataProvider` layer for now. This PR adds typed access to the backend clinic
-API, but it does not yet widen `DataProvider` or add visible clinic pages under
-`app/app/[tenantId]`.
+The clinic fetchers in `lib/api/clinic.ts` now sit under the same
+`DataProvider` contract as the original control-plane fetchers. That keeps the
+clinic shell, the demo tenant, and mock-backed tests on the same frontend read
+surface without page-level `fetch` calls.
 
 ## Important Supporting Modules
 
@@ -115,12 +156,24 @@ API, but it does not yet widen `DataProvider` or add visible clinic pages under
   follow-up, and reactivation. It also parses structured `409`
   `clinic_feature_unavailable` responses into a dedicated client error.
 - `lib/auth/` owns cookie hydration, auth requests, and the active tenant store.
-- `lib/data/` contains the provider abstraction and the tenant dashboard metric
-  helpers.
+- `lib/data/` contains the provider abstraction, clinic/provider adapters, and
+  tenant dashboard metric helpers.
+- `lib/tenant-experience.tsx` resolves shell mode, clinic capability flags,
+  internal-platform access, and clinic fallbacks from tenant state.
+- `components/clinic/` contains the reusable domain UI used by the clinic
+  shell, including `ClinicShell`, `ClinicSidebar`, `ClinicTopbar`,
+  `ClinicCommandSurface`, domain cards, and `InternalModeSwitch`.
+- `components/control-plane/legacy-platform-redirect.tsx` moves clinic tenants
+  from legacy platform roots into `/platform/*`.
 - `lib/demo-catalog/` stores the curated demo inventory, featured marketing
   IDs, and the generated operational ID index.
+- `lib/demo/clinic-read-model.ts` provides deterministic clinic fixtures for
+  `mockProvider` and the demo tenant overlays.
 - `lib/marketing/featured-from-demo.ts` builds the homepage catalog payload.
 - `lib/honest-ui/` centralizes preview and placeholder labeling for the UI.
+- `lib/search-index.ts` and the command palette now support `clinic` and
+  `platform` modes so the clinic shell surfaces patients, appointments,
+  conversations, forms, gaps, and campaigns instead of marketplace and runs.
 - `components/` groups reusable UI and domain components used across the app.
 
 ## How It Fits Into The Platform
@@ -128,6 +181,8 @@ API, but it does not yet widen `DataProvider` or add visible clinic pages under
 - `apps/web` never executes agents or workflows directly.
 - `services/api` remains the source of truth for tenant data, installations,
   approvals, runs, connectors, billing, and security.
+- `services/api` also supplies the clinic-domain backend read models that power
+  the clinic shell.
 - `packages/contracts` provides the shared types used by both the UI and the
   backend.
 - `apps/web/lib/demo-catalog/` is intentionally separate from the operational

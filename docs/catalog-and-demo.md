@@ -62,12 +62,14 @@ The web app uses provider mode to decide how much of the catalog is “real”.
 
 | Provider | Inventory source | Behavior |
 | --- | --- | --- |
-| `mockProvider` | Full demo catalog | Marketing and local mock surfaces |
-| `demoProvider` | Demo catalog plus operational overlay | Forces non-operational assets to `planned` with a status note |
+| `mockProvider` | Full demo catalog plus clinic fixtures | Marketing, tests, and local mock surfaces |
+| `demoProvider` | Demo catalog plus operational and clinic overlays | Forces non-operational assets to `planned` with a status note and renders a read-only dental clinic tenant |
 | `apiProvider` | `services/api` | Real tenant catalog and installations |
 
 The `demo-workspace` intentionally stays read-only even when a matching
-operational asset exists.
+operational asset exists. That read-only policy now applies to both the
+catalog/marketplace surfaces and the clinic control-center experience rendered
+for the demo tenant.
 
 ## Generated Snapshot Workflow
 

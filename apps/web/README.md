@@ -1,13 +1,13 @@
 # @agentmou/web
 
-Next.js application for the Agentmou public site and tenant control-plane UI.
+Next.js application for the Agentmou public site and tenant control-center UI.
 
 ## Purpose
 
 `apps/web` is the user-facing surface of the monorepo. It serves two jobs:
 - Public marketing pages that explain the product and showcase the catalog.
-- Authenticated tenant pages that let users browse templates, install packs,
-  review runs, approve actions, and manage workspace settings.
+- Authenticated tenant pages that either render the original platform shell or
+  the clinic control center, depending on tenant capabilities and settings.
 
 The web app is intentionally a control-plane client. It does not execute agents
 or workflows itself.
@@ -27,8 +27,13 @@ or workflows itself.
   the UI shows a disabled SSO row with tooltip.
 - Protect tenant routes with Next.js proxy and a JWT cookie.
 - Consume the control-plane API through typed client helpers in `lib/api/`.
-- Export typed clinic backend fetchers in `lib/api/clinic.ts` while keeping the
-  visible tenant UI on the existing `DataProvider` surfaces for now.
+- Resolve clinic vs platform tenant experience in `app/app/[tenantId]/layout.tsx`
+  using `tenant.settings.verticalClinicUi` with fallback to a loaded clinic
+  profile.
+- Preserve `verticalClinicUi` and `clinicDentalMode` through auth and tenancy
+  payloads so shell resolution happens before navigation renders.
+- Export typed clinic backend fetchers in `lib/api/clinic.ts` and consume them
+  through the same `DataProvider` abstraction used by the rest of the tenant UI.
 - Serve marketing homepage cards from `/api/public-catalog`, built from the
   **curated demo featured list** (`lib/demo-catalog/marketing-featured.ts`) plus
   `demoTotals`, `operationalFeaturedCounts`, and `gaInventoryCounts` (see
@@ -38,6 +43,9 @@ or workflows itself.
   catalog; `demo-workspace` uses the full demo inventory with **planned** +
   **Coming soon** on items not backed by operational manifests
   (`operational-ids.gen.json` + `operational-refs.ts`).
+- Overlay deterministic clinic demo data for `demo-workspace` and mock-backed
+  surfaces so the vertical control center renders a realistic dental tenant
+  without live writes.
 - Apply honest product labels for tenant surfaces that are still preview,
   read-only, demo, or not yet available.
 
@@ -51,6 +59,8 @@ or workflows itself.
   implementation evolves.
 - Displays runs, approvals, connectors, and installations that are created and
   executed elsewhere in the stack.
+- Resolves a tenant-aware shell that keeps clinic UX at the tenant root and the
+  original platform surfaces under `/app/[tenantId]/platform/*`.
 
 ## Local Usage
 
@@ -77,15 +87,15 @@ pnpm --filter @agentmou/web start
 | `app/(auth)` | Login and registration flows |
 | `app/auth/callback`, `app/reset-password` | OAuth return handling and password reset deep links |
 | `app/app` | Authenticated app shell and tenant redirects |
-| `app/app/[tenantId]` | Tenant-scoped dashboard, marketplace, fleet, runs, approvals, security, and settings |
+| `app/app/[tenantId]` | Tenant-scoped control center with clinic pages at the tenant root and legacy platform pages still available |
 
 ### Data providers
 
 | Provider | When | Catalog source |
 | --- | --- | --- |
-| `mockProvider` | Marketing layout `DataProviderContext` default | `lib/demo-catalog` via `lib/demo/read-model.ts` |
-| `demoProvider` | `tenantId === demo-workspace` | Same as mock, plus operational overlay in `lib/data/demo-provider.ts` |
-| `apiProvider` | Authenticated real tenants | `services/api` / `catalog/` + `workflows/` on disk |
+| `mockProvider` | Marketing layout `DataProviderContext` default | `lib/demo-catalog`, `lib/demo/read-model.ts`, and clinic fixtures in `lib/demo/clinic-read-model.ts` |
+| `demoProvider` | `tenantId === demo-workspace` | Same as mock, plus operational overlay and read-only clinic demo data in `lib/data/demo-provider.ts` |
+| `apiProvider` | Authenticated real tenants | `services/api` via `lib/api/client.ts` and `lib/api/clinic.ts` |
 
 ### Important Modules
 
@@ -100,11 +110,15 @@ pnpm --filter @agentmou/web start
 - `lib/api/clinic.ts` contains typed fetchers for the clinic backend families
   and parses structured `409 clinic_feature_unavailable` responses into
   `ClinicFeatureUnavailableApiError`.
-- `lib/data/api-provider.ts` adapts the real API to the `DataProvider` interface.
+- `lib/data/api-provider.ts` adapts both the original control-plane API and the
+  clinic API to the `DataProvider` interface.
 - `lib/data/demo-provider.ts` powers `demo-workspace` with read-only demo data
-  and operational vs non-operational availability (`planned` + status note).
+  and operational vs non-operational availability (`planned` + status note),
+  plus the dental clinic overlay used by the clinic shell.
 - `lib/demo/read-model.ts` is the synchronous selector layer used only behind
   `mockProvider`.
+- `lib/demo/clinic-read-model.ts` is the synchronous clinic selector layer used
+  behind `mockProvider` and `demoProvider`.
 - `lib/catalog/availability.ts` centralizes default listing tier resolution for UI.
 - `lib/demo-catalog/` owns the demo inventory, marketing featured IDs, and
   generated operational ID index.
@@ -114,14 +128,34 @@ pnpm --filter @agentmou/web start
 - `lib/marketing/public-catalog.ts` remains for optional API/filesystem catalog
   helpers; homepage cards no longer depend on it.
 - `lib/auth/store.ts` owns login, registration, cookie hydration, and active-tenant selection.
+- `lib/tenant-experience.tsx` resolves shell mode, clinic capability flags,
+  platform access, and fallback behavior for tenants whose settings payloads
+  lag behind clinic profile availability.
 - `components/auth/` provides the tabbed sign-in / register UI (`AuthForm`,
   `PasswordInput`) used by `app/(auth)`.
+- `components/clinic/` contains the clinic shell, inbox/detail views, agenda
+  board, follow-up cards, KPI cards, and the internal platform switch shown
+  only to `owner|admin` users with `internal_platform` enabled.
+- `components/control-plane/legacy-platform-redirect.tsx` redirects clinic
+  tenants from legacy root platform routes like `/runs` or `/marketplace` into
+  `/platform/*`.
+- `lib/search-index.ts` and the command palette switch between clinic and
+  platform search inventories so clinic tenants search patients, appointments,
+  conversations, forms, gaps, and campaigns instead of marketplace and runs.
 - `components/ui/` is the current source of truth for reusable UI primitives;
   there is no live `packages/ui` workspace package.
 
-The clinic fetchers are intentionally not wired into `DataProvider` yet. This
-PR adds typed backend access for later UI phases without changing the current
-tenant page surface.
+Clinical tenants now use:
+
+- `dashboard` as `Resumen`
+- `bandeja`, `agenda`, `pacientes`
+- `seguimiento`, `seguimiento/formularios`,
+  `seguimiento/confirmaciones`, `seguimiento/huecos`
+- `reactivacion`, `rendimiento`, `configuracion`
+
+The original platform pages remain available under
+`/app/[tenantId]/platform/*`. Non-clinic tenants stay on the original shell and
+legacy route structure.
 
 ## Configuration
 
