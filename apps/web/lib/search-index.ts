@@ -6,7 +6,7 @@ import type { DataProvider } from '@/lib/data/provider';
 import { resolveHonestSurfaceState } from '@/lib/honest-ui';
 
 export type SearchItemType = 'navigate' | 'agent' | 'workflow' | 'pack' | 'run' | 'action';
-export type SearchMode = 'clinic' | 'platform';
+export type SearchMode = 'clinic' | 'platform_internal';
 
 export interface SearchItem {
   type: SearchItemType;
@@ -165,13 +165,34 @@ const clinicNavigationItems: Omit<SearchItem, 'href'>[] = [
 export async function buildSearchIndex(
   tenantId: string,
   provider: DataProvider,
-  mode: SearchMode = 'platform'
+  mode: SearchMode = 'platform_internal'
 ): Promise<SearchItem[]> {
   const items: SearchItem[] = [];
   const navigationItems = mode === 'clinic' ? clinicNavigationItems : platformNavigationItems;
 
   if (mode === 'clinic') {
+    const experience = await provider.getClinicExperience(tenantId).catch(() => null);
+    const allowedNavigation = new Set(experience?.allowedNavigation ?? []);
+    const shouldShowClinicNav = (navId: string) => {
+      const key = {
+        'nav-dashboard': 'dashboard',
+        'nav-bandeja': 'inbox',
+        'nav-agenda': 'appointments',
+        'nav-pacientes': 'patients',
+        'nav-seguimiento': 'follow_up',
+        'nav-reactivacion': 'reactivation',
+        'nav-rendimiento': 'reports',
+        'nav-configuracion': 'configuration',
+      }[navId];
+
+      return !key || allowedNavigation.size === 0 || allowedNavigation.has(key as never);
+    };
+
     for (const navItem of navigationItems) {
+      if (!shouldShowClinicNav(navItem.id)) {
+        continue;
+      }
+
       const href =
         navItem.id === 'nav-dashboard'
           ? `/app/${tenantId}/dashboard`
@@ -232,36 +253,46 @@ export async function buildSearchIndex(
         description: `Cita ${new Date(appointment.startsAt).toLocaleString()}`,
         category: 'Agenda',
       })),
-      ...campaigns.campaigns.slice(0, 4).map((campaign) => ({
-        type: 'action' as const,
-        id: `campaign-${campaign.id}`,
-        label: campaign.name,
-        keywords: [campaign.campaignType, campaign.status],
-        href: `/app/${tenantId}/reactivacion`,
-        icon: 'refresh-cw',
-        description: `Campana ${campaign.status}`,
-        category: 'Reactivacion',
-      })),
-      {
-        type: 'action',
-        id: 'action-forms',
-        label: 'Abrir formularios pendientes',
-        keywords: ['formularios', 'seguimiento', 'pendientes'],
-        href: `/app/${tenantId}/seguimiento/formularios`,
-        icon: 'clipboard-list',
-        description: 'Revisar formularios enviados y pendientes',
-        category: 'Seguimiento',
-      },
-      {
-        type: 'action',
-        id: 'action-gaps',
-        label: 'Abrir huecos activos',
-        keywords: ['huecos', 'cancelaciones', 'gaps'],
-        href: `/app/${tenantId}/seguimiento/huecos`,
-        icon: 'calendar-days',
-        description: 'Ver huecos y oportunidades de relleno',
-        category: 'Seguimiento',
-      }
+      ...(allowedNavigation.size === 0 || allowedNavigation.has('reactivation')
+        ? campaigns.campaigns.slice(0, 4).map((campaign) => ({
+            type: 'action' as const,
+            id: `campaign-${campaign.id}`,
+            label: campaign.name,
+            keywords: [campaign.campaignType, campaign.status],
+            href: `/app/${tenantId}/reactivacion`,
+            icon: 'refresh-cw',
+            description: `Campana ${campaign.status}`,
+            category: 'Reactivacion',
+          }))
+        : []),
+      ...(allowedNavigation.size === 0 || allowedNavigation.has('forms')
+        ? [
+            {
+              type: 'action' as const,
+              id: 'action-forms',
+              label: 'Abrir formularios pendientes',
+              keywords: ['formularios', 'seguimiento', 'pendientes'],
+              href: `/app/${tenantId}/seguimiento/formularios`,
+              icon: 'clipboard-list',
+              description: 'Revisar formularios enviados y pendientes',
+              category: 'Seguimiento',
+            },
+          ]
+        : []),
+      ...(allowedNavigation.size === 0 || allowedNavigation.has('gaps')
+        ? [
+            {
+              type: 'action' as const,
+              id: 'action-gaps',
+              label: 'Abrir huecos activos',
+              keywords: ['huecos', 'cancelaciones', 'gaps'],
+              href: `/app/${tenantId}/seguimiento/huecos`,
+              icon: 'calendar-days',
+              description: 'Ver huecos y oportunidades de relleno',
+              category: 'Seguimiento',
+            },
+          ]
+        : [])
     );
 
     return items;
@@ -279,8 +310,8 @@ export async function buildSearchIndex(
   for (const navItem of navigationItems) {
     const href =
       navItem.id === 'nav-dashboard'
-        ? `/app/${tenantId}/dashboard`
-        : `/app/${tenantId}/${navItem.id.replace('nav-', '')}`;
+        ? `/app/${tenantId}/platform/dashboard`
+        : `/app/${tenantId}/platform/${navItem.id.replace('nav-', '')}`;
 
     items.push({
       ...navItem,

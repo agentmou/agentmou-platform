@@ -13,6 +13,9 @@ describe('tenants.mapper', () => {
       defaultHITL: false,
       logRetentionDays: 30,
       memoryRetentionDays: 7,
+      verticalClinicUi: false,
+      clinicDentalMode: false,
+      internalPlatformVisible: false,
     });
   });
 
@@ -32,6 +35,9 @@ describe('tenants.mapper', () => {
       defaultHITL: true,
       logRetentionDays: 14,
       memoryRetentionDays: 7,
+      verticalClinicUi: false,
+      clinicDentalMode: false,
+      internalPlatformVisible: false,
     });
   });
 
@@ -59,6 +65,9 @@ describe('tenants.mapper', () => {
         defaultHITL: false,
         logRetentionDays: 30,
         memoryRetentionDays: 7,
+        verticalClinicUi: false,
+        clinicDentalMode: false,
+        internalPlatformVisible: false,
       },
     });
   });

@@ -3,6 +3,7 @@ import { db, users, tenants, memberships, passwordResetTokens } from '@agentmou/
 import { createToken, verifyToken, hashPassword, verifyPassword } from '@agentmou/auth';
 import { eq } from 'drizzle-orm';
 import { getApiConfig } from '../../config.js';
+import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
 import { normalizeTenantSettings } from '../tenants/tenants.mapper.js';
 
 export class AuthService {
@@ -99,6 +100,7 @@ export class AuthService {
       user: { id: user.id, email: user.email, name: user.name },
       tenants: userTenants.map((tenant) => ({
         ...tenant,
+        role: normalizeTenantMembershipRole(tenant.role),
         settings: normalizeTenantSettings(tenant.settings),
       })),
       token,
@@ -141,6 +143,7 @@ export class AuthService {
       ...user,
       tenants: userTenants.map((tenant) => ({
         ...tenant,
+        role: normalizeTenantMembershipRole(tenant.role),
         settings: normalizeTenantSettings(tenant.settings),
       })),
     };

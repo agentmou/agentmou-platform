@@ -15,8 +15,13 @@ export function useLegacyPlatformRedirect(path: string) {
       return;
     }
 
-    router.replace(getPlatformPath(experience.tenantId, path));
-  }, [experience.tenantId, router, shouldRedirect, path]);
+    if (experience.canAccessInternalPlatform) {
+      router.replace(getPlatformPath(experience.tenantId, path));
+      return;
+    }
+
+    router.replace(`/app/${experience.tenantId}/dashboard`);
+  }, [experience.canAccessInternalPlatform, experience.tenantId, router, shouldRedirect, path]);
 
   return shouldRedirect;
 }

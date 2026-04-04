@@ -1,4 +1,5 @@
-import { TenantMemberSchema, type TenantMember, type UserRole } from '@agentmou/contracts';
+import { TenantMemberSchema, type TenantMember } from '@agentmou/contracts';
+import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
 
 interface MembershipUser {
   id: string | null;
@@ -22,12 +23,8 @@ export function mapMembership(membership: MembershipRow): TenantMember {
     tenantId: membership.tenantId,
     email: membership.user?.email ?? membership.userId,
     name: membership.user?.name ?? membership.user?.email ?? membership.userId,
-    role: normalizeRole(membership.role),
+    role: normalizeTenantMembershipRole(membership.role),
     joinedAt: membership.joinedAt.toISOString(),
     lastActiveAt: membership.lastActiveAt.toISOString(),
   });
-}
-
-function normalizeRole(role: string): UserRole {
-  return (role === 'member' ? 'operator' : role) as UserRole;
 }

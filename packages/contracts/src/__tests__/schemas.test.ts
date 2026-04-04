@@ -29,14 +29,20 @@ import {
   PackTemplatesResponseSchema,
   ClinicProfileSchema,
   ClinicDashboardResponseSchema,
+  ClinicExperienceResponseSchema,
   ClinicFeatureUnavailableErrorSchema,
   ClinicChannelResponseSchema,
+  ClinicModuleEntitlementSchema,
   ConfirmationRequestResponseSchema,
+  ExperienceModeSchema,
   GapOpportunityResponseSchema,
   PatientsResponseSchema,
   CreatePatientBodySchema,
+  ClinicPermissionSchema,
   OfferGapBodySchema,
   ModuleKeySchema,
+  ModuleVisibilityReasonSchema,
+  ModuleVisibilityStateSchema,
   ReminderJobResponseSchema,
   TenantModuleResponseSchema,
   WaitlistRequestResponseSchema,
@@ -77,6 +83,7 @@ describe('TenantSchema', () => {
     expect(result.plan).toBe('pro');
     expect(result.settings.verticalClinicUi).toBe(false);
     expect(result.settings.clinicDentalMode).toBe(false);
+    expect(result.settings.internalPlatformVisible).toBe(false);
   });
 
   it('rejects missing required fields', () => {
@@ -213,6 +220,13 @@ describe('Clinic domain schemas', () => {
         config: {},
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
+        enabled: true,
+        beta: false,
+        displayName: 'Voice',
+        description: 'Llamadas y callbacks.',
+        requiresConfig: false,
+        visibilityState: 'visible',
+        visibilityReason: 'active',
       },
     });
 
@@ -305,23 +319,101 @@ describe('Clinic domain schemas', () => {
     const featureUnavailable = ClinicFeatureUnavailableErrorSchema.parse({
       error: 'Clinic feature unavailable',
       code: 'clinic_feature_unavailable',
-      reason: 'module_inactive',
+      reason: 'disabled_by_tenant',
       moduleKey: 'voice',
       detail: 'Voice is disabled for this tenant.',
     });
 
+    const experienceEnvelope = ClinicExperienceResponseSchema.parse({
+      experience: {
+        tenantId: 'tenant-1',
+        isClinicTenant: true,
+        defaultMode: 'clinic',
+        role: 'admin',
+        normalizedRole: 'admin',
+        isInternalUser: true,
+        permissions: ['view_dashboard', 'view_internal_platform'],
+        flags: {
+          verticalClinicUi: true,
+          clinicDentalMode: true,
+          voiceInboundEnabled: true,
+          voiceOutboundEnabled: false,
+          whatsappOutboundEnabled: true,
+          intakeFormsEnabled: true,
+          appointmentConfirmationsEnabled: true,
+          smartGapFillEnabled: false,
+          reactivationEnabled: false,
+          advancedClinicModeEnabled: false,
+          internalPlatformVisible: true,
+        },
+        modules: [
+          {
+            id: 'module-core',
+            tenantId: 'tenant-1',
+            moduleKey: 'core_reception',
+            status: 'enabled',
+            visibleToClient: true,
+            planLevel: 'starter',
+            config: {},
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            enabled: true,
+            beta: false,
+            displayName: 'Core Reception',
+            description: 'Resumen e inbox.',
+            requiresConfig: false,
+            visibilityState: 'visible',
+            visibilityReason: 'active',
+          },
+        ],
+        allowedNavigation: ['dashboard', 'platform_internal'],
+      },
+    });
+
     expect(moduleEnvelope.module.moduleKey).toBe('voice');
+    expect(moduleEnvelope.module.displayName).toBe('Voice');
     expect(channelEnvelope.channel.status).toBe('active');
     expect(reminderEnvelope.reminder.templateKey).toBe('appointment_reminder');
     expect(confirmationEnvelope.confirmation.status).toBe('pending');
     expect(waitlistEnvelope.waitlistRequest.priorityScore).toBe(50);
     expect(gapEnvelope.gap.status).toBe('open');
-    expect(featureUnavailable.reason).toBe('module_inactive');
+    expect(featureUnavailable.reason).toBe('disabled_by_tenant');
+    expect(experienceEnvelope.experience.allowedNavigation).toContain('platform_internal');
     expect(() =>
       ClinicFeatureUnavailableErrorSchema.parse({
         error: 'Clinic feature unavailable',
         code: 'clinic_feature_unavailable',
         reason: 'unsupported',
+      })
+    ).toThrow();
+  });
+
+  it('parses entitlement enums and rejects unsupported module visibility states', () => {
+    expect(ExperienceModeSchema.parse('platform_internal')).toBe('platform_internal');
+    expect(ClinicPermissionSchema.parse('view_internal_platform')).toBe('view_internal_platform');
+    expect(ModuleVisibilityStateSchema.parse('requires_configuration')).toBe(
+      'requires_configuration'
+    );
+    expect(ModuleVisibilityReasonSchema.parse('not_in_plan')).toBe('not_in_plan');
+
+    expect(() =>
+      ClinicModuleEntitlementSchema.parse({
+        id: 'module-1',
+        tenantId: 'tenant-1',
+        moduleKey: 'voice',
+        status: 'enabled',
+        visibleToClient: true,
+        planLevel: 'pro',
+        config: {},
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        enabled: true,
+        beta: false,
+        displayName: 'Voice',
+        description: 'Calls',
+        requiresConfig: false,
+        visibilityState: 'unsupported',
+        visibilityReason: 'active',
       })
     ).toThrow();
   });

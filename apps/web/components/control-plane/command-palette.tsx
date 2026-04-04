@@ -80,7 +80,7 @@ interface CommandPaletteProps {
 export function CommandPalette({
   open,
   onOpenChange,
-  mode = 'platform',
+  mode = 'platform_internal',
 }: CommandPaletteProps) {
   const router = useRouter();
   const params = useParams();
@@ -144,14 +144,14 @@ export function CommandPalette({
       description={
         mode === 'clinic'
           ? 'Busca pacientes, citas, conversaciones y tareas operativas'
-          : 'Search for pages, agents, workflows, and preview shortcuts'
+          : 'Search for internal platform pages, agents, workflows, and shortcuts'
       }
     >
       <CommandInput
         placeholder={
           mode === 'clinic'
             ? 'Buscar pacientes, citas, conversaciones o seguimientos...'
-            : 'Search pages, agents, workflows, or shortcuts...'
+            : 'Search internal pages, agents, workflows, or shortcuts...'
         }
         value={query}
         onValueChange={setQuery}

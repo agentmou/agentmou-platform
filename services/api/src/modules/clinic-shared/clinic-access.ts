@@ -1,15 +1,24 @@
 import {
   type ChannelType,
+  type ClinicModuleEntitlement,
+  type ClinicPermission,
   type ModuleKey,
   type UserRole,
 } from '@agentmou/contracts';
-import { db, clinicChannels, tenantModules } from '@agentmou/db';
+import { db, clinicChannels } from '@agentmou/db';
 import { and, eq } from 'drizzle-orm';
 
+import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
 import {
   ClinicFeatureUnavailableRouteError,
   ClinicForbiddenRouteError,
 } from './clinic.errors.js';
+import {
+  findClinicModuleEntitlement,
+  resolveClinicExperience,
+  resolveClinicPermissions,
+} from './clinic-entitlements.js';
+import { ClinicExperienceRepository } from './clinic-experience.repository.js';
 
 const ACTIVE_MODULE_STATUSES = new Set(['enabled', 'beta']);
 const READ_ROLES: UserRole[] = ['owner', 'admin', 'operator', 'viewer'];
@@ -19,11 +28,7 @@ const MANAGE_ROLES: UserRole[] = ['owner', 'admin'];
 export type ClinicRoleScope = 'read' | 'operate' | 'manage';
 
 export function normalizeClinicRole(role: string | undefined): UserRole | undefined {
-  if (!role) {
-    return undefined;
-  }
-
-  return (role === 'member' ? 'operator' : role) as UserRole;
+  return normalizeTenantMembershipRole(role);
 }
 
 export function assertClinicRole(role: string | undefined, scope: ClinicRoleScope) {
@@ -44,16 +49,33 @@ export function getFeatureModuleForChannel(channelType: ChannelType): ModuleKey 
   return channelType === 'voice' ? 'voice' : 'core_reception';
 }
 
-export async function assertClinicModuleAvailable(tenantId: string, moduleKey: ModuleKey) {
-  const [module] = await db
-    .select()
-    .from(tenantModules)
-    .where(and(eq(tenantModules.tenantId, tenantId), eq(tenantModules.moduleKey, moduleKey)))
-    .limit(1);
+function getFeatureUnavailableReason(
+  reason?: ClinicModuleEntitlement['visibilityReason']
+) {
+  return !reason || reason === 'active' ? 'not_in_plan' : reason;
+}
 
-  if (!module || !ACTIVE_MODULE_STATUSES.has(module.status) || !module.visibleToClient) {
+export async function assertClinicModuleAvailable(tenantId: string, moduleKey: ModuleKey) {
+  const repository = new ClinicExperienceRepository();
+  const context = await repository.loadContext(tenantId);
+
+  if (!context) {
     throw new ClinicFeatureUnavailableRouteError({
-      reason: 'module_inactive',
+      reason: 'not_in_plan',
+      moduleKey,
+      detail: `Module "${moduleKey}" is not available for this tenant.`,
+    });
+  }
+
+  const module = findClinicModuleEntitlement(resolveClinicExperience(context).modules, moduleKey);
+
+  if (
+    !module ||
+    !ACTIVE_MODULE_STATUSES.has(module.status) ||
+    module.visibilityReason !== 'active'
+  ) {
+    throw new ClinicFeatureUnavailableRouteError({
+      reason: getFeatureUnavailableReason(module?.visibilityReason),
       moduleKey,
       detail: `Module "${moduleKey}" is not active for this tenant.`,
     });
@@ -91,4 +113,21 @@ export async function assertClinicChannelAvailable(tenantId: string, channelType
   }
 
   return activeChannel;
+}
+
+export function assertClinicPermission(
+  permission: ClinicPermission,
+  params: {
+    tenantRole?: string;
+    canAccessInternalPlatform?: boolean;
+  }
+) {
+  const permissions = resolveClinicPermissions({
+    tenantRole: params.tenantRole,
+    canAccessInternalPlatform: Boolean(params.canAccessInternalPlatform),
+  });
+
+  if (!permissions.includes(permission)) {
+    throw new ClinicForbiddenRouteError('Insufficient tenant permissions for clinic API');
+  }
 }

@@ -1,10 +1,24 @@
 'use client';
 
+import * as React from 'react';
+import { useRouter } from 'next/navigation';
+
 import { InternalModeSwitch } from '@/components/clinic/internal-mode-switch';
 import { useTenantExperience } from '@/lib/tenant-experience';
 
 export default function PlatformLayout({ children }: { children: React.ReactNode }) {
   const experience = useTenantExperience();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (experience.isClinicTenant && !experience.canAccessInternalPlatform) {
+      router.replace(`/app/${experience.tenantId}/dashboard`);
+    }
+  }, [experience.canAccessInternalPlatform, experience.isClinicTenant, experience.tenantId, router]);
+
+  if (experience.isClinicTenant && !experience.canAccessInternalPlatform) {
+    return null;
+  }
 
   return (
     <>

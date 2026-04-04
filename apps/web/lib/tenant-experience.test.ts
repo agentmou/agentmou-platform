@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   getPlatformPath,
+  hasClinicNavigationAccess,
   isClinicDentalMode,
   isClinicUiEnabled,
   isPlatformPath,
@@ -10,6 +11,21 @@ import {
 } from './tenant-experience';
 
 describe('tenant experience helpers', () => {
+  const baseModule = {
+    tenantId: 'tenant-1',
+    planLevel: 'enterprise' as const,
+    config: {},
+    createdAt: '2025-01-15T09:00:00.000Z',
+    updatedAt: '2025-01-15T09:00:00.000Z',
+    enabled: true,
+    beta: false,
+    displayName: 'Module',
+    description: 'Description',
+    requiresConfig: false,
+    visibilityState: 'visible' as const,
+    visibilityReason: 'active' as const,
+  };
+
   it('normalizes clinic ui settings flags', () => {
     expect(isClinicUiEnabled({ verticalClinicUi: true })).toBe(true);
     expect(isClinicUiEnabled({ verticalClinicUi: false })).toBe(false);
@@ -59,48 +75,38 @@ describe('tenant experience helpers', () => {
       },
       modules: [
         {
+          ...baseModule,
           id: 'module-core',
-          tenantId: 'tenant-1',
           moduleKey: 'core_reception',
           status: 'enabled',
           visibleToClient: true,
-          planLevel: 'enterprise',
-          config: {},
-          createdAt: '2025-01-15T09:00:00.000Z',
-          updatedAt: '2025-01-15T09:00:00.000Z',
+          displayName: 'Core Reception',
         },
         {
+          ...baseModule,
           id: 'module-voice',
-          tenantId: 'tenant-1',
           moduleKey: 'voice',
           status: 'enabled',
           visibleToClient: true,
-          planLevel: 'enterprise',
-          config: {},
-          createdAt: '2025-01-15T09:00:00.000Z',
-          updatedAt: '2025-01-15T09:00:00.000Z',
+          displayName: 'Voice',
         },
         {
+          ...baseModule,
           id: 'module-growth',
-          tenantId: 'tenant-1',
           moduleKey: 'growth',
           status: 'enabled',
           visibleToClient: true,
-          planLevel: 'enterprise',
-          config: {},
-          createdAt: '2025-01-15T09:00:00.000Z',
-          updatedAt: '2025-01-15T09:00:00.000Z',
+          displayName: 'Growth',
         },
         {
+          ...baseModule,
           id: 'module-internal',
-          tenantId: 'tenant-1',
           moduleKey: 'internal_platform',
           status: 'enabled',
           visibleToClient: false,
-          planLevel: 'enterprise',
-          config: {},
-          createdAt: '2025-01-15T09:00:00.000Z',
-          updatedAt: '2025-01-15T09:00:00.000Z',
+          displayName: 'Internal Platform',
+          visibilityState: 'internal_only',
+          visibilityReason: 'hidden_internal_only',
         },
       ],
       channels: [
@@ -158,5 +164,30 @@ describe('tenant experience helpers', () => {
     expect(isPlatformPath('/app/tenant-1/platform/runs', 'tenant-1')).toBe(true);
     expect(isPlatformPath('/app/tenant-1/runs', 'tenant-1')).toBe(true);
     expect(isPlatformPath('/app/tenant-1/bandeja', 'tenant-1')).toBe(false);
+  });
+
+  it('prefers resolved navigation over fallback capabilities when available', () => {
+    expect(
+      hasClinicNavigationAccess(
+        {
+          allowedNavigation: ['dashboard', 'patients'],
+          capabilities: {
+            coreReceptionEnabled: true,
+            voiceEnabled: true,
+            growthEnabled: true,
+            formsEnabled: true,
+            confirmationsEnabled: true,
+            gapsEnabled: true,
+            reactivationEnabled: true,
+            multiLocationEnabled: false,
+            whatsappAvailable: true,
+            voiceChannelAvailable: true,
+            internalPlatformEnabled: true,
+            canAccessInternalPlatform: true,
+          },
+        },
+        'configuration'
+      )
+    ).toBe(false);
   });
 });

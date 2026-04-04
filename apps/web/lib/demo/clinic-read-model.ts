@@ -9,7 +9,9 @@ import type {
   CampaignFilters,
   ClinicChannel,
   ClinicDashboard,
+  ClinicExperience,
   ClinicLocation,
+  ClinicModuleEntitlement,
   ClinicProfile,
   ClinicService,
   ConfirmationFilters,
@@ -33,7 +35,6 @@ import type {
   ReactivationCampaignsResponse,
   ReactivationRecipient,
   ReminderJob,
-  TenantModule,
   WaitlistRequest,
 } from '@agentmou/contracts';
 
@@ -82,7 +83,7 @@ const clinicProfile: ClinicProfile = {
   updatedAt: ISO_NOW,
 };
 
-const clinicModules: TenantModule[] = [
+const clinicModules: ClinicModuleEntitlement[] = [
   {
     id: 'module-core',
     tenantId: DEFAULT_TENANT_ID,
@@ -93,6 +94,13 @@ const clinicModules: TenantModule[] = [
     config: {},
     createdAt: ISO_NOW,
     updatedAt: ISO_NOW,
+    enabled: true,
+    beta: false,
+    displayName: 'Core Reception',
+    description: 'Resumen, bandeja, agenda y pacientes.',
+    requiresConfig: false,
+    visibilityState: 'visible',
+    visibilityReason: 'active',
   },
   {
     id: 'module-voice',
@@ -104,6 +112,13 @@ const clinicModules: TenantModule[] = [
     config: {},
     createdAt: ISO_NOW,
     updatedAt: ISO_NOW,
+    enabled: true,
+    beta: false,
+    displayName: 'Voice',
+    description: 'Llamadas y callbacks.',
+    requiresConfig: false,
+    visibilityState: 'visible',
+    visibilityReason: 'active',
   },
   {
     id: 'module-growth',
@@ -115,6 +130,13 @@ const clinicModules: TenantModule[] = [
     config: {},
     createdAt: ISO_NOW,
     updatedAt: ISO_NOW,
+    enabled: true,
+    beta: false,
+    displayName: 'Growth',
+    description: 'Huecos y reactivacion.',
+    requiresConfig: false,
+    visibilityState: 'visible',
+    visibilityReason: 'active',
   },
   {
     id: 'module-advanced',
@@ -126,6 +148,13 @@ const clinicModules: TenantModule[] = [
     config: {},
     createdAt: ISO_NOW,
     updatedAt: ISO_NOW,
+    enabled: false,
+    beta: false,
+    displayName: 'Advanced Mode',
+    description: 'Configuraciones expertas.',
+    requiresConfig: false,
+    visibilityState: 'hidden',
+    visibilityReason: 'disabled_by_tenant',
   },
   {
     id: 'module-internal',
@@ -137,6 +166,13 @@ const clinicModules: TenantModule[] = [
     config: {},
     createdAt: ISO_NOW,
     updatedAt: ISO_NOW,
+    enabled: true,
+    beta: false,
+    displayName: 'Internal Platform',
+    description: 'Marketplace, runs y approvals.',
+    requiresConfig: false,
+    visibilityState: 'internal_only',
+    visibilityReason: 'hidden_internal_only',
   },
 ];
 
@@ -790,7 +826,60 @@ export function getClinicProfile(_tenantId: string): ClinicProfile {
   return clone(clinicProfile);
 }
 
-export function listClinicModules(_tenantId: string): TenantModule[] {
+export function getClinicExperience(_tenantId: string): ClinicExperience {
+  return clone({
+    tenantId: DEFAULT_TENANT_ID,
+    isClinicTenant: true,
+    defaultMode: 'clinic',
+    role: 'admin',
+    normalizedRole: 'admin',
+    isInternalUser: false,
+    permissions: [
+      'view_dashboard',
+      'view_inbox',
+      'manage_inbox',
+      'view_appointments',
+      'manage_appointments',
+      'view_patients',
+      'manage_patients',
+      'view_follow_up',
+      'manage_follow_up',
+      'view_reactivation',
+      'manage_reactivation',
+      'view_reports',
+      'manage_clinic_settings',
+    ],
+    flags: {
+      verticalClinicUi: true,
+      clinicDentalMode: true,
+      voiceInboundEnabled: true,
+      voiceOutboundEnabled: true,
+      whatsappOutboundEnabled: true,
+      intakeFormsEnabled: true,
+      appointmentConfirmationsEnabled: true,
+      smartGapFillEnabled: true,
+      reactivationEnabled: true,
+      advancedClinicModeEnabled: false,
+      internalPlatformVisible: false,
+    },
+    modules: clinicModules,
+    allowedNavigation: [
+      'dashboard',
+      'inbox',
+      'appointments',
+      'patients',
+      'follow_up',
+      'forms',
+      'confirmations',
+      'gaps',
+      'reactivation',
+      'reports',
+      'configuration',
+    ],
+  });
+}
+
+export function listClinicModules(_tenantId: string): ClinicModuleEntitlement[] {
   return clone(clinicModules);
 }
 

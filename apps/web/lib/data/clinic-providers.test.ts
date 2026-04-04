@@ -37,11 +37,15 @@ describe('clinic data providers', () => {
   });
 
   it('keeps clinic demo data available through the demo provider', async () => {
-    const dashboard = await demoProvider.getClinicDashboard('demo-workspace');
-    const campaigns = await demoProvider.listClinicReactivationCampaigns('demo-workspace');
+    const [dashboard, campaigns, experience] = await Promise.all([
+      demoProvider.getClinicDashboard('demo-workspace'),
+      demoProvider.listClinicReactivationCampaigns('demo-workspace'),
+      demoProvider.getClinicExperience('demo-workspace'),
+    ]);
 
     expect(dashboard.kpis.pendingConfirmations).toBe(1);
     expect(campaigns.campaigns[0]?.name).toContain('Revision');
+    expect(experience?.flags.internalPlatformVisible).toBe(false);
   });
 
   it('unwraps appointment mutation responses in the api provider', async () => {

@@ -223,9 +223,9 @@ describe('clinic api client', () => {
         JSON.stringify({
           error: 'Clinic feature unavailable',
           code: 'clinic_feature_unavailable',
-          reason: 'module_inactive',
+          reason: 'not_in_plan',
           moduleKey: 'voice',
-          detail: 'Voice is disabled for this tenant.',
+          detail: 'Voice is not included in this plan.',
         }),
         {
           status: 409,
@@ -243,9 +243,68 @@ describe('clinic api client', () => {
     await expect(promise).rejects.toMatchObject({
       status: 409,
       feature: {
-        reason: 'module_inactive',
+        reason: 'not_in_plan',
         moduleKey: 'voice',
       },
     });
+  });
+
+  it('parses clinic experience payloads for shell gating', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          experience: {
+            tenantId: 'tenant-1',
+            isClinicTenant: true,
+            defaultMode: 'clinic',
+            role: 'admin',
+            normalizedRole: 'admin',
+            isInternalUser: true,
+            permissions: ['view_dashboard', 'manage_clinic_settings', 'view_internal_platform'],
+            flags: {
+              verticalClinicUi: true,
+              clinicDentalMode: true,
+              voiceInboundEnabled: true,
+              voiceOutboundEnabled: false,
+              whatsappOutboundEnabled: true,
+              intakeFormsEnabled: true,
+              appointmentConfirmationsEnabled: true,
+              smartGapFillEnabled: true,
+              reactivationEnabled: true,
+              advancedClinicModeEnabled: false,
+              internalPlatformVisible: true,
+            },
+            modules: [
+              {
+                id: 'module-core',
+                tenantId: 'tenant-1',
+                moduleKey: 'core_reception',
+                status: 'enabled',
+                visibleToClient: true,
+                planLevel: 'enterprise',
+                config: {},
+                createdAt: '2025-01-15T09:00:00.000Z',
+                updatedAt: '2025-01-15T09:00:00.000Z',
+                enabled: true,
+                beta: false,
+                displayName: 'Core Reception',
+                description: 'Resumen e inbox',
+                requiresConfig: false,
+                visibilityState: 'visible',
+                visibilityReason: 'active',
+              },
+            ],
+            allowedNavigation: ['dashboard', 'configuration', 'platform_internal'],
+          },
+        }),
+        { status: 200 }
+      )
+    ) as typeof fetch;
+
+    const { fetchClinicExperience } = await import('./clinic');
+    const experience = await fetchClinicExperience('tenant-1');
+
+    expect(experience.permissions).toContain('view_internal_platform');
+    expect(experience.allowedNavigation).toContain('platform_internal');
   });
 });

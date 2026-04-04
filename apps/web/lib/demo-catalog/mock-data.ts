@@ -43,6 +43,7 @@ export const tenants: Tenant[] = [
       memoryRetentionDays: 7,
       verticalClinicUi: true,
       clinicDentalMode: true,
+      internalPlatformVisible: false,
     },
   },
   {
@@ -59,6 +60,7 @@ export const tenants: Tenant[] = [
       memoryRetentionDays: 7,
       verticalClinicUi: false,
       clinicDentalMode: false,
+      internalPlatformVisible: false,
     },
   },
   {
@@ -75,6 +77,7 @@ export const tenants: Tenant[] = [
       memoryRetentionDays: 0,
       verticalClinicUi: false,
       clinicDentalMode: false,
+      internalPlatformVisible: false,
     },
   },
 ];

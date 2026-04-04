@@ -15,10 +15,11 @@ describe('clinic search index', () => {
     expect(items.some((item) => item.label.includes('Revision semestral'))).toBe(true);
   });
 
-  it('keeps platform search entries in platform mode', async () => {
-    const items = await buildSearchIndex('demo-workspace', mockProvider, 'platform');
+  it('keeps platform search entries in platform_internal mode', async () => {
+    const items = await buildSearchIndex('demo-workspace', mockProvider, 'platform_internal');
 
     expect(items.some((item) => item.label === 'Marketplace')).toBe(true);
     expect(items.some((item) => item.label === 'Runs')).toBe(true);
+    expect(items.some((item) => item.href.startsWith('/app/demo-workspace/platform'))).toBe(true);
   });
 });

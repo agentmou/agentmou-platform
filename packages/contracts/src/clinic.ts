@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TenantPlanSchema } from './tenancy';
+import { TenantPlanSchema, UserRoleSchema } from './tenancy';
 
 const DateTimeStringSchema = z.string();
 const JsonRecordSchema = z.record(z.unknown());
@@ -26,6 +26,29 @@ export type ModuleKey = z.infer<typeof ModuleKeySchema>;
 /** Availability states for tenant modules. */
 export const ModuleStatusSchema = z.enum(['enabled', 'disabled', 'hidden', 'beta']);
 export type ModuleStatus = z.infer<typeof ModuleStatusSchema>;
+
+/** High-level shell modes supported by clinic-aware tenants. */
+export const ExperienceModeSchema = z.enum(['clinic', 'platform_internal']);
+export type ExperienceMode = z.infer<typeof ExperienceModeSchema>;
+
+/** Derived clinic permissions exposed to backend and web consumers. */
+export const ClinicPermissionSchema = z.enum([
+  'view_dashboard',
+  'view_inbox',
+  'manage_inbox',
+  'view_appointments',
+  'manage_appointments',
+  'view_patients',
+  'manage_patients',
+  'view_follow_up',
+  'manage_follow_up',
+  'view_reactivation',
+  'manage_reactivation',
+  'view_reports',
+  'manage_clinic_settings',
+  'view_internal_platform',
+]);
+export type ClinicPermission = z.infer<typeof ClinicPermissionSchema>;
 
 /** Supported clinic communication channels. */
 export const ChannelTypeSchema = z.enum(['whatsapp', 'voice']);
@@ -353,6 +376,37 @@ export const TenantModuleSchema = z.object({
   updatedAt: DateTimeStringSchema,
 });
 export type TenantModule = z.infer<typeof TenantModuleSchema>;
+
+/** UI-facing visibility state for a clinic module entitlement. */
+export const ModuleVisibilityStateSchema = z.enum([
+  'visible',
+  'hidden',
+  'internal_only',
+  'requires_configuration',
+]);
+export type ModuleVisibilityState = z.infer<typeof ModuleVisibilityStateSchema>;
+
+/** Machine-readable explanation for why a module is or is not visible. */
+export const ModuleVisibilityReasonSchema = z.enum([
+  'active',
+  'not_in_plan',
+  'hidden_internal_only',
+  'disabled_by_tenant',
+  'requires_configuration',
+]);
+export type ModuleVisibilityReason = z.infer<typeof ModuleVisibilityReasonSchema>;
+
+/** Resolved clinic module metadata used by the web shell and settings UI. */
+export const ClinicModuleEntitlementSchema = TenantModuleSchema.extend({
+  enabled: z.boolean(),
+  beta: z.boolean(),
+  displayName: z.string(),
+  description: z.string(),
+  requiresConfig: z.boolean(),
+  visibilityState: ModuleVisibilityStateSchema,
+  visibilityReason: ModuleVisibilityReasonSchema,
+});
+export type ClinicModuleEntitlement = z.infer<typeof ClinicModuleEntitlementSchema>;
 
 /** Channel configuration entity. */
 export const ClinicChannelSchema = z.object({
@@ -792,10 +846,63 @@ export const ClinicDashboardSchema = z.object({
 });
 export type ClinicDashboard = z.infer<typeof ClinicDashboardSchema>;
 
+/** Resolved clinic feature flags surfaced to the client shell. */
+export const ClinicResolvedFlagsSchema = z.object({
+  verticalClinicUi: z.boolean(),
+  clinicDentalMode: z.boolean(),
+  voiceInboundEnabled: z.boolean(),
+  voiceOutboundEnabled: z.boolean(),
+  whatsappOutboundEnabled: z.boolean(),
+  intakeFormsEnabled: z.boolean(),
+  appointmentConfirmationsEnabled: z.boolean(),
+  smartGapFillEnabled: z.boolean(),
+  reactivationEnabled: z.boolean(),
+  advancedClinicModeEnabled: z.boolean(),
+  internalPlatformVisible: z.boolean(),
+});
+export type ClinicResolvedFlags = z.infer<typeof ClinicResolvedFlagsSchema>;
+
+/** Navigation sections the clinic web shell can safely expose. */
+export const ClinicNavigationKeySchema = z.enum([
+  'dashboard',
+  'inbox',
+  'appointments',
+  'patients',
+  'follow_up',
+  'forms',
+  'confirmations',
+  'gaps',
+  'reactivation',
+  'reports',
+  'configuration',
+  'platform_internal',
+]);
+export type ClinicNavigationKey = z.infer<typeof ClinicNavigationKeySchema>;
+
+/** Single resolved tenant experience payload for clinic-aware tenants. */
+export const ClinicExperienceSchema = z.object({
+  tenantId: z.string(),
+  isClinicTenant: z.boolean(),
+  defaultMode: ExperienceModeSchema,
+  role: z.string().optional(),
+  normalizedRole: UserRoleSchema.optional(),
+  isInternalUser: z.boolean(),
+  permissions: z.array(ClinicPermissionSchema),
+  flags: ClinicResolvedFlagsSchema,
+  modules: z.array(ClinicModuleEntitlementSchema),
+  allowedNavigation: z.array(ClinicNavigationKeySchema),
+});
+export type ClinicExperience = z.infer<typeof ClinicExperienceSchema>;
+
 export const ClinicDashboardResponseSchema = z.object({
   dashboard: ClinicDashboardSchema,
 });
 export type ClinicDashboardResponse = z.infer<typeof ClinicDashboardResponseSchema>;
+
+export const ClinicExperienceResponseSchema = z.object({
+  experience: ClinicExperienceSchema,
+});
+export type ClinicExperienceResponse = z.infer<typeof ClinicExperienceResponseSchema>;
 
 export const ClinicProfileResponseSchema = z.object({
   profile: ClinicProfileSchema,
@@ -803,12 +910,12 @@ export const ClinicProfileResponseSchema = z.object({
 export type ClinicProfileResponse = z.infer<typeof ClinicProfileResponseSchema>;
 
 export const ClinicModulesResponseSchema = z.object({
-  modules: z.array(TenantModuleSchema),
+  modules: z.array(ClinicModuleEntitlementSchema),
 });
 export type ClinicModulesResponse = z.infer<typeof ClinicModulesResponseSchema>;
 
 export const TenantModuleResponseSchema = z.object({
-  module: TenantModuleSchema,
+  module: ClinicModuleEntitlementSchema,
 });
 export type TenantModuleResponse = z.infer<typeof TenantModuleResponseSchema>;
 
@@ -947,7 +1054,10 @@ export const ReactivationRecipientsResponseSchema = z.object({
 export type ReactivationRecipientsResponse = z.infer<typeof ReactivationRecipientsResponseSchema>;
 
 export const ClinicFeatureUnavailableReasonSchema = z.enum([
-  'module_inactive',
+  'not_in_plan',
+  'hidden_internal_only',
+  'disabled_by_tenant',
+  'requires_configuration',
   'channel_inactive',
   'channel_missing',
 ]);

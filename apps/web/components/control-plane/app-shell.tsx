@@ -112,10 +112,13 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
     createdAt: '',
     ownerId: authUser?.id ?? '',
     settings: {
-      timezone: 'UTC',
-      defaultHITL: false,
-      logRetentionDays: 30,
-      memoryRetentionDays: 30,
+      timezone: t.settings?.timezone ?? 'UTC',
+      defaultHITL: t.settings?.defaultHITL ?? false,
+      logRetentionDays: t.settings?.logRetentionDays ?? 30,
+      memoryRetentionDays: t.settings?.memoryRetentionDays ?? 30,
+      verticalClinicUi: t.settings?.verticalClinicUi ?? false,
+      clinicDentalMode: t.settings?.clinicDentalMode ?? false,
+      internalPlatformVisible: t.settings?.internalPlatformVisible ?? false,
     },
   }));
 
@@ -131,6 +134,9 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
       defaultHITL: false,
       logRetentionDays: 30,
       memoryRetentionDays: 30,
+      verticalClinicUi: true,
+      clinicDentalMode: true,
+      internalPlatformVisible: false,
     },
   };
 
@@ -202,7 +208,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
   };
 
   const platformBasePath =
-    experience.isClinicTenant && experience.mode === 'platform' ? '/platform' : '';
+    experience.isClinicTenant && experience.mode === 'platform_internal' ? '/platform' : '';
   const getShellHref = (href: string) =>
     platformBasePath
       ? getPlatformPath(tenantId, href)
@@ -476,7 +482,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
       </div>
 
       {/* Command Palette */}
-      <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} mode="platform" />
+      <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} mode="platform_internal" />
     </div>
   );
 }

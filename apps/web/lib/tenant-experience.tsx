@@ -3,9 +3,11 @@
 import * as React from 'react';
 import type {
   ClinicChannel,
+  ClinicExperience,
+  ClinicModuleEntitlement,
+  ClinicNavigationKey,
   ClinicProfile,
   Tenant,
-  TenantModule,
   TenantSettings,
 } from '@agentmou/contracts';
 import { usePathname } from 'next/navigation';
@@ -13,7 +15,7 @@ import { usePathname } from 'next/navigation';
 import type { DataProvider } from '@/lib/data/provider';
 import { useAuthStore } from '@/lib/auth/store';
 
-export type TenantShellMode = 'clinic' | 'platform';
+export type TenantShellMode = 'clinic' | 'platform_internal';
 
 export interface ClinicUiCapabilities {
   coreReceptionEnabled: boolean;
@@ -34,9 +36,13 @@ export interface TenantExperienceState {
   tenantId: string;
   tenant: Tenant | null;
   role?: string;
+  normalizedRole?: string;
   profile: ClinicProfile | null;
-  modules: TenantModule[];
+  modules: ClinicModuleEntitlement[];
   channels: ClinicChannel[];
+  resolvedExperience: ClinicExperience | null;
+  permissions: ClinicExperience['permissions'];
+  allowedNavigation: ClinicNavigationKey[];
   isClinicTenant: boolean;
   isPlatformRoute: boolean;
   mode: TenantShellMode;
@@ -102,11 +108,14 @@ export function isClinicDentalMode(settings?: Partial<TenantSettings> | null) {
   return Boolean(settings?.clinicDentalMode);
 }
 
-function isModuleEnabled(modules: TenantModule[], moduleKey: TenantModule['moduleKey']) {
+function isModuleEnabled(
+  modules: Array<{ moduleKey: string; status: string; enabled?: boolean }>,
+  moduleKey: string
+) {
   return modules.some(
     (module) =>
       module.moduleKey === moduleKey &&
-      (module.status === 'enabled' || module.status === 'beta')
+      ((module.enabled ?? false) || module.status === 'enabled' || module.status === 'beta')
   );
 }
 
@@ -115,27 +124,41 @@ function hasActiveChannel(channels: ClinicChannel[], channelType: ClinicChannel[
 }
 
 export function resolveClinicCapabilities(params: {
-  modules: TenantModule[];
+  modules: ClinicModuleEntitlement[];
   channels: ClinicChannel[];
   profile: ClinicProfile | null;
   role?: string;
+  experience?: ClinicExperience | null;
 }): ClinicUiCapabilities {
-  const { modules, channels, profile, role } = params;
+  const { modules, channels, profile, role, experience } = params;
+  const moduleByKey = Object.fromEntries(modules.map((module) => [module.moduleKey, module])) as Record<
+    string,
+    ClinicModuleEntitlement
+  >;
   const normalizedRole = normalizeMemberRole(role);
-  const coreReceptionEnabled = isModuleEnabled(modules, 'core_reception');
-  const voiceEnabled = isModuleEnabled(modules, 'voice');
-  const growthEnabled = isModuleEnabled(modules, 'growth');
-  const internalPlatformEnabled = isModuleEnabled(modules, 'internal_platform');
+  const coreReceptionEnabled = moduleByKey.core_reception?.enabled ?? isModuleEnabled(modules, 'core_reception');
+  const voiceEnabled = moduleByKey.voice?.enabled ?? isModuleEnabled(modules, 'voice');
+  const growthEnabled = moduleByKey.growth?.enabled ?? isModuleEnabled(modules, 'growth');
+  const internalPlatformEnabled =
+    moduleByKey.internal_platform?.enabled ?? isModuleEnabled(modules, 'internal_platform');
   const whatsappAvailable = hasActiveChannel(channels, 'whatsapp');
   const voiceChannelAvailable = hasActiveChannel(channels, 'voice');
-  const formsEnabled = coreReceptionEnabled && Boolean(profile?.requiresNewPatientForm);
+  const formsEnabled =
+    experience?.flags.intakeFormsEnabled ??
+    (coreReceptionEnabled && Boolean(profile?.requiresNewPatientForm));
   const confirmationsEnabled =
-    coreReceptionEnabled && profile?.confirmationPolicy.enabled !== false;
-  const gapsEnabled = growthEnabled && profile?.gapRecoveryPolicy.enabled !== false;
-  const reactivationEnabled = growthEnabled && profile?.reactivationPolicy.enabled !== false;
+    experience?.flags.appointmentConfirmationsEnabled ??
+    (coreReceptionEnabled && profile?.confirmationPolicy.enabled !== false);
+  const gapsEnabled =
+    experience?.flags.smartGapFillEnabled ??
+    (growthEnabled && profile?.gapRecoveryPolicy.enabled !== false);
+  const reactivationEnabled =
+    experience?.flags.reactivationEnabled ??
+    (growthEnabled && profile?.reactivationPolicy.enabled !== false);
   const multiLocationEnabled = channels.length > 1;
   const canAccessInternalPlatform =
-    internalPlatformEnabled && (normalizedRole === 'owner' || normalizedRole === 'admin');
+    experience?.permissions.includes('view_internal_platform') ??
+    (internalPlatformEnabled && (normalizedRole === 'owner' || normalizedRole === 'admin'));
 
   return {
     coreReceptionEnabled,
@@ -153,6 +176,32 @@ export function resolveClinicCapabilities(params: {
   };
 }
 
+export function hasClinicNavigationAccess(
+  experience: Pick<TenantExperienceState, 'allowedNavigation' | 'capabilities'>,
+  key: ClinicNavigationKey
+) {
+  if (experience.allowedNavigation.length > 0) {
+    return experience.allowedNavigation.includes(key);
+  }
+
+  const fallbackMap: Record<ClinicNavigationKey, boolean> = {
+    dashboard: true,
+    inbox: experience.capabilities.coreReceptionEnabled,
+    appointments: experience.capabilities.coreReceptionEnabled,
+    patients: experience.capabilities.coreReceptionEnabled,
+    follow_up: experience.capabilities.coreReceptionEnabled,
+    forms: experience.capabilities.formsEnabled,
+    confirmations: experience.capabilities.confirmationsEnabled,
+    gaps: experience.capabilities.gapsEnabled,
+    reactivation: experience.capabilities.reactivationEnabled,
+    reports: experience.capabilities.coreReceptionEnabled,
+    configuration: true,
+    platform_internal: experience.capabilities.canAccessInternalPlatform,
+  };
+
+  return fallbackMap[key];
+}
+
 export function useResolvedTenantExperience(tenantId: string, provider: DataProvider) {
   const pathname = usePathname();
   const hydrate = useAuthStore((state) => state.hydrate);
@@ -161,8 +210,9 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
 
   const [tenant, setTenant] = React.useState<Tenant | null>(null);
   const [profile, setProfile] = React.useState<ClinicProfile | null>(null);
-  const [modules, setModules] = React.useState<TenantModule[]>([]);
+  const [modules, setModules] = React.useState<ClinicModuleEntitlement[]>([]);
   const [channels, setChannels] = React.useState<ClinicChannel[]>([]);
+  const [resolvedExperience, setResolvedExperience] = React.useState<ClinicExperience | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -179,9 +229,10 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
 
       setIsLoading(true);
 
-      const [resolvedTenant, resolvedProfile] = await Promise.all([
+      const [resolvedTenant, resolvedProfile, nextExperience] = await Promise.all([
         provider.getTenant(tenantId).catch(() => null),
         provider.getClinicProfile(tenantId).catch(() => null),
+        provider.getClinicExperience(tenantId).catch(() => null),
       ]);
 
       if (!active) {
@@ -190,16 +241,18 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
 
       const nextTenant = resolvedTenant;
       const shouldLoadClinicContext =
-        isClinicUiEnabled(nextTenant?.settings) || resolvedProfile !== null;
+        isClinicUiEnabled(nextTenant?.settings) || resolvedProfile !== null || nextExperience !== null;
 
-      let nextModules: TenantModule[] = [];
+      let nextModules: ClinicModuleEntitlement[] = nextExperience?.modules ?? [];
       let nextChannels: ClinicChannel[] = [];
 
       if (shouldLoadClinicContext) {
-        [nextModules, nextChannels] = await Promise.all([
-          provider.listClinicModules(tenantId).catch(() => []),
+        const [loadedModules, loadedChannels] = await Promise.all([
+          nextModules.length > 0 ? Promise.resolve(nextModules) : provider.listClinicModules(tenantId).catch(() => []),
           provider.listClinicChannels(tenantId).catch(() => []),
         ]);
+        nextModules = loadedModules;
+        nextChannels = loadedChannels;
 
         if (!active) {
           return;
@@ -210,6 +263,7 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
       setProfile(resolvedProfile);
       setModules(nextModules);
       setChannels(nextChannels);
+      setResolvedExperience(nextExperience);
       setIsLoading(false);
     }
 
@@ -224,26 +278,40 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
   const hasTenantAccess =
     tenantId === 'demo-workspace' || authTenants.some((item) => item.id === tenantId);
   const fallbackTenantId = authTenants[0]?.id ?? null;
-  const isClinicTenant = isClinicUiEnabled(tenant?.settings) || profile !== null;
+  const isClinicTenant =
+    resolvedExperience?.isClinicTenant ?? (isClinicUiEnabled(tenant?.settings) || profile !== null);
   const isPlatformRoute = pathname ? isPlatformPath(pathname, tenantId) : false;
   const capabilities = React.useMemo(
     () =>
       isClinicTenant
-        ? resolveClinicCapabilities({ modules, channels, profile, role })
+        ? resolveClinicCapabilities({
+            modules,
+            channels,
+            profile,
+            role,
+            experience: resolvedExperience,
+          })
         : DEFAULT_CAPABILITIES,
-    [channels, isClinicTenant, modules, profile, role]
+    [channels, isClinicTenant, modules, profile, resolvedExperience, role]
   );
-  const canAccessInternalPlatform = capabilities.canAccessInternalPlatform;
+  const canAccessInternalPlatform =
+    resolvedExperience?.permissions.includes('view_internal_platform') ??
+    capabilities.canAccessInternalPlatform;
   const mode: TenantShellMode =
-    isClinicTenant && !isPlatformRoute ? 'clinic' : 'platform';
+    isClinicTenant && !isPlatformRoute ? 'clinic' : 'platform_internal';
+  const normalizedRole = resolvedExperience?.normalizedRole ?? normalizeMemberRole(role);
 
   return {
     tenantId,
     tenant,
     role,
+    normalizedRole,
     profile,
     modules,
     channels,
+    resolvedExperience,
+    permissions: resolvedExperience?.permissions ?? [],
+    allowedNavigation: resolvedExperience?.allowedNavigation ?? [],
     isClinicTenant,
     isPlatformRoute,
     mode,

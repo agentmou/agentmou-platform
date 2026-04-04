@@ -12,6 +12,7 @@ import {
   type CancelAppointmentBody,
   type ClinicChannel,
   type ClinicDashboard,
+  type ClinicExperience,
   ClinicFeatureUnavailableErrorSchema,
   type ClinicFeatureUnavailableError as ClinicFeatureUnavailablePayload,
   type ClinicListQuery,
@@ -34,6 +35,7 @@ import {
   type GapFilters,
   type IntakeFormSubmission,
   type IntakeFormTemplate,
+  type ClinicModuleEntitlement,
   type ModuleKey,
   type OfferGapBody,
   type PatientFilters,
@@ -54,7 +56,6 @@ import {
   type ResumeReactivationCampaignBody,
   type SendIntakeFormSubmissionBody,
   type StartReactivationCampaignBody,
-  type TenantModule,
   type UpdateAppointmentBody,
   type UpdateClinicChannelBody,
   type UpdateClinicProfileBody,
@@ -69,6 +70,7 @@ import {
   ClinicChannelResponseSchema,
   ClinicChannelsResponseSchema,
   ClinicDashboardResponseSchema,
+  ClinicExperienceResponseSchema,
   ClinicModulesResponseSchema,
   ClinicProfileResponseSchema,
   ConfirmationRequestResponseSchema,
@@ -154,6 +156,14 @@ export async function fetchClinicDashboard(tenantId: string): Promise<ClinicDash
   return data.dashboard;
 }
 
+export async function fetchClinicExperience(tenantId: string): Promise<ClinicExperience> {
+  const data = await clinicRequestParsed(
+    clinicTenantPath(tenantId, '/clinic/experience'),
+    ClinicExperienceResponseSchema
+  );
+  return data.experience;
+}
+
 export async function fetchClinicProfile(tenantId: string): Promise<ClinicProfile> {
   const data = await clinicRequestParsed(
     clinicTenantPath(tenantId, '/clinic/profile'),
@@ -174,7 +184,7 @@ export async function updateClinicProfile(
   return data.profile;
 }
 
-export async function fetchClinicModules(tenantId: string): Promise<TenantModule[]> {
+export async function fetchClinicModules(tenantId: string): Promise<ClinicModuleEntitlement[]> {
   const data = await clinicRequestParsed(
     clinicTenantPath(tenantId, '/clinic/modules'),
     ClinicModulesResponseSchema
@@ -186,7 +196,7 @@ export async function updateClinicModule(
   tenantId: string,
   moduleKey: ModuleKey,
   body: UpdateTenantModuleBody
-): Promise<TenantModule> {
+): Promise<ClinicModuleEntitlement> {
   const data = await clinicRequestParsed(
     clinicTenantPath(tenantId, `/clinic/modules/${moduleKey}`),
     TenantModuleResponseSchema,

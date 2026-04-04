@@ -24,6 +24,7 @@ export const TenantSettingsSchema = z.object({
   memoryRetentionDays: z.number(),
   verticalClinicUi: z.boolean().default(false),
   clinicDentalMode: z.boolean().default(false),
+  internalPlatformVisible: z.boolean().default(false),
 });
 
 /** TypeScript shape for tenant settings. */

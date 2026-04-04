@@ -38,6 +38,7 @@ import {
   getClinicCall as _getClinicCall,
   getClinicConversation as _getClinicConversation,
   getClinicDashboard as _getClinicDashboard,
+  getClinicExperience as _getClinicExperience,
   getClinicFormSubmission as _getClinicFormSubmission,
   getClinicPatient as _getClinicPatient,
   getClinicProfile as _getClinicProfile,
@@ -110,6 +111,7 @@ export const mockProvider: DataProvider = {
 
   // Clinic configuration
   getClinicDashboard: async (tenantId) => _getClinicDashboard(tenantId),
+  getClinicExperience: async (tenantId) => _getClinicExperience(tenantId),
   getClinicProfile: async (tenantId) => _getClinicProfile(tenantId),
   updateClinicProfile: async (tenantId) => _getClinicProfile(tenantId),
   listClinicModules: async (tenantId) => _listClinicModules(tenantId),
