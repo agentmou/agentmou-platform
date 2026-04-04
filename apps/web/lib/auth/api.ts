@@ -31,6 +31,7 @@ export interface AuthTenant {
     memoryRetentionDays: number;
     verticalClinicUi?: boolean;
     clinicDentalMode?: boolean;
+    internalPlatformVisible?: boolean;
   };
 }
 

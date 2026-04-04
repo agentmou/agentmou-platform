@@ -16,6 +16,7 @@ export { n8nRoutes } from './n8n/index.js';
 export { publicChatRoutes } from './public-chat/index.js';
 export { stripeWebhookRoutes } from './webhooks/index.js';
 export { clinicDashboardRoutes } from './clinic-dashboard/index.js';
+export { clinicExperienceRoutes } from './clinic-experience/index.js';
 export { clinicProfileRoutes } from './clinic-profile/index.js';
 export { clinicModulesRoutes } from './clinic-modules/index.js';
 export { clinicChannelsRoutes } from './clinic-channels/index.js';

@@ -43,10 +43,10 @@ describe('reactivationRoutes', () => {
     vi.clearAllMocks();
   });
 
-  it('returns a structured 409 when the growth module is inactive', async () => {
+  it('returns a structured 409 when the growth module is disabled for this tenant', async () => {
     mockService.listCampaigns.mockRejectedValue(
       new ClinicFeatureUnavailableRouteError({
-        reason: 'module_inactive',
+        reason: 'disabled_by_tenant',
         moduleKey: 'growth',
         detail: 'Growth is disabled for this tenant.',
       })
@@ -62,7 +62,7 @@ describe('reactivationRoutes', () => {
     expect(response.json()).toEqual({
       error: 'Clinic feature unavailable',
       code: 'clinic_feature_unavailable',
-      reason: 'module_inactive',
+      reason: 'disabled_by_tenant',
       moduleKey: 'growth',
       detail: 'Growth is disabled for this tenant.',
     });

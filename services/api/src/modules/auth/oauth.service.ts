@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { db, users, tenants, memberships, userOauthStates, oauthLoginCodes } from '@agentmou/db';
 import { createToken } from '@agentmou/auth';
 import { eq, and, lt } from 'drizzle-orm';
+import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
 import { findOrCreateUserFromOAuthProfile, type OAuthProfile } from './identity.service.js';
 import { isAllowedAuthCallbackUrl, parseWebOriginAllowlist } from './oauth-allowlist.js';
 import { normalizeTenantSettings } from '../tenants/tenants.mapper.js';
@@ -257,7 +258,13 @@ export async function completeB2cOAuthCallback(
 export async function exchangeOAuthLoginCode(plainCode: string): Promise<{
   token: string;
   user: { id: string; email: string; name: string | null };
-  tenants: { id: string; name: string; plan: string }[];
+  tenants: {
+    id: string;
+    name: string;
+    plan: string;
+    role?: string;
+    settings?: unknown;
+  }[];
 }> {
   const codeHash = sha256Hex(plainCode);
   const [row] = await db
@@ -314,6 +321,7 @@ export async function exchangeOAuthLoginCode(plainCode: string): Promise<{
     },
     tenants: userTenants.map((tenant) => ({
       ...tenant,
+      role: normalizeTenantMembershipRole(tenant.role),
       settings: normalizeTenantSettings(tenant.settings),
     })),
   };

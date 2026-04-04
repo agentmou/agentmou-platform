@@ -28,6 +28,21 @@ export class ClinicModulesRepository {
     moduleKey: string,
     data: Partial<typeof tenantModules.$inferInsert>
   ) {
+    const existing = await this.getModule(tenantId, moduleKey);
+
+    if (!existing) {
+      const [created] = await this.database
+        .insert(tenantModules)
+        .values({
+          tenantId,
+          moduleKey,
+          ...data,
+        })
+        .returning();
+
+      return created ?? null;
+    }
+
     const [module] = await this.database
       .update(tenantModules)
       .set({

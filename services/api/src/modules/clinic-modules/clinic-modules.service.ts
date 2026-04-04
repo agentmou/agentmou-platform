@@ -2,16 +2,30 @@ import type { ModuleKey, UpdateTenantModuleBody } from '@agentmou/contracts';
 
 import { recordAuditEvent } from '../../lib/audit.js';
 import { assertClinicRole } from '../clinic-shared/clinic-access.js';
-import { mapTenantModule } from '../clinic-shared/clinic.mapper.js';
+import {
+  findClinicModuleEntitlement,
+  resolveClinicExperience,
+} from '../clinic-shared/clinic-entitlements.js';
+import { ClinicExperienceRepository } from '../clinic-shared/clinic-experience.repository.js';
 import { ClinicModulesRepository } from './clinic-modules.repository.js';
 
 export class ClinicModulesService {
-  constructor(private readonly repository = new ClinicModulesRepository()) {}
+  constructor(
+    private readonly repository = new ClinicModulesRepository(),
+    private readonly experienceRepository = new ClinicExperienceRepository()
+  ) {}
 
   async listModules(tenantId: string, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
-    const modules = await this.repository.listModules(tenantId);
-    return modules.map(mapTenantModule);
+    const context = await this.experienceRepository.loadContext(tenantId);
+    if (!context) {
+      return [];
+    }
+
+    return resolveClinicExperience({
+      ...context,
+      tenantRole,
+    }).modules;
   }
 
   async updateModule(
@@ -40,6 +54,17 @@ export class ClinicModulesService {
       },
     });
 
-    return mapTenantModule(module);
+    const context = await this.experienceRepository.loadContext(tenantId);
+    if (!context) {
+      return null;
+    }
+
+    return findClinicModuleEntitlement(
+      resolveClinicExperience({
+        ...context,
+        tenantRole,
+      }).modules,
+      moduleKey
+    );
   }
 }

@@ -31,7 +31,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useProviderQuery } from '@/lib/data/use-provider-query';
-import { useTenantExperience } from '@/lib/tenant-experience';
+import { hasClinicNavigationAccess, useTenantExperience } from '@/lib/tenant-experience';
 
 const emptyDashboard = {
   tenantId: '',
@@ -477,6 +477,8 @@ export function ClinicPatientsPage() {
 }
 
 export function ClinicFollowUpPage() {
+  const experience = useTenantExperience();
+
   return (
     <div className="space-y-6 p-6 lg:p-8">
       <div>
@@ -486,24 +488,30 @@ export function ClinicFollowUpPage() {
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-3">
-        <FollowUpShortcut
-          href="seguimiento/formularios"
-          icon={MessageCircleMore}
-          title="Formularios"
-          description="Revisa envios pendientes y desbloqueos de reserva."
-        />
-        <FollowUpShortcut
-          href="seguimiento/confirmaciones"
-          icon={CalendarDays}
-          title="Confirmaciones"
-          description="Citas pendientes de confirmar y seguimientos manuales."
-        />
-        <FollowUpShortcut
-          href="seguimiento/huecos"
-          icon={Activity}
-          title="Huecos"
-          description="Cancelaciones y oportunidades para recuperar agenda."
-        />
+        {hasClinicNavigationAccess(experience, 'forms') ? (
+          <FollowUpShortcut
+            href="seguimiento/formularios"
+            icon={MessageCircleMore}
+            title="Formularios"
+            description="Revisa envios pendientes y desbloqueos de reserva."
+          />
+        ) : null}
+        {hasClinicNavigationAccess(experience, 'confirmations') ? (
+          <FollowUpShortcut
+            href="seguimiento/confirmaciones"
+            icon={CalendarDays}
+            title="Confirmaciones"
+            description="Citas pendientes de confirmar y seguimientos manuales."
+          />
+        ) : null}
+        {hasClinicNavigationAccess(experience, 'gaps') ? (
+          <FollowUpShortcut
+            href="seguimiento/huecos"
+            icon={Activity}
+            title="Huecos"
+            description="Cancelaciones y oportunidades para recuperar agenda."
+          />
+        ) : null}
       </div>
     </div>
   );
@@ -743,8 +751,13 @@ export function ClinicSettingsPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <Card className="border-border/60">
+      <ModuleVisibilityGuard
+        enabled={hasClinicNavigationAccess(experience, 'configuration')}
+        title="Configuracion no disponible"
+        description="Solo owner o admin con acceso clinico pueden gestionar esta seccion."
+      >
+        <div className="grid gap-6 xl:grid-cols-2">
+          <Card className="border-border/60">
           <CardHeader>
             <CardTitle className="text-base">Perfil de clinica</CardTitle>
           </CardHeader>
@@ -756,7 +769,7 @@ export function ClinicSettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60" id="configuracion-modulos">
+          <Card className="border-border/60" id="configuracion-modulos">
           <CardHeader>
             <CardTitle className="text-base">Modulos activos</CardTitle>
           </CardHeader>
@@ -764,9 +777,19 @@ export function ClinicSettingsPage() {
             {modules.map((module) => (
               <div key={module.id} className="flex items-center justify-between rounded-xl border border-border/60 p-3">
                 <div>
-                  <p className="font-medium">{module.moduleKey}</p>
+                  <p className="font-medium">{module.displayName}</p>
                   <p className="text-sm text-muted-foreground">
-                    {module.visibleToClient ? 'Visible al cliente' : 'Solo interno'}
+                    {module.visibilityReason === 'active'
+                      ? module.visibleToClient
+                        ? 'Visible al cliente'
+                        : 'Solo interno'
+                      : module.visibilityReason === 'not_in_plan'
+                        ? 'No incluido en el plan'
+                        : module.visibilityReason === 'requires_configuration'
+                          ? 'Pendiente de configuracion'
+                          : module.visibilityReason === 'hidden_internal_only'
+                            ? 'Solo interno'
+                            : 'Desactivado por tenant'}
                   </p>
                 </div>
                 <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
@@ -775,8 +798,9 @@ export function ClinicSettingsPage() {
               </div>
             ))}
           </CardContent>
-        </Card>
-      </div>
+          </Card>
+        </div>
+      </ModuleVisibilityGuard>
 
       <div className="grid gap-6 xl:grid-cols-3">
         <SettingsSection title="Canales" items={channels.map((channel) => `${channel.channelType} · ${channel.status}`)} />

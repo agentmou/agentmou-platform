@@ -17,6 +17,7 @@ const DEFAULT_TENANT_SETTINGS: TenantSettings = {
   memoryRetentionDays: 7,
   verticalClinicUi: false,
   clinicDentalMode: false,
+  internalPlatformVisible: false,
 };
 
 export function normalizeTenantSettings(settings: unknown): TenantSettings {
@@ -47,6 +48,10 @@ export function normalizeTenantSettings(settings: unknown): TenantSettings {
       typeof settings.clinicDentalMode === 'boolean'
         ? settings.clinicDentalMode
         : DEFAULT_TENANT_SETTINGS.clinicDentalMode,
+    internalPlatformVisible:
+      typeof settings.internalPlatformVisible === 'boolean'
+        ? settings.internalPlatformVisible
+        : DEFAULT_TENANT_SETTINGS.internalPlatformVisible,
   });
 }
 

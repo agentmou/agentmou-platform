@@ -40,12 +40,12 @@ describe('callRoutes', () => {
     vi.clearAllMocks();
   });
 
-  it('returns a structured 409 when the voice module is inactive', async () => {
+  it('returns a structured 409 when the voice module is not included in the tenant plan', async () => {
     mockService.listCalls.mockRejectedValue(
       new ClinicFeatureUnavailableRouteError({
-        reason: 'module_inactive',
+        reason: 'not_in_plan',
         moduleKey: 'voice',
-        detail: 'Voice is disabled for this tenant.',
+        detail: 'Voice is not included in this plan.',
       })
     );
 
@@ -59,9 +59,9 @@ describe('callRoutes', () => {
     expect(response.json()).toEqual({
       error: 'Clinic feature unavailable',
       code: 'clinic_feature_unavailable',
-      reason: 'module_inactive',
+      reason: 'not_in_plan',
       moduleKey: 'voice',
-      detail: 'Voice is disabled for this tenant.',
+      detail: 'Voice is not included in this plan.',
     });
 
     await app.close();

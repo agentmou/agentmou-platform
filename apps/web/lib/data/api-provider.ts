@@ -50,6 +50,7 @@ import {
   fetchCalls,
   fetchClinicChannels,
   fetchClinicDashboard,
+  fetchClinicExperience,
   fetchClinicModules,
   fetchClinicProfile,
   fetchConfirmations,
@@ -218,6 +219,13 @@ export const apiProvider: DataProvider = {
 
   // Clinic configuration
   getClinicDashboard: (tenantId) => fetchClinicDashboard(tenantId),
+  getClinicExperience: async (tenantId) => {
+    try {
+      return await fetchClinicExperience(tenantId);
+    } catch {
+      return null;
+    }
+  },
   getClinicProfile: async (tenantId) => {
     try {
       return await fetchClinicProfile(tenantId);

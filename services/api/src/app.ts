@@ -18,6 +18,7 @@ import { n8nRoutes } from './modules/n8n/index.js';
 import { publicChatRoutes } from './modules/public-chat/index.js';
 import { stripeWebhookRoutes } from './modules/webhooks/index.js';
 import { clinicDashboardRoutes } from './modules/clinic-dashboard/index.js';
+import { clinicExperienceRoutes } from './modules/clinic-experience/index.js';
 import { clinicProfileRoutes } from './modules/clinic-profile/index.js';
 import { clinicModulesRoutes } from './modules/clinic-modules/index.js';
 import { clinicChannelsRoutes } from './modules/clinic-channels/index.js';
@@ -28,7 +29,7 @@ import { appointmentRoutes } from './modules/appointments/index.js';
 import { formRoutes } from './modules/forms/index.js';
 import { followUpRoutes } from './modules/follow-up/index.js';
 import { reactivationRoutes } from './modules/reactivation/index.js';
-import { requireAuth, requireTenantAccess } from './middleware/index.js';
+import { requireAuth, requireInternalPlatformAccess, requireTenantAccess } from './middleware/index.js';
 import { zodValidatorCompiler } from './routes/zod-validator.js';
 import { getApiConfig } from './config.js';
 
@@ -68,17 +69,14 @@ export function buildApp() {
       tenantApp.addHook('preHandler', requireTenantAccess);
 
       tenantApp.register(membershipRoutes, { prefix: '/api/v1' });
-      tenantApp.register(installationRoutes, { prefix: '/api/v1' });
       tenantApp.register(connectorRoutes, { prefix: '/api/v1' });
       tenantApp.register(secretRoutes, { prefix: '/api/v1' });
-      tenantApp.register(approvalRoutes, { prefix: '/api/v1' });
-      tenantApp.register(runRoutes, { prefix: '/api/v1' });
-      tenantApp.register(usageRoutes, { prefix: '/api/v1' });
       tenantApp.register(billingRoutes, { prefix: '/api/v1' });
       tenantApp.register(securityRoutes, { prefix: '/api/v1' });
       tenantApp.register(webhookRoutes, { prefix: '/api/v1' });
       tenantApp.register(n8nRoutes, { prefix: '/api/v1' });
       tenantApp.register(clinicDashboardRoutes, { prefix: '/api/v1' });
+      tenantApp.register(clinicExperienceRoutes, { prefix: '/api/v1' });
       tenantApp.register(clinicProfileRoutes, { prefix: '/api/v1' });
       tenantApp.register(clinicModulesRoutes, { prefix: '/api/v1' });
       tenantApp.register(clinicChannelsRoutes, { prefix: '/api/v1' });
@@ -89,6 +87,15 @@ export function buildApp() {
       tenantApp.register(formRoutes, { prefix: '/api/v1' });
       tenantApp.register(followUpRoutes, { prefix: '/api/v1' });
       tenantApp.register(reactivationRoutes, { prefix: '/api/v1' });
+
+      tenantApp.register(async function internalPlatformRoutes(internalApp) {
+        internalApp.addHook('preHandler', requireInternalPlatformAccess);
+
+        internalApp.register(installationRoutes, { prefix: '/api/v1' });
+        internalApp.register(approvalRoutes, { prefix: '/api/v1' });
+        internalApp.register(runRoutes, { prefix: '/api/v1' });
+        internalApp.register(usageRoutes, { prefix: '/api/v1' });
+      });
     });
   });
 

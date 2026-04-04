@@ -37,6 +37,8 @@ import {
   type CancelAppointmentBody,
   type ClinicChannel,
   type ClinicDashboard,
+  type ClinicExperience,
+  type ClinicModuleEntitlement,
   type ClinicProfile,
   type CloseGapBody,
   type CompleteIntakeFormSubmissionBody,
@@ -76,7 +78,6 @@ import {
   type ResumeReactivationCampaignBody,
   type SendIntakeFormSubmissionBody,
   type StartReactivationCampaignBody,
-  type TenantModule,
   type UpdateAppointmentBody,
   type UpdateClinicChannelBody,
   type UpdateClinicProfileBody,
@@ -229,14 +230,15 @@ export interface ConnectorMethods {
 
 export interface ClinicConfigurationMethods {
   getClinicDashboard(tenantId: string): Promise<ClinicDashboard>;
+  getClinicExperience(tenantId: string): Promise<ClinicExperience | null>;
   getClinicProfile(tenantId: string): Promise<ClinicProfile | null>;
   updateClinicProfile(tenantId: string, body: UpdateClinicProfileBody): Promise<ClinicProfile>;
-  listClinicModules(tenantId: string): Promise<TenantModule[]>;
+  listClinicModules(tenantId: string): Promise<ClinicModuleEntitlement[]>;
   updateClinicModule(
     tenantId: string,
     moduleKey: ModuleKey,
     body: UpdateTenantModuleBody
-  ): Promise<TenantModule>;
+  ): Promise<ClinicModuleEntitlement>;
   listClinicChannels(tenantId: string): Promise<ClinicChannel[]>;
   updateClinicChannel(
     tenantId: string,
