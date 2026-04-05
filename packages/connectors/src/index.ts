@@ -4,6 +4,17 @@ import { GmailConnector } from './gmail';
 export { BaseConnector, type ConnectorConfig } from './base';
 export { GmailConnector, type GmailConfig, type GmailMessage } from './gmail';
 export { encrypt, decrypt } from './crypto';
+export {
+  normalizePhoneAddress,
+  resolveClinicChannelAdapter,
+  validateTwilioWebhookSignature,
+  type ClinicChannelAdapter,
+  type ClinicWebhookParseInput,
+  type OutboundClinicMessageRequest,
+  type RawWebhookPayload,
+  type ResolveClinicChannelAdapterOptions,
+  type VoiceCallbackRequest,
+} from './channels';
 export { loadGmailConnector, loadTenantConnectors, ConnectorLoadError } from './loader';
 
 /**

@@ -7,12 +7,16 @@ import type {
 } from '@agentmou/contracts';
 
 import { recordAuditEvent } from '../../lib/audit.js';
+import { ClinicAutomationService } from '../clinic-shared/clinic-automation.service.js';
 import { assertClinicModuleAvailable, assertClinicRole, getClinicListLimit } from '../clinic-shared/clinic-access.js';
 import { mapConversationMessage } from '../clinic-shared/clinic.mapper.js';
 import { ConversationsRepository } from './conversations.repository.js';
 
 export class ConversationsService {
-  constructor(private readonly repository = new ConversationsRepository()) {}
+  constructor(
+    private readonly repository = new ConversationsRepository(),
+    private readonly automation = new ClinicAutomationService()
+  ) {}
 
   async listThreads(tenantId: string, filters: ConversationFilters, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
@@ -131,10 +135,12 @@ export class ConversationsService {
   ) {
     assertClinicRole(tenantRole, 'operate');
     await assertClinicModuleAvailable(tenantId, 'core_reception');
-    const thread = await this.repository.replyToThread(tenantId, threadId, body);
-    if (!thread) {
+    const result = await this.repository.replyToThread(tenantId, threadId, body);
+    if (!result) {
       return null;
     }
+
+    await this.automation.queueConversationReplyDelivery(tenantId, result.messageId);
 
     await recordAuditEvent({
       tenantId,

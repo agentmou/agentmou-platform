@@ -46,6 +46,12 @@ import {
   ReminderJobResponseSchema,
   TenantModuleResponseSchema,
   WaitlistRequestResponseSchema,
+  TwilioWhatsAppConfigSchema,
+  TwilioVoiceConfigSchema,
+  TwilioWhatsAppWebhookPayloadSchema,
+  TwilioVoiceWebhookPayloadSchema,
+  NormalizedClinicWebhookEventSchema,
+  ClinicDeliveryResultSchema,
 } from '../index';
 
 describe('CategorySchema', () => {
@@ -386,6 +392,76 @@ describe('Clinic domain schemas', () => {
         reason: 'unsupported',
       })
     ).toThrow();
+  });
+
+  it('parses Twilio config, normalized webhook events, and delivery results', () => {
+    const whatsappConfig = TwilioWhatsAppConfigSchema.parse({
+      accountSid: 'AC123',
+      messagingServiceSid: 'MG123',
+      from: 'whatsapp:+34911122334',
+      statusCallbackPath: '/api/v1/webhooks/twilio/whatsapp',
+    });
+
+    const voiceConfig = TwilioVoiceConfigSchema.parse({
+      accountSid: 'AC123',
+      applicationSid: 'AP123',
+      from: '+34911122334',
+      statusCallbackPath: '/api/v1/webhooks/twilio/voice',
+      answerUrl: 'https://api.example.com/twiml',
+    });
+
+    const rawWhatsApp = TwilioWhatsAppWebhookPayloadSchema.parse({
+      MessageSid: 'SM123',
+      Body: 'Confirmo',
+      From: 'whatsapp:+34600111222',
+      To: 'whatsapp:+34911122334',
+      MessageStatus: 'received',
+      ProfileName: 'Lucia Perez',
+    });
+
+    const rawVoice = TwilioVoiceWebhookPayloadSchema.parse({
+      CallSid: 'CA123',
+      CallStatus: 'completed',
+      Direction: 'inbound',
+      From: '+34600111222',
+      To: '+34911122334',
+      TranscriptionText: 'Necesito mover mi cita',
+    });
+
+    const normalizedEvent = NormalizedClinicWebhookEventSchema.parse({
+      provider: 'twilio_whatsapp',
+      channelType: 'whatsapp',
+      eventKind: 'message_inbound',
+      eventId: 'twilio-whatsapp:SM123:received',
+      occurredAt: '2024-01-01T00:00:00Z',
+      phoneNumber: '+34911122334',
+      from: 'whatsapp:+34600111222',
+      to: 'whatsapp:+34911122334',
+      body: 'Confirmo',
+      providerMessageId: 'SM123',
+      providerStatus: 'received',
+      profileName: 'Lucia Perez',
+      payload: {
+        raw: rawWhatsApp,
+      },
+    });
+
+    const deliveryResult = ClinicDeliveryResultSchema.parse({
+      provider: 'twilio_voice',
+      channelType: 'voice',
+      status: 'accepted',
+      providerCallId: 'CA123',
+      payload: {
+        raw: rawVoice,
+      },
+    });
+
+    expect(whatsappConfig.messagingServiceSid).toBe('MG123');
+    expect(voiceConfig.applicationSid).toBe('AP123');
+    expect(rawWhatsApp.MessageSid).toBe('SM123');
+    expect(rawVoice.CallSid).toBe('CA123');
+    expect(normalizedEvent.providerMessageId).toBe('SM123');
+    expect(deliveryResult.providerCallId).toBe('CA123');
   });
 
   it('parses entitlement enums and rejects unsupported module visibility states', () => {

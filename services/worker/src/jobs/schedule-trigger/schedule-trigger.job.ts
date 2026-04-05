@@ -34,6 +34,29 @@ export async function processScheduleTrigger(job: Job<ScheduleTriggerPayload>) {
     return;
   }
 
+  if (targetType === 'clinic_reactivation_campaign') {
+    const queue = getQueue(QUEUE_NAMES.CLINIC_REACTIVATION_CAMPAIGN);
+    await queue.add(
+      'clinic-reactivation-campaign',
+      {
+        tenantId,
+        campaignId: installationId,
+        triggeredBy: 'scheduled',
+      },
+      { jobId: `schedule-${scheduleId}-${Date.now()}` }
+    );
+
+    await db
+      .update(schedules)
+      .set({ lastTriggeredAt: new Date() })
+      .where(eq(schedules.id, scheduleId));
+
+    logRuntimeMessage(
+      `[schedule-trigger] Enqueued clinic reactivation campaign ${installationId} from schedule ${scheduleId}`
+    );
+    return;
+  }
+
   // 2. Create an execution_runs row
   const runId = randomUUID();
   await db.insert(executionRuns).values({

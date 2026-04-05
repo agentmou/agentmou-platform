@@ -1,5 +1,4 @@
 import {
-  conversationMessages,
   conversationThreads,
   db,
   intakeFormSubmissions,
@@ -74,25 +73,11 @@ export class FormsRepository {
     }
 
     if (submission.threadId) {
-      await this.database.insert(conversationMessages).values({
-        tenantId,
-        threadId: submission.threadId,
-        patientId: submission.patientId,
-        direction: 'outbound',
-        channelType: body.channelType,
-        messageType: 'form_link',
-        body: body.messageTemplateKey ?? 'Please complete your intake form.',
-        payload: {},
-        deliveryStatus: 'sent',
-        sentAt: now,
-      });
-
       await this.database
         .update(conversationThreads)
         .set({
           status: 'pending_form',
           lastMessageAt: now,
-          lastOutboundAt: now,
           updatedAt: now,
         })
         .where(

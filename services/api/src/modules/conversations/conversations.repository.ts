@@ -119,7 +119,7 @@ export class ConversationsRepository {
 
     const now = new Date();
 
-    await this.database.insert(conversationMessages).values({
+    const [message] = await this.database.insert(conversationMessages).values({
       tenantId,
       threadId,
       patientId: thread.patientId,
@@ -127,24 +127,31 @@ export class ConversationsRepository {
       channelType: body.channelType ?? thread.channelType,
       messageType: body.messageType ?? 'text',
       body: body.body,
-      payload: body.payload ?? {},
-      deliveryStatus: 'sent',
-      sentAt: now,
-    });
+      payload: {
+        ...(body.payload ?? {}),
+        automationKind: 'conversation_reply',
+      },
+      deliveryStatus: 'queued',
+    }).returning();
 
     const [updatedThread] = await this.database
       .update(conversationThreads)
       .set({
         status: 'in_progress',
         lastMessageAt: now,
-        lastOutboundAt: now,
-        requiresHumanReview: false,
         updatedAt: now,
       })
       .where(and(eq(conversationThreads.tenantId, tenantId), eq(conversationThreads.id, threadId)))
       .returning();
 
-    return updatedThread ?? null;
+    if (!updatedThread || !message) {
+      return null;
+    }
+
+    return {
+      thread: updatedThread,
+      messageId: message.id,
+    };
   }
 }
 

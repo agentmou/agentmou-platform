@@ -5,12 +5,16 @@ import type {
 } from '@agentmou/contracts';
 
 import { recordAuditEvent } from '../../lib/audit.js';
+import { ClinicAutomationService } from '../clinic-shared/clinic-automation.service.js';
 import { assertClinicModuleAvailable, assertClinicRole } from '../clinic-shared/clinic-access.js';
 import { mapIntakeFormSubmission, mapIntakeFormTemplate } from '../clinic-shared/clinic.mapper.js';
 import { FormsRepository } from './forms.repository.js';
 
 export class FormsService {
-  constructor(private readonly repository = new FormsRepository()) {}
+  constructor(
+    private readonly repository = new FormsRepository(),
+    private readonly automation = new ClinicAutomationService()
+  ) {}
 
   async listTemplates(tenantId: string, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
@@ -46,6 +50,11 @@ export class FormsService {
     if (!submission) {
       return null;
     }
+
+    await this.automation.scheduleFormSubmissionFollowUp(tenantId, submissionId, {
+      channelType: body.channelType,
+      messageTemplateKey: body.messageTemplateKey,
+    });
 
     await recordAuditEvent({
       tenantId,

@@ -1,6 +1,7 @@
 import type { CallFilters, CallbackCallBody, ResolveCallBody } from '@agentmou/contracts';
 
 import { recordAuditEvent } from '../../lib/audit.js';
+import { ClinicAutomationService } from '../clinic-shared/clinic-automation.service.js';
 import {
   assertClinicChannelAvailable,
   assertClinicModuleAvailable,
@@ -11,7 +12,10 @@ import { mapCallSession } from '../clinic-shared/clinic.mapper.js';
 import { CallsRepository } from './calls.repository.js';
 
 export class CallsService {
-  constructor(private readonly repository = new CallsRepository()) {}
+  constructor(
+    private readonly repository = new CallsRepository(),
+    private readonly automation = new ClinicAutomationService()
+  ) {}
 
   async listCalls(tenantId: string, filters: CallFilters, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
@@ -49,6 +53,8 @@ export class CallsService {
     if (!call) {
       return null;
     }
+
+    await this.automation.scheduleVoiceCallback(tenantId, callId, new Date(body.scheduledAt));
 
     await recordAuditEvent({
       tenantId,
