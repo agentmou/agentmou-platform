@@ -292,6 +292,8 @@ services:
     restart: unless-stopped
     environment:
       - NEXT_PUBLIC_API_URL=https://api.${DOMAIN}
+      - CONTACT_SALES_WEBHOOK_URL=${CONTACT_SALES_WEBHOOK_URL}
+      - CONTACT_SALES_WEBHOOK_TOKEN=${CONTACT_SALES_WEBHOOK_TOKEN}
       - NODE_ENV=production
     depends_on:
       - api

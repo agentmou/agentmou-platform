@@ -33,12 +33,12 @@ const INTENT_PATTERNS = {
   nextSteps:
     /\b(next|what.*do|after|start|begin|get.*started|help.*setup|readiness|status|progress)\b/i,
   whyBlocked: /\b(why|blocked|not.*activ|can't|cannot|error|issue|problem|stuck)\b/i,
-  recommendAgents: /\b(recommend|suggest|agents?|which.*agent|best.*for)\b/i,
+  recommendAgents: /\b(recommend|suggest|agents?|which.*agent|best.*for|module|modul|voice|growth)\b/i,
   recommendWorkflows: /\b(workflow|automat|connect|sequence)\b/i,
   goLive: /\b(go.*live|activate|launch|deploy|production)\b/i,
   approvals: /\b(approv|pending|review|manual)\b/i,
-  integrations: /\b(integrat|connect|slack|hubspot|google|notion|stripe)\b/i,
-  pricing: /\b(pric|cost|plan|tier|pay|billing|subscription)\b/i,
+  integrations: /\b(integrat|connect|whatsapp|voice|llamad|twilio|calendar|agenda|pms|google)\b/i,
+  pricing: /\b(pric\w*|cost|plan|tier|pay|billing|subscription)\b/i,
   security: /\b(secur\w*|safe|data|privacy|encrypt|compliance)\b/i,
   howItWorks: /\b(how.*work|what.*is|explain|overview|tour|preview)\b/i,
 };
@@ -59,117 +59,114 @@ function generatePublicResponse(userMessage: string): EngineOutput {
     case 'nextSteps':
     case 'howItWorks':
       return {
-        content: `**How to explore Agentmou today:**
+        content: `**Asi funciona Agentmou Clinics hoy:**
 
-1. **Open the demo workspace** to inspect the product safely
-2. **Browse the marketplace** to review agents, workflows, and packs
-3. **Use the installer preview** to understand setup requirements
-4. **Check labels like Preview, Read-only, and Not yet available** to see which tenant surfaces are still partial
-5. **Talk with the team before relying on live rollout behavior** that is not wired in the current UI
+- Atiende WhatsApp y llamadas desde una misma operacion de recepcion
+- Diferencia paciente nuevo vs existente antes de cerrar agenda
+- Activa formularios, recordatorios, confirmaciones, huecos y reactivacion
+- Mantiene el engine tecnico en una capa secundaria para que la home siga siendo clinica
 
-Would you like to open the demo workspace or compare plans?`,
+Si quieres, puedo llevarte a pricing, seguridad, la demo clinic o la narrativa tecnica en /platform.`,
         actions: [
-          { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
-          { label: 'View Pricing', href: '/pricing' },
+          { label: 'Solicitar demo', href: '/contact-sales' },
+          { label: 'Ver pricing', href: '/pricing' },
+          { label: 'Ver demo clinic', href: workspaceHref(undefined, '/dashboard') },
         ],
       };
 
     case 'pricing':
       return {
-        content: `**Agentmou pricing today:**
+        content: `**Packaging clinico actual:**
 
-- **Starter** ($29/mo) - 3 agents, 1,000 runs/mo, 5 integrations
-- **Pro** ($99/mo) - 10 agents, 10,000 runs/mo, unlimited integrations
-- **Scale** (Custom) - Unlimited agents and enterprise support
+- **Reception**: recepcion, agenda, formularios, recordatorios y confirmaciones
+- **Reception + Voice**: suma llamadas entrantes, callbacks y visibilidad por canal
+- **Reception + Growth**: suma huecos liberados, lista de espera y reactivacion
+- **Enterprise**: permisos ampliados, despliegues complejos y acompanamiento
 
-The pricing page is part of the live marketing site, while billing inside tenant settings is still labeled separately when it is not yet wired.`,
+La narrativa publica no vende runs ni agentes sueltos. Se organiza por modulos y operacion real de clinica.`,
         actions: [
-          { label: 'Compare Plans', href: '/pricing' },
-          { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
+          { label: 'Comparar pricing', href: '/pricing' },
+          { label: 'Solicitar demo', href: '/contact-sales' },
         ],
       };
 
     case 'recommendAgents':
       return {
-        content: `**Popular catalog items to review in the demo workspace:**
+        content: `**La entrada comercial ya no son agentes sueltos.**
 
-**For Sales:**
-- Lead Qualifier - Score and route inbound leads
-- Churn Predictor - Identify at-risk customers
+Para una clinica dental solemos ordenar la conversacion asi:
 
-**For Support:**
-- Support Triage - Categorize and route tickets
-- FAQ Bot - Answer common questions instantly
+- **Core Reception** para WhatsApp, agenda, nuevo vs existente y seguimiento
+- **Voice** si el telefono sigue cargando trabajo real de recepcion
+- **Growth** si quieres recuperar huecos, lista de espera y pacientes inactivos
+- **Enterprise** si hay varias sedes, permisos avanzados o despliegue complejo
 
-**For Finance:**
-- Invoice Processor - Extract and validate invoice data
-- Expense Categorizer - Automate expense approvals
-
-The marketplace is the best place to compare them side by side.`,
+Si buscas entender el motor interno de agentes, approvals y catalogo, la ruta correcta es /platform.`,
         actions: [
-          { label: 'Browse Agents', href: workspaceHref(undefined, '/marketplace') },
-          { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
+          { label: 'Ver modulos', href: '/#modulos' },
+          { label: 'Ver plataforma', href: '/platform' },
         ],
       };
 
     case 'integrations':
       return {
-        content: `**Integrations shown in the current product demo:**
+        content: `**Integraciones que sostienen la recepcion IA:**
 
-- **CRM:** HubSpot, Salesforce (coming soon)
-- **Communication:** Slack, Google Workspace
-- **Productivity:** Notion, Google Drive
-- **Payments:** Stripe
-- **More catalog entries are marked coming soon**
+- **WhatsApp Business** para inbound, outbound y formularios
+- **Twilio voz** para llamadas entrantes y callbacks
+- **Agenda y PMS** como capa de disponibilidad y contexto
+- **Google Calendar y email operativo** cuando el despliegue lo necesita
 
-The catalog and demo show what the product aims to support, while tenant-facing connection management is still preview or read-only in parts of the app.`,
+La pagina publica se centra en estos jobs clinicos. La historia tecnica mas amplia sigue en /platform.`,
         actions: [
-          { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
-          { label: 'View Security Page', href: '/security' },
+          { label: 'Ver seguridad', href: '/security' },
+          { label: 'Ver plataforma', href: '/platform' },
         ],
       };
 
     case 'security':
       return {
-        content: `**Agentmou security surfaces today:**
+        content: `**Seguridad y control para clinicas:**
 
-- **Role-based access patterns** are visible in the product
-- **Human-in-the-loop approvals** are part of the operating model
-- **Tenant security pages are mixed preview, read-only, or not yet available**
-- **Marketing security claims should be read together with their explicit status labels**
+- **Aislamiento por clinica** para datos, canales y operaciones
+- **Permisos y trazabilidad** sobre mensajes, llamadas, cambios y revisiones
+- **Revision humana** para callbacks, excepciones y casos sensibles
+- **Canales protegidos** con estado, validacion y fallback visible
 
-I can point you to the marketing security page or the demo workspace if you want to inspect the current messaging.`,
+Puedo llevarte a la pagina de seguridad o a la demo clinic si quieres revisar el framing con mas detalle.`,
         actions: [
-          { label: 'Security Details', href: '/security' },
-          { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
+          { label: 'Ver seguridad', href: '/security' },
+          { label: 'Ver demo clinic', href: workspaceHref(undefined, '/dashboard') },
         ],
       };
 
     case 'goLive':
       return {
-        content: `**This assistant does not activate production workspaces.**
+        content: `**Este asistente no activa despliegues desde chat.**
 
-I can help you explore the demo, review pricing, and explain which tenant surfaces are still labeled Preview, Read-only, or Not yet available.`,
+Si quieres avanzar, lo util es pedir una demo comercial, revisar pricing y decidir si el punto de entrada es Reception, Voice o Growth. El engine tecnico permanece disponible en /platform.`,
         actions: [
-          { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
-          { label: 'View Docs', href: '/docs' },
+          { label: 'Solicitar demo', href: '/contact-sales' },
+          { label: 'Ver plataforma', href: '/platform' },
         ],
       };
 
     default:
       return {
-        content: `I can help you explore Agentmou without pretending the demo is live. Here are a few good starting points:
+        content: `Puedo ayudarte a entender Agentmou Clinics sin mezclar la narrativa publica con la plataforma interna.
 
-- What the demo workspace shows today
-- Which tenant surfaces are preview-only
-- Pricing and plan structure
-- Integrations shown in the catalog
-- Security messaging and current limitations
+Te orientare mejor si quieres saber:
 
-What would you like to know?`,
+- Como funciona la recepcion IA para clinicas
+- Que incluye pricing y como se organizan los modulos
+- Que cubre seguridad, permisos y trazabilidad
+- Donde ver la capa tecnica del engine
+
+Si prefieres, puedes solicitar una demo comercial o abrir la demo clinic.`,
         actions: [
-          { label: 'Open Demo Workspace', href: workspaceHref(undefined, '/dashboard') },
-          { label: 'View Docs', href: '/docs' },
+          { label: 'Solicitar demo', href: '/contact-sales' },
+          { label: 'Ver plataforma', href: '/platform' },
+          { label: 'Ver demo clinic', href: workspaceHref(undefined, '/dashboard') },
         ],
       };
   }

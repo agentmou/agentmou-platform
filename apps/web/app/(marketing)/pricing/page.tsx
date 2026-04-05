@@ -1,7 +1,6 @@
-'use client';
-
 import Link from 'next/link';
-import { Check, ArrowRight } from 'lucide-react';
+import type { Metadata } from 'next';
+import { ArrowRight, Check } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -12,100 +11,66 @@ import { MinimalButton } from '@/components/ui/minimal-button';
 import { HalftoneBackground } from '@/components/brand/halftone-background';
 import { FadeContent } from '@/components/reactbits/fade-content';
 import { TiltedCard } from '@/components/reactbits/tilted-card';
-const plans = [
-  {
-    name: 'Starter',
-    price: '$29',
-    description: 'For small teams getting started with AI automation',
-    features: [
-      '3 agents included',
-      '1,000 runs/month',
-      '5 integrations',
-      'Email support',
-      'Basic analytics',
-      '7-day log retention',
-    ],
-    cta: 'Start free trial',
-    highlight: false,
-  },
-  {
-    name: 'Pro',
-    price: '$99',
-    description: 'For growing businesses that need more power',
-    features: [
-      '10 agents included',
-      '10,000 runs/month',
-      'Unlimited integrations',
-      'Priority support',
-      'Advanced analytics',
-      '30-day log retention',
-      'Custom workflows',
-      'Team collaboration',
-    ],
-    cta: 'Start free trial',
-    highlight: true,
-  },
-  {
-    name: 'Scale',
-    price: 'Custom',
-    description: 'For enterprises with advanced requirements',
-    features: [
-      'Unlimited agents',
-      'Unlimited runs',
-      'Unlimited integrations',
-      'Dedicated support',
-      'Custom analytics',
-      '90-day log retention',
-      'Custom workflows',
-      'SSO & SAML',
-      'SLA guarantee',
-      'On-premise option',
-    ],
-    cta: 'Contact sales',
-    highlight: false,
-  },
-];
+import { clinicPricingPlans } from '@/lib/marketing/clinic-site';
 
-const comparisonFeatures = [
-  { feature: 'Agents', starter: '3', pro: '10', scale: 'Unlimited' },
-  { feature: 'Runs/month', starter: '1,000', pro: '10,000', scale: 'Unlimited' },
-  { feature: 'Integrations', starter: '5', pro: 'Unlimited', scale: 'Unlimited' },
-  { feature: 'Team members', starter: '3', pro: '10', scale: 'Unlimited' },
-  { feature: 'Log retention', starter: '7 days', pro: '30 days', scale: '90 days' },
-  { feature: 'Custom workflows', starter: '-', pro: 'Yes', scale: 'Yes' },
-  { feature: 'API access', starter: 'Yes', pro: 'Yes', scale: 'Yes' },
-  { feature: 'SSO/SAML', starter: '-', pro: '-', scale: 'Yes' },
-  { feature: 'SLA', starter: '-', pro: '-', scale: '99.9%' },
-  { feature: 'Support', starter: 'Email', pro: 'Priority', scale: 'Dedicated' },
+export const metadata: Metadata = {
+  title: 'Pricing - Agentmou Clinics',
+  description:
+    'Packaging clinico por modulos para recepcion, voz, growth y despliegues enterprise.',
+};
+
+const comparisonRows = [
+  {
+    label: 'Core Reception',
+    values: ['Incluido', 'Incluido', 'Incluido', 'Incluido'],
+  },
+  {
+    label: 'Voice',
+    values: ['Opcional', 'Incluido', 'Opcional', 'Incluido'],
+  },
+  {
+    label: 'Growth',
+    values: ['Opcional', 'Opcional', 'Incluido', 'Incluido'],
+  },
+  {
+    label: 'Canales',
+    values: ['WhatsApp', 'WhatsApp + voz', 'WhatsApp + growth', 'Multicanal'],
+  },
+  {
+    label: 'Cobertura operativa',
+    values: [
+      'Recepcion y agenda',
+      'Recepcion + llamadas',
+      'Recepcion + recuperacion',
+      'Sedes y flujos complejos',
+    ],
+  },
+  {
+    label: 'Despliegue',
+    values: ['Guiado', 'Guiado', 'Guiado', 'Acompanamiento dedicado'],
+  },
 ];
 
 const faqs = [
   {
-    question: 'What is a run?',
+    question: 'Se paga por runs o por volumen tecnico?',
     answer:
-      'A run is a single execution of an agent or workflow. Each time an agent processes a request or a workflow triggers, it counts as one run.',
+      'No vendemos la solucion por runs visibles al cliente. El packaging publico se organiza por modulos y despliegue operativo.',
   },
   {
-    question: 'Can I change plans at any time?',
+    question: 'Puedo empezar solo con WhatsApp y agenda?',
     answer:
-      'Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and billing is prorated.',
+      'Si. Reception cubre la base de recepcion, agenda, formularios, recordatorios y confirmaciones. Voice y Growth se activan cuando encajan.',
   },
   {
-    question: 'Do you offer a free trial?',
-    answer: 'Yes, all plans come with a 14-day free trial. No credit card required to start.',
-  },
-  {
-    question: 'What payment methods do you accept?',
-    answer: 'We accept all major credit cards, as well as invoicing for annual Enterprise plans.',
-  },
-  {
-    question: 'Is there a discount for annual billing?',
-    answer: 'Yes, you save 20% when you choose annual billing on any plan.',
-  },
-  {
-    question: 'What happens if I exceed my run limit?',
+    question: 'Voice y Growth son obligatorios?',
     answer:
-      'We will notify you when you reach 80% of your limit. If you exceed it, additional runs are billed at $0.01 per run for Starter and $0.005 for Pro.',
+      'No. Son modulos opcionales. Voice suma llamadas y callbacks. Growth suma huecos liberados, lista de espera y reactivacion.',
+  },
+  {
+    question: 'Que incluye Enterprise?',
+    answer:
+      'Permisos ampliados, despliegues con varias sedes, configuracion avanzada y acompanamiento para operaciones mas complejas.',
   },
 ];
 
@@ -116,48 +81,60 @@ export default function PricingPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <div className="text-center">
-              <p className="text-editorial-tiny mb-4">Pricing</p>
-              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">Simple, transparent</h1>
-              <p className="mt-6 text-muted-foreground max-w-lg mx-auto">
-                Choose the plan that fits your needs. All plans include a 14-day free trial.
+              <p className="mb-4 text-editorial-tiny">Pricing</p>
+              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+                Packaging claro para recepcion, voz y crecimiento
+              </h1>
+              <p className="mx-auto mt-6 max-w-2xl text-muted-foreground">
+                La clinica compra modulos utiles para operacion real: recepcion
+                multicanal, llamadas, seguimiento, huecos y reactivacion. Sin
+                runs visibles ni FAQs tecnicas sobre el motor interno.
               </p>
             </div>
           </FadeContent>
         </div>
       </HalftoneBackground>
 
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 pb-24">
-        <div className="mt-20 grid gap-8 lg:grid-cols-3">
-          {plans.map((plan, i) => (
-            <FadeContent key={plan.name} delay={i * 0.1}>
+      <div className="mx-auto max-w-7xl px-6 pb-24 lg:px-8">
+        <div className="mt-20 grid gap-8 lg:grid-cols-4">
+          {clinicPricingPlans.map((plan, index) => (
+            <FadeContent key={plan.name} delay={index * 0.06}>
               <TiltedCard className="h-full">
                 <div
-                  className={`relative h-full rounded-md border bg-card ${
+                  className={`relative h-full rounded-[26px] border bg-card ${
                     plan.highlight ? 'border-foreground' : 'border-border/50'
                   }`}
                 >
                   <div className="p-8">
-                    {plan.highlight && (
+                    {plan.highlight ? (
                       <div className="absolute -top-3 left-6">
-                        <span className="bg-foreground text-background px-3 py-1 text-[10px] uppercase tracking-wide font-medium">
-                          Most popular
+                        <span className="bg-foreground px-3 py-1 text-[10px] font-medium uppercase tracking-wide text-background">
+                          Mas habitual
                         </span>
                       </div>
-                    )}
+                    ) : null}
 
                     <div className="mb-6">
                       <h3 className="text-lg font-semibold">{plan.name}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{plan.subtitle}</p>
                     </div>
 
-                    <div className="mb-8">
+                    <div className="mb-4">
                       <span className="text-4xl font-bold tracking-tight">{plan.price}</span>
-                      {plan.price !== 'Custom' && (
-                        <span className="text-muted-foreground text-sm">/month</span>
-                      )}
                     </div>
 
-                    <ul className="space-y-3 mb-8">
+                    <div className="mb-8 flex flex-wrap gap-2">
+                      {plan.modules.map((module) => (
+                        <span
+                          key={`${plan.name}-${module}`}
+                          className="rounded-full bg-muted px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-muted-foreground"
+                        >
+                          {module}
+                        </span>
+                      ))}
+                    </div>
+
+                    <ul className="mb-8 space-y-3">
                       {plan.features.map((feature) => (
                         <li key={feature} className="flex items-start gap-3">
                           <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
@@ -166,12 +143,12 @@ export default function PricingPage() {
                       ))}
                     </ul>
 
-                    <Link href="/app/demo-workspace/dashboard" className="block">
+                    <Link href="/contact-sales" className="block">
                       <MinimalButton
                         className="w-full"
                         variant={plan.highlight ? 'default' : 'outline'}
                       >
-                        {plan.cta}
+                        {plan.ctaLabel}
                       </MinimalButton>
                     </Link>
                   </div>
@@ -183,28 +160,36 @@ export default function PricingPage() {
 
         <FadeContent>
           <div className="mt-32">
-            <h2 className="text-center text-2xl font-bold tracking-tight mb-12">Compare plans</h2>
+            <h2 className="mb-12 text-center text-2xl font-bold tracking-tight">
+              Comparativa rapida
+            </h2>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px]">
+              <table className="w-full min-w-[760px]">
                 <thead>
                   <tr className="border-b border-border/50">
-                    <th className="py-4 text-left text-editorial-tiny">Feature</th>
-                    <th className="py-4 text-center text-editorial-tiny">Starter</th>
-                    <th className="py-4 text-center text-editorial-tiny">Pro</th>
-                    <th className="py-4 text-center text-editorial-tiny">Scale</th>
+                    <th className="py-4 text-left text-editorial-tiny">Capacidad</th>
+                    <th className="py-4 text-center text-editorial-tiny">Reception</th>
+                    <th className="py-4 text-center text-editorial-tiny">
+                      Reception + Voice
+                    </th>
+                    <th className="py-4 text-center text-editorial-tiny">
+                      Reception + Growth
+                    </th>
+                    <th className="py-4 text-center text-editorial-tiny">Enterprise</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {comparisonFeatures.map((row) => (
-                    <tr key={row.feature} className="border-b border-border/30">
-                      <td className="py-4 text-sm font-medium">{row.feature}</td>
-                      <td className="py-4 text-center text-sm text-muted-foreground">
-                        {row.starter}
-                      </td>
-                      <td className="py-4 text-center text-sm text-muted-foreground">{row.pro}</td>
-                      <td className="py-4 text-center text-sm text-muted-foreground">
-                        {row.scale}
-                      </td>
+                  {comparisonRows.map((row) => (
+                    <tr key={row.label} className="border-b border-border/30">
+                      <td className="py-4 text-sm font-medium">{row.label}</td>
+                      {row.values.map((value) => (
+                        <td
+                          key={`${row.label}-${value}`}
+                          className="py-4 text-center text-sm text-muted-foreground"
+                        >
+                          {value}
+                        </td>
+                      ))}
                     </tr>
                   ))}
                 </tbody>
@@ -215,11 +200,17 @@ export default function PricingPage() {
 
         <FadeContent>
           <div className="mt-32">
-            <h2 className="text-center text-2xl font-bold tracking-tight mb-12">Questions</h2>
-            <div className="mx-auto max-w-2xl">
+            <h2 className="mb-12 text-center text-2xl font-bold tracking-tight">
+              Preguntas frecuentes
+            </h2>
+            <div className="mx-auto max-w-3xl">
               <Accordion type="single" collapsible className="w-full">
                 {faqs.map((faq, index) => (
-                  <AccordionItem key={index} value={`item-${index}`} className="border-border/50">
+                  <AccordionItem
+                    key={faq.question}
+                    value={`item-${index}`}
+                    className="border-border/50"
+                  >
                     <AccordionTrigger className="text-left text-sm font-medium hover:no-underline">
                       {faq.question}
                     </AccordionTrigger>
@@ -235,13 +226,16 @@ export default function PricingPage() {
 
         <FadeContent>
           <div className="mt-32 text-center">
-            <h2 className="text-3xl font-bold tracking-tight mb-4">Ready to get started?</h2>
-            <p className="text-muted-foreground mb-8">
-              Start your 14-day free trial today. No credit card required.
+            <h2 className="mb-4 text-3xl font-bold tracking-tight">
+              Quieres ver el packaging aplicado a tu clinica?
+            </h2>
+            <p className="mb-8 text-muted-foreground">
+              Te ensenamos que combinacion de modulos encaja con tus canales,
+              agenda y volumen operativo.
             </p>
-            <Link href="/app/demo-workspace/dashboard">
+            <Link href="/contact-sales">
               <MinimalButton size="lg">
-                Try the demo
+                Solicitar demo
                 <ArrowRight className="h-4 w-4" />
               </MinimalButton>
             </Link>
