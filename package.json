@@ -22,6 +22,8 @@
     "lint:biome": "biome check .",
     "typecheck": "turbo run typecheck && pnpm typecheck:agents",
     "test": "turbo run test",
+    "test:clinic-demo-smoke": "node --import tsx scripts/test-e2e-clinic-demo.ts",
+    "validate:clinic-demo": "bash infra/scripts/validate-clinic-demo.sh",
     "audit": "pnpm audit",
     "clean": "turbo run clean && rm -rf node_modules",
     "format": "biome format --write .",

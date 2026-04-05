@@ -7,9 +7,9 @@
   "types": "./src/index.ts",
   "scripts": {
     "generate": "drizzle-kit generate",
-    "migrate": "drizzle-kit migrate",
+    "migrate": "node --import tsx src/migrate.ts",
     "studio": "drizzle-kit studio",
-    "seed": "tsx src/seed.ts",
+    "seed": "node --import tsx src/seed.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
