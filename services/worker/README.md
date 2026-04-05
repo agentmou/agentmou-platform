@@ -1,7 +1,7 @@
 # @agentmou/worker
 
-BullMQ worker service for asynchronous pack installation, execution, scheduling,
-and approval timeout handling.
+BullMQ worker service for asynchronous pack installation, execution, clinic
+automation, webhook fan-out, scheduling, and approval timeout handling.
 
 ## Purpose
 
@@ -17,6 +17,11 @@ slow or stateful work that should not happen during an API request.
 - Run installed workflows through `@agentmou/n8n-client`.
 - Translate repeatable cron triggers into execution runs.
 - Resolve approval timeout actions and resume or fail runs accordingly.
+- Process clinic webhook events persisted by `services/api`.
+- Dispatch clinic outbound WhatsApp and voice activity through Twilio or mock
+  channel adapters.
+- Execute clinic one-shot automations for reminders, intake forms, gap
+  outreach, reactivation, and callbacks.
 
 ## How It Fits Into The System
 
@@ -30,6 +35,10 @@ the platform provides the required runtime pieces:
   run logging.
 - `@agentmou/connectors` decrypts and loads tenant connector instances.
 - `@agentmou/n8n-client` triggers workflow execution in n8n.
+- Clinic automation uses `webhook_events`, `conversation_*`, `call_sessions`,
+  `reminder_jobs`, `gap_*`, and `reactivation_*` rows from `@agentmou/db`.
+- `@agentmou/connectors` resolves Twilio and mock clinic-channel adapters for
+  worker-side outbound and inbound processing.
 
 ## Local Usage
 
@@ -57,11 +66,18 @@ pnpm --filter @agentmou/worker start
 | `run-workflow` | `processRunWorkflow` | Executes an installed n8n workflow and persists run status |
 | `schedule-trigger` | `processScheduleTrigger` | Converts a cron trigger into a concrete execution run and follow-up job |
 | `approval-timeout` | `processApprovalTimeout` | Applies auto-approve, auto-reject, or escalation logic after timeout |
+| `clinic-channel-event` | `processClinicChannelEventJob` | Reads persisted inbound webhook events, deduplicates them at the domain layer, and translates them into threads, messages, calls, and audit events |
+| `clinic-send-message` | `processClinicSendMessage` | Delivers outbound clinic messages and updates delivery state, threads, reminders, outreach attempts, and recipients |
+| `clinic-reminder` | `processClinicReminderJob` | Sends one-shot appointment reminders and confirmation nudges through the active clinic channel |
+| `clinic-form-follow-up` | `processClinicFormFollowUpJob` | Dispatches intake-form follow-up nudges after a submission is created or left pending |
+| `clinic-gap-outreach` | `processClinicGapOutreachJob` | Sends gap-fill offers and updates gap outreach attempt state |
+| `clinic-reactivation-campaign` | `processClinicReactivationCampaignJob` | Materializes or dispatches reactivation recipients for one-shot and recurring campaign sends |
+| `clinic-voice-callback` | `processClinicVoiceCallbackJob` | Triggers scheduled voice callbacks and synchronizes the resulting call/thread state |
 
 The worker deliberately no longer carries placeholder job families that are not
 started by `src/index.ts`. Shared runtime helpers now live under
-`src/jobs/runtime-support/` instead of a generic `shared/` folder so the active
-job surface is easier to navigate.
+`src/jobs/clinic-runtime/` and `src/jobs/runtime-support/` so the active job
+surface is easier to navigate.
 
 ## Configuration
 
@@ -79,6 +95,13 @@ Important environment variables:
 | `GOOGLE_CLIENT_ID` | Needed when loading Gmail connectors |
 | `GOOGLE_CLIENT_SECRET` | Needed when loading Gmail connectors |
 | `CONNECTOR_ENCRYPTION_KEY` | Decrypts stored connector tokens |
+| `WEB_APP_BASE_URL` | Fallback base URL for outbound clinic callback links |
+| `API_PUBLIC_BASE_URL` | Preferred public API base URL for Twilio status callbacks |
+| `TWILIO_ACCOUNT_SID` | Twilio account SID used by clinic channel adapters |
+| `TWILIO_AUTH_TOKEN` | Twilio auth token used for outbound calls/messages |
+| `TWILIO_WHATSAPP_FROM` | Optional default WhatsApp sender |
+| `TWILIO_WHATSAPP_MESSAGING_SERVICE_SID` | Optional default Messaging Service SID |
+| `TWILIO_VOICE_FROM` | Optional default voice caller ID |
 
 ## Development
 
