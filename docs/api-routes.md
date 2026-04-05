@@ -32,6 +32,7 @@ This is why some routes live directly under `/api/v1/*` while others live under
 | Connector callback | `GET /api/v1/oauth/callback` |
 | Public chat | `POST /api/v1/public/chat` |
 | Stripe webhook | `POST /api/v1/webhooks/stripe` |
+| Twilio clinic webhooks | `POST /api/v1/webhooks/twilio/whatsapp`, `POST /api/v1/webhooks/twilio/voice` |
 
 Notes:
 
@@ -39,6 +40,10 @@ Notes:
   registered inside the public auth module.
 - `GET /api/v1/oauth/callback` is public because Google redirects back to the
   API without a JWT.
+- Twilio clinic webhook routes are also public because provider callbacks do
+  not carry tenant JWTs; they resolve tenant/channel from the addressed phone
+  number, validate the Twilio signature, persist `webhook_events`, and enqueue
+  worker fan-out only after idempotency checks.
 
 ## Authenticated Route Families
 
@@ -99,6 +104,12 @@ These routes require a valid JWT plus access to the tenant in the path:
   `not_in_plan`, `hidden_internal_only`, `disabled_by_tenant`,
   `requires_configuration`, `channel_inactive`, and `channel_missing`
   from empty result sets.
+- Conversation replies, reminders, form nudges, gap outreach, reactivation
+  dispatches, and voice callbacks enqueue dedicated BullMQ clinic jobs instead
+  of attempting provider delivery inline during the request.
+- One-shot clinic automations use delayed BullMQ queues; recurring reactivation
+  cadences continue to flow through persisted `schedules` and the
+  `schedule-trigger` worker.
 - List endpoints use clinic contracts for filters and clamp `limit` to `100`,
   with query coercion for boolean and numeric values.
 
@@ -143,7 +154,8 @@ These routes require a valid JWT plus access to the tenant in the path:
 | `modules/forms` | Intake form templates, submissions, and submission actions |
 | `modules/follow-up` | Reminder queues, confirmations, and gap operations |
 | `modules/reactivation` | Campaigns, lifecycle actions, and recipients |
-| `modules/clinic-shared` | Clinic access checks, entitlement resolution, route errors, query schemas, mappers, fixtures, and read-model joins |
+| `modules/clinic-shared` | Clinic access checks, entitlement resolution, route errors, query schemas, mappers, fixtures, read-model joins, and automation scheduling helpers |
+| `modules/clinic-webhooks` | Twilio WhatsApp/voice webhook ingest, signature validation, idempotency, and queue fan-out |
 
 ## Working With Routes
 

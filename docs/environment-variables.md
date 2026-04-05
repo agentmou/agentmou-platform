@@ -71,6 +71,7 @@ cp infra/compose/.env.example infra/compose/.env
 | -------- | ------- | -------- | ------- |
 | `JWT_SECRET` | `changeme-32-hex-chars` | Yes | Secret for signing/verifying JWTs (min 32 chars) |
 | `CORS_ORIGIN` | `https://agentmou.io` | For production | CORS allowed origin |
+| `API_PUBLIC_BASE_URL` | `https://api.agentmou.io` | For clinic callbacks | Public API base used by clinic automation status callbacks; falls back to `WEB_APP_BASE_URL` if omitted |
 
 **Generate JWT_SECRET:** `openssl rand -hex 32`
 
@@ -99,6 +100,18 @@ cp infra/compose/.env.example infra/compose/.env
 | `GOOGLE_REDIRECT_URI` | `https://api.agentmou.io/api/v1/oauth/callback` | For Gmail connector | Redirect URI for Gmail OAuth flow |
 
 **Note:** Different from B2C OAuth. Needed only if tenants will use Gmail connector.
+
+### Twilio Clinic Channels
+
+| Variable | Example | Required | Purpose |
+| -------- | ------- | -------- | ------- |
+| `TWILIO_ACCOUNT_SID` | `AC...` | For real Twilio delivery | Shared Twilio account SID used by clinic WhatsApp and voice adapters |
+| `TWILIO_AUTH_TOKEN` | `twilio-secret` | For real Twilio delivery | Shared Twilio auth token used for outbound calls/messages and inbound webhook signature validation |
+| `TWILIO_WHATSAPP_FROM` | `whatsapp:+14155238886` | Optional | Default WhatsApp sender when a channel config does not override `from` |
+| `TWILIO_WHATSAPP_MESSAGING_SERVICE_SID` | `MG...` | Optional | Default Twilio Messaging Service SID for WhatsApp outbound delivery |
+| `TWILIO_VOICE_FROM` | `+34910000000` | Optional | Default caller ID for outbound voice callbacks when a channel config does not override it |
+
+**Note:** In demo/test or when these variables are absent, the clinic channel adapters fall back to the `mock_*` providers when allowed by environment.
 
 ### Encryption
 
@@ -138,10 +151,16 @@ WEBHOOK_URL=http://localhost:5678
 N8N_API_URL=http://n8n:5678/api/v1
 N8N_PROXY_HOPS=1
 WEB_APP_BASE_URL=http://localhost:3000
+API_PUBLIC_BASE_URL=http://localhost:3001
 AUTH_WEB_ORIGIN_ALLOWLIST=http://localhost:3000
 CORS_ORIGIN=http://localhost:3000
 LE_EMAIL=admin@localhost
 BASIC_AUTH_USERS=admin:changeme
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_WHATSAPP_FROM=
+TWILIO_WHATSAPP_MESSAGING_SERVICE_SID=
+TWILIO_VOICE_FROM=
 ```
 
 ### Staging/Production
@@ -162,6 +181,7 @@ POSTGRES_PASSWORD=$(openssl rand -hex 24)
 N8N_EDITOR_BASE_URL=https://n8n.agentmou.io
 WEBHOOK_URL=https://hooks.agentmou.io
 WEB_APP_BASE_URL=https://agentmou.io
+API_PUBLIC_BASE_URL=https://api.agentmou.io
 CORS_ORIGIN=https://agentmou.io
 AUTH_WEB_ORIGIN_ALLOWLIST=https://agentmou.io,https://www.agentmou.io
 
@@ -177,6 +197,13 @@ MICROSOFT_OAUTH_REDIRECT_URI=https://api.agentmou.io/api/v1/auth/oauth/microsoft
 GOOGLE_CLIENT_ID=(your-client-id)
 GOOGLE_CLIENT_SECRET=(your-secret)
 GOOGLE_REDIRECT_URI=https://api.agentmou.io/api/v1/oauth/callback
+
+# Twilio clinic channels (if using real delivery)
+TWILIO_ACCOUNT_SID=AC...
+TWILIO_AUTH_TOKEN=(your-auth-token)
+TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
+TWILIO_WHATSAPP_MESSAGING_SERVICE_SID=MG...
+TWILIO_VOICE_FROM=+34910000000
 
 # Traefik Basic Auth
 BASIC_AUTH_USERS=$(htpasswd -nB admin | sed 's/$/$$/')

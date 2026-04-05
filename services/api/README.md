@@ -22,6 +22,9 @@ BullMQ.
 - Expose clinic tenant-scoped route families for dashboard, profile, modules,
   channels, patients, inbox, calls, appointments, forms, follow-up, and
   reactivation.
+- Expose public inbound Twilio webhook endpoints for clinic WhatsApp and voice,
+  persist them idempotently in `webhook_events`, and fan them out to worker
+  jobs.
 - Resolve clinic experience, permissions, navigation, and module visibility
   from tenant plan, `tenant_modules`, `clinic_channels`, `clinic_profiles`,
   and tenant settings.
@@ -47,6 +50,8 @@ BullMQ.
 - `@agentmou/contracts` provides shared types and schemas.
 - `@agentmou/db` provides the PostgreSQL schema and client.
 - `@agentmou/queue` provides queue names and typed BullMQ payloads.
+- `@agentmou/connectors` validates and normalizes inbound Twilio webhook
+  payloads before they are persisted.
 
 ## Local Usage
 
@@ -80,6 +85,7 @@ curl http://localhost:3001/health
 | `/api/v1/catalog` | Agent, pack, workflow, category, and search access |
 | `/api/v1/public/chat` | Public chat route backed by shared contracts |
 | `/api/v1/oauth/callback` | Public Google OAuth callback |
+| `/api/v1/webhooks/twilio/*` | Public clinic inbound WhatsApp and voice webhooks |
 
 ### Authenticated Routes
 
@@ -138,7 +144,10 @@ layer.
   tenant-scoped clinic backend families.
 - `src/modules/clinic-shared` centralizes clinic access control, Zod query
   coercion, plan/module entitlement resolution, structured route errors,
-  mappers, test fixtures, and read-model joins.
+  mappers, test fixtures, read-model joins, and worker-facing automation
+  orchestration.
+- `src/modules/clinic-webhooks` handles Twilio signature validation, channel
+  resolution, idempotent persistence into `webhook_events`, and queue fan-out.
 - `src/middleware/internal-platform-access.ts` protects the platform-only API
   families that back `/app/[tenantId]/platform/*`.
 - `src/lib/tenant-roles.ts` normalizes legacy membership values such as
@@ -170,6 +179,12 @@ dependencies:
 | `CONNECTOR_ENCRYPTION_KEY` | AES-256-GCM key for stored connector tokens |
 | `N8N_API_URL` | n8n API base URL for workflow provisioning |
 | `N8N_API_KEY` | n8n API key |
+| `API_PUBLIC_BASE_URL` | Preferred public API base used in clinic callback URLs |
+| `TWILIO_ACCOUNT_SID` | Default Twilio account SID for clinic channels |
+| `TWILIO_AUTH_TOKEN` | Twilio auth token for webhook validation and outbound clinic delivery |
+| `TWILIO_WHATSAPP_FROM` | Optional default WhatsApp sender |
+| `TWILIO_WHATSAPP_MESSAGING_SERVICE_SID` | Optional default Messaging Service SID |
+| `TWILIO_VOICE_FROM` | Optional default voice caller ID |
 
 See [`infra/compose/.env.example`](../../infra/compose/.env.example) for the
 current local and VPS-oriented example values.

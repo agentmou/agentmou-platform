@@ -32,6 +32,13 @@ await queue.add('run-agent', {
 | `RunAgentPayload` | Payload for agent execution jobs |
 | `RunWorkflowPayload` | Payload for workflow execution jobs |
 | `ScheduleTriggerPayload` | Payload for cron trigger fan-out jobs |
+| `ClinicChannelEventPayload` | Payload for inbound clinic webhook processing |
+| `ClinicSendMessagePayload` | Payload for outbound clinic message delivery |
+| `ClinicReminderPayload` | Payload for one-shot reminder execution |
+| `ClinicFormFollowUpPayload` | Payload for intake-form nudges |
+| `ClinicGapOutreachPayload` | Payload for gap-fill outreach attempts |
+| `ClinicReactivationCampaignPayload` | Payload for campaign dispatches and recurring fan-out |
+| `ClinicVoiceCallbackPayload` | Payload for scheduled voice callbacks |
 | `getConnectionOptions()` | Parse a shared BullMQ Redis config from `REDIS_URL` |
 | `getQueue(name)` | Lazily create and cache a BullMQ queue instance |
 
@@ -45,9 +52,18 @@ runtime:
 - `run-workflow`
 - `schedule-trigger`
 - `approval-timeout`
+- `clinic-channel-event`
+- `clinic-send-message`
+- `clinic-reminder`
+- `clinic-form-follow-up`
+- `clinic-gap-outreach`
+- `clinic-reactivation-campaign`
+- `clinic-voice-callback`
 
-Placeholder queue names that were not part of the live worker runtime were
-removed so the shared package only advertises real surfaces.
+The clinic queues split one-shot automation from recurring scheduling:
+
+- recurring clinic automations still fan out through `schedule-trigger`
+- one-shot clinic automations use their dedicated BullMQ delayed queues
 
 ## Configuration
 
