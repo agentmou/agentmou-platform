@@ -12,7 +12,7 @@ describe('clinic search index', () => {
     expect(items.some((item) => item.label === 'Bandeja')).toBe(true);
     expect(items.some((item) => item.label === 'Marketplace')).toBe(false);
     expect(items.some((item) => item.label === 'Ana Garcia')).toBe(true);
-    expect(items.some((item) => item.label.includes('Revision semestral'))).toBe(true);
+    expect(items.some((item) => item.label.includes('higiene'))).toBe(true);
   });
 
   it('keeps platform search entries in platform_internal mode', async () => {

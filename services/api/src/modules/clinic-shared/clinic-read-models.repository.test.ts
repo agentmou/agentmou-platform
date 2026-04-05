@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createAppointmentSummary, createWaitlistRequest } from './clinic-test-fixtures.js';
+import {
+  createAppointmentSummary,
+  createPatientListItem,
+  createWaitlistRequest,
+} from './clinic-test-fixtures.js';
 
 const { eqMock, andMock, gteMock, inArrayMock, neMock, descMock } = vi.hoisted(() => ({
   eqMock: vi.fn(),
@@ -153,6 +157,215 @@ describe('ClinicReadModelsRepository', () => {
         createWaitlistRequest({
           priorityScore: 25,
         }),
+      ],
+    });
+  });
+
+  it('derives inbox list items with unread counts and next actions from conversation activity', async () => {
+    const now = new Date('2025-01-15T09:00:00.000Z');
+    const threadRows = [
+      {
+        id: 'thread-1',
+        tenantId: 'tenant-1',
+        patientId: 'patient-1',
+        channelType: 'whatsapp',
+        status: 'pending_form',
+        intent: 'new_patient',
+        priority: 'high',
+        source: 'whatsapp',
+        assignedUserId: null,
+        lastMessageAt: now,
+        lastInboundAt: now,
+        lastOutboundAt: new Date('2025-01-15T08:55:00.000Z'),
+        requiresHumanReview: false,
+        resolution: null,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: 'thread-2',
+        tenantId: 'tenant-1',
+        patientId: 'patient-2',
+        channelType: 'voice',
+        status: 'pending_human',
+        intent: 'human_handoff',
+        priority: 'urgent',
+        source: 'voice',
+        assignedUserId: 'user-1',
+        lastMessageAt: new Date('2025-01-15T08:40:00.000Z'),
+        lastInboundAt: new Date('2025-01-15T08:40:00.000Z'),
+        lastOutboundAt: null,
+        requiresHumanReview: true,
+        resolution: null,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ];
+    const patientRows = [
+      {
+        id: 'patient-1',
+        tenantId: 'tenant-1',
+        externalPatientId: null,
+        status: 'new_lead',
+        isExisting: false,
+        firstName: 'Ana',
+        lastName: 'Garcia',
+        fullName: 'Ana Garcia',
+        phone: null,
+        email: null,
+        dateOfBirth: null,
+        notes: null,
+        consentFlags: {},
+        source: 'manual',
+        lastInteractionAt: null,
+        nextSuggestedActionAt: null,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: 'patient-2',
+        tenantId: 'tenant-1',
+        externalPatientId: null,
+        status: 'existing',
+        isExisting: true,
+        firstName: 'Lucia',
+        lastName: 'Perez',
+        fullName: 'Lucia Perez',
+        phone: null,
+        email: null,
+        dateOfBirth: null,
+        notes: null,
+        consentFlags: {},
+        source: 'manual',
+        lastInteractionAt: null,
+        nextSuggestedActionAt: null,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ];
+    const messageRows = [
+      {
+        id: 'message-2',
+        tenantId: 'tenant-1',
+        threadId: 'thread-1',
+        patientId: 'patient-1',
+        direction: 'inbound',
+        channelType: 'whatsapp',
+        messageType: 'text',
+        body: 'Ya complete el formulario.',
+        payload: {},
+        deliveryStatus: 'read',
+        providerMessageId: null,
+        sentAt: null,
+        receivedAt: now,
+        createdAt: now,
+      },
+      {
+        id: 'message-1',
+        tenantId: 'tenant-1',
+        threadId: 'thread-2',
+        patientId: 'patient-2',
+        direction: 'inbound',
+        channelType: 'voice',
+        messageType: 'call_summary',
+        body: 'Necesita callback antes de las 12.',
+        payload: {},
+        deliveryStatus: 'received',
+        providerMessageId: null,
+        sentAt: null,
+        receivedAt: new Date('2025-01-15T08:40:00.000Z'),
+        createdAt: new Date('2025-01-15T08:40:00.000Z'),
+      },
+    ];
+
+    const database = {
+      select: vi
+        .fn()
+        .mockReturnValueOnce(createWhereResult(patientRows))
+        .mockReturnValueOnce(createWhereOrderByResult(messageRows)),
+    };
+
+    const repository = new ClinicReadModelsRepository(database as never);
+    vi.spyOn(repository, 'loadPatientListItemMap').mockResolvedValue(
+      new Map([
+        ['patient-1', createPatientListItem({ id: 'patient-1', fullName: 'Ana Garcia' })],
+        ['patient-2', createPatientListItem({ id: 'patient-2', fullName: 'Lucia Perez' })],
+      ])
+    );
+
+    const listItems = await repository.loadConversationListItems('tenant-1', threadRows);
+
+    expect(listItems).toHaveLength(2);
+    expect(listItems[0]).toMatchObject({
+      id: 'thread-1',
+      unreadCount: 1,
+      lastMessagePreview: 'Ya complete el formulario.',
+    });
+    expect(listItems[1]).toMatchObject({
+      id: 'thread-2',
+      unreadCount: 1,
+      nextSuggestedAction: 'Assign to reception',
+    });
+  });
+
+  it('hydrates reactivation campaign details with all recipients', async () => {
+    const now = new Date('2025-01-15T09:00:00.000Z');
+    const campaignRow = {
+      id: 'campaign-1',
+      tenantId: 'tenant-1',
+      name: 'Revisiones de primavera',
+      campaignType: 'hygiene_recall',
+      status: 'running',
+      audienceDefinition: {},
+      messageTemplate: {},
+      channelPolicy: {},
+      scheduledAt: now,
+      startedAt: now,
+      completedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const recipientRows = [
+      {
+        id: 'recipient-1',
+        tenantId: 'tenant-1',
+        campaignId: 'campaign-1',
+        patientId: 'patient-1',
+        status: 'booked',
+        lastContactAt: now,
+        lastResponseAt: now,
+        result: 'Booked',
+        generatedAppointmentId: 'appointment-1',
+        metadata: {},
+        createdAt: now,
+      },
+      {
+        id: 'recipient-2',
+        tenantId: 'tenant-1',
+        campaignId: 'campaign-1',
+        patientId: 'patient-2',
+        status: 'contacted',
+        lastContactAt: now,
+        lastResponseAt: null,
+        result: 'Awaiting reply',
+        generatedAppointmentId: null,
+        metadata: {},
+        createdAt: now,
+      },
+    ];
+
+    const database = {
+      select: vi.fn().mockReturnValue(createWhereOrderByResult(recipientRows)),
+    };
+
+    const repository = new ClinicReadModelsRepository(database as never);
+    const detail = await repository.loadCampaignDetail('tenant-1', campaignRow);
+
+    expect(detail).toMatchObject({
+      id: 'campaign-1',
+      recipients: [
+        { id: 'recipient-1', status: 'booked' },
+        { id: 'recipient-2', status: 'contacted' },
       ],
     });
   });

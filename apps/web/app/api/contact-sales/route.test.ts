@@ -93,7 +93,7 @@ describe('POST /api/contact-sales', () => {
 
   it('returns a controlled success in non-production when no webhook is configured', async () => {
     env.NODE_ENV = 'development';
-    const consoleInfo = vi.spyOn(console, 'info').mockImplementation(() => {});
+    const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { POST } = await import('./route');
     const response = await POST(buildRequest(validLead));
 
@@ -101,7 +101,7 @@ describe('POST /api/contact-sales', () => {
     await expect(response.json()).resolves.toMatchObject({
       message: 'Solicitud recibida. En desarrollo la dejamos registrada sin webhook.',
     });
-    expect(consoleInfo).toHaveBeenCalledWith(
+    expect(consoleWarn).toHaveBeenCalledWith(
       '[contact-sales] webhook not configured, accepting lead in non-production',
       expect.objectContaining({
         clinicName: validLead.clinicName,
