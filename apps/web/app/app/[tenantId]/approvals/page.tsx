@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -37,15 +36,12 @@ import {
   Eye,
   MessageSquare,
   Search,
-  ChevronRight,
-  User,
   FileText,
   ExternalLink,
 } from 'lucide-react';
 import type { AgentTemplate, ApprovalRequest } from '@agentmou/contracts';
 import { RiskBadge, StatusPill } from '@/components/badges';
 import { JsonViewer } from '@/components/json-viewer';
-import { StatCard } from '@/components/stat-card';
 import { cn, formatDate } from '@/lib/utils';
 import { useProviderQuery } from '@/lib/data/use-provider-query';
 import { EmptyState } from '@/components/control-plane/empty-state';

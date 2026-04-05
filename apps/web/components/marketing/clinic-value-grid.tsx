@@ -15,8 +15,8 @@ export function ClinicValueGrid() {
             Atender, agendar y recuperar agenda
           </h2>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-            La propuesta no es un bot generico. Es una capa operativa pensada para
-            recepcion dental, con lenguaje de negocio y visibilidad real del dia a dia.
+            La propuesta no es un bot generico. Es una capa operativa pensada para recepcion dental,
+            con lenguaje de negocio y visibilidad real del dia a dia.
           </p>
         </FadeContent>
 

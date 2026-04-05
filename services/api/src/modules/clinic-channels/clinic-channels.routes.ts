@@ -6,7 +6,10 @@ import {
 } from '@agentmou/contracts';
 
 import { handleClinicRouteError } from '../clinic-shared/clinic.errors.js';
-import { tenantChannelParamsSchema, tenantScopedParamsSchema } from '../clinic-shared/clinic.schema.js';
+import {
+  tenantChannelParamsSchema,
+  tenantScopedParamsSchema,
+} from '../clinic-shared/clinic.schema.js';
 import { ClinicChannelsService } from './clinic-channels.service.js';
 
 export async function clinicChannelsRoutes(fastify: FastifyInstance) {
@@ -40,7 +43,10 @@ export async function clinicChannelsRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const { tenantId, channelType } = request.params as { tenantId: string; channelType: never };
+        const { tenantId, channelType } = request.params as {
+          tenantId: string;
+          channelType: never;
+        };
         const channel = await service.updateChannel(
           tenantId,
           channelType,

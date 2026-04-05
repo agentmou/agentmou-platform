@@ -7,17 +7,16 @@ export class ClinicChannelsRepository {
   constructor(private readonly database: DatabaseClient = db) {}
 
   async listChannels(tenantId: string) {
-    return this.database
-      .select()
-      .from(clinicChannels)
-      .where(eq(clinicChannels.tenantId, tenantId));
+    return this.database.select().from(clinicChannels).where(eq(clinicChannels.tenantId, tenantId));
   }
 
   async getPrimaryChannel(tenantId: string, channelType: string) {
     const channels = await this.database
       .select()
       .from(clinicChannels)
-      .where(and(eq(clinicChannels.tenantId, tenantId), eq(clinicChannels.channelType, channelType)));
+      .where(
+        and(eq(clinicChannels.tenantId, tenantId), eq(clinicChannels.channelType, channelType))
+      );
 
     if (channels.length === 0) {
       return null;
@@ -25,7 +24,9 @@ export class ClinicChannelsRepository {
 
     return (
       channels.find((channel) => channel.status === 'active') ??
-      [...channels].sort((left, right) => right.updatedAt.getTime() - left.updatedAt.getTime())[0] ??
+      [...channels].sort(
+        (left, right) => right.updatedAt.getTime() - left.updatedAt.getTime()
+      )[0] ??
       null
     );
   }

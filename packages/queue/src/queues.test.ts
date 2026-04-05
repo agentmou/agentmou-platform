@@ -24,7 +24,9 @@ describe('clinic queue contracts', () => {
     expect(getClinicReminderJobId('rem-1')).toBe('clinic-reminder-rem-1');
     expect(getClinicFormFollowUpJobId('sub-1')).toBe('clinic-form-follow-up-sub-1');
     expect(getClinicGapOutreachJobId('gap-1')).toBe('clinic-gap-outreach-gap-1');
-    expect(getClinicReactivationCampaignJobId('camp-1')).toBe('clinic-reactivation-campaign-camp-1');
+    expect(getClinicReactivationCampaignJobId('camp-1')).toBe(
+      'clinic-reactivation-campaign-camp-1'
+    );
     expect(getClinicReactivationCampaignJobId('camp-1', 'rec-1')).toBe(
       'clinic-reactivation-campaign-camp-1-rec-1'
     );

@@ -3,15 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import {
-  Bell,
-  Building2,
-  ChevronDown,
-  Command,
-  Menu,
-  Search,
-  User,
-} from 'lucide-react';
+import { Bell, Building2, ChevronDown, Command, Menu, Search, User } from 'lucide-react';
 
 import { useAuthStore } from '@/lib/auth/store';
 import { InternalModeSwitch } from '@/components/clinic/internal-mode-switch';
@@ -51,7 +43,12 @@ export function ClinicTopbar({
   return (
     <>
       <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-border/60 bg-background/95 px-4 backdrop-blur lg:px-6">
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(true)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden"
+          onClick={() => setMobileOpen(true)}
+        >
           <Menu className="h-4 w-4" />
         </Button>
 

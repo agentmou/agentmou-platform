@@ -15,8 +15,8 @@ export function ClinicModulesGrid() {
             Packaging claro para operacion real
           </h2>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-            La clinica entiende que compra: recepcion base, voz, crecimiento y
-            necesidades enterprise. Nada de runs, packs ni complejidad tecnica.
+            La clinica entiende que compra: recepcion base, voz, crecimiento y necesidades
+            enterprise. Nada de runs, packs ni complejidad tecnica.
           </p>
         </FadeContent>
 
@@ -37,9 +37,7 @@ export function ClinicModulesGrid() {
                   </div>
                   {module.highlight ? <Badge>Base recomendada</Badge> : null}
                 </div>
-                <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                  {module.description}
-                </p>
+                <p className="mt-4 text-sm leading-6 text-muted-foreground">{module.description}</p>
                 <ul className="mt-6 space-y-3">
                   {module.capabilities.map((capability) => (
                     <li key={capability} className="flex items-start gap-3 text-sm">
@@ -56,10 +54,12 @@ export function ClinicModulesGrid() {
         <FadeContent delay={0.1}>
           <div className="mt-12 flex flex-col gap-4 rounded-[24px] border border-border/60 bg-[var(--marketing-bg-alt)] p-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-lg font-semibold">Quieres ver que combinacion encaja con tu clinica?</p>
+              <p className="text-lg font-semibold">
+                Quieres ver que combinacion encaja con tu clinica?
+              </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Te ayudamos a definir si el punto de partida es Reception, Voice, Growth
-                o una configuracion enterprise.
+                Te ayudamos a definir si el punto de partida es Reception, Voice, Growth o una
+                configuracion enterprise.
               </p>
             </div>
             <Link href="/contact-sales">

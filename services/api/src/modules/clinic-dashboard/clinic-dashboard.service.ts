@@ -1,7 +1,11 @@
 import { ClinicDashboardResponseSchema } from '@agentmou/contracts';
 
 import { assertClinicModuleAvailable, assertClinicRole } from '../clinic-shared/clinic-access.js';
-import { mapConfirmationRequest, mapIntakeFormSubmission, mapReactivationCampaign } from '../clinic-shared/clinic.mapper.js';
+import {
+  mapConfirmationRequest,
+  mapIntakeFormSubmission,
+  mapReactivationCampaign,
+} from '../clinic-shared/clinic.mapper.js';
 import { ClinicDashboardRepository } from './clinic-dashboard.repository.js';
 
 export class ClinicDashboardService {

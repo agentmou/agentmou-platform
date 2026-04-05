@@ -6,7 +6,10 @@ import {
 } from '@agentmou/contracts';
 
 import { handleClinicRouteError } from '../clinic-shared/clinic.errors.js';
-import { tenantModuleParamsSchema, tenantScopedParamsSchema } from '../clinic-shared/clinic.schema.js';
+import {
+  tenantModuleParamsSchema,
+  tenantScopedParamsSchema,
+} from '../clinic-shared/clinic.schema.js';
 import { ClinicModulesService } from './clinic-modules.service.js';
 
 export async function clinicModulesRoutes(fastify: FastifyInstance) {

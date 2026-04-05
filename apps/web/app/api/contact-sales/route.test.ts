@@ -63,7 +63,9 @@ describe('POST /api/contact-sales', () => {
     env.NODE_ENV = 'production';
     env.CONTACT_SALES_WEBHOOK_URL = 'https://hooks.example.com/contact-sales';
     env.CONTACT_SALES_WEBHOOK_TOKEN = 'top-secret-token';
-    globalThis.fetch = vi.fn().mockResolvedValue(new Response('ok', { status: 200 })) as typeof fetch;
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValue(new Response('ok', { status: 200 })) as typeof fetch;
 
     const { POST } = await import('./route');
     const response = await POST(buildRequest(validLead));

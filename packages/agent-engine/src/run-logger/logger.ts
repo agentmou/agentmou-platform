@@ -53,7 +53,7 @@ export interface RunStep {
 export class RunLogger {
   private steps: Map<string, RunStep[]> = new Map();
 
-  async startRun(runId: string, metadata?: Record<string, unknown>): Promise<RunMetrics> {
+  async startRun(runId: string, _metadata?: Record<string, unknown>): Promise<RunMetrics> {
     this.steps.set(runId, []);
 
     return {
@@ -231,7 +231,7 @@ export class RunLogger {
     return [];
   }
 
-  async getLogs(runId: string, _filters?: { level?: LogEntry['level'] }): Promise<LogEntry[]> {
+  async getLogs(_runId: string, _filters?: { level?: LogEntry['level'] }): Promise<LogEntry[]> {
     return [];
   }
 }

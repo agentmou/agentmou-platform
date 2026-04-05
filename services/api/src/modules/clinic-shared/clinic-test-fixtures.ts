@@ -45,9 +45,7 @@ export function createPatient(overrides: Partial<Patient> = {}): Patient {
   };
 }
 
-export function createPatientListItem(
-  overrides: Partial<PatientListItem> = {}
-): PatientListItem {
+export function createPatientListItem(overrides: Partial<PatientListItem> = {}): PatientListItem {
   return {
     ...createPatient(),
     upcomingAppointmentCount: 1,
@@ -57,9 +55,7 @@ export function createPatientListItem(
   };
 }
 
-export function createPatientIdentity(
-  overrides: Partial<PatientIdentity> = {}
-): PatientIdentity {
+export function createPatientIdentity(overrides: Partial<PatientIdentity> = {}): PatientIdentity {
   return {
     id: 'identity-1',
     tenantId: 'tenant-1',
@@ -185,9 +181,7 @@ export function createAppointmentDetail(
   };
 }
 
-export function createWaitlistRequest(
-  overrides: Partial<WaitlistRequest> = {}
-): WaitlistRequest {
+export function createWaitlistRequest(overrides: Partial<WaitlistRequest> = {}): WaitlistRequest {
   return {
     id: 'waitlist-1',
     tenantId: 'tenant-1',
@@ -214,9 +208,7 @@ export function createPatientDetailResponse() {
   };
 }
 
-export function createCallDetail(
-  overrides: Partial<CallSessionDetail> = {}
-): CallSessionDetail {
+export function createCallDetail(overrides: Partial<CallSessionDetail> = {}): CallSessionDetail {
   return {
     id: 'call-1',
     tenantId: 'tenant-1',
@@ -373,9 +365,7 @@ export function createCampaignDetail(
   };
 }
 
-export function createDashboard(
-  overrides: Partial<ClinicDashboard> = {}
-): ClinicDashboard {
+export function createDashboard(overrides: Partial<ClinicDashboard> = {}): ClinicDashboard {
   return {
     tenantId: 'tenant-1',
     generatedAt: ISO_NOW,

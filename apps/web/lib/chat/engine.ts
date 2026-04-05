@@ -33,7 +33,8 @@ const INTENT_PATTERNS = {
   nextSteps:
     /\b(next|what.*do|after|start|begin|get.*started|help.*setup|readiness|status|progress)\b/i,
   whyBlocked: /\b(why|blocked|not.*activ|can't|cannot|error|issue|problem|stuck)\b/i,
-  recommendAgents: /\b(recommend|suggest|agents?|which.*agent|best.*for|module|modul|voice|growth)\b/i,
+  recommendAgents:
+    /\b(recommend|suggest|agents?|which.*agent|best.*for|module|modul|voice|growth)\b/i,
   recommendWorkflows: /\b(workflow|automat|connect|sequence)\b/i,
   goLive: /\b(go.*live|activate|launch|deploy|production)\b/i,
   approvals: /\b(approv|pending|review|manual)\b/i,

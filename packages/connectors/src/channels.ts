@@ -347,7 +347,8 @@ class TwilioWhatsAppAdapter extends BaseTwilioAdapter implements ClinicChannelAd
   }
 
   async sendMessage(input: OutboundClinicMessageRequest) {
-    const from = this.config.from ?? process.env.TWILIO_WHATSAPP_FROM ?? this.channel.phoneNumber ?? undefined;
+    const from =
+      this.config.from ?? process.env.TWILIO_WHATSAPP_FROM ?? this.channel.phoneNumber ?? undefined;
     const messagingServiceSid =
       this.config.messagingServiceSid ?? process.env.TWILIO_WHATSAPP_MESSAGING_SERVICE_SID;
 
@@ -424,7 +425,8 @@ class TwilioVoiceAdapter extends BaseTwilioAdapter implements ClinicChannelAdapt
   }
 
   async scheduleCallback(input: VoiceCallbackRequest) {
-    const from = this.config.from ?? process.env.TWILIO_VOICE_FROM ?? this.channel.phoneNumber ?? undefined;
+    const from =
+      this.config.from ?? process.env.TWILIO_VOICE_FROM ?? this.channel.phoneNumber ?? undefined;
     if (!from) {
       return ClinicDeliveryResultSchema.parse({
         provider: this.provider,

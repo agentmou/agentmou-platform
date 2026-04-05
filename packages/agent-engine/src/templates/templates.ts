@@ -18,14 +18,14 @@ export interface VariableDefinition {
   type: 'string' | 'number' | 'boolean' | 'object' | 'array';
   required: boolean;
   description?: string;
-  defaultValue?: any;
+  defaultValue?: unknown;
 }
 
 /**
  * Example input/output pair documenting expected template behavior.
  */
 export interface PromptExample {
-  input: Record<string, any>;
+  input: Record<string, unknown>;
   expectedOutput: string;
   description?: string;
 }
@@ -48,7 +48,7 @@ export class TemplatesManager {
     return Array.from(this.templates.values());
   }
 
-  renderTemplate(templateId: string, variables: Record<string, any>): string {
+  renderTemplate(templateId: string, variables: Record<string, unknown>): string {
     const template = this.getTemplate(templateId);
     if (!template) {
       throw new Error(`Template ${templateId} not found`);

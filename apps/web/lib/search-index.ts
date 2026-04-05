@@ -208,9 +208,7 @@ export async function buildSearchIndex(
       provider.listClinicPatients(tenantId, { limit: 8 }).catch(() => ({ patients: [] })),
       provider.listClinicConversations(tenantId).catch(() => ({ threads: [] })),
       provider.listClinicAppointments(tenantId, { limit: 8 }).catch(() => ({ appointments: [] })),
-      provider
-        .listClinicReactivationCampaigns(tenantId)
-        .catch(() => ({ campaigns: [] })),
+      provider.listClinicReactivationCampaigns(tenantId).catch(() => ({ campaigns: [] })),
     ]);
 
     items.push(

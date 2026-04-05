@@ -7,10 +7,7 @@ export class ClinicModulesRepository {
   constructor(private readonly database: DatabaseClient = db) {}
 
   async listModules(tenantId: string) {
-    return this.database
-      .select()
-      .from(tenantModules)
-      .where(eq(tenantModules.tenantId, tenantId));
+    return this.database.select().from(tenantModules).where(eq(tenantModules.tenantId, tenantId));
   }
 
   async getModule(tenantId: string, moduleKey: string) {

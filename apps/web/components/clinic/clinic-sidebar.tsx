@@ -33,13 +33,7 @@ const clinicNavItems: Array<{
   { href: '/configuracion', label: 'Configuracion', icon: Settings, navKey: 'configuration' },
 ];
 
-export function ClinicSidebar({
-  tenantId,
-  pathname,
-}: {
-  tenantId: string;
-  pathname: string;
-}) {
+export function ClinicSidebar({ tenantId, pathname }: { tenantId: string; pathname: string }) {
   const experience = useTenantExperience();
 
   return (
@@ -48,27 +42,29 @@ export function ClinicSidebar({
         {clinicNavItems
           .filter((item) => hasClinicNavigationAccess(experience, item.navKey))
           .map((item) => {
-          const active =
-            item.href === '/dashboard'
-              ? pathname === `/app/${tenantId}` || pathname === `/app/${tenantId}/dashboard`
-              : pathname.startsWith(`/app/${tenantId}${item.href}`);
+            const active =
+              item.href === '/dashboard'
+                ? pathname === `/app/${tenantId}` || pathname === `/app/${tenantId}/dashboard`
+                : pathname.startsWith(`/app/${tenantId}${item.href}`);
 
-          return (
-            <Link
-              key={item.href}
-              href={`/app/${tenantId}${item.href}`}
-              className={cn(
-                'flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors',
-                active
-                  ? 'bg-accent/10 text-foreground'
-                  : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
-              )}
-            >
-              <item.icon className={cn('h-4 w-4', active ? 'text-accent' : 'text-muted-foreground')} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.href}
+                href={`/app/${tenantId}${item.href}`}
+                className={cn(
+                  'flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors',
+                  active
+                    ? 'bg-accent/10 text-foreground'
+                    : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+                )}
+              >
+                <item.icon
+                  className={cn('h-4 w-4', active ? 'text-accent' : 'text-muted-foreground')}
+                />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
       </nav>
     </ScrollArea>
   );

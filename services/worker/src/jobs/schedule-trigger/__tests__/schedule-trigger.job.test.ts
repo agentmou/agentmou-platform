@@ -1,3 +1,4 @@
+import type { Job } from 'bullmq';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ---------------------------------------------------------------------------
@@ -36,10 +37,11 @@ vi.mock('@agentmou/queue', () => ({
   },
 }));
 
+import type { ScheduleTriggerPayload } from '@agentmou/queue';
 import { processScheduleTrigger } from '../schedule-trigger.job';
 
-function createJob(data: Record<string, unknown>) {
-  return { data } as any;
+function createJob(data: ScheduleTriggerPayload): Job<ScheduleTriggerPayload> {
+  return { data } as unknown as Job<ScheduleTriggerPayload>;
 }
 
 describe('processScheduleTrigger', () => {

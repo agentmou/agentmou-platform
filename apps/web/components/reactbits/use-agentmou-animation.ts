@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
 
 /**
  * Spring-physics animation for Agentmou bot.
@@ -28,9 +28,6 @@ export function useAgentmouAnimation(
     if (prefersReducedMotion) {
       return;
     }
-
-    const char = charEl;
-    const spot = spotEl;
 
     const TIME_SCALE = 0.85;
     const GRAVITY = 0.15;
@@ -126,7 +123,7 @@ export function useAgentmouAnimation(
       totalTime += dt;
 
       spotAngle = (spotAngle + SPOT_SPEED * dt) % 360;
-      spotEl!.style.setProperty('--spot', spotAngle + 'deg');
+      spotEl?.style.setProperty('--spot', spotAngle + 'deg');
 
       if (spinActive) {
         spinElapsed += dt;

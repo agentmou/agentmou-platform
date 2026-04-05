@@ -55,9 +55,7 @@ export function ContactSalesForm() {
       body: JSON.stringify(values),
     });
 
-    const payload = (await response.json().catch(() => null)) as
-      | { message?: string }
-      | null;
+    const payload = (await response.json().catch(() => null)) as { message?: string } | null;
 
     if (!response.ok) {
       setSubmitState({
@@ -79,8 +77,7 @@ export function ContactSalesForm() {
     setSubmitState({
       status: 'success',
       message:
-        payload?.message ??
-        'Gracias. Hemos recibido tu solicitud y te contactaremos pronto.',
+        payload?.message ?? 'Gracias. Hemos recibido tu solicitud y te contactaremos pronto.',
     });
   }
 

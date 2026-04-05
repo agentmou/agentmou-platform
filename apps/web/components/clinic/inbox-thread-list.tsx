@@ -48,7 +48,9 @@ export function InboxThreadList({
                         <Icon className="h-4 w-4" />
                       </span>
                       <div>
-                        <p className="font-medium">{thread.patient?.fullName ?? 'Paciente por identificar'}</p>
+                        <p className="font-medium">
+                          {thread.patient?.fullName ?? 'Paciente por identificar'}
+                        </p>
                         <p className="text-sm text-muted-foreground">
                           {thread.channelType === 'voice' ? 'Llamada' : 'WhatsApp'}
                         </p>
@@ -91,7 +93,9 @@ export function InboxThreadList({
                     {thread.lastMessagePreview ?? 'Sin mensaje reciente'}
                   </p>
                   {thread.nextSuggestedAction ? (
-                    <p className="text-sm font-medium text-foreground">{thread.nextSuggestedAction}</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {thread.nextSuggestedAction}
+                    </p>
                   ) : null}
                 </button>
               );

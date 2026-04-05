@@ -43,9 +43,8 @@ export default function ContactSalesPage() {
                   Ensenanos tu agenda y te mostramos el flujo real
                 </h1>
                 <p className="mt-6 text-lg text-muted-foreground">
-                  Cuentanos como trabajais hoy y preparamos una demo comercial con
-                  recepcion, agenda, voz o growth segun el punto donde mas valor
-                  podeis capturar.
+                  Cuentanos como trabajais hoy y preparamos una demo comercial con recepcion,
+                  agenda, voz o growth segun el punto donde mas valor podeis capturar.
                 </p>
 
                 <div className="mt-10 grid gap-4">
@@ -54,26 +53,24 @@ export default function ContactSalesPage() {
 
                     return (
                       <FadeContent key={item.title} delay={index * 0.08}>
-                      <div className="rounded-[24px] border border-border/60 bg-card p-5 shadow-sm">
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-full bg-muted p-2">
-                            <Icon className="h-4 w-4" />
+                        <div className="rounded-[24px] border border-border/60 bg-card p-5 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="rounded-full bg-muted p-2">
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <p className="text-sm font-semibold">{item.title}</p>
                           </div>
-                          <p className="text-sm font-semibold">{item.title}</p>
+                          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                            {item.body}
+                          </p>
                         </div>
-                        <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                          {item.body}
-                        </p>
-                      </div>
                       </FadeContent>
                     );
                   })}
                 </div>
 
                 <div className="mt-8 rounded-[24px] border border-border/60 bg-[var(--marketing-bg-alt)] p-6">
-                  <p className="text-sm font-semibold">
-                    Que pasa despues de enviar el formulario?
-                  </p>
+                  <p className="text-sm font-semibold">Que pasa despues de enviar el formulario?</p>
                   <ol className="mt-4 space-y-3 text-sm text-muted-foreground">
                     <li className="flex gap-3">
                       <span className="font-semibold text-foreground">1.</span>
@@ -82,15 +79,13 @@ export default function ContactSalesPage() {
                     <li className="flex gap-3">
                       <span className="font-semibold text-foreground">2.</span>
                       <span>
-                        Preparamos una demo con el modulo o combinacion de modulos mas
-                        util.
+                        Preparamos una demo con el modulo o combinacion de modulos mas util.
                       </span>
                     </li>
                     <li className="flex gap-3">
                       <span className="font-semibold text-foreground">3.</span>
                       <span>
-                        Te mostramos el flujo completo y los siguientes pasos de
-                        despliegue.
+                        Te mostramos el flujo completo y los siguientes pasos de despliegue.
                       </span>
                     </li>
                   </ol>
@@ -114,8 +109,8 @@ export default function ContactSalesPage() {
               Prefieres revisar primero pricing, seguridad o la capa tecnica?
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Puedes volver a la home, revisar seguridad o entender el engine sin
-              perder el foco en la experiencia clinica.
+              Puedes volver a la home, revisar seguridad o entender el engine sin perder el foco en
+              la experiencia clinica.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">

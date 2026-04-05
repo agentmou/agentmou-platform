@@ -14,7 +14,12 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
     if (experience.isClinicTenant && !experience.canAccessInternalPlatform) {
       router.replace(`/app/${experience.tenantId}/dashboard`);
     }
-  }, [experience.canAccessInternalPlatform, experience.isClinicTenant, experience.tenantId, router]);
+  }, [
+    experience.canAccessInternalPlatform,
+    experience.isClinicTenant,
+    experience.tenantId,
+    router,
+  ]);
 
   if (experience.isClinicTenant && !experience.canAccessInternalPlatform) {
     return null;
@@ -28,7 +33,8 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
             <div>
               <p className="text-sm font-medium">Modo interno Agentmou</p>
               <p className="text-sm text-muted-foreground">
-                Esta capa mantiene marketplace, runs y administracion avanzada fuera de la experiencia cliente.
+                Esta capa mantiene marketplace, runs y administracion avanzada fuera de la
+                experiencia cliente.
               </p>
             </div>
             <InternalModeSwitch

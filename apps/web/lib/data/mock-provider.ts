@@ -124,32 +124,31 @@ export const mockProvider: DataProvider = {
   // Clinic patients
   listClinicPatients: async (tenantId, filters) => _listClinicPatients(tenantId, filters),
   getClinicPatient: async (tenantId, patientId) => _getClinicPatient(tenantId, patientId)!,
-  createClinicPatient: async (tenantId, body) =>
-    ({
-      patient: {
-        id: 'patient-created',
-        tenantId,
-        externalPatientId: null,
-        status: 'new_lead',
-        isExisting: false,
-        firstName: body.firstName,
-        lastName: body.lastName,
-        fullName: `${body.firstName} ${body.lastName}`,
-        phone: body.phone ?? null,
-        email: body.email ?? null,
-        dateOfBirth: body.dateOfBirth ?? null,
-        notes: body.notes ?? null,
-        consentFlags: body.consentFlags ?? {},
-        source: 'manual',
-        lastInteractionAt: null,
-        nextSuggestedActionAt: null,
-        createdAt: ISODateString(),
-        updatedAt: ISODateString(),
-      },
-      identities: [],
-      upcomingAppointments: [],
-      waitlistRequests: [],
-    }),
+  createClinicPatient: async (tenantId, body) => ({
+    patient: {
+      id: 'patient-created',
+      tenantId,
+      externalPatientId: null,
+      status: 'new_lead',
+      isExisting: false,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      fullName: `${body.firstName} ${body.lastName}`,
+      phone: body.phone ?? null,
+      email: body.email ?? null,
+      dateOfBirth: body.dateOfBirth ?? null,
+      notes: body.notes ?? null,
+      consentFlags: body.consentFlags ?? {},
+      source: 'manual',
+      lastInteractionAt: null,
+      nextSuggestedActionAt: null,
+      createdAt: ISODateString(),
+      updatedAt: ISODateString(),
+    },
+    identities: [],
+    upcomingAppointments: [],
+    waitlistRequests: [],
+  }),
   updateClinicPatient: async (tenantId, patientId) => _getClinicPatient(tenantId, patientId)!,
   reactivateClinicPatient: async (tenantId, patientId) => _getClinicPatient(tenantId, patientId)!,
   createClinicWaitlistRequest: async (tenantId, patientId) =>
@@ -169,16 +168,18 @@ export const mockProvider: DataProvider = {
     },
 
   // Clinic conversations
-  listClinicConversations: async (tenantId, filters) => _listClinicConversations(tenantId),
+  listClinicConversations: async (tenantId, _filters) => _listClinicConversations(tenantId),
   getClinicConversation: async (tenantId, threadId) => _getClinicConversation(tenantId, threadId)!,
   listClinicConversationMessages: async (tenantId, threadId) =>
     _listClinicConversationMessages(tenantId, threadId),
-  assignClinicConversation: async (tenantId, threadId) => _getClinicConversation(tenantId, threadId)!,
+  assignClinicConversation: async (tenantId, threadId) =>
+    _getClinicConversation(tenantId, threadId)!,
   escalateClinicConversation: async (tenantId, threadId) =>
     _getClinicConversation(tenantId, threadId)!,
   resolveClinicConversation: async (tenantId, threadId) =>
     _getClinicConversation(tenantId, threadId)!,
-  replyClinicConversation: async (tenantId, threadId) => _getClinicConversation(tenantId, threadId)!,
+  replyClinicConversation: async (tenantId, threadId) =>
+    _getClinicConversation(tenantId, threadId)!,
 
   // Clinic calls
   listClinicCalls: async (tenantId, filters) => _listClinicCalls(tenantId, filters),

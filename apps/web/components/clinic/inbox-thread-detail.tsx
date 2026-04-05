@@ -4,11 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { PatientStatusBadge } from './patient-status-badge';
 
-export function InboxThreadDetail({
-  thread,
-}: {
-  thread: ConversationThreadDetail | null;
-}) {
+export function InboxThreadDetail({ thread }: { thread: ConversationThreadDetail | null }) {
   if (!thread) {
     return (
       <Card className="border-border/60">
@@ -32,7 +28,10 @@ export function InboxThreadDetail({
             {thread.patient?.fullName ?? 'Paciente por identificar'}
           </CardTitle>
           {thread.patient ? (
-            <PatientStatusBadge status={thread.patient.status} isExisting={thread.patient.isExisting} />
+            <PatientStatusBadge
+              status={thread.patient.status}
+              isExisting={thread.patient.isExisting}
+            />
           ) : null}
         </div>
         <p className="text-sm text-muted-foreground">

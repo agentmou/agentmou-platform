@@ -15,7 +15,7 @@ export interface WorkflowDefinition {
 export interface WorkflowNode {
   id: string;
   type: 'action' | 'condition' | 'loop' | 'delay' | 'webhook';
-  config: Record<string, any>;
+  config: Record<string, unknown>;
   next?: string | string[];
 }
 
@@ -24,7 +24,7 @@ export interface WorkflowNode {
  */
 export interface Trigger {
   type: 'schedule' | 'webhook' | 'event' | 'manual';
-  config: Record<string, any>;
+  config: Record<string, unknown>;
 }
 
 /**
@@ -33,7 +33,7 @@ export interface Trigger {
 export interface WorkflowVariable {
   name: string;
   type: 'string' | 'number' | 'boolean' | 'object' | 'array';
-  defaultValue?: any;
+  defaultValue?: unknown;
 }
 
 /**
@@ -42,16 +42,19 @@ export interface WorkflowVariable {
 export interface ExecutionContext {
   workflowId: string;
   runId: string;
-  variables: Record<string, any>;
-  inputData?: any;
-  previousOutputs: Record<string, any>;
+  variables: Record<string, unknown>;
+  inputData?: unknown;
+  previousOutputs: Record<string, unknown>;
 }
 
 /**
  * Lightweight dispatcher that walks workflow nodes in execution order.
  */
 export class WorkflowDispatcher {
-  async executeWorkflow(definition: WorkflowDefinition, inputData?: any): Promise<WorkflowResult> {
+  async executeWorkflow(
+    definition: WorkflowDefinition,
+    inputData?: unknown
+  ): Promise<WorkflowResult> {
     const context: ExecutionContext = {
       workflowId: definition.id,
       runId: `run_${Date.now()}`,
@@ -81,15 +84,15 @@ export class WorkflowDispatcher {
     };
   }
 
-  private initializeVariables(variables: WorkflowVariable[]): Record<string, any> {
-    const initialized: Record<string, any> = {};
+  private initializeVariables(variables: WorkflowVariable[]): Record<string, unknown> {
+    const initialized: Record<string, unknown> = {};
     for (const variable of variables) {
       initialized[variable.name] = variable.defaultValue;
     }
     return initialized;
   }
 
-  private async executeNode(node: WorkflowNode, context: ExecutionContext): Promise<any> {
+  private async executeNode(node: WorkflowNode, context: ExecutionContext): Promise<unknown> {
     // Execute node based on type
     switch (node.type) {
       case 'action':
@@ -103,20 +106,26 @@ export class WorkflowDispatcher {
     }
   }
 
-  private async executeAction(node: WorkflowNode, context: ExecutionContext): Promise<any> {
+  private async executeAction(
+    _node: WorkflowNode,
+    _context: ExecutionContext
+  ): Promise<Record<string, unknown>> {
     // Execute action node
     return { result: 'success' };
   }
 
   private evaluateCondition(
-    node: WorkflowNode,
-    context: ExecutionContext
+    _node: WorkflowNode,
+    _context: ExecutionContext
   ): Promise<{ branch: string }> {
     // Evaluate condition and return branch
     return Promise.resolve({ branch: 'true' });
   }
 
-  private async triggerWebhook(node: WorkflowNode, context: ExecutionContext): Promise<any> {
+  private async triggerWebhook(
+    _node: WorkflowNode,
+    _context: ExecutionContext
+  ): Promise<Record<string, unknown>> {
     // Trigger webhook
     return { triggered: true };
   }
@@ -124,7 +133,7 @@ export class WorkflowDispatcher {
   private getNextNode(
     definition: WorkflowDefinition,
     current: WorkflowNode,
-    output: any
+    _output: unknown
   ): WorkflowNode | undefined {
     if (!current.next) return undefined;
 
@@ -139,7 +148,7 @@ export class WorkflowDispatcher {
 export interface WorkflowResult {
   success: boolean;
   runId: string;
-  outputs: Record<string, any>;
+  outputs: Record<string, unknown>;
   executedNodes: string[];
   duration: number;
   error?: string;

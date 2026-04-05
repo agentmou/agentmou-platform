@@ -210,9 +210,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
   const platformBasePath =
     experience.isClinicTenant && experience.mode === 'platform_internal' ? '/platform' : '';
   const getShellHref = (href: string) =>
-    platformBasePath
-      ? getPlatformPath(tenantId, href)
-      : `/app/${tenantId}${href}`;
+    platformBasePath ? getPlatformPath(tenantId, href) : `/app/${tenantId}${href}`;
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-sidebar">
@@ -393,7 +391,9 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                 <DropdownMenuItem key={tenant.id} asChild>
                   <Link
                     href={
-                      platformBasePath ? getPlatformPath(tenant.id, '/dashboard') : `/app/${tenant.id}/dashboard`
+                      platformBasePath
+                        ? getPlatformPath(tenant.id, '/dashboard')
+                        : `/app/${tenant.id}/dashboard`
                     }
                     className="flex items-center gap-2"
                   >

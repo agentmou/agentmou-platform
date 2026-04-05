@@ -6,7 +6,10 @@ const pathIcons = [UserRoundCheck, ClipboardList] as const;
 
 export function ClinicFlowPaths() {
   return (
-    <section id="como-funciona" className="border-t border-border/50 bg-[var(--marketing-bg-base)] py-24">
+    <section
+      id="como-funciona"
+      className="border-t border-border/50 bg-[var(--marketing-bg-base)] py-24"
+    >
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <FadeContent>
           <p className="text-editorial-tiny">Nuevo vs existente</p>
@@ -14,8 +17,8 @@ export function ClinicFlowPaths() {
             Una recepcion que entiende a quien tiene delante
           </h2>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-            La experiencia cambia segun si la clinica ya conoce al paciente o si hace
-            falta abrir ficha, pedir datos y asegurar que no falta informacion.
+            La experiencia cambia segun si la clinica ya conoce al paciente o si hace falta abrir
+            ficha, pedir datos y asegurar que no falta informacion.
           </p>
         </FadeContent>
 
@@ -24,7 +27,9 @@ export function ClinicFlowPaths() {
             const Icon = pathIcons[index];
             return (
               <FadeContent key={path.title} delay={index * 0.08}>
-                <article className={`h-full rounded-[28px] border border-border/60 p-8 shadow-sm ${path.accent}`}>
+                <article
+                  className={`h-full rounded-[28px] border border-border/60 p-8 shadow-sm ${path.accent}`}
+                >
                   <div className="flex items-center justify-between gap-4">
                     <h3 className="text-2xl font-semibold tracking-tight">{path.title}</h3>
                     <div className="rounded-full bg-card p-3 shadow-sm">
@@ -36,7 +41,10 @@ export function ClinicFlowPaths() {
                   </p>
                   <div className="mt-8 space-y-4">
                     {path.steps.map((step, stepIndex) => (
-                      <div key={step} className="flex items-start gap-4 rounded-2xl border border-border/60 bg-card/80 p-4">
+                      <div
+                        key={step}
+                        className="flex items-start gap-4 rounded-2xl border border-border/60 bg-card/80 p-4"
+                      >
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                           {stepIndex + 1}
                         </div>

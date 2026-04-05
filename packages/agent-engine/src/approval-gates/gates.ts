@@ -23,7 +23,7 @@ export interface ApprovalGate {
 export interface ApprovalCondition {
   field: string;
   operator: 'gt' | 'lt' | 'eq' | 'contains' | 'matches';
-  value: any;
+  value: unknown;
 }
 
 /**
@@ -47,7 +47,7 @@ export interface ApprovalRequest {
   respondedAt?: Date;
   respondedBy?: string;
   reason?: string;
-  context: any;
+  context: Record<string, unknown>;
 }
 
 /**
@@ -77,7 +77,7 @@ export class ApprovalGateManager {
 
   async shouldRequireApproval(
     gateId: string,
-    context: any
+    context: Record<string, unknown>
   ): Promise<{ requiresApproval: boolean; gate?: ApprovalGate }> {
     const gate = this.getGate(gateId);
     if (!gate) {
@@ -88,7 +88,11 @@ export class ApprovalGateManager {
     return { requiresApproval: matchesCondition.length > 0, gate };
   }
 
-  async requestApproval(gateId: string, runId: string, context: any): Promise<ApprovalRequest> {
+  async requestApproval(
+    gateId: string,
+    runId: string,
+    context: Record<string, unknown>
+  ): Promise<ApprovalRequest> {
     const gate = this.getGate(gateId);
     if (!gate) {
       throw new Error(`Gate ${gateId} not found`);
@@ -132,7 +136,7 @@ export class ApprovalGateManager {
 
   private async evaluateConditions(
     conditions: ApprovalCondition[],
-    context: any
+    _context: Record<string, unknown>
   ): Promise<ApprovalCondition[]> {
     // Evaluate conditions against context
     return conditions;

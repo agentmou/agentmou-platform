@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
   if (!webhookUrl) {
     if (nodeEnv !== 'production') {
-      console.info('[contact-sales] webhook not configured, accepting lead in non-production', {
+      console.warn('[contact-sales] webhook not configured, accepting lead in non-production', {
         clinicName: payload.clinicName,
         workEmail: payload.workEmail,
         sourcePath: payload.sourcePath,

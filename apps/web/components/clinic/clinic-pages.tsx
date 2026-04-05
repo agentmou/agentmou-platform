@@ -2,17 +2,9 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import {
-  Activity,
-  CalendarDays,
-  MessageCircleMore,
-  Search,
-} from 'lucide-react';
-import type {
-  ConversationThreadDetail,
-} from '@agentmou/contracts';
+import { Activity, CalendarDays, MessageCircleMore, Search } from 'lucide-react';
+import type { ConversationThreadDetail } from '@agentmou/contracts';
 
-import { EmptyState } from '@/components/control-plane/empty-state';
 import {
   AppointmentBoard,
   CallActivityCard,
@@ -26,7 +18,6 @@ import {
   PatientStatusBadge,
   ReactivationCampaignCard,
 } from '@/components/clinic';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -89,10 +80,13 @@ export function ClinicOverviewPage() {
   return (
     <div className="space-y-8 p-6 lg:p-8">
       <div className="flex flex-col gap-2">
-        <p className="text-sm uppercase tracking-[0.12em] text-muted-foreground">Centro de recepcion</p>
+        <p className="text-sm uppercase tracking-[0.12em] text-muted-foreground">
+          Centro de recepcion
+        </p>
         <h1 className="text-3xl font-semibold tracking-tight">Resumen</h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Seguimiento operativo del dia: bandeja, agenda, confirmaciones y oportunidades de recuperacion.
+          Seguimiento operativo del dia: bandeja, agenda, confirmaciones y oportunidades de
+          recuperacion.
         </p>
       </div>
 
@@ -264,7 +258,10 @@ export function ClinicInboxPage() {
           </ModuleVisibilityGuard>
         </TabsContent>
         <TabsContent value="pendientes">
-          <InboxThreadList threads={pendingThreads} onSelect={(thread) => setSelectedThreadId(thread.id)} />
+          <InboxThreadList
+            threads={pendingThreads}
+            onSelect={(thread) => setSelectedThreadId(thread.id)}
+          />
         </TabsContent>
         <TabsContent value="escalados">
           <InboxThreadList
@@ -293,15 +290,20 @@ export function ClinicAgendaPage() {
     [experience.capabilities.gapsEnabled, experience.tenantId]
   );
 
-  const activeAppointments = appointments.appointments.filter((appointment) => appointment.status !== 'cancelled');
-  const cancelledAppointments = appointments.appointments.filter((appointment) => appointment.status === 'cancelled');
+  const activeAppointments = appointments.appointments.filter(
+    (appointment) => appointment.status !== 'cancelled'
+  );
+  const cancelledAppointments = appointments.appointments.filter(
+    (appointment) => appointment.status === 'cancelled'
+  );
 
   return (
     <div className="space-y-6 p-6 lg:p-8">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Agenda</h1>
         <p className="text-sm text-muted-foreground">
-          Citas del dia y de la semana, cambios recientes, cancelaciones y oportunidades de reubicacion.
+          Citas del dia y de la semana, cambios recientes, cancelaciones y oportunidades de
+          reubicacion.
         </p>
       </div>
 
@@ -370,7 +372,8 @@ export function ClinicPatientsPage() {
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Pacientes</h1>
           <p className="text-sm text-muted-foreground">
-            Nuevos y existentes, con proxima cita, formularios, ultima interaccion y oportunidades de reactivacion.
+            Nuevos y existentes, con proxima cita, formularios, ultima interaccion y oportunidades
+            de reactivacion.
           </p>
         </div>
         <div className="relative w-full md:max-w-sm">
@@ -416,7 +419,11 @@ export function ClinicPatientsPage() {
                   </div>
                   <div className="text-right text-xs text-muted-foreground">
                     <p>{patient.upcomingAppointmentCount ?? 0} cita(s)</p>
-                    <p>{patient.lastInteractionAt ? new Date(patient.lastInteractionAt).toLocaleDateString() : 'Sin actividad'}</p>
+                    <p>
+                      {patient.lastInteractionAt
+                        ? new Date(patient.lastInteractionAt).toLocaleDateString()
+                        : 'Sin actividad'}
+                    </p>
                   </div>
                 </button>
               ))}
@@ -455,8 +462,12 @@ export function ClinicPatientsPage() {
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Proximas citas</p>
                   {selectedPatient.upcomingAppointments.map((appointment) => (
-                    <div key={appointment.id} className="rounded-xl border border-border/60 p-3 text-sm">
-                      {new Date(appointment.startsAt).toLocaleString()} · {appointment.service?.name ?? 'Cita'}
+                    <div
+                      key={appointment.id}
+                      className="rounded-xl border border-border/60 p-3 text-sm"
+                    >
+                      {new Date(appointment.startsAt).toLocaleString()} ·{' '}
+                      {appointment.service?.name ?? 'Cita'}
                     </div>
                   ))}
                   {selectedPatient.upcomingAppointments.length === 0 ? (
@@ -661,7 +672,9 @@ export function ClinicReactivationPage() {
               {recipients.map((recipient) => (
                 <div key={recipient.id} className="rounded-xl border border-border/60 p-3">
                   <p className="font-medium">{recipient.patientId}</p>
-                  <p className="text-sm text-muted-foreground">{recipient.result ?? recipient.status}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {recipient.result ?? recipient.status}
+                  </p>
                 </div>
               ))}
             </CardContent>
@@ -700,9 +713,21 @@ export function ClinicPerformancePage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <ClinicKpiCard label="Atencion por canal" value={dashboard.kpis.openThreads} helper="Interacciones gestionadas" />
-        <ClinicKpiCard label="Llamadas gestionadas" value={calls.total ?? 0} helper="Callbacks y llamadas entrantes" />
-        <ClinicKpiCard label="No-shows evitados" value={dashboard.kpis.pendingConfirmations} helper="Confirmaciones en curso" />
+        <ClinicKpiCard
+          label="Atencion por canal"
+          value={dashboard.kpis.openThreads}
+          helper="Interacciones gestionadas"
+        />
+        <ClinicKpiCard
+          label="Llamadas gestionadas"
+          value={calls.total ?? 0}
+          helper="Callbacks y llamadas entrantes"
+        />
+        <ClinicKpiCard
+          label="No-shows evitados"
+          value={dashboard.kpis.pendingConfirmations}
+          helper="Confirmaciones en curso"
+        />
         <ClinicKpiCard
           label="Ingresos recuperados"
           value={`${recoveredRevenueEstimate} €`}
@@ -758,53 +783,62 @@ export function ClinicSettingsPage() {
       >
         <div className="grid gap-6 xl:grid-cols-2">
           <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle className="text-base">Perfil de clinica</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>Nombre visible: {profile?.displayName ?? 'Sin configurar'}</p>
-            <p>Zona horaria: {profile?.timezone ?? 'Sin configurar'}</p>
-            <p>Especialidad: {profile?.specialty ?? 'Sin especificar'}</p>
-            <p>Canal principal: {profile?.defaultInboundChannel ?? 'Sin definir'}</p>
-          </CardContent>
-        </Card>
+            <CardHeader>
+              <CardTitle className="text-base">Perfil de clinica</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-muted-foreground">
+              <p>Nombre visible: {profile?.displayName ?? 'Sin configurar'}</p>
+              <p>Zona horaria: {profile?.timezone ?? 'Sin configurar'}</p>
+              <p>Especialidad: {profile?.specialty ?? 'Sin especificar'}</p>
+              <p>Canal principal: {profile?.defaultInboundChannel ?? 'Sin definir'}</p>
+            </CardContent>
+          </Card>
 
           <Card className="border-border/60" id="configuracion-modulos">
-          <CardHeader>
-            <CardTitle className="text-base">Modulos activos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {modules.map((module) => (
-              <div key={module.id} className="flex items-center justify-between rounded-xl border border-border/60 p-3">
-                <div>
-                  <p className="font-medium">{module.displayName}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {module.visibilityReason === 'active'
-                      ? module.visibleToClient
-                        ? 'Visible al cliente'
-                        : 'Solo interno'
-                      : module.visibilityReason === 'not_in_plan'
-                        ? 'No incluido en el plan'
-                        : module.visibilityReason === 'requires_configuration'
-                          ? 'Pendiente de configuracion'
-                          : module.visibilityReason === 'hidden_internal_only'
-                            ? 'Solo interno'
-                            : 'Desactivado por tenant'}
-                  </p>
+            <CardHeader>
+              <CardTitle className="text-base">Modulos activos</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {modules.map((module) => (
+                <div
+                  key={module.id}
+                  className="flex items-center justify-between rounded-xl border border-border/60 p-3"
+                >
+                  <div>
+                    <p className="font-medium">{module.displayName}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {module.visibilityReason === 'active'
+                        ? module.visibleToClient
+                          ? 'Visible al cliente'
+                          : 'Solo interno'
+                        : module.visibilityReason === 'not_in_plan'
+                          ? 'No incluido en el plan'
+                          : module.visibilityReason === 'requires_configuration'
+                            ? 'Pendiente de configuracion'
+                            : module.visibilityReason === 'hidden_internal_only'
+                              ? 'Solo interno'
+                              : 'Desactivado por tenant'}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+                    {module.status}
+                  </span>
                 </div>
-                <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-                  {module.status}
-                </span>
-              </div>
-            ))}
-          </CardContent>
+              ))}
+            </CardContent>
           </Card>
         </div>
       </ModuleVisibilityGuard>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        <SettingsSection title="Canales" items={channels.map((channel) => `${channel.channelType} · ${channel.status}`)} />
-        <SettingsSection title="Integraciones" items={integrations.map((integration) => `${integration.name} · ${integration.status}`)} />
+        <SettingsSection
+          title="Canales"
+          items={channels.map((channel) => `${channel.channelType} · ${channel.status}`)}
+        />
+        <SettingsSection
+          title="Integraciones"
+          items={integrations.map((integration) => `${integration.name} · ${integration.status}`)}
+        />
         <SettingsSection
           title="Acceso y privacidad"
           items={members.map((member) => `${member.name} · ${member.role}`)}
@@ -877,13 +911,7 @@ function SettingsSection({ title, items }: { title: string; items: string[] }) {
   );
 }
 
-function EmptySettingsCard({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
+function EmptySettingsCard({ title, description }: { title: string; description: string }) {
   return (
     <Card className="border-dashed border-border/60">
       <CardHeader>

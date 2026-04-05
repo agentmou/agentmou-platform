@@ -7,15 +7,7 @@ import { SpotlightCard } from '@/components/reactbits/spotlight-card';
 import { TiltedCard } from '@/components/reactbits/tilted-card';
 import { ClinicCtaBand } from '@/components/marketing';
 import { clinicSecurityPillars } from '@/lib/marketing/clinic-site';
-import {
-  Eye,
-  KeyRound,
-  Lock,
-  Shield,
-  ShieldCheck,
-  Stethoscope,
-  Workflow,
-} from 'lucide-react';
+import { Eye, KeyRound, Lock, Shield, ShieldCheck, Stethoscope, Workflow } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Security - Agentmou Clinics',
@@ -91,9 +83,9 @@ export default function SecurityPage() {
                 Confianza, control y trazabilidad para cada clinica
               </h1>
               <p className="mt-6 text-lg text-muted-foreground">
-                Agentmou Clinics protege la operacion de recepcion con permisos,
-                aislamiento por tenant, revision humana y canales seguros sin
-                convertir la pagina en un pitch de buyer DevOps.
+                Agentmou Clinics protege la operacion de recepcion con permisos, aislamiento por
+                tenant, revision humana y canales seguros sin convertir la pagina en un pitch de
+                buyer DevOps.
               </p>
             </div>
           </FadeContent>
@@ -113,26 +105,26 @@ export default function SecurityPage() {
 
                   return (
                     <FadeContent key={capability.title} delay={index * 0.05}>
-                    <TiltedCard className="h-full">
-                      <SpotlightCard className="h-full rounded-md border border-border/50 bg-card">
-                        <Card className="h-full border-0 bg-transparent py-0 shadow-none">
-                          <CardHeader className="gap-4 border-b border-border/50 pb-6">
-                            <div className="flex items-center justify-between gap-3">
-                              <p className="text-editorial-tiny">Seguridad</p>
-                              <div className="rounded-lg bg-muted p-2">
-                                <Icon className="h-5 w-5 text-muted-foreground" />
+                      <TiltedCard className="h-full">
+                        <SpotlightCard className="h-full rounded-md border border-border/50 bg-card">
+                          <Card className="h-full border-0 bg-transparent py-0 shadow-none">
+                            <CardHeader className="gap-4 border-b border-border/50 pb-6">
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="text-editorial-tiny">Seguridad</p>
+                                <div className="rounded-lg bg-muted p-2">
+                                  <Icon className="h-5 w-5 text-muted-foreground" />
+                                </div>
                               </div>
-                            </div>
-                            <CardTitle className="text-base">{capability.title}</CardTitle>
-                          </CardHeader>
-                          <CardContent className="pt-6">
-                            <p className="text-sm leading-6 text-muted-foreground">
-                              {capability.description}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </SpotlightCard>
-                    </TiltedCard>
+                              <CardTitle className="text-base">{capability.title}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-6">
+                              <p className="text-sm leading-6 text-muted-foreground">
+                                {capability.description}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        </SpotlightCard>
+                      </TiltedCard>
                     </FadeContent>
                   );
                 })}
@@ -191,13 +183,11 @@ export default function SecurityPage() {
                     <div className="rounded-full bg-card p-2">
                       <Lock className="h-4 w-4" />
                     </div>
-                    <h3 className="text-lg font-semibold">
-                      Necesitas revisar algo con el equipo?
-                    </h3>
+                    <h3 className="text-lg font-semibold">Necesitas revisar algo con el equipo?</h3>
                   </div>
                   <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                    Podemos compartir el framing de seguridad, despliegue y control
-                    operativo durante la demo comercial.
+                    Podemos compartir el framing de seguridad, despliegue y control operativo
+                    durante la demo comercial.
                   </p>
                 </div>
               </div>

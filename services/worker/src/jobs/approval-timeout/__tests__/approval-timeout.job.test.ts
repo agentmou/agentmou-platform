@@ -1,3 +1,4 @@
+import type { Job } from 'bullmq';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ---------------------------------------------------------------------------
@@ -29,10 +30,10 @@ vi.mock('@agentmou/queue', () => ({
   QUEUE_NAMES: { RUN_AGENT: 'run-agent' },
 }));
 
-import { processApprovalTimeout } from '../approval-timeout.job';
+import { processApprovalTimeout, type ApprovalTimeoutPayload } from '../approval-timeout.job';
 
-function createJob(data: Record<string, unknown>) {
-  return { data } as any;
+function createJob(data: ApprovalTimeoutPayload): Job<ApprovalTimeoutPayload> {
+  return { data } as unknown as Job<ApprovalTimeoutPayload>;
 }
 
 describe('processApprovalTimeout', () => {

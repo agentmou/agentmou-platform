@@ -267,7 +267,11 @@ export const clinicChannels = pgTable(
     index('clinic_channels_tenant_idx').on(table.tenantId),
     index('clinic_channels_tenant_status_idx').on(table.tenantId, table.status),
     index('clinic_channels_tenant_phone_idx').on(table.tenantId, table.phoneNumber),
-    index('clinic_channels_tenant_type_status_idx').on(table.tenantId, table.channelType, table.status),
+    index('clinic_channels_tenant_type_status_idx').on(
+      table.tenantId,
+      table.channelType,
+      table.status
+    ),
   ]
 );
 
@@ -329,7 +333,11 @@ export const patientIdentities = pgTable(
       table.identityType,
       table.identityValue
     ),
-    index('patient_identities_match_idx').on(table.tenantId, table.identityType, table.identityValue),
+    index('patient_identities_match_idx').on(
+      table.tenantId,
+      table.identityType,
+      table.identityValue
+    ),
     index('patient_identities_patient_idx').on(table.patientId),
   ]
 );

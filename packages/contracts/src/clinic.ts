@@ -214,13 +214,7 @@ export const AppointmentSourceSchema = z.enum([
 export type AppointmentSource = z.infer<typeof AppointmentSourceSchema>;
 
 /** Reminder execution states. */
-export const ReminderStatusSchema = z.enum([
-  'pending',
-  'scheduled',
-  'sent',
-  'failed',
-  'completed',
-]);
+export const ReminderStatusSchema = z.enum(['pending', 'scheduled', 'sent', 'failed', 'completed']);
 export type ReminderStatus = z.infer<typeof ReminderStatusSchema>;
 
 /** Confirmation response states. */
@@ -235,21 +229,27 @@ export const ConfirmationStatusSchema = z.enum([
 export type ConfirmationStatus = z.infer<typeof ConfirmationStatusSchema>;
 
 /** Waitlist states for patients interested in earlier slots. */
-export const WaitlistStatusSchema = z.enum([
-  'active',
-  'paused',
-  'matched',
-  'expired',
-  'cancelled',
-]);
+export const WaitlistStatusSchema = z.enum(['active', 'paused', 'matched', 'expired', 'cancelled']);
 export type WaitlistStatus = z.infer<typeof WaitlistStatusSchema>;
 
 /** Gap lifecycle states used for smart gap fill. */
-export const GapStatusSchema = z.enum(['open', 'offered', 'claimed', 'filled', 'expired', 'discarded']);
+export const GapStatusSchema = z.enum([
+  'open',
+  'offered',
+  'claimed',
+  'filled',
+  'expired',
+  'discarded',
+]);
 export type GapStatus = z.infer<typeof GapStatusSchema>;
 
 /** Origins of a gap in the schedule. */
-export const GapOriginSchema = z.enum(['cancellation', 'reschedule', 'manual', 'schedule_optimization']);
+export const GapOriginSchema = z.enum([
+  'cancellation',
+  'reschedule',
+  'manual',
+  'schedule_optimization',
+]);
 export type GapOrigin = z.infer<typeof GapOriginSchema>;
 
 /** Status values for individual gap outreach attempts. */
@@ -265,7 +265,14 @@ export const OutreachStatusSchema = z.enum([
 export type OutreachStatus = z.infer<typeof OutreachStatusSchema>;
 
 /** Reactivation campaign states. */
-export const CampaignStatusSchema = z.enum(['draft', 'scheduled', 'running', 'paused', 'completed', 'failed']);
+export const CampaignStatusSchema = z.enum([
+  'draft',
+  'scheduled',
+  'running',
+  'paused',
+  'completed',
+  'failed',
+]);
 export type CampaignStatus = z.infer<typeof CampaignStatusSchema>;
 
 /** Supported reactivation campaign families. */
@@ -1464,7 +1471,9 @@ export const CompleteIntakeFormSubmissionBodySchema = z.object({
   answers: JsonRecordSchema.optional(),
   completedAt: z.string().optional(),
 });
-export type CompleteIntakeFormSubmissionBody = z.infer<typeof CompleteIntakeFormSubmissionBodySchema>;
+export type CompleteIntakeFormSubmissionBody = z.infer<
+  typeof CompleteIntakeFormSubmissionBodySchema
+>;
 
 /** Body for waiving a required form. */
 export const WaiveIntakeFormSubmissionBodySchema = z.object({

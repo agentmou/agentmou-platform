@@ -30,7 +30,11 @@ import { appointmentRoutes } from './modules/appointments/index.js';
 import { formRoutes } from './modules/forms/index.js';
 import { followUpRoutes } from './modules/follow-up/index.js';
 import { reactivationRoutes } from './modules/reactivation/index.js';
-import { requireAuth, requireInternalPlatformAccess, requireTenantAccess } from './middleware/index.js';
+import {
+  requireAuth,
+  requireInternalPlatformAccess,
+  requireTenantAccess,
+} from './middleware/index.js';
 import { zodValidatorCompiler } from './routes/zod-validator.js';
 import { getApiConfig } from './config.js';
 

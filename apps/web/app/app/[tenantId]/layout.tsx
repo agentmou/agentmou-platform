@@ -7,10 +7,7 @@ import { ClinicShell } from '@/components/clinic/clinic-shell';
 import { AgentmouShell } from '@/components/control-plane/app-shell';
 import { DataProviderContext } from '@/lib/providers/context';
 import { getTenantDataProvider } from '@/lib/providers/tenant';
-import {
-  TenantExperienceProvider,
-  useResolvedTenantExperience,
-} from '@/lib/tenant-experience';
+import { TenantExperienceProvider, useResolvedTenantExperience } from '@/lib/tenant-experience';
 
 export default function TenantLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();
@@ -30,12 +27,7 @@ export default function TenantLayout({ children }: { children: React.ReactNode }
     }
 
     router.replace('/app');
-  }, [
-    experience.fallbackTenantId,
-    experience.hasTenantAccess,
-    experience.isLoading,
-    router,
-  ]);
+  }, [experience.fallbackTenantId, experience.hasTenantAccess, experience.isLoading, router]);
 
   if (experience.isLoading) {
     return (

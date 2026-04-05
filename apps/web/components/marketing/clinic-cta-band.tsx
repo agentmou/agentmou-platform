@@ -20,8 +20,8 @@ export function ClinicCtaBand() {
                 Menos huecos vacios. Menos recepcion saturada. Mas control operativo.
               </h2>
               <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-                Si quieres ver la recepcion IA funcionando sobre WhatsApp, llamadas,
-                agenda y seguimiento real, te ensenamos el flujo con tu contexto.
+                Si quieres ver la recepcion IA funcionando sobre WhatsApp, llamadas, agenda y
+                seguimiento real, te ensenamos el flujo con tu contexto.
               </p>
               <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                 <Link href="/contact-sales">

@@ -12,8 +12,8 @@ export function ClinicControlCenterShowcase() {
             Todo lo operativo, en una sola vista
           </h2>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-            Conversaciones, llamadas, agenda, confirmaciones, huecos y reactivacion
-            conviven como decisiones de recepcion, no como modulos sueltos.
+            Conversaciones, llamadas, agenda, confirmaciones, huecos y reactivacion conviven como
+            decisiones de recepcion, no como modulos sueltos.
           </p>
         </FadeContent>
 
@@ -39,8 +39,8 @@ export function ClinicControlCenterShowcase() {
                     <Send className="mt-1 h-5 w-5 text-accent-foreground" />
                   </div>
                   <p className="mt-4 text-sm text-muted-foreground">
-                    La recepcion IA detecta un hueco antes de la cita original, propone el
-                    cambio y deja lista la confirmacion.
+                    La recepcion IA detecta un hueco antes de la cita original, propone el cambio y
+                    deja lista la confirmacion.
                   </p>
                 </div>
 

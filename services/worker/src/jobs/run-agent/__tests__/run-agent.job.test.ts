@@ -1,3 +1,4 @@
+import type { Job } from 'bullmq';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ---------------------------------------------------------------------------
@@ -77,13 +78,14 @@ vi.mock('yaml', () => ({
 }));
 
 // Import after mocks
+import type { RunAgentPayload } from '@agentmou/queue';
 import { processRunAgent } from '../run-agent.job';
 
-function createMockJob(data: Record<string, unknown>) {
+function createMockJob(data: RunAgentPayload): Job<RunAgentPayload> {
   return {
     data,
     updateProgress: vi.fn(),
-  } as any;
+  } as unknown as Job<RunAgentPayload>;
 }
 
 describe('processRunAgent', () => {

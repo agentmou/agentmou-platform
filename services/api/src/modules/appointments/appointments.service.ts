@@ -9,7 +9,11 @@ import type {
 
 import { recordAuditEvent } from '../../lib/audit.js';
 import { ClinicAutomationService } from '../clinic-shared/clinic-automation.service.js';
-import { assertClinicModuleAvailable, assertClinicRole, getClinicListLimit } from '../clinic-shared/clinic-access.js';
+import {
+  assertClinicModuleAvailable,
+  assertClinicRole,
+  getClinicListLimit,
+} from '../clinic-shared/clinic-access.js';
 import { AppointmentsRepository } from './appointments.repository.js';
 
 export class AppointmentsService {
@@ -146,7 +150,11 @@ export class AppointmentsService {
       },
     });
 
-    await this.automation.cancelAppointmentAutomation(tenantId, appointmentId, 'appointment_cancelled');
+    await this.automation.cancelAppointmentAutomation(
+      tenantId,
+      appointmentId,
+      'appointment_cancelled'
+    );
 
     return this.repository.getAppointmentDetail(tenantId, appointmentId);
   }
@@ -176,7 +184,11 @@ export class AppointmentsService {
       },
     });
 
-    await this.automation.cancelAppointmentAutomation(tenantId, appointmentId, 'appointment_confirmed');
+    await this.automation.cancelAppointmentAutomation(
+      tenantId,
+      appointmentId,
+      'appointment_confirmed'
+    );
 
     return this.repository.getAppointmentDetail(tenantId, appointmentId);
   }

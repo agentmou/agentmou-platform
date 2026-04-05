@@ -44,7 +44,9 @@ vi.mock('@agentmou/db', () => {
                 limit: vi
                   .fn()
                   .mockResolvedValue(
-                    state.events.filter((row) => row.providerEventId === condition.value).slice(0, 1)
+                    state.events
+                      .filter((row) => row.providerEventId === condition.value)
+                      .slice(0, 1)
                   ),
               };
             }

@@ -1,8 +1,5 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import {
-  ClinicProfileResponseSchema,
-  UpdateClinicProfileBodySchema,
-} from '@agentmou/contracts';
+import { ClinicProfileResponseSchema, UpdateClinicProfileBodySchema } from '@agentmou/contracts';
 
 import { handleClinicRouteError } from '../clinic-shared/clinic.errors.js';
 import { tenantScopedParamsSchema } from '../clinic-shared/clinic.schema.js';

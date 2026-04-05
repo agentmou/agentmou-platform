@@ -11,7 +11,12 @@ export function MarketingHeroClinic() {
   return (
     <section className="relative min-h-[92vh] overflow-hidden bg-[var(--marketing-bg-base)]">
       <div className="absolute inset-0" aria-hidden>
-        <Threads color={[0, 0.788, 0.988]} distance={0.7} amplitude={0.55} className="absolute inset-0" />
+        <Threads
+          color={[0, 0.788, 0.988]}
+          distance={0.7}
+          amplitude={0.55}
+          className="absolute inset-0"
+        />
       </div>
 
       <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-16 px-6 pb-24 pt-28 lg:flex-row lg:items-end lg:gap-12 lg:px-8 lg:pb-28 lg:pt-32">
@@ -32,9 +37,8 @@ export function MarketingHeroClinic() {
             </h1>
 
             <p className="mt-8 max-w-2xl text-editorial-subhead">
-              Responde WhatsApp y llamadas, agenda y reprograma citas, recoge los datos
-              de pacientes nuevos, confirma asistencia y ayuda a recuperar huecos y
-              pacientes inactivos.
+              Responde WhatsApp y llamadas, agenda y reprograma citas, recoge los datos de pacientes
+              nuevos, confirma asistencia y ayuda a recuperar huecos y pacientes inactivos.
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
@@ -55,7 +59,10 @@ export function MarketingHeroClinic() {
           <FadeContent delay={0.2}>
             <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {clinicMarketingStats.map((stat) => (
-                <div key={stat.label} className="rounded-2xl border border-border/50 bg-card/80 p-5 shadow-sm backdrop-blur">
+                <div
+                  key={stat.label}
+                  className="rounded-2xl border border-border/50 bg-card/80 p-5 shadow-sm backdrop-blur"
+                >
                   <p className="text-3xl font-semibold tracking-tight">{stat.value}</p>
                   <p className="mt-2 text-sm text-muted-foreground">{stat.label}</p>
                 </div>
@@ -79,8 +86,8 @@ export function MarketingHeroClinic() {
                   "Si se ha liberado un hueco antes, me viene mejor esta tarde."
                 </p>
                 <div className="mt-4 rounded-xl bg-muted/70 p-4 text-sm">
-                  Hueco libre encontrado a las 13:10. La IA propone adelantar y deja la
-                  confirmacion lista.
+                  Hueco libre encontrado a las 13:10. La IA propone adelantar y deja la confirmacion
+                  lista.
                 </div>
               </div>
 
