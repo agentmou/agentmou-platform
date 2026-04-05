@@ -16,10 +16,7 @@ export class ClinicProfileRepository {
     return profile ?? null;
   }
 
-  async updateProfile(
-    tenantId: string,
-    data: Partial<typeof clinicProfiles.$inferInsert>
-  ) {
+  async updateProfile(tenantId: string, data: Partial<typeof clinicProfiles.$inferInsert>) {
     const [profile] = await this.database
       .update(clinicProfiles)
       .set({

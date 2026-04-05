@@ -54,7 +54,10 @@ export class ConversationsRepository {
       .select()
       .from(conversationMessages)
       .where(
-        and(eq(conversationMessages.tenantId, tenantId), eq(conversationMessages.threadId, threadId))
+        and(
+          eq(conversationMessages.tenantId, tenantId),
+          eq(conversationMessages.threadId, threadId)
+        )
       )
       .orderBy(conversationMessages.createdAt);
 
@@ -119,20 +122,23 @@ export class ConversationsRepository {
 
     const now = new Date();
 
-    const [message] = await this.database.insert(conversationMessages).values({
-      tenantId,
-      threadId,
-      patientId: thread.patientId,
-      direction: 'outbound',
-      channelType: body.channelType ?? thread.channelType,
-      messageType: body.messageType ?? 'text',
-      body: body.body,
-      payload: {
-        ...(body.payload ?? {}),
-        automationKind: 'conversation_reply',
-      },
-      deliveryStatus: 'queued',
-    }).returning();
+    const [message] = await this.database
+      .insert(conversationMessages)
+      .values({
+        tenantId,
+        threadId,
+        patientId: thread.patientId,
+        direction: 'outbound',
+        channelType: body.channelType ?? thread.channelType,
+        messageType: body.messageType ?? 'text',
+        body: body.body,
+        payload: {
+          ...(body.payload ?? {}),
+          automationKind: 'conversation_reply',
+        },
+        deliveryStatus: 'queued',
+      })
+      .returning();
 
     const [updatedThread] = await this.database
       .update(conversationThreads)

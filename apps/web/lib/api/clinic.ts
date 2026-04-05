@@ -43,7 +43,6 @@ import {
   type PatientsResponse,
   type PauseReactivationCampaignBody,
   type ReactivatePatientBody,
-  type ReactivationCampaign,
   type ReactivationCampaignDetail,
   type ReactivationCampaignsResponse,
   type ReactivationRecipient,
@@ -94,11 +93,7 @@ import {
   WaitlistRequestResponseSchema,
 } from '@agentmou/contracts';
 
-import {
-  ApiError,
-  buildQueryString,
-  requestParsed,
-} from './core';
+import { ApiError, buildQueryString, requestParsed } from './core';
 
 export class ClinicFeatureUnavailableApiError extends ApiError {
   constructor(public feature: ClinicFeatureUnavailablePayload) {

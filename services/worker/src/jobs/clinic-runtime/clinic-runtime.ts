@@ -4,7 +4,6 @@ import {
   auditEvents,
   callSessions,
   clinicChannels,
-  clinicProfiles,
   confirmationRequests,
   conversationMessages,
   conversationThreads,
@@ -32,7 +31,7 @@ import {
   type ClinicVoiceCallbackPayload,
 } from '@agentmou/queue';
 import { normalizePhoneAddress, resolveClinicChannelAdapter } from '@agentmou/connectors';
-import { and, desc, eq, inArray, notInArray, or } from 'drizzle-orm';
+import { and, desc, eq, inArray, notInArray } from 'drizzle-orm';
 
 type ChannelType = 'whatsapp' | 'voice';
 type NormalizedClinicWebhookEvent = {
@@ -145,7 +144,11 @@ async function getActiveChannel(tenantId: string, channelType: ChannelType) {
   return rows.find((row) => row.status === 'active') ?? rows[0] ?? null;
 }
 
-async function markThreadForHumanReview(tenantId: string, threadId?: string | null, detail?: string) {
+async function markThreadForHumanReview(
+  tenantId: string,
+  threadId?: string | null,
+  detail?: string
+) {
   if (!threadId) {
     return;
   }
@@ -311,7 +314,11 @@ function mapDeliveryStatus(providerStatus: string | undefined) {
     return 'read' as const;
   }
 
-  if (normalized.includes('fail') || normalized.includes('undeliver') || normalized.includes('error')) {
+  if (
+    normalized.includes('fail') ||
+    normalized.includes('undeliver') ||
+    normalized.includes('error')
+  ) {
     return 'failed' as const;
   }
 
@@ -322,7 +329,11 @@ function mapDeliveryStatus(providerStatus: string | undefined) {
   return 'sent' as const;
 }
 
-async function syncAutomationForMessageDispatch(message: typeof conversationMessages.$inferSelect, ok: boolean, detail?: string) {
+async function syncAutomationForMessageDispatch(
+  message: typeof conversationMessages.$inferSelect,
+  ok: boolean,
+  detail?: string
+) {
   const payload = toRecord(message.payload);
   const reminderId = typeof payload.reminderId === 'string' ? payload.reminderId : null;
   const attemptId = typeof payload.attemptId === 'string' ? payload.attemptId : null;
@@ -334,7 +345,7 @@ async function syncAutomationForMessageDispatch(message: typeof conversationMess
       .set({
         status: ok ? 'sent' : 'failed',
         sentAt: ok ? new Date() : null,
-        lastError: ok ? null : detail ?? 'delivery_failed',
+        lastError: ok ? null : (detail ?? 'delivery_failed'),
         attemptCount: ok ? 1 : 1,
         updatedAt: new Date(),
       })
@@ -363,7 +374,7 @@ async function syncAutomationForMessageDispatch(message: typeof conversationMess
       .set({
         status: ok ? 'sent' : 'failed',
         sentAt: ok ? new Date() : null,
-        result: ok ? 'gap_offer_sent' : detail ?? 'delivery_failed',
+        result: ok ? 'gap_offer_sent' : (detail ?? 'delivery_failed'),
       })
       .where(
         and(
@@ -379,7 +390,7 @@ async function syncAutomationForMessageDispatch(message: typeof conversationMess
       .set({
         status: ok ? 'contacted' : 'failed',
         lastContactAt: ok ? new Date() : null,
-        result: ok ? 'message_sent' : detail ?? 'delivery_failed',
+        result: ok ? 'message_sent' : (detail ?? 'delivery_failed'),
       })
       .where(
         and(
@@ -428,7 +439,11 @@ export async function dispatchClinicMessage(payload: ClinicSendMessagePayload) {
 
   const channel = await getActiveChannel(payload.tenantId, message.channelType as ChannelType);
   if (!channel || channel.status !== 'active' || !patient?.phone) {
-    const detail = !channel ? 'channel_missing' : patient?.phone ? 'channel_inactive' : 'patient_missing_phone';
+    const detail = !channel
+      ? 'channel_missing'
+      : patient?.phone
+        ? 'channel_inactive'
+        : 'patient_missing_phone';
     await db
       .update(conversationMessages)
       .set({
@@ -482,7 +497,7 @@ export async function dispatchClinicMessage(payload: ClinicSendMessagePayload) {
       payload: {
         ...toRecord(message.payload),
         providerResult: result.payload,
-        lastError: ok ? null : result.detail ?? result.failureReason ?? 'delivery_failed',
+        lastError: ok ? null : (result.detail ?? result.failureReason ?? 'delivery_failed'),
       },
     })
     .where(eq(conversationMessages.id, message.id));
@@ -503,7 +518,11 @@ export async function dispatchClinicMessage(payload: ClinicSendMessagePayload) {
   await syncAutomationForMessageDispatch(message, ok, result.detail ?? result.failureReason);
 
   if (!ok) {
-    await markThreadForHumanReview(payload.tenantId, thread?.id, result.detail ?? result.failureReason);
+    await markThreadForHumanReview(
+      payload.tenantId,
+      thread?.id,
+      result.detail ?? result.failureReason
+    );
   }
 
   await recordWorkerAuditEvent({
@@ -546,7 +565,11 @@ function renderAutomationMessageBody(input: {
   return `Hola${input.patientName ? ` ${input.patientName}` : ''}, ${input.campaignName ?? 'tenemos una oportunidad de reservar tu proxima cita'}.`;
 }
 
-async function enqueueMessageJob(tenantId: string, messageId: string, automationKind: ClinicSendMessagePayload['automationKind']) {
+async function enqueueMessageJob(
+  tenantId: string,
+  messageId: string,
+  automationKind: ClinicSendMessagePayload['automationKind']
+) {
   const queue = getQueue(QUEUE_NAMES.CLINIC_SEND_MESSAGE);
   await queue.add(
     'clinic-send-message',
@@ -565,7 +588,9 @@ export async function processClinicReminder(payload: ClinicReminderPayload) {
   const [reminder] = await db
     .select()
     .from(reminderJobs)
-    .where(and(eq(reminderJobs.tenantId, payload.tenantId), eq(reminderJobs.id, payload.reminderId)))
+    .where(
+      and(eq(reminderJobs.tenantId, payload.tenantId), eq(reminderJobs.id, payload.reminderId))
+    )
     .limit(1);
 
   if (!reminder || !['pending', 'scheduled'].includes(reminder.status)) {
@@ -602,26 +627,25 @@ export async function processClinicReminder(payload: ClinicReminderPayload) {
     return;
   }
 
-  const thread =
-    appointment.threadId
-      ? (
-          await db
-            .select()
-            .from(conversationThreads)
-            .where(
-              and(
-                eq(conversationThreads.tenantId, payload.tenantId),
-                eq(conversationThreads.id, appointment.threadId)
-              )
+  const thread = appointment.threadId
+    ? (
+        await db
+          .select()
+          .from(conversationThreads)
+          .where(
+            and(
+              eq(conversationThreads.tenantId, payload.tenantId),
+              eq(conversationThreads.id, appointment.threadId)
             )
-            .limit(1)
-        )[0]
-      : await getOrCreateThread({
-          tenantId: payload.tenantId,
-          patientId: patient.id,
-          channelType: reminder.channelType as ChannelType,
-          source: 'confirmation_reminder',
-        });
+          )
+          .limit(1)
+      )[0]
+    : await getOrCreateThread({
+        tenantId: payload.tenantId,
+        patientId: patient.id,
+        channelType: reminder.channelType as ChannelType,
+        source: 'confirmation_reminder',
+      });
 
   const [message] = await db
     .insert(conversationMessages)
@@ -846,8 +870,7 @@ async function materializeCampaignRecipients(tenantId: string, campaignId: strin
   const statuses = Array.isArray(audience.statuses)
     ? audience.statuses.filter((value): value is string => typeof value === 'string')
     : ['inactive'];
-  const isExisting =
-    typeof audience.isExisting === 'boolean' ? audience.isExisting : undefined;
+  const isExisting = typeof audience.isExisting === 'boolean' ? audience.isExisting : undefined;
   const limit = typeof audience.limit === 'number' ? audience.limit : undefined;
   const explicitPatientIds = Array.isArray(audience.patientIds)
     ? audience.patientIds.filter((value): value is string => typeof value === 'string')
@@ -864,17 +887,18 @@ async function materializeCampaignRecipients(tenantId: string, campaignId: strin
     );
   const existingPatientIds = new Set(existingRecipients.map((recipient) => recipient.patientId));
 
-  const selected = (explicitPatientIds.length > 0
-    ? allPatients.filter((patient) => explicitPatientIds.includes(patient.id))
-    : allPatients.filter((patient) => {
-        if (!statuses.includes(patient.status)) {
-          return false;
-        }
-        if (typeof isExisting === 'boolean' && patient.isExisting !== isExisting) {
-          return false;
-        }
-        return true;
-      })
+  const selected = (
+    explicitPatientIds.length > 0
+      ? allPatients.filter((patient) => explicitPatientIds.includes(patient.id))
+      : allPatients.filter((patient) => {
+          if (!statuses.includes(patient.status)) {
+            return false;
+          }
+          if (typeof isExisting === 'boolean' && patient.isExisting !== isExisting) {
+            return false;
+          }
+          return true;
+        })
   ).filter((patient) => !existingPatientIds.has(patient.id));
 
   const limited = typeof limit === 'number' ? selected.slice(0, limit) : selected;
@@ -903,7 +927,9 @@ async function materializeCampaignRecipients(tenantId: string, campaignId: strin
     );
 }
 
-export async function processClinicReactivationCampaign(payload: ClinicReactivationCampaignPayload) {
+export async function processClinicReactivationCampaign(
+  payload: ClinicReactivationCampaignPayload
+) {
   const [campaign] = await db
     .select()
     .from(reactivationCampaigns)
@@ -942,7 +968,9 @@ export async function processClinicReactivationCampaign(payload: ClinicReactivat
         )
     : await materializeCampaignRecipients(payload.tenantId, payload.campaignId);
 
-  const pendingRecipients = recipients.filter((recipient) => ['pending', 'failed'].includes(recipient.status));
+  const pendingRecipients = recipients.filter((recipient) =>
+    ['pending', 'failed'].includes(recipient.status)
+  );
 
   for (const recipient of pendingRecipients) {
     const [patient] = await db
@@ -1041,11 +1069,19 @@ export async function processClinicVoiceCallback(payload: ClinicVoiceCallbackPay
     .where(eq(callSessions.id, call.id));
 
   if (result.status === 'failed') {
-    await markThreadForHumanReview(payload.tenantId, call.threadId, result.detail ?? 'voice_callback_failed');
+    await markThreadForHumanReview(
+      payload.tenantId,
+      call.threadId,
+      result.detail ?? 'voice_callback_failed'
+    );
   }
 }
 
-async function updateAutomationFromInboundMessage(tenantId: string, patientId: string, body: string) {
+async function updateAutomationFromInboundMessage(
+  tenantId: string,
+  patientId: string,
+  body: string
+) {
   const normalized = body.trim().toLowerCase();
   const isPositive = /\b(si|sí|confirm|ok|vale|yes)\b/i.test(normalized);
   const isNegative = /\b(no|cancel|decline|rechazo)\b/i.test(normalized);
@@ -1162,7 +1198,10 @@ async function updateAutomationFromInboundMessage(tenantId: string, patientId: s
   }
 }
 
-async function processInboundMessageEvent(tenantId: string, normalizedEvent: NormalizedClinicWebhookEvent) {
+async function processInboundMessageEvent(
+  tenantId: string,
+  normalizedEvent: NormalizedClinicWebhookEvent
+) {
   const patient = await findOrCreatePatientFromInbound({
     tenantId,
     phone: normalizedEvent.from,
@@ -1227,7 +1266,10 @@ async function processInboundMessageEvent(tenantId: string, normalizedEvent: Nor
   await updateAutomationFromInboundMessage(tenantId, patient.id, normalizedEvent.body ?? '');
 }
 
-async function processMessageStatusEvent(tenantId: string, normalizedEvent: NormalizedClinicWebhookEvent) {
+async function processMessageStatusEvent(
+  tenantId: string,
+  normalizedEvent: NormalizedClinicWebhookEvent
+) {
   if (!normalizedEvent.providerMessageId) {
     return;
   }
@@ -1274,7 +1316,11 @@ function mapCallStatus(providerStatus?: string) {
     return 'in_progress';
   }
 
-  if (normalized.includes('busy') || normalized.includes('failed') || normalized.includes('no-answer')) {
+  if (
+    normalized.includes('busy') ||
+    normalized.includes('failed') ||
+    normalized.includes('no-answer')
+  ) {
     return 'unresolved';
   }
 
@@ -1316,7 +1362,7 @@ async function processCallEvent(tenantId: string, normalizedEvent: NormalizedCli
   const transcript =
     typeof normalizedEvent.payload.TranscriptionText === 'string'
       ? String(normalizedEvent.payload.TranscriptionText)
-      : normalizedEvent.body ?? null;
+      : (normalizedEvent.body ?? null);
 
   if (existing) {
     await db

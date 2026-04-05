@@ -71,7 +71,10 @@ export class ClinicWebhooksService {
       }
     );
 
-    if (channel && !adapter.validateWebhookSignature({ url: getRequestUrl(request), payload, signature })) {
+    if (
+      channel &&
+      !adapter.validateWebhookSignature({ url: getRequestUrl(request), payload, signature })
+    ) {
       throw Object.assign(new Error('Invalid Twilio webhook signature'), {
         statusCode: 401,
       });
@@ -119,7 +122,9 @@ export class ClinicWebhooksService {
     };
   }
 
-  private extractLookupPhone(payload: Record<string, string | number | boolean | null | undefined>) {
+  private extractLookupPhone(
+    payload: Record<string, string | number | boolean | null | undefined>
+  ) {
     return normalizePhoneAddress(
       typeof payload.To === 'string'
         ? payload.To
@@ -142,7 +147,10 @@ export class ClinicWebhooksService {
       return null;
     }
 
-    const channels = await db.select().from(clinicChannels).where(eq(clinicChannels.channelType, channelType));
+    const channels = await db
+      .select()
+      .from(clinicChannels)
+      .where(eq(clinicChannels.channelType, channelType));
     const matching = channels.filter((candidate) => {
       const phone = normalizePhoneAddress(candidate.phoneNumber ?? undefined);
       return Boolean(phone && targetNumbers.includes(phone));

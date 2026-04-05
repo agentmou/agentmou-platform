@@ -67,10 +67,7 @@ export class CallsRepository {
           updatedAt: new Date(),
         })
         .where(
-          and(
-            eq(conversationThreads.tenantId, tenantId),
-            eq(conversationThreads.id, call.threadId)
-          )
+          and(eq(conversationThreads.tenantId, tenantId), eq(conversationThreads.id, call.threadId))
         );
     }
 

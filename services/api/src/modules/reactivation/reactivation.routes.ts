@@ -32,7 +32,11 @@ export async function reactivationRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const { tenantId } = request.params as { tenantId: string };
-        const result = await service.listCampaigns(tenantId, request.query as never, request.tenantRole);
+        const result = await service.listCampaigns(
+          tenantId,
+          request.query as never,
+          request.tenantRole
+        );
         return reply.send(ReactivationCampaignsResponseSchema.parse(result));
       } catch (error) {
         return handleClinicRouteError(reply, error);

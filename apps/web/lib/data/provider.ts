@@ -274,7 +274,10 @@ export interface ClinicConversationMethods {
     filters?: Record<string, string | number | boolean | null | undefined>
   ): Promise<ConversationsResponse>;
   getClinicConversation(tenantId: string, threadId: string): Promise<ConversationThreadDetail>;
-  listClinicConversationMessages(tenantId: string, threadId: string): Promise<ConversationMessage[]>;
+  listClinicConversationMessages(
+    tenantId: string,
+    threadId: string
+  ): Promise<ConversationMessage[]>;
   assignClinicConversation(
     tenantId: string,
     threadId: string,

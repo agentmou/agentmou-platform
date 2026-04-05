@@ -1,18 +1,20 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import type { ClinicFeatureUnavailableReason } from '@agentmou/contracts';
 
-import { findClinicModuleEntitlement, resolveClinicExperience } from '../modules/clinic-shared/clinic-entitlements.js';
+import {
+  findClinicModuleEntitlement,
+  resolveClinicExperience,
+} from '../modules/clinic-shared/clinic-entitlements.js';
 import { ClinicExperienceRepository } from '../modules/clinic-shared/clinic-experience.repository.js';
 import { ClinicFeatureUnavailableRouteError } from '../modules/clinic-shared/clinic.errors.js';
 
 function getFeatureUnavailableReason(reason?: string): ClinicFeatureUnavailableReason {
-  return !reason || reason === 'active' ? 'not_in_plan' : (reason as ClinicFeatureUnavailableReason);
+  return !reason || reason === 'active'
+    ? 'not_in_plan'
+    : (reason as ClinicFeatureUnavailableReason);
 }
 
-export async function requireInternalPlatformAccess(
-  request: FastifyRequest,
-  reply: FastifyReply
-) {
+export async function requireInternalPlatformAccess(request: FastifyRequest, reply: FastifyReply) {
   const { tenantId } = request.params as { tenantId: string };
   const repository = new ClinicExperienceRepository();
   const context = await repository.loadContext(tenantId);

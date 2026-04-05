@@ -33,7 +33,7 @@ export type ConnectorType =
   | 'intercom'
   | 'zendesk';
 
-type ConnectorConstructor = new (...args: any[]) => BaseConnector;
+type ConnectorConstructor = new (...args: never[]) => BaseConnector;
 
 /**
  * Registry interface for resolving and registering connector implementations.

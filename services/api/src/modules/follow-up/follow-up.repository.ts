@@ -49,11 +49,7 @@ export class FollowUpRepository {
       .slice(0, filters.limit ?? 50);
   }
 
-  async remindConfirmation(
-    tenantId: string,
-    confirmationId: string,
-    body: RemindConfirmationBody
-  ) {
+  async remindConfirmation(tenantId: string, confirmationId: string, body: RemindConfirmationBody) {
     const [confirmation] = await this.database
       .select()
       .from(confirmationRequests)
@@ -90,7 +86,9 @@ export class FollowUpRepository {
         reminderStatus: 'scheduled',
         updatedAt: new Date(),
       })
-      .where(and(eq(appointments.tenantId, tenantId), eq(appointments.id, confirmation.appointmentId)));
+      .where(
+        and(eq(appointments.tenantId, tenantId), eq(appointments.id, confirmation.appointmentId))
+      );
 
     return reminder;
   }
@@ -122,10 +120,7 @@ export class FollowUpRepository {
       .select()
       .from(appointments)
       .where(
-        and(
-          eq(appointments.tenantId, tenantId),
-          eq(appointments.id, confirmation.appointmentId)
-        )
+        and(eq(appointments.tenantId, tenantId), eq(appointments.id, confirmation.appointmentId))
       )
       .limit(1);
 
@@ -174,20 +169,21 @@ export class FollowUpRepository {
       return null;
     }
 
-    const now = new Date();
-
     const attempts = [] as Array<typeof gapOutreachAttempts.$inferSelect>;
 
     for (const patientId of body.patientIds) {
-      const [attempt] = await this.database.insert(gapOutreachAttempts).values({
-        tenantId,
-        gapOpportunityId: gapId,
-        patientId,
-        channelType: body.channelType,
-        status: 'pending',
-        result: body.templateKey ?? null,
-        metadata: {},
-      }).returning();
+      const [attempt] = await this.database
+        .insert(gapOutreachAttempts)
+        .values({
+          tenantId,
+          gapOpportunityId: gapId,
+          patientId,
+          channelType: body.channelType,
+          status: 'pending',
+          result: body.templateKey ?? null,
+          metadata: {},
+        })
+        .returning();
       if (attempt) {
         attempts.push(attempt);
       }

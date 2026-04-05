@@ -86,9 +86,9 @@ export default function PricingPage() {
                 Packaging claro para recepcion, voz y crecimiento
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-muted-foreground">
-                La clinica compra modulos utiles para operacion real: recepcion
-                multicanal, llamadas, seguimiento, huecos y reactivacion. Sin
-                runs visibles ni FAQs tecnicas sobre el motor interno.
+                La clinica compra modulos utiles para operacion real: recepcion multicanal,
+                llamadas, seguimiento, huecos y reactivacion. Sin runs visibles ni FAQs tecnicas
+                sobre el motor interno.
               </p>
             </div>
           </FadeContent>
@@ -169,12 +169,8 @@ export default function PricingPage() {
                   <tr className="border-b border-border/50">
                     <th className="py-4 text-left text-editorial-tiny">Capacidad</th>
                     <th className="py-4 text-center text-editorial-tiny">Reception</th>
-                    <th className="py-4 text-center text-editorial-tiny">
-                      Reception + Voice
-                    </th>
-                    <th className="py-4 text-center text-editorial-tiny">
-                      Reception + Growth
-                    </th>
+                    <th className="py-4 text-center text-editorial-tiny">Reception + Voice</th>
+                    <th className="py-4 text-center text-editorial-tiny">Reception + Growth</th>
                     <th className="py-4 text-center text-editorial-tiny">Enterprise</th>
                   </tr>
                 </thead>
@@ -230,8 +226,8 @@ export default function PricingPage() {
               Quieres ver el packaging aplicado a tu clinica?
             </h2>
             <p className="mb-8 text-muted-foreground">
-              Te ensenamos que combinacion de modulos encaja con tus canales,
-              agenda y volumen operativo.
+              Te ensenamos que combinacion de modulos encaja con tus canales, agenda y volumen
+              operativo.
             </p>
             <Link href="/contact-sales">
               <MinimalButton size="lg">

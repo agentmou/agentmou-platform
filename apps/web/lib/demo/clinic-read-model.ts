@@ -748,17 +748,19 @@ const dashboard: ClinicDashboard = {
     patientsNew: 1,
     patientsExisting: 2,
   },
-  prioritizedInbox: conversationDetails.map((thread): ConversationThreadListItem => ({
-    ...thread,
-    patient: thread.patient ? patients.find((patient) => patient.id === thread.patientId) : null,
-    lastMessagePreview:
-      thread.id === 'thread-1'
-        ? 'Te enviamos el formulario ahora mismo'
-        : 'Necesita llamada de vuelta hoy',
-    nextSuggestedAction:
-      thread.id === 'thread-1' ? 'Revisar formulario enviado' : 'Llamar antes de las 12:00',
-    unreadCount: thread.id === 'thread-1' ? 1 : 0,
-  })),
+  prioritizedInbox: conversationDetails.map(
+    (thread): ConversationThreadListItem => ({
+      ...thread,
+      patient: thread.patient ? patients.find((patient) => patient.id === thread.patientId) : null,
+      lastMessagePreview:
+        thread.id === 'thread-1'
+          ? 'Te enviamos el formulario ahora mismo'
+          : 'Necesita llamada de vuelta hoy',
+      nextSuggestedAction:
+        thread.id === 'thread-1' ? 'Revisar formulario enviado' : 'Llamar antes de las 12:00',
+      unreadCount: thread.id === 'thread-1' ? 1 : 0,
+    })
+  ),
   agenda: appointmentDetails.slice(0, 2),
   pendingForms: formSubmissions,
   pendingConfirmations: confirmations.filter((item) => item.status === 'pending'),
@@ -779,7 +781,8 @@ function filterPatients(filters: PatientFilters = {}) {
   return patients.filter((patient) => {
     if (filters.search) {
       const query = filters.search.toLowerCase();
-      const haystack = `${patient.fullName} ${patient.phone ?? ''} ${patient.email ?? ''}`.toLowerCase();
+      const haystack =
+        `${patient.fullName} ${patient.phone ?? ''} ${patient.email ?? ''}`.toLowerCase();
       if (!haystack.includes(query)) {
         return false;
       }
@@ -887,7 +890,10 @@ export function listClinicChannels(_tenantId: string): ClinicChannel[] {
   return clone(clinicChannels);
 }
 
-export function listClinicPatients(_tenantId: string, filters: PatientFilters = {}): PatientsResponse {
+export function listClinicPatients(
+  _tenantId: string,
+  filters: PatientFilters = {}
+): PatientsResponse {
   const items = filterPatients(filters);
   return clone({
     patients: items,
@@ -905,7 +911,9 @@ export function getClinicPatient(_tenantId: string, patientId: string): PatientR
     patient,
     identities: patientIdentities[patientId] ?? [],
     upcomingAppointments: appointmentDetails
-      .filter((appointment) => appointment.patientId === patientId && appointment.status !== 'cancelled')
+      .filter(
+        (appointment) => appointment.patientId === patientId && appointment.status !== 'cancelled'
+      )
       .map(({ events: _events, ...appointment }): AppointmentSummary => appointment),
     waitlistRequests: waitlistRequests.filter((request) => request.patientId === patientId),
   });
@@ -918,11 +926,17 @@ export function listClinicConversations(_tenantId: string): ConversationsRespons
   });
 }
 
-export function getClinicConversation(_tenantId: string, threadId: string): ConversationThreadDetail | null {
+export function getClinicConversation(
+  _tenantId: string,
+  threadId: string
+): ConversationThreadDetail | null {
   return clone(conversationDetails.find((thread) => thread.id === threadId) ?? null);
 }
 
-export function listClinicConversationMessages(_tenantId: string, threadId: string): ConversationMessage[] {
+export function listClinicConversationMessages(
+  _tenantId: string,
+  threadId: string
+): ConversationMessage[] {
   return clone(messages.filter((message) => message.threadId === threadId));
 }
 
@@ -966,7 +980,10 @@ export function listClinicAppointments(
     if (filters.status && appointment.status !== filters.status) {
       return false;
     }
-    if (filters.confirmationStatus && appointment.confirmationStatus !== filters.confirmationStatus) {
+    if (
+      filters.confirmationStatus &&
+      appointment.confirmationStatus !== filters.confirmationStatus
+    ) {
       return false;
     }
     if (filters.reminderStatus && appointment.reminderStatus !== filters.reminderStatus) {
@@ -981,7 +998,10 @@ export function listClinicAppointments(
   });
 }
 
-export function getClinicAppointment(_tenantId: string, appointmentId: string): AppointmentDetail | null {
+export function getClinicAppointment(
+  _tenantId: string,
+  appointmentId: string
+): AppointmentDetail | null {
   return clone(appointmentDetails.find((appointment) => appointment.id === appointmentId) ?? null);
 }
 
@@ -1023,7 +1043,10 @@ export function listClinicConfirmations(
   );
 }
 
-export function listClinicGaps(_tenantId: string, filters: GapFilters = {}): GapOpportunityDetail[] {
+export function listClinicGaps(
+  _tenantId: string,
+  filters: GapFilters = {}
+): GapOpportunityDetail[] {
   return clone(
     gaps.filter((gap) => {
       if (filters.status && gap.status !== filters.status) {

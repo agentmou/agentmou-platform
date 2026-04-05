@@ -23,7 +23,9 @@ export function AppointmentBoard({
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="font-medium">{appointment.patient?.fullName ?? 'Paciente sin asignar'}</p>
+                <p className="font-medium">
+                  {appointment.patient?.fullName ?? 'Paciente sin asignar'}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {new Date(appointment.startsAt).toLocaleTimeString([], {
                     hour: '2-digit',
@@ -42,12 +44,16 @@ export function AppointmentBoard({
             </div>
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
               {appointment.practitioner ? (
-                <span className="rounded-full bg-muted px-2 py-1">{appointment.practitioner.name}</span>
+                <span className="rounded-full bg-muted px-2 py-1">
+                  {appointment.practitioner.name}
+                </span>
               ) : null}
               {appointment.location ? (
                 <span className="rounded-full bg-muted px-2 py-1">{appointment.location.name}</span>
               ) : null}
-              <span className="rounded-full bg-muted px-2 py-1">{appointment.confirmationStatus}</span>
+              <span className="rounded-full bg-muted px-2 py-1">
+                {appointment.confirmationStatus}
+              </span>
             </div>
           </div>
         ))}

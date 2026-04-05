@@ -3,7 +3,10 @@ import { clinicIntegrations } from '@/lib/marketing/clinic-site';
 
 export function ClinicIntegrationStrip() {
   return (
-    <section id="integraciones" className="border-t border-border/50 bg-[var(--marketing-bg-alt)] py-18">
+    <section
+      id="integraciones"
+      className="border-t border-border/50 bg-[var(--marketing-bg-alt)] py-18"
+    >
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <FadeContent>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">

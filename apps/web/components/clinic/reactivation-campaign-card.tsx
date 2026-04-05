@@ -2,11 +2,7 @@ import type { ReactivationCampaign } from '@agentmou/contracts';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export function ReactivationCampaignCard({
-  campaign,
-}: {
-  campaign: ReactivationCampaign;
-}) {
+export function ReactivationCampaignCard({ campaign }: { campaign: ReactivationCampaign }) {
   return (
     <Card className="border-border/60">
       <CardHeader>
@@ -17,7 +13,9 @@ export function ReactivationCampaignCard({
         <p>Estado: {campaign.status}</p>
         <p>
           Iniciada{' '}
-          {campaign.startedAt ? new Date(campaign.startedAt).toLocaleString() : 'pendiente de inicio'}
+          {campaign.startedAt
+            ? new Date(campaign.startedAt).toLocaleString()
+            : 'pendiente de inicio'}
         </p>
       </CardContent>
     </Card>

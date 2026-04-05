@@ -3,7 +3,6 @@ import {
   clinicProfiles,
   confirmationRequests,
   db,
-  intakeFormSubmissions,
   reactivationCampaigns,
   reminderJobs,
   schedules,
@@ -26,14 +25,6 @@ import type { ChannelType } from '@agentmou/contracts';
 import { and, desc, eq } from 'drizzle-orm';
 
 type TriggeredBy = ClinicReactivationCampaignPayload['triggeredBy'];
-
-function toDate(value?: string | Date | null) {
-  if (!value) {
-    return null;
-  }
-
-  return value instanceof Date ? value : new Date(value);
-}
 
 function toRecord(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -290,7 +281,9 @@ export class ClinicAutomationService {
     const rows = await db
       .select()
       .from(reminderJobs)
-      .where(and(eq(reminderJobs.tenantId, tenantId), eq(reminderJobs.appointmentId, appointmentId)))
+      .where(
+        and(eq(reminderJobs.tenantId, tenantId), eq(reminderJobs.appointmentId, appointmentId))
+      )
       .orderBy(desc(reminderJobs.updatedAt));
 
     for (const reminder of rows) {
@@ -304,7 +297,9 @@ export class ClinicAutomationService {
         lastError: reason,
         updatedAt: new Date(),
       })
-      .where(and(eq(reminderJobs.tenantId, tenantId), eq(reminderJobs.appointmentId, appointmentId)));
+      .where(
+        and(eq(reminderJobs.tenantId, tenantId), eq(reminderJobs.appointmentId, appointmentId))
+      );
 
     await db
       .update(confirmationRequests)
@@ -363,7 +358,9 @@ export class ClinicAutomationService {
     }
 
     const reminderChannel =
-      typeof profile?.defaultInboundChannel === 'string' ? profile.defaultInboundChannel : 'whatsapp';
+      typeof profile?.defaultInboundChannel === 'string'
+        ? profile.defaultInboundChannel
+        : 'whatsapp';
     const dueAt = appointment.startsAt;
     const scheduledFor = new Date(
       Math.max(dueAt.getTime() - confirmationLeadHours * 60 * 60 * 1000, Date.now())
@@ -405,11 +402,11 @@ export class ClinicAutomationService {
     const [existingReminder] = await db
       .select()
       .from(reminderJobs)
-      .where(and(eq(reminderJobs.tenantId, tenantId), eq(reminderJobs.appointmentId, appointmentId)))
+      .where(
+        and(eq(reminderJobs.tenantId, tenantId), eq(reminderJobs.appointmentId, appointmentId))
+      )
       .orderBy(desc(reminderJobs.updatedAt))
       .limit(1);
-
-    let reminderId = existingReminder?.id ?? null;
 
     if (existingReminder) {
       await db
@@ -423,22 +420,25 @@ export class ClinicAutomationService {
           updatedAt: new Date(),
         })
         .where(eq(reminderJobs.id, existingReminder.id));
-      reminderId = existingReminder.id;
-    } else {
-      const [reminder] = await db
-        .insert(reminderJobs)
-        .values({
-          tenantId,
-          appointmentId,
-          channelType: reminderChannel,
-          status: 'scheduled',
-          scheduledFor,
-          templateKey: 'confirmation-reminder',
-          attemptCount: 0,
-        })
-        .returning();
-      reminderId = reminder.id;
     }
+
+    const reminderId =
+      existingReminder?.id ??
+      (
+        await db
+          .insert(reminderJobs)
+          .values({
+            tenantId,
+            appointmentId,
+            channelType: reminderChannel,
+            status: 'scheduled',
+            scheduledFor,
+            templateKey: 'confirmation-reminder',
+            attemptCount: 0,
+          })
+          .returning()
+      )[0]?.id ??
+      null;
 
     await db
       .update(appointments)

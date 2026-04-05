@@ -9,7 +9,11 @@ import type {
 
 import { recordAuditEvent } from '../../lib/audit.js';
 import { ClinicAutomationService } from '../clinic-shared/clinic-automation.service.js';
-import { assertClinicModuleAvailable, assertClinicRole, getClinicListLimit } from '../clinic-shared/clinic-access.js';
+import {
+  assertClinicModuleAvailable,
+  assertClinicRole,
+  getClinicListLimit,
+} from '../clinic-shared/clinic-access.js';
 import { mapConfirmationRequest, mapReminderJob } from '../clinic-shared/clinic.mapper.js';
 import { FollowUpRepository } from './follow-up.repository.js';
 
@@ -26,11 +30,7 @@ export class FollowUpService {
     return reminders.map(mapReminderJob);
   }
 
-  async listConfirmations(
-    tenantId: string,
-    filters: ConfirmationFilters,
-    tenantRole?: string
-  ) {
+  async listConfirmations(tenantId: string, filters: ConfirmationFilters, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
     await assertClinicModuleAvailable(tenantId, 'core_reception');
     const confirmations = await this.repository.listConfirmations(tenantId, {

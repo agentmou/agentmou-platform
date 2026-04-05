@@ -46,7 +46,7 @@ import {
 } from '@agentmou/contracts';
 import { z } from 'zod';
 
-import { ApiContractError, ApiError, isApiNotFound, requestParsed } from './core';
+import { isApiNotFound, requestParsed } from './core';
 
 const secretsResponseSchema = z.object({
   secrets: z.array(

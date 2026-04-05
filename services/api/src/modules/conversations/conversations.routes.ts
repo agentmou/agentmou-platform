@@ -10,7 +10,10 @@ import {
 } from '@agentmou/contracts';
 
 import { handleClinicRouteError } from '../clinic-shared/clinic.errors.js';
-import { conversationFiltersSchema, conversationParamsSchema } from '../clinic-shared/clinic.schema.js';
+import {
+  conversationFiltersSchema,
+  conversationParamsSchema,
+} from '../clinic-shared/clinic.schema.js';
 import { ConversationsService } from './conversations.service.js';
 
 export async function conversationRoutes(fastify: FastifyInstance) {
@@ -27,7 +30,11 @@ export async function conversationRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const { tenantId } = request.params as { tenantId: string };
-        const result = await service.listThreads(tenantId, request.query as never, request.tenantRole);
+        const result = await service.listThreads(
+          tenantId,
+          request.query as never,
+          request.tenantRole
+        );
         return reply.send(ConversationsResponseSchema.parse(result));
       } catch (error) {
         return handleClinicRouteError(reply, error);

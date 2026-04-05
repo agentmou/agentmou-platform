@@ -5,7 +5,7 @@ export interface Memory {
   id: string;
   type: 'short_term' | 'long_term' | 'episodic' | 'semantic';
   content: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   expiresAt?: Date;
 }
@@ -17,7 +17,7 @@ export interface ConversationTurn {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**

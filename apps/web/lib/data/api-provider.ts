@@ -171,7 +171,10 @@ export const apiProvider: DataProvider = {
   // Billing
   listTenantInvoices: (id) => fetchTenantInvoices(id),
   getTenantBillingInfo: async (id) => {
-    const [overview, agents] = await Promise.all([fetchBillingOverview(id), fetchInstalledAgents(id)]);
+    const [overview, agents] = await Promise.all([
+      fetchBillingOverview(id),
+      fetchInstalledAgents(id),
+    ]);
     const primaryPaymentMethod = overview.paymentMethods.find((method) => method.isDefault);
 
     return {
@@ -261,7 +264,8 @@ export const apiProvider: DataProvider = {
     escalateConversation(tenantId, threadId, body),
   resolveClinicConversation: (tenantId, threadId, body) =>
     resolveConversation(tenantId, threadId, body),
-  replyClinicConversation: (tenantId, threadId, body) => replyConversation(tenantId, threadId, body),
+  replyClinicConversation: (tenantId, threadId, body) =>
+    replyConversation(tenantId, threadId, body),
 
   // Clinic calls
   listClinicCalls: (tenantId, filters) => fetchCalls(tenantId, filters),
@@ -273,7 +277,8 @@ export const apiProvider: DataProvider = {
   // Clinic appointments
   listClinicAppointments: (tenantId, filters) => fetchAppointments(tenantId, filters),
   getClinicAppointment: (tenantId, appointmentId) => fetchAppointment(tenantId, appointmentId),
-  createClinicAppointment: async (tenantId, body) => (await createAppointment(tenantId, body)).appointment,
+  createClinicAppointment: async (tenantId, body) =>
+    (await createAppointment(tenantId, body)).appointment,
   updateClinicAppointment: (tenantId, appointmentId, body) =>
     updateAppointment(tenantId, appointmentId, body).then((response) => response.appointment),
   rescheduleClinicAppointment: (tenantId, appointmentId, body) =>

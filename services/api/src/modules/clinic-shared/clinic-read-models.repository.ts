@@ -3,7 +3,6 @@ import {
   callSessions,
   clinicLocations,
   clinicServices,
-  confirmationRequests,
   conversationMessages,
   conversationThreads,
   db,
@@ -22,23 +21,19 @@ import { and, desc, eq, gte, inArray, ne } from 'drizzle-orm';
 
 import {
   mapAppointmentSummary,
-  mapCallSession,
   mapCallSessionDetail,
   mapClinicLocation,
   mapClinicService,
-  mapConfirmationRequest,
   mapConversationMessage,
   mapConversationThread,
   mapConversationThreadDetail,
   mapConversationThreadListItem,
   mapGapOpportunityDetail,
   mapGapOutreachAttempt,
-  mapIntakeFormSubmission,
   mapPatient,
   mapPatientIdentity,
   mapPatientListItem,
   mapPractitioner,
-  mapReactivationCampaign,
   mapReactivationCampaignDetail,
   mapReactivationRecipient,
   mapWaitlistRequest,
@@ -47,10 +42,10 @@ import {
 type DatabaseClient = typeof db;
 type PatientRow = typeof patients.$inferSelect;
 type AppointmentRow = typeof appointments.$inferSelect;
+type CallRow = typeof callSessions.$inferSelect;
 type ThreadRow = typeof conversationThreads.$inferSelect;
 type GapRow = typeof gapOpportunities.$inferSelect;
 type CampaignRow = typeof reactivationCampaigns.$inferSelect;
-type CallRow = typeof callSessions.$inferSelect;
 
 export class ClinicReadModelsRepository {
   constructor(private readonly database: DatabaseClient = db) {}
@@ -83,15 +78,17 @@ export class ClinicReadModelsRepository {
           patientId: intakeFormSubmissions.patientId,
         })
         .from(intakeFormSubmissions)
-        .where(and(eq(intakeFormSubmissions.tenantId, tenantId), inArray(intakeFormSubmissions.patientId, patientIds))),
+        .where(
+          and(
+            eq(intakeFormSubmissions.tenantId, tenantId),
+            inArray(intakeFormSubmissions.patientId, patientIds)
+          )
+        ),
     ]);
 
     const upcomingCount = new Map<string, number>();
     for (const appointment of upcomingAppointments) {
-      upcomingCount.set(
-        appointment.patientId,
-        (upcomingCount.get(appointment.patientId) ?? 0) + 1
-      );
+      upcomingCount.set(appointment.patientId, (upcomingCount.get(appointment.patientId) ?? 0) + 1);
     }
 
     const pendingFormPatients = new Set(
@@ -127,10 +124,16 @@ export class ClinicReadModelsRepository {
         : this.database.select().from(clinicServices).where(inArray(clinicServices.id, serviceIds)),
       practitionerIds.length === 0
         ? Promise.resolve([] as Array<typeof practitioners.$inferSelect>)
-        : this.database.select().from(practitioners).where(inArray(practitioners.id, practitionerIds)),
+        : this.database
+            .select()
+            .from(practitioners)
+            .where(inArray(practitioners.id, practitionerIds)),
       locationIds.length === 0
         ? Promise.resolve([] as Array<typeof clinicLocations.$inferSelect>)
-        : this.database.select().from(clinicLocations).where(inArray(clinicLocations.id, locationIds)),
+        : this.database
+            .select()
+            .from(clinicLocations)
+            .where(inArray(clinicLocations.id, locationIds)),
     ]);
 
     const patientMap = await this.loadPatientListItemMap(tenantId, patientRows);
@@ -238,7 +241,10 @@ export class ClinicReadModelsRepository {
             .select()
             .from(conversationThreads)
             .where(
-              and(eq(conversationThreads.tenantId, tenantId), eq(conversationThreads.id, callRow.threadId))
+              and(
+                eq(conversationThreads.tenantId, tenantId),
+                eq(conversationThreads.id, callRow.threadId)
+              )
             )
             .then((rows) => rows[0] ?? null)
         : Promise.resolve(null),
@@ -260,17 +266,17 @@ export class ClinicReadModelsRepository {
             .select()
             .from(gapOutreachAttempts)
             .where(
-              and(eq(gapOutreachAttempts.tenantId, tenantId), inArray(gapOutreachAttempts.gapOpportunityId, gapIds))
+              and(
+                eq(gapOutreachAttempts.tenantId, tenantId),
+                inArray(gapOutreachAttempts.gapOpportunityId, gapIds)
+              )
             )
             .orderBy(desc(gapOutreachAttempts.createdAt));
 
     const outreachByGap = groupBy(outreachRows, (row) => row.gapOpportunityId);
 
     return gapRows.map((row) =>
-      mapGapOpportunityDetail(
-        row,
-        (outreachByGap.get(row.id) ?? []).map(mapGapOutreachAttempt)
-      )
+      mapGapOpportunityDetail(row, (outreachByGap.get(row.id) ?? []).map(mapGapOutreachAttempt))
     );
   }
 
@@ -294,7 +300,12 @@ export class ClinicReadModelsRepository {
       this.database
         .select()
         .from(patientIdentities)
-        .where(and(eq(patientIdentities.tenantId, tenantId), eq(patientIdentities.patientId, patientRow.id))),
+        .where(
+          and(
+            eq(patientIdentities.tenantId, tenantId),
+            eq(patientIdentities.patientId, patientRow.id)
+          )
+        ),
       this.database
         .select()
         .from(appointments)
@@ -309,7 +320,12 @@ export class ClinicReadModelsRepository {
       this.database
         .select()
         .from(waitlistRequests)
-        .where(and(eq(waitlistRequests.tenantId, tenantId), eq(waitlistRequests.patientId, patientRow.id)))
+        .where(
+          and(
+            eq(waitlistRequests.tenantId, tenantId),
+            eq(waitlistRequests.patientId, patientRow.id)
+          )
+        )
         .orderBy(desc(waitlistRequests.createdAt)),
     ]);
 

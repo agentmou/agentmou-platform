@@ -5,13 +5,7 @@ import { LayoutPanelTop } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
-export function InternalModeSwitch({
-  href,
-  label,
-}: {
-  href: string;
-  label: string;
-}) {
+export function InternalModeSwitch({ href, label }: { href: string; label: string }) {
   return (
     <Link href={href}>
       <Button variant="outline" size="sm" className="gap-2">

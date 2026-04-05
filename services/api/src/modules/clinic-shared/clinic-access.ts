@@ -9,10 +9,7 @@ import { db, clinicChannels } from '@agentmou/db';
 import { and, eq } from 'drizzle-orm';
 
 import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
-import {
-  ClinicFeatureUnavailableRouteError,
-  ClinicForbiddenRouteError,
-} from './clinic.errors.js';
+import { ClinicFeatureUnavailableRouteError, ClinicForbiddenRouteError } from './clinic.errors.js';
 import {
   findClinicModuleEntitlement,
   resolveClinicExperience,
@@ -49,9 +46,7 @@ export function getFeatureModuleForChannel(channelType: ChannelType): ModuleKey 
   return channelType === 'voice' ? 'voice' : 'core_reception';
 }
 
-function getFeatureUnavailableReason(
-  reason?: ClinicModuleEntitlement['visibilityReason']
-) {
+function getFeatureUnavailableReason(reason?: ClinicModuleEntitlement['visibilityReason']) {
   return !reason || reason === 'active' ? 'not_in_plan' : reason;
 }
 

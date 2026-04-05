@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  createAppointmentSummary,
-  createWaitlistRequest,
-} from './clinic-test-fixtures.js';
+import { createAppointmentSummary, createWaitlistRequest } from './clinic-test-fixtures.js';
 
 const { eqMock, andMock, gteMock, inArrayMock, neMock, descMock } = vi.hoisted(() => ({
   eqMock: vi.fn(),

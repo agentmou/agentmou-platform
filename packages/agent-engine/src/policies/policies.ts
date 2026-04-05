@@ -182,7 +182,7 @@ export class PolicyEngine {
   private matchesCondition(
     condition: string,
     action: string,
-    context?: Record<string, unknown>
+    _context?: Record<string, unknown>
   ): boolean {
     // Simple wildcard matching: "*" matches all, "gmail.*" matches gmail actions
     if (condition === '*') return true;

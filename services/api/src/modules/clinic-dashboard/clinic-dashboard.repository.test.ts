@@ -6,14 +6,7 @@ import {
   createGapDetail,
 } from '../clinic-shared/clinic-test-fixtures.js';
 
-const {
-  eqMock,
-  andMock,
-  gteMock,
-  neMock,
-  ascMock,
-  descMock,
-} = vi.hoisted(() => ({
+const { eqMock, andMock, gteMock, neMock, ascMock, descMock } = vi.hoisted(() => ({
   eqMock: vi.fn(),
   andMock: vi.fn(),
   gteMock: vi.fn(),
@@ -344,12 +337,8 @@ describe('ClinicDashboardRepository', () => {
     } as never);
 
     const mockReadModels = {
-      loadConversationListItems: vi
-        .fn()
-        .mockResolvedValue([createConversationThreadListItem()]),
-      loadAppointmentSummaries: vi
-        .fn()
-        .mockResolvedValue([createAppointmentSummary()]),
+      loadConversationListItems: vi.fn().mockResolvedValue([createConversationThreadListItem()]),
+      loadAppointmentSummaries: vi.fn().mockResolvedValue([createAppointmentSummary()]),
       loadGapDetails: vi.fn().mockResolvedValue([createGapDetail()]),
     };
     (repository as unknown as { readModels: typeof mockReadModels }).readModels = mockReadModels;
@@ -377,10 +366,9 @@ describe('ClinicDashboardRepository', () => {
         expect.objectContaining({ id: 'thread-2' }),
       ])
     );
-    expect(mockReadModels.loadAppointmentSummaries).toHaveBeenCalledWith(
-      'tenant-1',
-      [appointmentRows[0]]
-    );
+    expect(mockReadModels.loadAppointmentSummaries).toHaveBeenCalledWith('tenant-1', [
+      appointmentRows[0],
+    ]);
     expect(mockReadModels.loadGapDetails).toHaveBeenCalledWith('tenant-1', [gapRows[0]]);
 
     vi.useRealTimers();

@@ -11,7 +11,9 @@ export function CallActivityCard({ call }: { call: CallSessionDetail }) {
           <PhoneCall className="h-4 w-4" />
         </span>
         <div>
-          <CardTitle className="text-base">{call.patient?.fullName ?? 'Llamada entrante'}</CardTitle>
+          <CardTitle className="text-base">
+            {call.patient?.fullName ?? 'Llamada entrante'}
+          </CardTitle>
           <p className="text-sm text-muted-foreground">{call.status}</p>
         </div>
       </CardHeader>

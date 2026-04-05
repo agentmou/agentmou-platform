@@ -1,9 +1,4 @@
-import {
-  db,
-  patients,
-  reactivationCampaigns,
-  reactivationRecipients,
-} from '@agentmou/db';
+import { db, patients, reactivationCampaigns, reactivationRecipients } from '@agentmou/db';
 import type {
   CampaignFilters,
   CreateReactivationCampaignBody,
@@ -102,7 +97,10 @@ export class ReactivationRepository {
       .limit(1);
 
     if (existingRecipients.length === 0) {
-      const audiencePatients = await this.resolveAudiencePatients(tenantId, campaign.audienceDefinition);
+      const audiencePatients = await this.resolveAudiencePatients(
+        tenantId,
+        campaign.audienceDefinition
+      );
 
       if (audiencePatients.length > 0) {
         await this.database.insert(reactivationRecipients).values(
@@ -135,11 +133,7 @@ export class ReactivationRepository {
     return campaign ?? null;
   }
 
-  async resumeCampaign(
-    tenantId: string,
-    campaignId: string,
-    body: ResumeReactivationCampaignBody
-  ) {
+  async resumeCampaign(tenantId: string, campaignId: string, body: ResumeReactivationCampaignBody) {
     const [campaign] = await this.database
       .update(reactivationCampaigns)
       .set({
@@ -159,10 +153,7 @@ export class ReactivationRepository {
     return this.readModels.loadCampaignRecipients(tenantId, limit);
   }
 
-  private async resolveAudiencePatients(
-    tenantId: string,
-    audienceDefinition: unknown
-  ) {
+  private async resolveAudiencePatients(tenantId: string, audienceDefinition: unknown) {
     const audience =
       typeof audienceDefinition === 'object' && audienceDefinition !== null
         ? (audienceDefinition as Record<string, unknown>)
@@ -179,16 +170,12 @@ export class ReactivationRepository {
         .where(and(eq(patients.tenantId, tenantId), inArray(patients.id, explicitPatientIds)));
     }
 
-    const rows = await this.database
-      .select()
-      .from(patients)
-      .where(eq(patients.tenantId, tenantId));
+    const rows = await this.database.select().from(patients).where(eq(patients.tenantId, tenantId));
 
     const statuses = Array.isArray(audience.statuses)
       ? audience.statuses.filter((value): value is string => typeof value === 'string')
       : ['inactive'];
-    const isExisting =
-      typeof audience.isExisting === 'boolean' ? audience.isExisting : undefined;
+    const isExisting = typeof audience.isExisting === 'boolean' ? audience.isExisting : undefined;
     const limit = typeof audience.limit === 'number' ? audience.limit : undefined;
 
     const filtered = rows.filter((patient) => {

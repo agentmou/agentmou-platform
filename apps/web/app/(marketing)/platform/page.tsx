@@ -27,9 +27,9 @@ export default function PlatformPage() {
                 El engine sigue siendo potente, solo que ya no lidera la portada
               </h1>
               <p className="mt-6 text-lg text-muted-foreground">
-                La propuesta visible es una recepcion IA para clinicas. Detras de
-                esa experiencia siguen vivos el control plane, approvals,
-                observability, catalogo operativo y n8n como capa de orquestacion.
+                La propuesta visible es una recepcion IA para clinicas. Detras de esa experiencia
+                siguen vivos el control plane, approvals, observability, catalogo operativo y n8n
+                como capa de orquestacion.
               </p>
               <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                 <Link href="/contact-sales">

@@ -8,7 +8,11 @@ import type {
 
 import { recordAuditEvent } from '../../lib/audit.js';
 import { ClinicAutomationService } from '../clinic-shared/clinic-automation.service.js';
-import { assertClinicModuleAvailable, assertClinicRole, getClinicListLimit } from '../clinic-shared/clinic-access.js';
+import {
+  assertClinicModuleAvailable,
+  assertClinicRole,
+  getClinicListLimit,
+} from '../clinic-shared/clinic-access.js';
 import { mapConversationMessage } from '../clinic-shared/clinic.mapper.js';
 import { ConversationsRepository } from './conversations.repository.js';
 

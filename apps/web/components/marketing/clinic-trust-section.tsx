@@ -14,8 +14,8 @@ export function ClinicTrustSection() {
             Tecnologia visible para negocio, control visible para la clinica
           </h2>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-            La experiencia publica vende recepcion, agenda y recuperacion. Detras, el
-            equipo conserva revision humana, permisos y trazabilidad.
+            La experiencia publica vende recepcion, agenda y recuperacion. Detras, el equipo
+            conserva revision humana, permisos y trazabilidad.
           </p>
         </FadeContent>
 
@@ -38,10 +38,12 @@ export function ClinicTrustSection() {
         <FadeContent delay={0.1}>
           <div className="mt-12 flex flex-col gap-4 rounded-[24px] border border-border/60 bg-[var(--marketing-bg-alt)] p-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-lg font-semibold">Quieres ver como se gobierna el engine interno?</p>
+              <p className="text-lg font-semibold">
+                Quieres ver como se gobierna el engine interno?
+              </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                La home publica ya no lo usa como narrativa principal, pero sigue accesible
-                para partners, operaciones internas y evaluacion tecnica.
+                La home publica ya no lo usa como narrativa principal, pero sigue accesible para
+                partners, operaciones internas y evaluacion tecnica.
               </p>
             </div>
             <Link href="/platform">

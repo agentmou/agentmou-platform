@@ -36,7 +36,10 @@ function setTime(date: Date, hours: number, minutes = 0) {
   return value;
 }
 
-async function ensureOne<T>(lookup: () => Promise<T | undefined>, create: () => Promise<T>): Promise<T> {
+async function ensureOne<T>(
+  lookup: () => Promise<T | undefined>,
+  create: () => Promise<T>
+): Promise<T> {
   const existing = await lookup();
   if (existing) return existing;
   return create();
@@ -51,13 +54,7 @@ async function insertOne<T>(action: Promise<T[]>, errorMessage: string): Promise
 async function ensureUser(db: Database) {
   return ensureOne(
     async () =>
-      (
-        await db
-          .select()
-          .from(schema.users)
-          .where(eq(schema.users.email, ADMIN_EMAIL))
-          .limit(1)
-      )[0],
+      (await db.select().from(schema.users).where(eq(schema.users.email, ADMIN_EMAIL)).limit(1))[0],
     async () =>
       insertOne(
         db
@@ -75,7 +72,10 @@ async function ensureUser(db: Database) {
 
 async function ensureTenant(
   db: Database,
-  values: Pick<typeof schema.tenants.$inferInsert, 'name' | 'type' | 'plan' | 'ownerId' | 'settings'>
+  values: Pick<
+    typeof schema.tenants.$inferInsert,
+    'name' | 'type' | 'plan' | 'ownerId' | 'settings'
+  >
 ) {
   return ensureOne(
     async () =>
@@ -83,10 +83,16 @@ async function ensureTenant(
         await db
           .select()
           .from(schema.tenants)
-          .where(and(eq(schema.tenants.name, values.name), eq(schema.tenants.ownerId, values.ownerId)))
+          .where(
+            and(eq(schema.tenants.name, values.name), eq(schema.tenants.ownerId, values.ownerId))
+          )
           .limit(1)
       )[0],
-    async () => insertOne(db.insert(schema.tenants).values(values).returning(), `Failed to create ${values.name}`)
+    async () =>
+      insertOne(
+        db.insert(schema.tenants).values(values).returning(),
+        `Failed to create ${values.name}`
+      )
   );
 }
 
@@ -97,7 +103,9 @@ async function ensureMembership(db: Database, tenantId: string, userId: string, 
         await db
           .select()
           .from(schema.memberships)
-          .where(and(eq(schema.memberships.tenantId, tenantId), eq(schema.memberships.userId, userId)))
+          .where(
+            and(eq(schema.memberships.tenantId, tenantId), eq(schema.memberships.userId, userId))
+          )
           .limit(1)
       )[0],
     async () =>
@@ -430,7 +438,10 @@ async function seedClinicDemo(db: Database, userId: string) {
           .select()
           .from(schema.clinicServices)
           .where(
-            and(eq(schema.clinicServices.tenantId, tenant.id), eq(schema.clinicServices.slug, 'dental-cleaning'))
+            and(
+              eq(schema.clinicServices.tenantId, tenant.id),
+              eq(schema.clinicServices.slug, 'dental-cleaning')
+            )
           )
           .limit(1)
       )[0],
@@ -528,7 +539,10 @@ async function seedClinicDemo(db: Database, userId: string) {
           .select()
           .from(schema.patients)
           .where(
-            and(eq(schema.patients.tenantId, tenant.id), eq(schema.patients.externalPatientId, 'DENTAL-001'))
+            and(
+              eq(schema.patients.tenantId, tenant.id),
+              eq(schema.patients.externalPatientId, 'DENTAL-001')
+            )
           )
           .limit(1)
       )[0],
@@ -570,7 +584,10 @@ async function seedClinicDemo(db: Database, userId: string) {
           .select()
           .from(schema.patients)
           .where(
-            and(eq(schema.patients.tenantId, tenant.id), eq(schema.patients.externalPatientId, 'DENTAL-002'))
+            and(
+              eq(schema.patients.tenantId, tenant.id),
+              eq(schema.patients.externalPatientId, 'DENTAL-002')
+            )
           )
           .limit(1)
       )[0],
@@ -610,7 +627,10 @@ async function seedClinicDemo(db: Database, userId: string) {
           .select()
           .from(schema.patients)
           .where(
-            and(eq(schema.patients.tenantId, tenant.id), eq(schema.patients.externalPatientId, 'DENTAL-003'))
+            and(
+              eq(schema.patients.tenantId, tenant.id),
+              eq(schema.patients.externalPatientId, 'DENTAL-003')
+            )
           )
           .limit(1)
       )[0],
@@ -828,7 +848,10 @@ async function seedClinicDemo(db: Database, userId: string) {
           .select()
           .from(schema.callSessions)
           .where(
-            and(eq(schema.callSessions.tenantId, tenant.id), eq(schema.callSessions.providerCallId, 'seed-call-001'))
+            and(
+              eq(schema.callSessions.tenantId, tenant.id),
+              eq(schema.callSessions.providerCallId, 'seed-call-001')
+            )
           )
           .limit(1)
       )[0],
@@ -849,7 +872,8 @@ async function seedClinicDemo(db: Database, userId: string) {
             endedAt: addHours(now, -1.95),
             durationSeconds: 180,
             summary: 'New patient asked about first cleaning appointment and insurance coverage.',
-            transcript: 'Hola, queria pedir una primera cita para limpieza y saber si aceptais mi seguro.',
+            transcript:
+              'Hola, queria pedir una primera cita para limpieza y saber si aceptais mi seguro.',
             resolution: 'Needs intake form before booking.',
             requiresHumanReview: true,
           })
@@ -1442,7 +1466,12 @@ async function seedClinicDemo(db: Database, userId: string) {
     voiceThread,
     callSession,
     intakeSubmission,
-    appointments: [todayAppointment, confirmedAppointment, cancelledAppointment, reactivatedAppointment],
+    appointments: [
+      todayAppointment,
+      confirmedAppointment,
+      cancelledAppointment,
+      reactivatedAppointment,
+    ],
     gapOpportunity,
     reactivationCampaign,
   };

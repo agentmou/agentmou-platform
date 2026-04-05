@@ -7,7 +7,11 @@ import {
 } from '@agentmou/contracts';
 
 import { handleClinicRouteError } from '../clinic-shared/clinic.errors.js';
-import { callFiltersSchema, callParamsSchema, tenantScopedParamsSchema } from '../clinic-shared/clinic.schema.js';
+import {
+  callFiltersSchema,
+  callParamsSchema,
+  tenantScopedParamsSchema,
+} from '../clinic-shared/clinic.schema.js';
 import { CallsService } from './calls.service.js';
 
 export async function callRoutes(fastify: FastifyInstance) {
@@ -24,7 +28,11 @@ export async function callRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const { tenantId } = request.params as { tenantId: string };
-        const result = await service.listCalls(tenantId, request.query as never, request.tenantRole);
+        const result = await service.listCalls(
+          tenantId,
+          request.query as never,
+          request.tenantRole
+        );
         return reply.send(CallsResponseSchema.parse(result));
       } catch (error) {
         return handleClinicRouteError(reply, error);

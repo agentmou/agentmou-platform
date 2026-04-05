@@ -26,9 +26,9 @@ export function PlatformEngineGrid({ featuredCatalog }: PlatformEngineGridProps)
             El engine sigue aqui, solo que ya no ocupa la portada
           </h2>
           <p className="mt-5 max-w-3xl text-lg text-muted-foreground">
-            Agentmou sigue siendo el motor interno de automatizacion: control plane,
-            approvals, observabilidad, n8n y catalogo siguen operativos, pero viven en
-            una capa secundaria respecto a la propuesta visible para clinicas.
+            Agentmou sigue siendo el motor interno de automatizacion: control plane, approvals,
+            observabilidad, n8n y catalogo siguen operativos, pero viven en una capa secundaria
+            respecto a la propuesta visible para clinicas.
           </p>
         </FadeContent>
 
@@ -75,7 +75,10 @@ export function PlatformEngineGrid({ featuredCatalog }: PlatformEngineGridProps)
                 </div>
               ))}
               {featuredCatalog.workflows.map((workflow) => (
-                <div key={workflow.id} className="rounded-2xl border border-border/50 bg-muted/30 p-4">
+                <div
+                  key={workflow.id}
+                  className="rounded-2xl border border-border/50 bg-muted/30 p-4"
+                >
                   <p className="text-sm font-semibold">{workflow.name}</p>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {workflow.trigger} - {workflow.action}

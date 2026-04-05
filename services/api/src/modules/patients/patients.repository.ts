@@ -120,15 +120,16 @@ export class PatientsRepository {
       .where(and(eq(patients.tenantId, tenantId), eq(patients.id, patientId)))
       .returning();
 
-    await this.syncPatientIdentities(tenantId, patient.id, patient.phone ?? undefined, patient.email ?? undefined);
+    await this.syncPatientIdentities(
+      tenantId,
+      patient.id,
+      patient.phone ?? undefined,
+      patient.email ?? undefined
+    );
     return patient;
   }
 
-  async reactivatePatient(
-    tenantId: string,
-    patientId: string,
-    body: ReactivatePatientBody
-  ) {
+  async reactivatePatient(tenantId: string, patientId: string, body: ReactivatePatientBody) {
     const [patient] = await this.database
       .update(patients)
       .set({
@@ -278,7 +279,10 @@ function matchesDerivedPatientFilters(
     return false;
   }
 
-  if (typeof filters.hasPendingForm === 'boolean' && row.hasPendingForm !== filters.hasPendingForm) {
+  if (
+    typeof filters.hasPendingForm === 'boolean' &&
+    row.hasPendingForm !== filters.hasPendingForm
+  ) {
     return false;
   }
 

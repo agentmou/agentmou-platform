@@ -1,9 +1,4 @@
-import {
-  conversationThreads,
-  db,
-  intakeFormSubmissions,
-  intakeFormTemplates,
-} from '@agentmou/db';
+import { conversationThreads, db, intakeFormSubmissions, intakeFormTemplates } from '@agentmou/db';
 import type {
   CompleteIntakeFormSubmissionBody,
   SendIntakeFormSubmissionBody,
@@ -50,7 +45,7 @@ export class FormsRepository {
   async sendSubmission(
     tenantId: string,
     submissionId: string,
-    body: SendIntakeFormSubmissionBody
+    _body: SendIntakeFormSubmissionBody
   ) {
     const now = new Date();
     const [submission] = await this.database
@@ -121,7 +116,11 @@ export class FormsRepository {
     return submission;
   }
 
-  async waiveSubmission(tenantId: string, submissionId: string, body: WaiveIntakeFormSubmissionBody) {
+  async waiveSubmission(
+    tenantId: string,
+    submissionId: string,
+    body: WaiveIntakeFormSubmissionBody
+  ) {
     const [submission] = await this.database
       .update(intakeFormSubmissions)
       .set({

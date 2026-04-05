@@ -141,7 +141,7 @@ Keep plans concise — 2-6 steps. Each step should use one of the available tool
   /**
    * Fallback plan when no LLM is available — suitable for inbox triage.
    */
-  private generateDefaultSteps(goal: string): PlanStep[] {
+  private generateDefaultSteps(_goal: string): PlanStep[] {
     return [
       {
         id: 'step_1',

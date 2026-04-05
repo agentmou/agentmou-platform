@@ -10,7 +10,11 @@ import {
 } from '@agentmou/contracts';
 
 import { handleClinicRouteError } from '../clinic-shared/clinic.errors.js';
-import { appointmentFiltersSchema, appointmentParamsSchema, tenantScopedParamsSchema } from '../clinic-shared/clinic.schema.js';
+import {
+  appointmentFiltersSchema,
+  appointmentParamsSchema,
+  tenantScopedParamsSchema,
+} from '../clinic-shared/clinic.schema.js';
 import { AppointmentsService } from './appointments.service.js';
 
 export async function appointmentRoutes(fastify: FastifyInstance) {
@@ -27,7 +31,11 @@ export async function appointmentRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const { tenantId } = request.params as { tenantId: string };
-        const result = await service.listAppointments(tenantId, request.query as never, request.tenantRole);
+        const result = await service.listAppointments(
+          tenantId,
+          request.query as never,
+          request.tenantRole
+        );
         return reply.send(AppointmentsResponseSchema.parse(result));
       } catch (error) {
         return handleClinicRouteError(reply, error);
@@ -48,7 +56,11 @@ export async function appointmentRoutes(fastify: FastifyInstance) {
           tenantId: string;
           appointmentId: string;
         };
-        const appointment = await service.getAppointment(tenantId, appointmentId, request.tenantRole);
+        const appointment = await service.getAppointment(
+          tenantId,
+          appointmentId,
+          request.tenantRole
+        );
         if (!appointment) {
           return reply.status(404).send({ error: 'Appointment not found' });
         }

@@ -10,7 +10,11 @@ import {
 } from '@agentmou/contracts';
 
 import { handleClinicRouteError } from '../clinic-shared/clinic.errors.js';
-import { patientFiltersSchema, patientParamsSchema, tenantScopedParamsSchema } from '../clinic-shared/clinic.schema.js';
+import {
+  patientFiltersSchema,
+  patientParamsSchema,
+  tenantScopedParamsSchema,
+} from '../clinic-shared/clinic.schema.js';
 import { PatientsService } from './patients.service.js';
 
 export async function patientRoutes(fastify: FastifyInstance) {
@@ -27,7 +31,11 @@ export async function patientRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const { tenantId } = request.params as { tenantId: string };
-        const result = await service.listPatients(tenantId, request.query as never, request.tenantRole);
+        const result = await service.listPatients(
+          tenantId,
+          request.query as never,
+          request.tenantRole
+        );
         return reply.send(PatientsResponseSchema.parse(result));
       } catch (error) {
         return handleClinicRouteError(reply, error);
@@ -154,9 +162,7 @@ export async function patientRoutes(fastify: FastifyInstance) {
           request.userId,
           request.tenantRole
         );
-        return reply
-          .status(201)
-          .send(WaitlistRequestResponseSchema.parse({ waitlistRequest }));
+        return reply.status(201).send(WaitlistRequestResponseSchema.parse({ waitlistRequest }));
       } catch (error) {
         return handleClinicRouteError(reply, error);
       }

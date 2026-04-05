@@ -7,7 +7,11 @@ import {
 } from '@agentmou/contracts';
 
 import { recordAuditEvent } from '../../lib/audit.js';
-import { assertClinicModuleAvailable, assertClinicRole, getClinicListLimit } from '../clinic-shared/clinic-access.js';
+import {
+  assertClinicModuleAvailable,
+  assertClinicRole,
+  getClinicListLimit,
+} from '../clinic-shared/clinic-access.js';
 import { mapWaitlistRequest } from '../clinic-shared/clinic.mapper.js';
 import { PatientsRepository } from './patients.repository.js';
 

@@ -9,7 +9,8 @@ export function FormProgressCard({ submission }: { submission: IntakeFormSubmiss
         <div>
           <p className="font-medium">Formulario {submission.status}</p>
           <p className="text-sm text-muted-foreground">
-            Expira {submission.expiresAt ? new Date(submission.expiresAt).toLocaleString() : 'sin fecha'}
+            Expira{' '}
+            {submission.expiresAt ? new Date(submission.expiresAt).toLocaleString() : 'sin fecha'}
           </p>
         </div>
         <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">

@@ -120,7 +120,9 @@ function isModuleEnabled(
 }
 
 function hasActiveChannel(channels: ClinicChannel[], channelType: ClinicChannel['channelType']) {
-  return channels.some((channel) => channel.channelType === channelType && channel.status === 'active');
+  return channels.some(
+    (channel) => channel.channelType === channelType && channel.status === 'active'
+  );
 }
 
 export function resolveClinicCapabilities(params: {
@@ -131,12 +133,12 @@ export function resolveClinicCapabilities(params: {
   experience?: ClinicExperience | null;
 }): ClinicUiCapabilities {
   const { modules, channels, profile, role, experience } = params;
-  const moduleByKey = Object.fromEntries(modules.map((module) => [module.moduleKey, module])) as Record<
-    string,
-    ClinicModuleEntitlement
-  >;
+  const moduleByKey = Object.fromEntries(
+    modules.map((module) => [module.moduleKey, module])
+  ) as Record<string, ClinicModuleEntitlement>;
   const normalizedRole = normalizeMemberRole(role);
-  const coreReceptionEnabled = moduleByKey.core_reception?.enabled ?? isModuleEnabled(modules, 'core_reception');
+  const coreReceptionEnabled =
+    moduleByKey.core_reception?.enabled ?? isModuleEnabled(modules, 'core_reception');
   const voiceEnabled = moduleByKey.voice?.enabled ?? isModuleEnabled(modules, 'voice');
   const growthEnabled = moduleByKey.growth?.enabled ?? isModuleEnabled(modules, 'growth');
   const internalPlatformEnabled =
@@ -241,14 +243,18 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
 
       const nextTenant = resolvedTenant;
       const shouldLoadClinicContext =
-        isClinicUiEnabled(nextTenant?.settings) || resolvedProfile !== null || nextExperience !== null;
+        isClinicUiEnabled(nextTenant?.settings) ||
+        resolvedProfile !== null ||
+        nextExperience !== null;
 
       let nextModules: ClinicModuleEntitlement[] = nextExperience?.modules ?? [];
       let nextChannels: ClinicChannel[] = [];
 
       if (shouldLoadClinicContext) {
         const [loadedModules, loadedChannels] = await Promise.all([
-          nextModules.length > 0 ? Promise.resolve(nextModules) : provider.listClinicModules(tenantId).catch(() => []),
+          nextModules.length > 0
+            ? Promise.resolve(nextModules)
+            : provider.listClinicModules(tenantId).catch(() => []),
           provider.listClinicChannels(tenantId).catch(() => []),
         ]);
         nextModules = loadedModules;
@@ -297,8 +303,7 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
   const canAccessInternalPlatform =
     resolvedExperience?.permissions.includes('view_internal_platform') ??
     capabilities.canAccessInternalPlatform;
-  const mode: TenantShellMode =
-    isClinicTenant && !isPlatformRoute ? 'clinic' : 'platform_internal';
+  const mode: TenantShellMode = isClinicTenant && !isPlatformRoute ? 'clinic' : 'platform_internal';
   const normalizedRole = resolvedExperience?.normalizedRole ?? normalizeMemberRole(role);
 
   return {

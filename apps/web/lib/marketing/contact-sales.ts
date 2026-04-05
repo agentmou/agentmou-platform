@@ -7,12 +7,7 @@ export const contactSalesModuleOptions = [
   { value: 'enterprise', label: 'Enterprise' },
 ] as const;
 
-export const ContactSalesModuleSchema = z.enum([
-  'core_reception',
-  'voice',
-  'growth',
-  'enterprise',
-]);
+export const ContactSalesModuleSchema = z.enum(['core_reception', 'voice', 'growth', 'enterprise']);
 
 export const ContactSalesLeadSchema = z.object({
   fullName: z.string().trim().min(2).max(120),

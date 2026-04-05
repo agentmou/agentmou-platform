@@ -8,7 +8,7 @@ import {
   patients,
   reactivationCampaigns,
 } from '@agentmou/db';
-import { and, asc, desc, eq, gte, inArray, ne } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, ne } from 'drizzle-orm';
 
 import { ClinicReadModelsRepository } from '../clinic-shared/clinic-read-models.repository.js';
 
@@ -55,10 +55,7 @@ export class ClinicDashboardRepository {
         .from(conversationThreads)
         .where(eq(conversationThreads.tenantId, tenantId))
         .orderBy(desc(conversationThreads.lastMessageAt), desc(conversationThreads.createdAt)),
-      this.database
-        .select()
-        .from(patients)
-        .where(eq(patients.tenantId, tenantId)),
+      this.database.select().from(patients).where(eq(patients.tenantId, tenantId)),
       this.database
         .select()
         .from(intakeFormSubmissions)
@@ -109,7 +106,8 @@ export class ClinicDashboardRepository {
       tenantId,
       [...openThreads]
         .sort((left, right) => {
-          const priorityDelta = (PRIORITY_RANK[left.priority] ?? 99) - (PRIORITY_RANK[right.priority] ?? 99);
+          const priorityDelta =
+            (PRIORITY_RANK[left.priority] ?? 99) - (PRIORITY_RANK[right.priority] ?? 99);
           if (priorityDelta !== 0) {
             return priorityDelta;
           }
@@ -133,7 +131,10 @@ export class ClinicDashboardRepository {
         patientsExisting: patientRows.filter((patient) => patient.isExisting).length,
       },
       prioritizedInbox,
-      agenda: await this.readModels.loadAppointmentSummaries(tenantId, todaysAppointments.slice(0, 10)),
+      agenda: await this.readModels.loadAppointmentSummaries(
+        tenantId,
+        todaysAppointments.slice(0, 10)
+      ),
       pendingForms: pendingForms.slice(0, 10),
       pendingConfirmations: pendingConfirmations.slice(0, 10),
       activeGaps: await this.readModels.loadGapDetails(tenantId, activeGaps.slice(0, 10)),
