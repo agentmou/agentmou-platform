@@ -5,6 +5,9 @@ import * as RechartsPrimitive from 'recharts';
 
 import { cn } from '@/lib/utils';
 
+type ChartValue = number | string | Array<number | string>;
+type ChartName = number | string;
+
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: '', dark: '.dark' } as const;
 
@@ -110,7 +113,7 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
-}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+}: Partial<RechartsPrimitive.TooltipContentProps<ChartValue, ChartName>> &
   React.ComponentProps<'div'> & {
     hideLabel?: boolean;
     hideIndicator?: boolean;
@@ -168,14 +171,14 @@ function ChartTooltipContent({
 
           return (
             <div
-              key={item.dataKey}
+              key={`${item.dataKey || item.name || index}`}
               className={cn(
                 '[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5',
                 indicator === 'dot' && 'items-center'
               )}
             >
               {formatter && item?.value !== undefined && item.name ? (
-                formatter(item.value, item.name, item, index, item.payload)
+                formatter(item.value, item.name, item, index, payload)
               ) : (
                 <>
                   {itemConfig?.icon ? (
@@ -214,7 +217,7 @@ function ChartTooltipContent({
                         {itemConfig?.label || item.name}
                       </span>
                     </div>
-                    {item.value && (
+                    {item.value !== undefined && item.value !== null && (
                       <span className="text-foreground font-mono font-medium tabular-nums">
                         {item.value.toLocaleString()}
                       </span>
@@ -238,8 +241,9 @@ function ChartLegendContent({
   payload,
   verticalAlign = 'bottom',
   nameKey,
-}: React.ComponentProps<'div'> &
-  Pick<RechartsPrimitive.LegendProps, 'payload' | 'verticalAlign'> & {
+}: React.ComponentProps<'div'> & {
+    payload?: ReadonlyArray<RechartsPrimitive.LegendPayload>;
+    verticalAlign?: RechartsPrimitive.LegendProps['verticalAlign'];
     hideIcon?: boolean;
     nameKey?: string;
   }) {
