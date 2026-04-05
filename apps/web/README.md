@@ -106,7 +106,7 @@ pnpm --filter @agentmou/web start
 
 | Provider | When | Catalog source |
 | --- | --- | --- |
-| `mockProvider` | Marketing layout `DataProviderContext` default | `lib/demo-catalog`, `lib/demo/read-model.ts`, and clinic fixtures in `lib/demo/clinic-read-model.ts` |
+| `mockProvider` | Marketing layout `DataProviderContext` default | `lib/demo-catalog`, `lib/demo/read-model.ts`, and clinic fixtures in `lib/demo/clinic-demo-fixtures.ts` + `lib/demo/clinic-read-model.ts` |
 | `demoProvider` | `tenantId === demo-workspace` | Same as mock, plus operational overlay and read-only clinic demo data in `lib/data/demo-provider.ts` |
 | `apiProvider` | Authenticated real tenants | `services/api` via `lib/api/client.ts` and `lib/api/clinic.ts` |
 
@@ -130,6 +130,9 @@ pnpm --filter @agentmou/web start
   plus the dental clinic overlay used by the clinic shell.
 - `lib/demo/read-model.ts` is the synchronous selector layer used only behind
   `mockProvider`.
+- `lib/demo/clinic-demo-fixtures.ts` contains the dental demo tenant story used
+  by the clinic shell: 11 patients, WhatsApp + voice journeys, forms,
+  confirmations, a live gap-fill case, and a running reactivation campaign.
 - `lib/demo/clinic-read-model.ts` is the synchronous clinic selector layer used
   behind `mockProvider` and `demoProvider`.
 - `lib/catalog/availability.ts` centralizes default listing tier resolution for UI.
@@ -186,6 +189,14 @@ redirects back to the clinic dashboard. `demo-workspace` keeps a realistic
 clinic shell but hides the internal switch and blocks `/platform/*` by
 default.
 
+The demo clinic currently covers these reference journeys:
+
+- new patient via WhatsApp -> form completed -> appointment booked
+- existing patient reschedule with WhatsApp + callback
+- pending and confirmed appointment confirmations
+- recent cancellation -> active gap -> outreach to a compatible waitlist patient
+- running reactivation campaign with booked, contacted, and failed recipients
+
 ## Configuration
 
 Required or important environment variables:
@@ -210,6 +221,12 @@ pnpm --filter @agentmou/web build
 
 Use `pnpm dev` at the repo root when you want the web app to run together with
 other workspaces.
+
+To re-check the clinic demo dataset without starting the app:
+
+```bash
+pnpm test:clinic-demo-smoke
+```
 
 After changing operational manifests, refresh the generated ID list:
 

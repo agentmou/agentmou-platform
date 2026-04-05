@@ -86,6 +86,9 @@ pnpm db:migrate
 
 # Seed the database with example data
 pnpm db:seed
+
+# Or run the full clinic validation lane (migrate + seed + tests + smoke)
+pnpm validate:clinic-demo
 ```
 
 ### 6. Start Development Services
@@ -119,8 +122,10 @@ Open your browser to the local endpoints:
 
 To access the web app:
 1. Navigate to http://localhost:3000
-2. Create an account (or use the seeded demo account if one exists)
-3. Explore the tenant control plane
+2. Create an account, or use the seeded local login:
+   `admin@agentmou.dev` / `Demo1234!`
+3. Explore `Demo Workspace` for the horizontal demo or `Dental Demo Clinic`
+   for the seeded clinic tenant with internal `/platform/*` access
 
 ---
 

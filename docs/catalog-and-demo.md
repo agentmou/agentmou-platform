@@ -72,6 +72,30 @@ catalog/marketplace surfaces and the clinic control-center experience rendered
 for the demo tenant. The clinic demo remains visible and realistic, but the
 internal mode stays hidden and `/platform/*` is blocked by default.
 
+The current clinic demo is intentionally journey-based, not generic placeholder
+data. It covers:
+
+- a new patient booking journey through WhatsApp, form completion, and booking
+- an existing patient reschedule with WhatsApp plus callback
+- pending and confirmed confirmations
+- a recent cancellation that opens a gap and triggers outreach to a waitlist
+  patient
+- a running reactivation campaign with multiple recipient outcomes
+
+Frontend selectors for this story live in
+`apps/web/lib/demo/clinic-demo-fixtures.ts`, while the relational seed mirror
+lives in `packages/db/src/clinic-demo-fixture.ts`.
+
+For complete local verification, use:
+
+```bash
+pnpm validate:clinic-demo
+```
+
+The seeded clinic QA login is `admin@agentmou.dev` / `Demo1234!`. That seeded
+user sees the internal platform inside `Dental Demo Clinic`, while the public
+`demo-workspace` demo keeps internal mode hidden by design.
+
 ## Generated Snapshot Workflow
 
 `apps/web/lib/demo-catalog/operational-ids.gen.json` is generated from the
