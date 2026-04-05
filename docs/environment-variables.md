@@ -113,6 +113,13 @@ cp infra/compose/.env.example infra/compose/.env
 
 **Note:** In demo/test or when these variables are absent, the clinic channel adapters fall back to the `mock_*` providers when allowed by environment.
 
+### Web Marketing Capture
+
+| Variable | Example | Required | Purpose |
+| -------- | ------- | -------- | ------- |
+| `CONTACT_SALES_WEBHOOK_URL` | `https://hooks.example.com/contact-sales` | Optional | Webhook target for `POST /api/contact-sales`; if omitted outside production, the route accepts the lead and logs a controlled fallback |
+| `CONTACT_SALES_WEBHOOK_TOKEN` | `sales-webhook-secret` | Optional | Bearer token sent by the web app when relaying contact-sales leads to the configured webhook |
+
 ### Encryption
 
 | Variable | Example | Required | Purpose |
@@ -161,6 +168,8 @@ TWILIO_AUTH_TOKEN=
 TWILIO_WHATSAPP_FROM=
 TWILIO_WHATSAPP_MESSAGING_SERVICE_SID=
 TWILIO_VOICE_FROM=
+CONTACT_SALES_WEBHOOK_URL=
+CONTACT_SALES_WEBHOOK_TOKEN=
 ```
 
 ### Staging/Production
@@ -197,6 +206,10 @@ MICROSOFT_OAUTH_REDIRECT_URI=https://api.agentmou.io/api/v1/auth/oauth/microsoft
 GOOGLE_CLIENT_ID=(your-client-id)
 GOOGLE_CLIENT_SECRET=(your-secret)
 GOOGLE_REDIRECT_URI=https://api.agentmou.io/api/v1/oauth/callback
+
+# Web marketing lead capture
+CONTACT_SALES_WEBHOOK_URL=https://hooks.example.com/contact-sales
+CONTACT_SALES_WEBHOOK_TOKEN=(shared-secret)
 
 # Twilio clinic channels (if using real delivery)
 TWILIO_ACCOUNT_SID=AC...

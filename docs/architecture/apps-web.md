@@ -7,14 +7,15 @@ frontend itself.
 
 ## Responsibilities
 
-- Render the public marketing experience under `app/(marketing)`.
+- Render the public clinic marketing experience under `app/(marketing)`.
 - Handle login, registration, password reset, and the B2C OAuth return flow
   under `app/(auth)`.
 - Render the authenticated tenant experience under `app/app/[tenantId]/`,
   choosing between the clinic shell and the original platform shell.
 - Consume `services/api` through typed client helpers in `lib/api/`, including
   the clinic backend fetchers added for the new tenant-scoped domain routes.
-- Expose web-owned API routes for marketing chat and the public catalog cards.
+- Expose web-owned API routes for marketing chat, public catalog cards, and
+  contact-sales lead capture.
 - Keep demo and operational catalog experiences separated through the
   `DataProvider` abstraction.
 - Keep clinic and internal-platform navigation coherent for vertical tenants
@@ -27,13 +28,18 @@ frontend itself.
 
 ```text
 app/(marketing)/
+├── contact-sales/page.tsx
 ├── page.tsx
 ├── docs/page.tsx
+├── platform/page.tsx
 ├── pricing/page.tsx
 └── security/page.tsx
 ```
 
 These routes use the marketing layout and default to demo-backed read models.
+The homepage, pricing, security, and contact-sales pages are clinic-first.
+`/platform` is the public technical narrative, and `/docs` now redirects there
+to preserve old links.
 
 ### Auth routes
 
@@ -133,11 +139,15 @@ is not available.
 ```text
 app/api/
 ├── chat/route.ts
+├── contact-sales/route.ts
 └── public-catalog/route.ts
 ```
 
 - `chat` is the frontend-owned route for the public chat experience.
-- `public-catalog` returns the curated catalog cards used on marketing pages.
+- `contact-sales` validates the commercial lead form and relays it to a
+  configurable webhook.
+- `public-catalog` returns the curated catalog payload used by the secondary
+  `/platform` page and technical supporting blocks.
 
 ## Data Access Model
 
@@ -161,6 +171,15 @@ surface without page-level `fetch` calls.
 The provider contract now also carries the resolved clinic experience so
 navigation, guards, command palette items, and internal-mode eligibility all
 derive from the same payload instead of each page re-implementing gating.
+
+Public marketing does not depend on `DataProvider` for its main story anymore.
+Instead:
+
+- `lib/marketing/clinic-site.ts` models the clinic positioning, pricing, trust,
+  and flow sections.
+- `lib/marketing/site-config.ts` drives nav/footer structure.
+- `lib/marketing/featured-from-demo.ts` and `/api/public-catalog` are reserved
+  for the secondary `/platform` story and technical catalog snippets.
 
 ## Important Supporting Modules
 
@@ -189,7 +208,12 @@ derive from the same payload instead of each page re-implementing gating.
 - `lib/demo/clinic-read-model.ts` provides deterministic clinic fixtures for
   `mockProvider` and the demo tenant overlays.
 - `lib/marketing/featured-from-demo.ts` builds the homepage catalog payload.
+- `lib/marketing/site-config.ts` defines the clinic public nav/footer structure.
+- `lib/marketing/clinic-site.ts` provides the clinic marketing read model used
+  by `/`, `/pricing`, `/security`, and `/contact-sales`.
 - `lib/honest-ui/` centralizes preview and placeholder labeling for the UI.
+- `components/marketing/` contains the clinic hero, value grids, patient-flow
+  sections, trust blocks, platform grid, and `ContactSalesForm`.
 - `lib/search-index.ts` and the command palette now support `clinic` and
   `platform_internal` modes so the clinic shell surfaces patients,
   appointments, conversations, forms, gaps, and campaigns instead of

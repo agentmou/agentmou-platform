@@ -1,7 +1,8 @@
 # Agentmou Platform Documentation
 
 Welcome to the Agentmou Platform documentation. This hub organizes everything
-you need to understand, develop, and operate the AI agents platform.
+you need to understand, develop, and operate Agentmou's clinic-facing product
+and the internal engine that powers it.
 
 ## Getting Started
 
@@ -15,7 +16,7 @@ you need to understand, develop, and operate the AI agents platform.
 Understand how Agentmou is structured and why:
 
 - **[Architecture Overview](./architecture/overview.md)** — System topology, control plane vs data plane, communication patterns, auth model.
-- **[apps/web Architecture](./architecture/apps-web.md)** — Route groups, resolved clinic experience, clinic vs `platform_internal` shell resolution, provider modes, auth callback flow, and tenant UI boundaries.
+- **[apps/web Architecture](./architecture/apps-web.md)** — Clinic-first public marketing routes, `/platform` as the technical public surface, `contact-sales` lead capture, resolved clinic experience, clinic vs `platform_internal` shell resolution, provider modes, auth callback flow, and tenant UI boundaries.
 - **[Repository Map](./repo-map.md)** — Every app, service, package, and config file explained.
 - **[Data Model](./architecture/data-model.md)** — Database schema, entity relationships, migrations, encryption at rest.
 - **[Agent Engine](./architecture/agent-engine.md)** — Planner, PolicyEngine, Toolkit, execution flow, HITL approvals.

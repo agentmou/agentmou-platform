@@ -1,6 +1,6 @@
 # Agentmou Platform
 
-Agentmou is a **multi-tenant AI agents platform** that enables organizations to install, execute, and manage AI agents with human-in-the-loop approvals. It combines a React/Next.js control plane, a Fastify REST API, background job processing via BullMQ, and workflow orchestration through n8n.
+Agentmou is a **multi-tenant platform whose visible product is a multichannel AI receptionist for clinics**, powered by an internal AI agent engine with human-in-the-loop approvals. It combines a React/Next.js web surface, a Fastify REST API, background job processing via BullMQ, and workflow orchestration through n8n.
 
 **Start here:** Read the [Documentation Hub](./docs/README.md) for comprehensive guides on setup, architecture, testing, and operations.
 
@@ -10,7 +10,7 @@ Agentmou is a **multi-tenant AI agents platform** that enables organizations to 
 
 | Workspace | Description |
 | --------- | ----------- |
-| `apps/web` | Next.js 16 + React 19 frontend. Public marketing site, auth flows, web-owned API routes, and authenticated tenant control center under `/app/[tenantId]/`. Resolves a tenant-aware `clinic` or `platform_internal` shell from the resolved clinic experience, filters navigation and search from that payload, keeps internal platform routes under `/app/[tenantId]/platform/*`, and uses provider modes to switch between real tenant data and demo overlays. |
+| `apps/web` | Next.js 16 + React 19 frontend. Clinic-first public marketing site, auth flows, web-owned API routes, and authenticated tenant control center under `/app/[tenantId]/`. Resolves a tenant-aware `clinic` or `platform_internal` shell from the resolved clinic experience, keeps internal platform routes under `/app/[tenantId]/platform/*`, exposes `/platform` as the public technical narrative, `/docs` as its alias, and uses provider modes to switch between real tenant data and demo overlays. |
 
 ### Services
 
