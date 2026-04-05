@@ -31,13 +31,41 @@ const blockedContext: WorkspaceContextSnapshot = {
 };
 
 describe('generateResponse', () => {
+  it('frames public how-it-works answers around the clinic product', () => {
+    const response = generateResponse({
+      mode: 'public',
+      userMessage: 'How does this work for clinics?',
+    });
+
+    expect(response.content).toContain('recepcion');
+    expect(response.content).toContain('WhatsApp y llamadas');
+    expect(response.actions).toEqual(
+      expect.arrayContaining([
+        { label: 'Solicitar demo', href: '/contact-sales' },
+        { label: 'Ver pricing', href: '/pricing' },
+      ])
+    );
+  });
+
+  it('keeps public pricing answers focused on modules instead of runs', () => {
+    const response = generateResponse({
+      mode: 'public',
+      userMessage: 'Tell me about pricing',
+    });
+
+    expect(response.content).toContain('Reception + Voice');
+    expect(response.content).toContain('Reception + Growth');
+    expect(response.content.toLowerCase()).not.toContain('1,000 runs');
+    expect(response.actions?.some((action) => action.href === '/contact-sales')).toBe(true);
+  });
+
   it('keeps public security answers free of unsupported security claims', () => {
     const response = generateResponse({
       mode: 'public',
       userMessage: 'Tell me about your security posture',
     });
 
-    expect(response.content).toContain('security surfaces today');
+    expect(response.content).toContain('Aislamiento por clinica');
     expect(response.content).not.toContain('SOC 2 Type II');
     expect(response.content).not.toContain('End-to-end encryption');
     expect(response.content).not.toContain('automatic rotation');

@@ -5,9 +5,9 @@ import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Agentmou - AI Agent Fleet + n8n Orchestration',
+  title: 'Agentmou Clinics - Recepcion IA multicanal',
   description:
-    'Install AI agents for sales, support, finance, and ops. Connect your tools. Automate with n8n workflows.',
+    'Recepcion IA multicanal para clinicas dentales. WhatsApp, llamadas, agenda, confirmaciones y recuperacion de pacientes con un engine interno potente.',
   icons: {
     icon: [
       { url: '/isotipo_agentmou_32x32.png', media: '(prefers-color-scheme: light)' },
@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap"

@@ -1,102 +1,78 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Metadata } from 'next';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { HalftoneBackground } from '@/components/brand/halftone-background';
 import { FadeContent } from '@/components/reactbits/fade-content';
 import { SpotlightCard } from '@/components/reactbits/spotlight-card';
 import { TiltedCard } from '@/components/reactbits/tilted-card';
-import { Shield, Lock, Eye, Key, Users, FileCheck, AlertTriangle, Server } from 'lucide-react';
-import type { Metadata } from 'next';
+import { ClinicCtaBand } from '@/components/marketing';
+import { clinicSecurityPillars } from '@/lib/marketing/clinic-site';
+import {
+  Eye,
+  KeyRound,
+  Lock,
+  Shield,
+  ShieldCheck,
+  Stethoscope,
+  Workflow,
+} from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Security - Agentmou',
-  description: 'Enterprise-grade security for your AI agent operations.',
+  title: 'Security - Agentmou Clinics',
+  description:
+    'Privacidad por clinica, permisos, trazabilidad, revision humana y canales protegidos para una recepcion IA multicanal.',
 };
 
-const capabilities = [
+const capabilityCards = [
   {
     icon: Shield,
-    title: 'Workspace Isolation',
+    title: 'Privacidad por clinica',
     description:
-      'Each workspace operates in complete isolation. Data, agents, and workflows are segregated at the infrastructure level to prevent any cross-tenant access.',
-    status: 'Available',
-  },
-  {
-    icon: Users,
-    title: 'Role-Based Access Control',
-    description:
-      'Granular RBAC with predefined roles (Owner, Admin, Member, Viewer) and customizable permissions. Control who can install agents, manage integrations, or view sensitive data.',
-    status: 'Available',
+      'Cada tenant opera con aislamiento multi-tenant, canales propios y control de acceso acotado al contexto de su clinica.',
   },
   {
     icon: Eye,
-    title: 'Comprehensive Audit Logs',
+    title: 'Trazabilidad visible',
     description:
-      'Every action is logged with full context: who, what, when, and where. Export logs for compliance or integrate with your SIEM.',
-    status: 'Available',
+      'Mensajes, llamadas, confirmaciones, cambios y revisiones humanas quedan registrados para soporte, auditoria y mejora continua.',
   },
   {
-    icon: Key,
-    title: 'Secrets Management',
+    icon: Workflow,
+    title: 'Revision humana cuando importa',
     description:
-      'Securely store and manage API keys, tokens, and credentials. Automatic rotation policies and never exposed in logs or UI.',
-    status: 'Available',
+      'La recepcion IA no fuerza automatizacion ciega. Los casos sensibles, callbacks y excepciones pueden pasar a humano con contexto.',
   },
   {
-    icon: AlertTriangle,
-    title: 'Human-in-the-Loop',
+    icon: KeyRound,
+    title: 'Integraciones seguras',
     description:
-      'Configure agents to require human approval for critical or high-risk actions. Set thresholds and approval workflows.',
-    status: 'Available',
-  },
-  {
-    icon: Lock,
-    title: 'Encryption',
-    description:
-      'All data encrypted at rest (AES-256) and in transit (TLS 1.3). Customer-managed keys available on Enterprise plans.',
-    status: 'Available',
-  },
-  {
-    icon: FileCheck,
-    title: 'Compliance',
-    description:
-      'SOC 2 Type II certification in progress. GDPR compliant with data processing agreements available.',
-    status: 'In Progress',
-  },
-  {
-    icon: Server,
-    title: 'Data Residency',
-    description:
-      'Choose where your data is stored. EU and US regions available, with more coming soon.',
-    status: 'Roadmap',
+      'Canales e integraciones operan con credenciales protegidas y configuracion controlada por tenant.',
   },
 ];
 
-const practices = [
+const operatingPractices = [
   {
-    title: 'Secure Development',
+    title: 'Control operativo',
     items: [
-      'All code reviewed before merge',
-      'Automated security scanning in CI/CD',
-      'Regular penetration testing',
-      'Bug bounty program',
+      'Permisos por rol y visibilidad por tenant',
+      'Modo interno separado de la experiencia clinica',
+      'Fallback visible cuando una automatizacion no puede cerrar sola',
     ],
   },
   {
-    title: 'Infrastructure Security',
+    title: 'Proteccion de canales',
     items: [
-      'Cloud-native architecture on AWS/GCP',
-      'Network isolation with VPCs',
-      'DDoS protection',
-      '24/7 monitoring and alerting',
+      'Canales de WhatsApp y voz con estado y trazabilidad',
+      'Webhooks con validacion de provider e idempotencia',
+      'Eventos inbound y outbound auditables',
     ],
   },
   {
-    title: 'Operational Security',
+    title: 'Seguridad de plataforma',
     items: [
-      'Principle of least privilege',
-      'Multi-factor authentication required',
-      'Regular access reviews',
-      'Incident response procedures',
+      'Aislamiento multi-tenant para datos y operaciones',
+      'Control plane y worker separados de la shell publica',
+      'Integraciones y callbacks con configuracion segura',
     ],
   },
 ];
@@ -105,18 +81,19 @@ export default function SecurityPage() {
   return (
     <div>
       <HalftoneBackground variant="mint" intensity="med" className="pt-24 pb-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
             <div className="mx-auto max-w-3xl text-center">
               <Badge variant="secondary" className="mb-6">
-                Enterprise-grade security
+                Seguridad para recepcion clinica
               </Badge>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                Security you can trust
+                Confianza, control y trazabilidad para cada clinica
               </h1>
               <p className="mt-6 text-lg text-muted-foreground">
-                Agentmou is built with security at its core. We protect your data, your
-                integrations, and your business.
+                Agentmou Clinics protege la operacion de recepcion con permisos,
+                aislamiento por tenant, revision humana y canales seguros sin
+                convertir la pagina en un pitch de buyer DevOps.
               </p>
             </div>
           </FadeContent>
@@ -124,89 +101,112 @@ export default function SecurityPage() {
       </HalftoneBackground>
 
       <div className="py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <FadeContent>
-            <div className="mt-24">
-              <h2 className="text-center text-2xl font-bold">Security Capabilities</h2>
+            <div id="aislamiento" className="mt-24">
+              <h2 className="text-center text-2xl font-bold">
+                Lo que ve la clinica y lo que protege el sistema
+              </h2>
               <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {capabilities.map((capability, i) => (
-                  <FadeContent key={capability.title} delay={i * 0.05}>
+                {capabilityCards.map((capability, index) => {
+                  const Icon = capability.icon;
+
+                  return (
+                    <FadeContent key={capability.title} delay={index * 0.05}>
                     <TiltedCard className="h-full">
                       <SpotlightCard className="h-full rounded-md border border-border/50 bg-card">
-                        <Card className="border-0 shadow-none bg-transparent">
-                          <CardHeader className="pb-2">
-                            <div className="flex items-center justify-between">
+                        <Card className="h-full border-0 bg-transparent py-0 shadow-none">
+                          <CardHeader className="gap-4 border-b border-border/50 pb-6">
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="text-editorial-tiny">Seguridad</p>
                               <div className="rounded-lg bg-muted p-2">
-                                <capability.icon className="h-5 w-5 text-muted-foreground" />
+                                <Icon className="h-5 w-5 text-muted-foreground" />
                               </div>
-                              <Badge
-                                variant="outline"
-                                className={
-                                  capability.status === 'Available'
-                                    ? 'bg-[oklch(0.55_0.15_145/0.1)] text-[oklch(0.45_0.15_145)] border-[oklch(0.55_0.15_145/0.2)]'
-                                    : capability.status === 'In Progress'
-                                      ? 'bg-[oklch(0.70_0.15_70/0.1)] text-[oklch(0.50_0.15_70)] border-[oklch(0.70_0.15_70/0.2)]'
-                                      : 'bg-muted text-muted-foreground'
-                                }
-                              >
-                                {capability.status}
-                              </Badge>
                             </div>
-                            <CardTitle className="mt-4 text-base">{capability.title}</CardTitle>
+                            <CardTitle className="text-base">{capability.title}</CardTitle>
                           </CardHeader>
-                          <CardContent>
-                            <CardDescription className="text-sm">
+                          <CardContent className="pt-6">
+                            <p className="text-sm leading-6 text-muted-foreground">
                               {capability.description}
-                            </CardDescription>
+                            </p>
                           </CardContent>
                         </Card>
                       </SpotlightCard>
                     </TiltedCard>
-                  </FadeContent>
-                ))}
+                    </FadeContent>
+                  );
+                })}
               </div>
             </div>
           </FadeContent>
 
           <FadeContent>
-            <div className="mt-24">
-              <h2 className="text-center text-2xl font-bold">Security Practices</h2>
-              <div className="mt-12 grid gap-8 md:grid-cols-3">
-                {practices.map((practice) => (
-                  <div key={practice.title}>
-                    <h3 className="font-semibold">{practice.title}</h3>
-                    <ul className="mt-4 space-y-3">
+            <div id="control" className="mt-24 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+              <div className="rounded-[28px] border border-border/60 bg-card p-8 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-muted p-3">
+                    <Stethoscope className="h-5 w-5" />
+                  </div>
+                  <h2 className="text-2xl font-bold">Pilares de seguridad clinica</h2>
+                </div>
+                <div className="mt-8 grid gap-4">
+                  {clinicSecurityPillars.map((pillar) => (
+                    <div
+                      key={pillar.title}
+                      className="rounded-2xl border border-border/60 bg-muted/30 p-5"
+                    >
+                      <p className="text-sm font-semibold">{pillar.title}</p>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        {pillar.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-6">
+                {operatingPractices.map((practice) => (
+                  <div
+                    key={practice.title}
+                    className="rounded-[24px] border border-border/60 bg-card p-6 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-full bg-muted p-2">
+                        <ShieldCheck className="h-4 w-4" />
+                      </div>
+                      <h3 className="text-lg font-semibold">{practice.title}</h3>
+                    </div>
+                    <ul className="mt-5 space-y-3">
                       {practice.items.map((item) => (
                         <li key={item} className="flex items-start gap-3">
-                          <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground" />
+                          <div className="mt-2 h-1.5 w-1.5 rounded-full bg-foreground" />
                           <span className="text-sm text-muted-foreground">{item}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 ))}
+                <div className="rounded-[24px] border border-border/60 bg-muted/50 p-6 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-full bg-card p-2">
+                      <Lock className="h-4 w-4" />
+                    </div>
+                    <h3 className="text-lg font-semibold">
+                      Necesitas revisar algo con el equipo?
+                    </h3>
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                    Podemos compartir el framing de seguridad, despliegue y control
+                    operativo durante la demo comercial.
+                  </p>
+                </div>
               </div>
-            </div>
-          </FadeContent>
-
-          <FadeContent>
-            <div className="mt-24">
-              <Card className="bg-muted/50">
-                <CardContent className="py-12 text-center">
-                  <h2 className="text-2xl font-bold">Questions about security?</h2>
-                  <p className="mt-4 text-muted-foreground">
-                    Our security team is happy to answer your questions and provide additional
-                    documentation.
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Contact us at security@agentmou.io
-                  </p>
-                </CardContent>
-              </Card>
             </div>
           </FadeContent>
         </div>
       </div>
+
+      <ClinicCtaBand />
     </div>
   );
 }

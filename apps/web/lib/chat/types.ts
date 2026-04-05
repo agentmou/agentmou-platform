@@ -61,10 +61,10 @@ export interface ChatResponse {
 // Quick prompts by mode
 export const QUICK_PROMPTS: Record<ChatMode, string[]> = {
   public: [
-    'What does Agentmou actually do today?',
-    'How do pricing and run overages work?',
-    'What security capabilities are real today?',
-    'Which agents and workflows are public?',
+    'Como funciona la recepcion IA para clinicas?',
+    'Que incluye Pricing y que modulos existen?',
+    'Como tratamos seguridad y privacidad?',
+    'Quiero ver la parte tecnica o solicitar una demo',
   ],
   copilot: [
     "What's next for this workspace?",
