@@ -178,12 +178,23 @@ Solutions to common problems you may encounter while developing on or running Ag
    cat packages/db/src/seed.ts
    ```
 
-3. Run seed with verbose output:
+3. Make sure you are using the repo's canonical local database URL:
+   ```bash
+   export DATABASE_URL=postgresql://agentmou:changeme@127.0.0.1:5432/agentmou
+   ```
+
+4. Run the full validation helper to ensure PostgreSQL, migrations, seed, and
+   clinic smoke stay aligned:
+   ```bash
+   pnpm validate:clinic-demo
+   ```
+
+5. Run seed with verbose output:
    ```bash
    NODE_DEBUG=* pnpm db:seed
    ```
 
-4. If seed data already exists, it may be idempotent (safe to rerun)
+6. If seed data already exists, it may be idempotent (safe to rerun)
 
 ### Slow Queries or High CPU
 

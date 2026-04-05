@@ -48,8 +48,12 @@ import { tenants, executionRuns } from '@agentmou/db';
 
 ## Configuration
 
-Requires a valid `DATABASE_URL` environment variable when used outside tests.
-The package does not provide a runtime default for local development.
+Outside tests, the package expects a valid `DATABASE_URL`. The canonical local
+value used by the repo, Docker Compose, and CI is:
+
+```bash
+postgresql://agentmou:changeme@127.0.0.1:5432/agentmou
+```
 
 ## Development
 
@@ -59,6 +63,7 @@ pnpm --filter @agentmou/db migrate    # Run migrations
 pnpm --filter @agentmou/db studio     # Open Drizzle Studio
 pnpm --filter @agentmou/db seed       # Seed demo data
 pnpm --filter @agentmou/db typecheck
+pnpm validate:clinic-demo             # Full clinic seed + smoke lane
 ```
 
 Tracked SQL migrations live in `packages/db/drizzle/` alongside Drizzle
@@ -69,10 +74,30 @@ snapshot metadata in `packages/db/drizzle/meta/`.
 `pnpm db:seed` is idempotent and currently provisions:
 
 - one admin user: `admin@agentmou.dev`
+- seed password for local QA: `Demo1234!`
 - one generic platform tenant: `Demo Workspace`
 - one clinic demo tenant: `Dental Demo Clinic`
 - clinic demo data covering modules, channels, patients, inbox threads, calls,
   forms, appointments, confirmations, gaps, and a running reactivation campaign
+
+The seeded clinic tenant now mirrors the closing dental journeys used by the
+frontend demo fixtures:
+
+- 11 patients
+- 7 WhatsApp threads plus 3 voice threads
+- 3 call sessions
+- 3 intake submissions in `completed`, `opened`, and `sent`
+- 6 appointments across `scheduled`, `rescheduled`, `confirmed`, and
+  `cancelled`
+- 1 open cancellation gap with outreach already sent to a compatible candidate
+- 1 running reactivation campaign with `booked`, `contacted`, and `failed`
+  recipients
+
+The canonical seed blueprint lives in
+`packages/db/src/clinic-demo-fixture.ts`; `packages/db/src/seed.ts` only maps
+that blueprint into relational rows. `pnpm test:clinic-demo-smoke` validates
+the same journeys across frontend fixtures, seeded rows, and clinic API routes
+when `DATABASE_URL` is available.
 
 ## Drizzle Kit and transitive dependencies
 
