@@ -176,21 +176,32 @@ export class FollowUpRepository {
 
     const now = new Date();
 
+    const attempts = [] as Array<typeof gapOutreachAttempts.$inferSelect>;
+
     for (const patientId of body.patientIds) {
-      await this.database.insert(gapOutreachAttempts).values({
+      const [attempt] = await this.database.insert(gapOutreachAttempts).values({
         tenantId,
         gapOpportunityId: gapId,
         patientId,
         channelType: body.channelType,
-        status: 'sent',
-        sentAt: now,
-        result: body.templateKey ?? 'gap_offer_sent',
+        status: 'pending',
+        result: body.templateKey ?? null,
         metadata: {},
-      });
+      }).returning();
+      if (attempt) {
+        attempts.push(attempt);
+      }
     }
 
     const [detail] = await this.readModels.loadGapDetails(tenantId, [gap]);
-    return detail ?? null;
+    if (!detail) {
+      return null;
+    }
+
+    return {
+      gap: detail,
+      attemptIds: attempts.map((attempt) => attempt.id),
+    };
   }
 
   async closeGap(tenantId: string, gapId: string, body: CloseGapBody) {

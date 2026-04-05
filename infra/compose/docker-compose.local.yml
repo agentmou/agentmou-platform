@@ -59,6 +59,12 @@ services:
       - JWT_SECRET=${JWT_SECRET:-local-jwt-secret}
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:${WEB_PORT:-3000}}
       - WEB_APP_BASE_URL=${WEB_APP_BASE_URL:-http://localhost:${WEB_PORT:-3000}}
+      - API_PUBLIC_BASE_URL=${API_PUBLIC_BASE_URL:-http://localhost:${API_PORT:-3001}}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
+      - TWILIO_WHATSAPP_FROM=${TWILIO_WHATSAPP_FROM:-}
+      - TWILIO_WHATSAPP_MESSAGING_SERVICE_SID=${TWILIO_WHATSAPP_MESSAGING_SERVICE_SID:-}
+      - TWILIO_VOICE_FROM=${TWILIO_VOICE_FROM:-}
       - NODE_ENV=local
     ports:
       - '${API_PORT:-3001}:3001'
@@ -78,6 +84,13 @@ services:
     environment:
       - DATABASE_URL=postgresql://${DB_USER:-agentmou}:${DB_PASSWORD:-changeme}@postgres:5432/${DB_NAME:-agentmou}
       - REDIS_URL=redis://redis:6379
+      - WEB_APP_BASE_URL=${WEB_APP_BASE_URL:-http://localhost:${WEB_PORT:-3000}}
+      - API_PUBLIC_BASE_URL=${API_PUBLIC_BASE_URL:-http://localhost:${API_PORT:-3001}}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
+      - TWILIO_WHATSAPP_FROM=${TWILIO_WHATSAPP_FROM:-}
+      - TWILIO_WHATSAPP_MESSAGING_SERVICE_SID=${TWILIO_WHATSAPP_MESSAGING_SERVICE_SID:-}
+      - TWILIO_VOICE_FROM=${TWILIO_VOICE_FROM:-}
       - NODE_ENV=local
     depends_on:
       postgres:

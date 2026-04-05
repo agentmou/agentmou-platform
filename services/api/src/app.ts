@@ -17,6 +17,7 @@ import { webhookRoutes } from './modules/webhooks/index.js';
 import { n8nRoutes } from './modules/n8n/index.js';
 import { publicChatRoutes } from './modules/public-chat/index.js';
 import { stripeWebhookRoutes } from './modules/webhooks/index.js';
+import { clinicWebhookRoutes } from './modules/clinic-webhooks/index.js';
 import { clinicDashboardRoutes } from './modules/clinic-dashboard/index.js';
 import { clinicExperienceRoutes } from './modules/clinic-experience/index.js';
 import { clinicProfileRoutes } from './modules/clinic-profile/index.js';
@@ -57,6 +58,7 @@ export function buildApp() {
   app.register(oauthCallbackRoutes, { prefix: '/api/v1' });
   app.register(publicChatRoutes, { prefix: '/api/v1' });
   app.register(stripeWebhookRoutes, { prefix: '/api/v1' });
+  app.register(clinicWebhookRoutes, { prefix: '/api/v1' });
 
   // --- Authenticated routes (JWT required) ----------------------------------
   app.register(async function authenticatedRoutes(authedApp) {

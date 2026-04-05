@@ -10,12 +10,26 @@ import { createServiceLogger } from '@agentmou/observability';
 import {
   getConnectionOptions,
   QUEUE_NAMES,
+  type ClinicChannelEventPayload,
+  type ClinicFormFollowUpPayload,
+  type ClinicGapOutreachPayload,
+  type ClinicReactivationCampaignPayload,
+  type ClinicReminderPayload,
+  type ClinicSendMessagePayload,
+  type ClinicVoiceCallbackPayload,
   type InstallPackPayload,
   type RunAgentPayload,
   type RunWorkflowPayload,
   type ScheduleTriggerPayload,
 } from '@agentmou/queue';
 import {
+  processClinicChannelEventJob,
+  processClinicFormFollowUpJob,
+  processClinicGapOutreachJob,
+  processClinicReactivationCampaignJob,
+  processClinicReminderJob,
+  processClinicSendMessage,
+  processClinicVoiceCallbackJob,
   processInstallPack,
   processRunAgent,
   processRunWorkflow,
@@ -48,6 +62,28 @@ const workers = [
   startWorker<RunWorkflowPayload>(QUEUE_NAMES.RUN_WORKFLOW, processRunWorkflow),
   startWorker<ScheduleTriggerPayload>(QUEUE_NAMES.SCHEDULE_TRIGGER, processScheduleTrigger),
   startWorker<ApprovalTimeoutPayload>(QUEUE_NAMES.APPROVAL_TIMEOUT, processApprovalTimeout),
+  startWorker<ClinicChannelEventPayload>(
+    QUEUE_NAMES.CLINIC_CHANNEL_EVENT,
+    processClinicChannelEventJob
+  ),
+  startWorker<ClinicSendMessagePayload>(QUEUE_NAMES.CLINIC_SEND_MESSAGE, processClinicSendMessage),
+  startWorker<ClinicReminderPayload>(QUEUE_NAMES.CLINIC_REMINDER, processClinicReminderJob),
+  startWorker<ClinicFormFollowUpPayload>(
+    QUEUE_NAMES.CLINIC_FORM_FOLLOW_UP,
+    processClinicFormFollowUpJob
+  ),
+  startWorker<ClinicGapOutreachPayload>(
+    QUEUE_NAMES.CLINIC_GAP_OUTREACH,
+    processClinicGapOutreachJob
+  ),
+  startWorker<ClinicReactivationCampaignPayload>(
+    QUEUE_NAMES.CLINIC_REACTIVATION_CAMPAIGN,
+    processClinicReactivationCampaignJob
+  ),
+  startWorker<ClinicVoiceCallbackPayload>(
+    QUEUE_NAMES.CLINIC_VOICE_CALLBACK,
+    processClinicVoiceCallbackJob
+  ),
 ];
 
 async function shutdown() {

@@ -7,12 +7,16 @@ import type {
 } from '@agentmou/contracts';
 
 import { recordAuditEvent } from '../../lib/audit.js';
+import { ClinicAutomationService } from '../clinic-shared/clinic-automation.service.js';
 import { assertClinicModuleAvailable, assertClinicRole, getClinicListLimit } from '../clinic-shared/clinic-access.js';
 import { mapReactivationCampaign } from '../clinic-shared/clinic.mapper.js';
 import { ReactivationRepository } from './reactivation.repository.js';
 
 export class ReactivationService {
-  constructor(private readonly repository = new ReactivationRepository()) {}
+  constructor(
+    private readonly repository = new ReactivationRepository(),
+    private readonly automation = new ClinicAutomationService()
+  ) {}
 
   async listCampaigns(tenantId: string, filters: CampaignFilters, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
@@ -44,6 +48,14 @@ export class ReactivationService {
     await assertClinicModuleAvailable(tenantId, 'growth');
     const campaign = await this.repository.createCampaign(tenantId, body);
 
+    if (body.scheduledAt) {
+      await this.automation.scheduleCampaignDispatch(tenantId, campaign.id, {
+        scheduledAt: new Date(body.scheduledAt),
+        triggeredBy: 'api',
+      });
+    }
+    await this.automation.syncCampaignRecurringSchedule(tenantId, campaign.id);
+
     await recordAuditEvent({
       tenantId,
       actorId,
@@ -72,6 +84,12 @@ export class ReactivationService {
       return null;
     }
 
+    await this.automation.scheduleCampaignDispatch(tenantId, campaignId, {
+      scheduledAt: body.startedAt ? new Date(body.startedAt) : new Date(),
+      triggeredBy: 'api',
+    });
+    await this.automation.syncCampaignRecurringSchedule(tenantId, campaignId);
+
     await recordAuditEvent({
       tenantId,
       actorId,
@@ -98,6 +116,8 @@ export class ReactivationService {
     if (!campaign) {
       return null;
     }
+
+    await this.automation.removeCampaignAutomation(tenantId, campaignId);
 
     await recordAuditEvent({
       tenantId,
@@ -126,6 +146,12 @@ export class ReactivationService {
     if (!campaign) {
       return null;
     }
+
+    await this.automation.scheduleCampaignDispatch(tenantId, campaignId, {
+      scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : new Date(),
+      triggeredBy: 'api',
+    });
+    await this.automation.syncCampaignRecurringSchedule(tenantId, campaignId);
 
     await recordAuditEvent({
       tenantId,

@@ -32,6 +32,7 @@ vi.mock('@agentmou/queue', () => ({
   QUEUE_NAMES: {
     RUN_AGENT: 'run-agent',
     RUN_WORKFLOW: 'run-workflow',
+    CLINIC_REACTIVATION_CAMPAIGN: 'clinic-reactivation-campaign',
   },
 }));
 
@@ -130,6 +131,32 @@ describe('processScheduleTrigger', () => {
       expect.objectContaining({
         workflowInstallationId: 'wf-inst-1',
         triggeredBy: 'cron',
+      }),
+      expect.any(Object)
+    );
+  });
+
+  it('should enqueue clinic reactivation campaign jobs for clinic schedule targets', async () => {
+    mockSelectWhere.mockReturnValue({
+      limit: vi.fn().mockResolvedValue([{ id: 's1', enabled: true }]),
+    });
+
+    await processScheduleTrigger(
+      createJob({
+        tenantId: 't1',
+        scheduleId: 's1',
+        targetType: 'clinic_reactivation_campaign',
+        installationId: 'campaign-1',
+      })
+    );
+
+    expect(mockInsertValues).not.toHaveBeenCalled();
+    expect(mockQueueAdd).toHaveBeenCalledWith(
+      'clinic-reactivation-campaign',
+      expect.objectContaining({
+        tenantId: 't1',
+        campaignId: 'campaign-1',
+        triggeredBy: 'scheduled',
       }),
       expect.any(Object)
     );

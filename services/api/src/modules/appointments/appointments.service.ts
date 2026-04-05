@@ -8,11 +8,15 @@ import type {
 } from '@agentmou/contracts';
 
 import { recordAuditEvent } from '../../lib/audit.js';
+import { ClinicAutomationService } from '../clinic-shared/clinic-automation.service.js';
 import { assertClinicModuleAvailable, assertClinicRole, getClinicListLimit } from '../clinic-shared/clinic-access.js';
 import { AppointmentsRepository } from './appointments.repository.js';
 
 export class AppointmentsService {
-  constructor(private readonly repository = new AppointmentsRepository()) {}
+  constructor(
+    private readonly repository = new AppointmentsRepository(),
+    private readonly automation = new ClinicAutomationService()
+  ) {}
 
   async listAppointments(tenantId: string, filters: AppointmentFilters, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
@@ -50,6 +54,8 @@ export class AppointmentsService {
       },
     });
 
+    await this.automation.syncAppointmentAutomation(tenantId, appointment.id);
+
     return this.repository.getAppointmentDetail(tenantId, appointment.id);
   }
 
@@ -76,6 +82,8 @@ export class AppointmentsService {
         appointmentId,
       },
     });
+
+    await this.automation.syncAppointmentAutomation(tenantId, appointmentId);
 
     return this.repository.getAppointmentDetail(tenantId, appointmentId);
   }
@@ -107,6 +115,8 @@ export class AppointmentsService {
       },
     });
 
+    await this.automation.syncAppointmentAutomation(tenantId, appointmentId);
+
     return this.repository.getAppointmentDetail(tenantId, appointmentId);
   }
 
@@ -136,6 +146,8 @@ export class AppointmentsService {
       },
     });
 
+    await this.automation.cancelAppointmentAutomation(tenantId, appointmentId, 'appointment_cancelled');
+
     return this.repository.getAppointmentDetail(tenantId, appointmentId);
   }
 
@@ -163,6 +175,8 @@ export class AppointmentsService {
         channelType: body.channelType,
       },
     });
+
+    await this.automation.cancelAppointmentAutomation(tenantId, appointmentId, 'appointment_confirmed');
 
     return this.repository.getAppointmentDetail(tenantId, appointmentId);
   }

@@ -54,6 +54,15 @@ export type ClinicPermission = z.infer<typeof ClinicPermissionSchema>;
 export const ChannelTypeSchema = z.enum(['whatsapp', 'voice']);
 export type ChannelType = z.infer<typeof ChannelTypeSchema>;
 
+/** Known channel providers used by the clinic runtime. */
+export const ClinicChannelProviderSchema = z.enum([
+  'mock_whatsapp',
+  'mock_voice',
+  'twilio_whatsapp',
+  'twilio_voice',
+]);
+export type ClinicChannelProvider = z.infer<typeof ClinicChannelProviderSchema>;
+
 /** Operational states for a configured clinic channel. */
 export const ChannelStatusSchema = z.enum(['active', 'inactive', 'error']);
 export type ChannelStatus = z.infer<typeof ChannelStatusSchema>;
@@ -136,6 +145,26 @@ export const MessageDeliveryStatusSchema = z.enum([
   'read',
 ]);
 export type MessageDeliveryStatus = z.infer<typeof MessageDeliveryStatusSchema>;
+
+/** Provider-level send/update states shared by channel adapters and workers. */
+export const ClinicDeliveryProviderStatusSchema = z.enum([
+  'queued',
+  'accepted',
+  'sent',
+  'delivered',
+  'failed',
+]);
+export type ClinicDeliveryProviderStatus = z.infer<typeof ClinicDeliveryProviderStatusSchema>;
+
+/** Failure classes used when a provider cannot complete a clinic action. */
+export const ClinicDeliveryFailureReasonSchema = z.enum([
+  'provider_rejected',
+  'provider_unavailable',
+  'channel_misconfigured',
+  'channel_inactive',
+  'unknown',
+]);
+export type ClinicDeliveryFailureReason = z.infer<typeof ClinicDeliveryFailureReasonSchema>;
 
 /** Call handling states surfaced to the UI. */
 export const CallStatusSchema = z.enum([
@@ -339,6 +368,99 @@ export const MessageTemplateSchema = z
   })
   .catchall(z.unknown());
 export type MessageTemplate = z.infer<typeof MessageTemplateSchema>;
+
+/** Twilio WhatsApp configuration stored in clinic channel config payloads. */
+export const TwilioWhatsAppConfigSchema = z.object({
+  accountSid: z.string().optional(),
+  messagingServiceSid: z.string().optional(),
+  from: z.string().optional(),
+  statusCallbackPath: z.string().optional(),
+});
+export type TwilioWhatsAppConfig = z.infer<typeof TwilioWhatsAppConfigSchema>;
+
+/** Twilio voice configuration stored in clinic channel config payloads. */
+export const TwilioVoiceConfigSchema = z.object({
+  accountSid: z.string().optional(),
+  applicationSid: z.string().optional(),
+  from: z.string().optional(),
+  statusCallbackPath: z.string().optional(),
+  answerUrl: z.string().optional(),
+});
+export type TwilioVoiceConfig = z.infer<typeof TwilioVoiceConfigSchema>;
+
+/** Raw Twilio WhatsApp webhook payload subset used by the backend runtime. */
+export const TwilioWhatsAppWebhookPayloadSchema = z
+  .object({
+    AccountSid: z.string().optional(),
+    Body: z.string().optional(),
+    From: z.string().optional(),
+    To: z.string().optional(),
+    MessageSid: z.string(),
+    MessageStatus: z.string().optional(),
+    SmsStatus: z.string().optional(),
+    ProfileName: z.string().optional(),
+    WaId: z.string().optional(),
+  })
+  .catchall(z.union([z.string(), z.number(), z.boolean(), z.null(), z.undefined()]));
+export type TwilioWhatsAppWebhookPayload = z.infer<typeof TwilioWhatsAppWebhookPayloadSchema>;
+
+/** Raw Twilio voice webhook payload subset used by the backend runtime. */
+export const TwilioVoiceWebhookPayloadSchema = z
+  .object({
+    AccountSid: z.string().optional(),
+    CallSid: z.string(),
+    CallStatus: z.string().optional(),
+    CallDuration: z.string().optional(),
+    Direction: z.string().optional(),
+    From: z.string().optional(),
+    To: z.string().optional(),
+    SpeechResult: z.string().optional(),
+    RecordingUrl: z.string().optional(),
+    TranscriptionText: z.string().optional(),
+  })
+  .catchall(z.union([z.string(), z.number(), z.boolean(), z.null(), z.undefined()]));
+export type TwilioVoiceWebhookPayload = z.infer<typeof TwilioVoiceWebhookPayloadSchema>;
+
+/** Normalized webhook event kinds produced by clinic channel adapters. */
+export const ClinicWebhookEventKindSchema = z.enum([
+  'message_inbound',
+  'message_status',
+  'call_inbound',
+  'call_status',
+]);
+export type ClinicWebhookEventKind = z.infer<typeof ClinicWebhookEventKindSchema>;
+
+/** Adapter-normalized webhook event shared by API, worker, and tests. */
+export const NormalizedClinicWebhookEventSchema = z.object({
+  provider: ClinicChannelProviderSchema,
+  channelType: ChannelTypeSchema,
+  eventKind: ClinicWebhookEventKindSchema,
+  eventId: z.string(),
+  occurredAt: DateTimeStringSchema.optional(),
+  phoneNumber: z.string().optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  body: z.string().optional(),
+  providerMessageId: z.string().optional(),
+  providerCallId: z.string().optional(),
+  providerStatus: z.string().optional(),
+  profileName: z.string().optional(),
+  payload: JsonRecordSchema.default({}),
+});
+export type NormalizedClinicWebhookEvent = z.infer<typeof NormalizedClinicWebhookEventSchema>;
+
+/** Result returned by outbound channel adapters after send/call attempts. */
+export const ClinicDeliveryResultSchema = z.object({
+  provider: ClinicChannelProviderSchema,
+  channelType: ChannelTypeSchema,
+  status: ClinicDeliveryProviderStatusSchema,
+  providerMessageId: z.string().optional(),
+  providerCallId: z.string().optional(),
+  failureReason: ClinicDeliveryFailureReasonSchema.optional(),
+  detail: z.string().optional(),
+  payload: JsonRecordSchema.default({}),
+});
+export type ClinicDeliveryResult = z.infer<typeof ClinicDeliveryResultSchema>;
 
 // ---------------------------------------------------------------------------
 // Base entities

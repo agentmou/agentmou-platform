@@ -8,12 +8,16 @@ import type {
 } from '@agentmou/contracts';
 
 import { recordAuditEvent } from '../../lib/audit.js';
+import { ClinicAutomationService } from '../clinic-shared/clinic-automation.service.js';
 import { assertClinicModuleAvailable, assertClinicRole, getClinicListLimit } from '../clinic-shared/clinic-access.js';
 import { mapConfirmationRequest, mapReminderJob } from '../clinic-shared/clinic.mapper.js';
 import { FollowUpRepository } from './follow-up.repository.js';
 
 export class FollowUpService {
-  constructor(private readonly repository = new FollowUpRepository()) {}
+  constructor(
+    private readonly repository = new FollowUpRepository(),
+    private readonly automation = new ClinicAutomationService()
+  ) {}
 
   async listReminders(tenantId: string, limit = 50, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
@@ -49,6 +53,12 @@ export class FollowUpService {
     if (!reminder) {
       return null;
     }
+
+    await this.automation.scheduleReminderExecution(
+      tenantId,
+      reminder.id,
+      new Date(reminder.scheduledFor)
+    );
 
     await recordAuditEvent({
       tenantId,
@@ -111,10 +121,14 @@ export class FollowUpService {
   ) {
     assertClinicRole(tenantRole, 'operate');
     await assertClinicModuleAvailable(tenantId, 'growth');
-    const gap = await this.repository.offerGap(tenantId, gapId, body);
-    if (!gap) {
+    const result = await this.repository.offerGap(tenantId, gapId, body);
+    if (!result) {
       return null;
     }
+
+    await Promise.all(
+      result.attemptIds.map((attemptId) => this.automation.scheduleGapOutreach(tenantId, attemptId))
+    );
 
     await recordAuditEvent({
       tenantId,
@@ -127,7 +141,7 @@ export class FollowUpService {
       },
     });
 
-    return gap;
+    return result.gap;
   }
 
   async closeGap(
