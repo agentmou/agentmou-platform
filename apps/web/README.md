@@ -5,7 +5,9 @@ Next.js application for the Agentmou public site and tenant control-center UI.
 ## Purpose
 
 `apps/web` is the user-facing surface of the monorepo. It serves two jobs:
-- Public marketing pages that explain the product and showcase the catalog.
+- Public marketing pages that sell Agentmou as a multichannel AI receptionist
+  for clinics, with `/platform` as the secondary technical narrative and
+  `/docs` preserved as an alias.
 - Authenticated tenant pages that either render the original platform shell or
   the clinic control center, depending on tenant capabilities and settings.
 
@@ -14,7 +16,9 @@ or workflows itself.
 
 ## Responsibilities
 
-- Render the marketing experience under `app/(marketing)`.
+- Render the clinic-first marketing experience under `app/(marketing)`, with
+  public pages for `/`, `/pricing`, `/security`, `/platform`, and
+  `/contact-sales`.
 - Handle login and registration under `app/(auth)` using `components/auth`
   (`AuthForm`, password strength UI). **B2C OAuth** (Google, Microsoft) uses
   `GET /api/v1/auth/oauth/:provider/authorize` with `return_url` pointing to
@@ -35,11 +39,17 @@ or workflows itself.
   resolution happens before navigation renders.
 - Export typed clinic backend fetchers in `lib/api/clinic.ts` and consume them
   through the same `DataProvider` abstraction used by the rest of the tenant UI.
-- Serve marketing homepage cards from `/api/public-catalog`, built from the
-  **curated demo featured list** (`lib/demo-catalog/marketing-featured.ts`) plus
-  `demoTotals`, `operationalFeaturedCounts`, and `gaInventoryCounts` (see
+- Keep the primary marketing narrative in `lib/marketing/clinic-site.ts` and
+  `components/marketing/*`, instead of driving the homepage hero from the
+  public catalog payload.
+- Serve the secondary technical `/platform` page from `/api/public-catalog`,
+  built from the **curated demo featured list**
+  (`lib/demo-catalog/marketing-featured.ts`) plus `demoTotals`,
+  `operationalFeaturedCounts`, and `gaInventoryCounts` (see
   `docs/catalog-and-demo.md`). Featured ids must be operational and marked
   `availability: available` in demo data.
+- Capture public sales leads through `POST /api/contact-sales`, validate the
+  payload with Zod, and forward it to a configurable webhook when present.
 - Switch between `apiProvider` and `demoProvider`: real tenants use the API
   catalog; `demo-workspace` uses the full demo inventory with **planned** +
   **Coming soon** on items not backed by operational manifests
@@ -86,7 +96,7 @@ pnpm --filter @agentmou/web start
 
 | Route group | Purpose |
 | --- | --- |
-| `app/(marketing)` | Public landing, pricing, docs, and security pages |
+| `app/(marketing)` | Public clinic marketing pages, `/platform`, `/contact-sales`, and the `/docs` alias |
 | `app/(auth)` | Login and registration flows |
 | `app/auth/callback`, `app/reset-password` | OAuth return handling and password reset deep links |
 | `app/app` | Authenticated app shell and tenant redirects |
@@ -128,8 +138,16 @@ pnpm --filter @agentmou/web start
 - `lib/honest-ui/audit.ts` is the authoritative audit map for placeholder,
   preview, and demo tenant surfaces.
 - `lib/marketing/featured-from-demo.ts` builds the homepage catalog payload.
+- `lib/marketing/site-config.ts` defines the clinic marketing nav/footer
+  structure.
+- `lib/marketing/clinic-site.ts` contains the clinic marketing read model used
+  by the homepage, pricing, and security surfaces.
 - `lib/marketing/public-catalog.ts` remains for optional API/filesystem catalog
   helpers; homepage cards no longer depend on it.
+- `app/api/contact-sales/route.ts` validates and relays public sales leads to a
+  webhook with a controlled non-production fallback when no webhook is set.
+- `components/marketing/` contains the dedicated clinic marketing sections,
+  technical `/platform` grid, and `ContactSalesForm`.
 - `lib/auth/store.ts` owns login, registration, cookie hydration, and active-tenant selection.
 - `lib/tenant-experience.tsx` exposes `useResolvedTenantExperience`, which
   prefers `GET /clinic/experience` and only falls back to tenant/profile/module
@@ -175,6 +193,8 @@ Required or important environment variables:
 | Variable | Purpose |
 | --- | --- |
 | `NEXT_PUBLIC_API_URL` | Base URL for `services/api`; defaults to `http://localhost:3001` |
+| `CONTACT_SALES_WEBHOOK_URL` | Optional webhook URL for `POST /api/contact-sales`; when omitted outside production, the route accepts and logs leads locally |
+| `CONTACT_SALES_WEBHOOK_TOKEN` | Optional bearer token sent to the contact-sales webhook |
 | API `AUTH_WEB_ORIGIN_ALLOWLIST` | Comma-separated origins allowed for OAuth `return_url` (e.g. `http://localhost:3000`). Must include the web app origin or OAuth redirects are rejected. |
 
 The app also expects the auth flow to set the `agentmou-token` cookie used by
