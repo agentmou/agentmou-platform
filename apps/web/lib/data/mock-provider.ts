@@ -4,6 +4,8 @@
  * Used by marketing/demo routes to show the full mock catalog.
  */
 
+import type { ConversationFilters } from '@agentmou/contracts';
+
 import type { DataProvider } from './provider';
 import {
   listTenants as _listTenants,
@@ -168,7 +170,8 @@ export const mockProvider: DataProvider = {
     },
 
   // Clinic conversations
-  listClinicConversations: async (tenantId, _filters) => _listClinicConversations(tenantId),
+  listClinicConversations: async (tenantId, filters) =>
+    _listClinicConversations(tenantId, filters as ConversationFilters),
   getClinicConversation: async (tenantId, threadId) => _getClinicConversation(tenantId, threadId)!,
   listClinicConversationMessages: async (tenantId, threadId) =>
     _listClinicConversationMessages(tenantId, threadId),
@@ -191,7 +194,11 @@ export const mockProvider: DataProvider = {
   listClinicAppointments: async (tenantId, filters) => _listClinicAppointments(tenantId, filters),
   getClinicAppointment: async (tenantId, appointmentId) =>
     _getClinicAppointment(tenantId, appointmentId)!,
-  createClinicAppointment: async (tenantId) => _getClinicAppointment(tenantId, 'appointment-1')!,
+  createClinicAppointment: async (tenantId, body) =>
+    _getClinicAppointment(
+      tenantId,
+      body.patientId === 'patient-carmen-lopez' ? 'appointment-carmen' : 'appointment-ana'
+    )!,
   updateClinicAppointment: async (tenantId, appointmentId) =>
     _getClinicAppointment(tenantId, appointmentId)!,
   rescheduleClinicAppointment: async (tenantId, appointmentId) =>
@@ -228,7 +235,7 @@ export const mockProvider: DataProvider = {
   getClinicReactivationCampaign: async (tenantId, campaignId) =>
     _getClinicReactivationCampaign(tenantId, campaignId)!,
   createClinicReactivationCampaign: async (tenantId) =>
-    _getClinicReactivationCampaign(tenantId, 'campaign-1')!,
+    _getClinicReactivationCampaign(tenantId, 'campaign-hygiene-recall')!,
   startClinicReactivationCampaign: async (tenantId) =>
     _listClinicReactivationCampaigns(tenantId).campaigns[0]!,
   pauseClinicReactivationCampaign: async (tenantId) =>

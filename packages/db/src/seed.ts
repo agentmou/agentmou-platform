@@ -8,11 +8,15 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import * as schema from './schema';
+import { buildClinicDemoSeedFixture } from './clinic-demo-fixture';
 import { getDatabaseUrl } from './config';
+import * as schema from './schema';
 
 const DATABASE_URL = getDatabaseUrl();
 const ADMIN_EMAIL = 'admin@agentmou.dev';
+const ADMIN_PASSWORD = 'Demo1234!';
+const ADMIN_PASSWORD_HASH =
+  '10a4edfff587919abdfe1649f43cf23e:9f2cb2ca9bc9da1b7de5c0a59185530a55979fc722b9e58fc7767deaa45112b01fae2b27c759e7a29bed02329dc3e9bf4763e5d9a0ac2c26242b585df9d1d059';
 const GENERIC_TENANT_NAME = 'Demo Workspace';
 const CLINIC_TENANT_NAME = 'Dental Demo Clinic';
 
@@ -20,20 +24,6 @@ type Database = ReturnType<typeof drizzle<typeof schema>>;
 
 function print(message: string) {
   process.stdout.write(`${message}\n`);
-}
-
-function addHours(date: Date, hours: number) {
-  return new Date(date.getTime() + hours * 60 * 60 * 1000);
-}
-
-function addDays(date: Date, days: number) {
-  return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
-}
-
-function setTime(date: Date, hours: number, minutes = 0) {
-  const value = new Date(date);
-  value.setHours(hours, minutes, 0, 0);
-  return value;
 }
 
 async function ensureOne<T>(
@@ -52,21 +42,38 @@ async function insertOne<T>(action: Promise<T[]>, errorMessage: string): Promise
 }
 
 async function ensureUser(db: Database) {
-  return ensureOne(
-    async () =>
-      (await db.select().from(schema.users).where(eq(schema.users.email, ADMIN_EMAIL)).limit(1))[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.users)
-          .values({
-            email: ADMIN_EMAIL,
-            name: 'Admin User',
-            passwordHash: '$2b$10$placeholder_hash_for_dev',
-          })
-          .returning(),
-        'Failed to create seed user'
-      )
+  const existing = (
+    await db.select().from(schema.users).where(eq(schema.users.email, ADMIN_EMAIL)).limit(1)
+  )[0];
+
+  if (existing) {
+    const [updated] = await db
+      .update(schema.users)
+      .set({
+        name: 'Admin User',
+        passwordHash: ADMIN_PASSWORD_HASH,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.users.id, existing.id))
+      .returning();
+
+    if (!updated) {
+      throw new Error('Failed to update seed user');
+    }
+
+    return updated;
+  }
+
+  return insertOne(
+    db
+      .insert(schema.users)
+      .values({
+        email: ADMIN_EMAIL,
+        name: 'Admin User',
+        passwordHash: ADMIN_PASSWORD_HASH,
+      })
+      .returning(),
+    'Failed to create seed user'
   );
 }
 
@@ -190,46 +197,33 @@ async function seedGenericDemo(db: Database, userId: string) {
 }
 
 async function seedClinicDemo(db: Database, userId: string) {
+  const fixture = buildClinicDemoSeedFixture(new Date());
+
   const tenant = await ensureTenant(db, {
     name: CLINIC_TENANT_NAME,
     type: 'business',
     plan: 'enterprise',
     ownerId: userId,
-    settings: {
-      timezone: 'Europe/Madrid',
-      defaultHITL: true,
-      logRetentionDays: 60,
-      memoryRetentionDays: 30,
-      verticalClinicUi: true,
-      clinicDentalMode: true,
-    },
+    settings: fixture.tenantSettings,
   });
 
   await ensureMembership(db, tenant.id, userId, 'owner');
 
-  const now = new Date();
-  const todayNine = setTime(now, 9, 0);
-  const todayEleven = setTime(now, 11, 0);
-  const tomorrowTen = setTime(addDays(now, 1), 10, 30);
-  const nextWeekTen = setTime(addDays(now, 7), 10, 0);
-
-  const whatsappConnector = await ensureConnectorAccount(db, {
-    tenantId: tenant.id,
-    provider: 'twilio_whatsapp',
-    status: 'connected',
-    externalAccountId: 'seed-whatsapp-account',
-    scopes: ['messages:read', 'messages:write'],
-    connectedAt: addDays(now, -30),
-  });
-
-  const voiceConnector = await ensureConnectorAccount(db, {
-    tenantId: tenant.id,
-    provider: 'twilio_voice',
-    status: 'connected',
-    externalAccountId: 'seed-voice-account',
-    scopes: ['calls:read', 'calls:write'],
-    connectedAt: addDays(now, -30),
-  });
+  const connectorAccounts = new Map<
+    string,
+    typeof schema.connectorAccounts.$inferSelect
+  >();
+  for (const connector of fixture.connectorAccounts) {
+    const row = await ensureConnectorAccount(db, {
+      tenantId: tenant.id,
+      provider: connector.provider,
+      status: 'connected',
+      externalAccountId: connector.externalAccountId,
+      scopes: connector.scopes,
+      connectedAt: connector.connectedAt,
+    });
+    connectorAccounts.set(connector.key, row);
+  }
 
   const clinicProfile = await ensureOne(
     async () =>
@@ -246,92 +240,75 @@ async function seedClinicDemo(db: Database, userId: string) {
           .insert(schema.clinicProfiles)
           .values({
             tenantId: tenant.id,
-            vertical: 'clinic_dental',
-            specialty: 'implantology',
-            displayName: 'Sonrisa Norte Dental',
-            timezone: 'Europe/Madrid',
-            businessHours: {
-              monday: [{ start: '09:00', end: '18:30' }],
-              tuesday: [{ start: '09:00', end: '18:30' }],
-              wednesday: [{ start: '09:00', end: '18:30' }],
-              thursday: [{ start: '09:00', end: '18:30' }],
-              friday: [{ start: '09:00', end: '15:00' }],
-            },
-            defaultInboundChannel: 'whatsapp',
-            requiresNewPatientForm: true,
-            confirmationPolicy: {
-              enabled: true,
-              leadHours: 24,
-              escalationDelayHours: 4,
-              autoCancelOnDecline: false,
-            },
-            gapRecoveryPolicy: {
-              enabled: true,
-              lookaheadHours: 72,
-              maxOffersPerGap: 5,
-              prioritizeWaitlist: true,
-            },
-            reactivationPolicy: {
-              enabled: true,
-              inactivityThresholdDays: 180,
-              cooldownDays: 30,
-              defaultCampaignType: 'hygiene_recall',
-            },
+            ...fixture.clinicProfile,
           })
           .returning(),
         'Failed to create clinic profile'
       )
   );
 
-  const moduleRows = [
-    {
-      moduleKey: 'core_reception',
-      status: 'enabled',
-      visibleToClient: true,
-      planLevel: 'starter',
-      config: { primaryNav: true },
-    },
-    {
-      moduleKey: 'voice',
-      status: 'enabled',
-      visibleToClient: true,
-      planLevel: 'pro',
-      config: { inboundOnly: false },
-    },
-    {
-      moduleKey: 'growth',
-      status: 'enabled',
-      visibleToClient: true,
-      planLevel: 'scale',
-      config: { smartGapFill: true, reactivation: true },
-    },
-    {
-      moduleKey: 'advanced_mode',
-      status: 'hidden',
-      visibleToClient: false,
-      planLevel: 'enterprise',
-      config: { internalOnly: false },
-    },
-    {
-      moduleKey: 'internal_platform',
-      status: 'hidden',
-      visibleToClient: false,
-      planLevel: 'enterprise',
-      config: { internalOnly: true },
-    },
-  ] as const;
+  for (const moduleRow of fixture.modules) {
+    const existingModule = (
+      await db
+        .select()
+        .from(schema.tenantModules)
+        .where(
+          and(
+            eq(schema.tenantModules.tenantId, tenant.id),
+            eq(schema.tenantModules.moduleKey, moduleRow.moduleKey)
+          )
+        )
+        .limit(1)
+    )[0];
 
-  for (const moduleRow of moduleRows) {
-    await ensureOne(
+    if (!existingModule) {
+      await insertOne(
+        db
+          .insert(schema.tenantModules)
+          .values({
+            tenantId: tenant.id,
+            ...moduleRow,
+          })
+          .returning(),
+        `Failed to create tenant module ${moduleRow.moduleKey}`
+      );
+      continue;
+    }
+
+    await insertOne(
+      db
+        .update(schema.tenantModules)
+        .set({
+          status: moduleRow.status,
+          visibleToClient: moduleRow.visibleToClient,
+          planLevel: moduleRow.planLevel,
+          config: moduleRow.config,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.tenantModules.id, existingModule.id))
+        .returning(),
+      `Failed to update tenant module ${moduleRow.moduleKey}`
+    );
+  }
+
+  const channelRows = new Map<string, typeof schema.clinicChannels.$inferSelect>();
+  for (const channel of fixture.channels) {
+    const connectorAccount = connectorAccounts.get(channel.key);
+    if (!connectorAccount) {
+      throw new Error(`Missing connector account for channel ${channel.key}`);
+    }
+
+    const row = await ensureOne(
       async () =>
         (
           await db
             .select()
-            .from(schema.tenantModules)
+            .from(schema.clinicChannels)
             .where(
               and(
-                eq(schema.tenantModules.tenantId, tenant.id),
-                eq(schema.tenantModules.moduleKey, moduleRow.moduleKey)
+                eq(schema.clinicChannels.tenantId, tenant.id),
+                eq(schema.clinicChannels.channelType, channel.channelType),
+                eq(schema.clinicChannels.phoneNumber, channel.phoneNumber)
               )
             )
             .limit(1)
@@ -339,340 +316,182 @@ async function seedClinicDemo(db: Database, userId: string) {
       async () =>
         insertOne(
           db
-            .insert(schema.tenantModules)
+            .insert(schema.clinicChannels)
             .values({
               tenantId: tenant.id,
-              ...moduleRow,
+              channelType: channel.channelType,
+              directionPolicy: channel.directionPolicy,
+              provider: channel.provider,
+              connectorAccountId: connectorAccount.id,
+              status: channel.status,
+              phoneNumber: channel.phoneNumber,
+              config: channel.config,
             })
             .returning(),
-          `Failed to create tenant module ${moduleRow.moduleKey}`
+          `Failed to create clinic channel ${channel.channelType}`
         )
     );
+    channelRows.set(channel.key, row);
   }
 
-  const whatsappChannel = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.clinicChannels)
-          .where(
-            and(
-              eq(schema.clinicChannels.tenantId, tenant.id),
-              eq(schema.clinicChannels.channelType, 'whatsapp'),
-              eq(schema.clinicChannels.phoneNumber, '+34910000001')
+  const serviceRows = new Map<string, typeof schema.clinicServices.$inferSelect>();
+  for (const service of fixture.services) {
+    const row = await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.clinicServices)
+            .where(
+              and(
+                eq(schema.clinicServices.tenantId, tenant.id),
+                eq(schema.clinicServices.slug, service.slug)
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.clinicChannels)
-          .values({
-            tenantId: tenant.id,
-            channelType: 'whatsapp',
-            directionPolicy: {
-              inboundEnabled: true,
-              outboundEnabled: true,
-              fallbackToHuman: true,
-            },
-            provider: 'twilio',
-            connectorAccountId: whatsappConnector.id,
-            status: 'active',
-            phoneNumber: '+34910000001',
-            config: {
-              displayName: 'Sonrisa Norte WhatsApp',
-            },
-          })
-          .returning(),
-        'Failed to create WhatsApp channel'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.clinicServices)
+            .values({
+              tenantId: tenant.id,
+              externalServiceId: service.externalServiceId,
+              name: service.name,
+              slug: service.slug,
+              durationMinutes: service.durationMinutes,
+              active: true,
+              metadata: service.metadata,
+            })
+            .returning(),
+          `Failed to create clinic service ${service.slug}`
+        )
+    );
+    serviceRows.set(service.key, row);
+  }
 
-  const voiceChannel = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.clinicChannels)
-          .where(
-            and(
-              eq(schema.clinicChannels.tenantId, tenant.id),
-              eq(schema.clinicChannels.channelType, 'voice'),
-              eq(schema.clinicChannels.phoneNumber, '+34910000002')
+  const practitionerRows = new Map<string, typeof schema.practitioners.$inferSelect>();
+  for (const practitioner of fixture.practitioners) {
+    const row = await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.practitioners)
+            .where(
+              and(
+                eq(schema.practitioners.tenantId, tenant.id),
+                eq(
+                  schema.practitioners.externalPractitionerId,
+                  practitioner.externalPractitionerId
+                )
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.clinicChannels)
-          .values({
-            tenantId: tenant.id,
-            channelType: 'voice',
-            directionPolicy: {
-              inboundEnabled: true,
-              outboundEnabled: true,
-              fallbackToHuman: true,
-              recordCalls: true,
-            },
-            provider: 'twilio',
-            connectorAccountId: voiceConnector.id,
-            status: 'active',
-            phoneNumber: '+34910000002',
-            config: {
-              ivrProfile: 'front-desk',
-            },
-          })
-          .returning(),
-        'Failed to create voice channel'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.practitioners)
+            .values({
+              tenantId: tenant.id,
+              externalPractitionerId: practitioner.externalPractitionerId,
+              name: practitioner.name,
+              specialty: practitioner.specialty,
+              active: true,
+              metadata: practitioner.metadata,
+            })
+            .returning(),
+          `Failed to create practitioner ${practitioner.externalPractitionerId}`
+        )
+    );
+    practitionerRows.set(practitioner.key, row);
+  }
 
-  const service = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.clinicServices)
-          .where(
-            and(
-              eq(schema.clinicServices.tenantId, tenant.id),
-              eq(schema.clinicServices.slug, 'dental-cleaning')
+  const locationRows = new Map<string, typeof schema.clinicLocations.$inferSelect>();
+  for (const location of fixture.locations) {
+    const row = await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.clinicLocations)
+            .where(
+              and(
+                eq(schema.clinicLocations.tenantId, tenant.id),
+                eq(schema.clinicLocations.externalLocationId, location.externalLocationId)
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.clinicServices)
-          .values({
-            tenantId: tenant.id,
-            externalServiceId: 'svc-cleaning',
-            name: 'Dental Cleaning',
-            slug: 'dental-cleaning',
-            durationMinutes: 45,
-            active: true,
-            metadata: {
-              category: 'hygiene',
-            },
-          })
-          .returning(),
-        'Failed to create clinic service'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.clinicLocations)
+            .values({
+              tenantId: tenant.id,
+              externalLocationId: location.externalLocationId,
+              name: location.name,
+              address: location.address,
+              phone: location.phone,
+              active: true,
+              metadata: location.metadata,
+            })
+            .returning(),
+          `Failed to create clinic location ${location.externalLocationId}`
+        )
+    );
+    locationRows.set(location.key, row);
+  }
 
-  const practitioner = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.practitioners)
-          .where(
-            and(
-              eq(schema.practitioners.tenantId, tenant.id),
-              eq(schema.practitioners.externalPractitionerId, 'dr-marta-solis')
+  const patientRows = new Map<string, typeof schema.patients.$inferSelect>();
+  for (const patient of fixture.patients) {
+    const row = await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.patients)
+            .where(
+              and(
+                eq(schema.patients.tenantId, tenant.id),
+                eq(schema.patients.externalPatientId, patient.externalPatientId)
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.practitioners)
-          .values({
-            tenantId: tenant.id,
-            externalPractitionerId: 'dr-marta-solis',
-            name: 'Dr. Marta Solis',
-            specialty: 'Hygiene',
-            active: true,
-            metadata: {
-              languages: ['es', 'en'],
-            },
-          })
-          .returning(),
-        'Failed to create practitioner'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.patients)
+            .values({
+              tenantId: tenant.id,
+              externalPatientId: patient.externalPatientId,
+              status: patient.status,
+              isExisting: patient.isExisting,
+              firstName: patient.firstName,
+              lastName: patient.lastName,
+              fullName: patient.fullName,
+              phone: patient.phone,
+              email: patient.email,
+              dateOfBirth: patient.dateOfBirth,
+              notes: patient.notes,
+              consentFlags: patient.consentFlags,
+              source: patient.source,
+              lastInteractionAt: patient.lastInteractionAt,
+              nextSuggestedActionAt: patient.nextSuggestedActionAt,
+            })
+            .returning(),
+          `Failed to create patient ${patient.externalPatientId}`
+        )
+    );
+    patientRows.set(patient.key, row);
+  }
 
-  const location = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.clinicLocations)
-          .where(
-            and(
-              eq(schema.clinicLocations.tenantId, tenant.id),
-              eq(schema.clinicLocations.externalLocationId, 'madrid-centro')
-            )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.clinicLocations)
-          .values({
-            tenantId: tenant.id,
-            externalLocationId: 'madrid-centro',
-            name: 'Madrid Centro',
-            address: 'Calle Alcala 120, Madrid',
-            phone: '+34910000003',
-            active: true,
-            metadata: {
-              floor: '2A',
-            },
-          })
-          .returning(),
-        'Failed to create clinic location'
-      )
-  );
+  for (const identity of fixture.patientIdentities) {
+    const patient = patientRows.get(identity.patientKey);
+    if (!patient) throw new Error(`Missing patient for identity ${identity.patientKey}`);
 
-  const existingPatient = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.patients)
-          .where(
-            and(
-              eq(schema.patients.tenantId, tenant.id),
-              eq(schema.patients.externalPatientId, 'DENTAL-001')
-            )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.patients)
-          .values({
-            tenantId: tenant.id,
-            externalPatientId: 'DENTAL-001',
-            status: 'existing',
-            isExisting: true,
-            firstName: 'Lucia',
-            lastName: 'Perez',
-            fullName: 'Lucia Perez',
-            phone: '+34600111222',
-            email: 'lucia@example.com',
-            dateOfBirth: '1989-05-16',
-            notes: 'Prefers morning appointments.',
-            consentFlags: {
-              whatsapp: true,
-              voice: true,
-              email: true,
-              marketing: false,
-            },
-            source: 'import',
-            lastInteractionAt: addHours(now, -5),
-            nextSuggestedActionAt: addHours(now, 6),
-          })
-          .returning(),
-        'Failed to create existing patient'
-      )
-  );
-
-  const newLead = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.patients)
-          .where(
-            and(
-              eq(schema.patients.tenantId, tenant.id),
-              eq(schema.patients.externalPatientId, 'DENTAL-002')
-            )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.patients)
-          .values({
-            tenantId: tenant.id,
-            externalPatientId: 'DENTAL-002',
-            status: 'intake_pending',
-            isExisting: false,
-            firstName: 'Carlos',
-            lastName: 'Navarro',
-            fullName: 'Carlos Navarro',
-            phone: '+34600333444',
-            email: 'carlos@example.com',
-            notes: 'New patient asking about first cleaning visit.',
-            consentFlags: {
-              whatsapp: true,
-              voice: true,
-              email: true,
-            },
-            source: 'whatsapp_inbound',
-            lastInteractionAt: addHours(now, -2),
-            nextSuggestedActionAt: addHours(now, 2),
-          })
-          .returning(),
-        'Failed to create new lead patient'
-      )
-  );
-
-  const inactivePatient = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.patients)
-          .where(
-            and(
-              eq(schema.patients.tenantId, tenant.id),
-              eq(schema.patients.externalPatientId, 'DENTAL-003')
-            )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.patients)
-          .values({
-            tenantId: tenant.id,
-            externalPatientId: 'DENTAL-003',
-            status: 'inactive',
-            isExisting: true,
-            firstName: 'Ana',
-            lastName: 'Ruiz',
-            fullName: 'Ana Ruiz',
-            phone: '+34600555666',
-            email: 'ana@example.com',
-            dateOfBirth: '1977-09-10',
-            notes: 'Due for hygiene recall after 9 months inactivity.',
-            consentFlags: {
-              whatsapp: true,
-              voice: false,
-              email: true,
-              marketing: true,
-            },
-            source: 'import',
-            lastInteractionAt: addDays(now, -210),
-            nextSuggestedActionAt: addHours(now, 12),
-          })
-          .returning(),
-        'Failed to create inactive patient'
-      )
-  );
-
-  const identityRows = [
-    { patientId: existingPatient.id, identityType: 'phone', identityValue: existingPatient.phone! },
-    { patientId: existingPatient.id, identityType: 'email', identityValue: existingPatient.email! },
-    { patientId: newLead.id, identityType: 'phone', identityValue: newLead.phone! },
-    { patientId: inactivePatient.id, identityType: 'phone', identityValue: inactivePatient.phone! },
-  ] as const;
-
-  for (const identity of identityRows) {
     await ensureOne(
       async () =>
         (
@@ -682,7 +501,7 @@ async function seedClinicDemo(db: Database, userId: string) {
             .where(
               and(
                 eq(schema.patientIdentities.tenantId, tenant.id),
-                eq(schema.patientIdentities.patientId, identity.patientId),
+                eq(schema.patientIdentities.patientId, patient.id),
                 eq(schema.patientIdentities.identityType, identity.identityType),
                 eq(schema.patientIdentities.identityValue, identity.identityValue)
               )
@@ -695,11 +514,11 @@ async function seedClinicDemo(db: Database, userId: string) {
             .insert(schema.patientIdentities)
             .values({
               tenantId: tenant.id,
-              patientId: identity.patientId,
+              patientId: patient.id,
               identityType: identity.identityType,
               identityValue: identity.identityValue,
-              isPrimary: true,
-              confidenceScore: 1,
+              isPrimary: identity.isPrimary,
+              confidenceScore: identity.confidenceScore,
             })
             .returning(),
           `Failed to create patient identity ${identity.identityValue}`
@@ -707,112 +526,58 @@ async function seedClinicDemo(db: Database, userId: string) {
     );
   }
 
-  const whatsappThread = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.conversationThreads)
-          .where(
-            and(
-              eq(schema.conversationThreads.tenantId, tenant.id),
-              eq(schema.conversationThreads.source, 'seed_whatsapp_thread')
+  const threadRows = new Map<string, typeof schema.conversationThreads.$inferSelect>();
+  for (const thread of fixture.threads) {
+    const patient = patientRows.get(thread.patientKey);
+    if (!patient) throw new Error(`Missing patient for thread ${thread.key}`);
+
+    const row = await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.conversationThreads)
+            .where(
+              and(
+                eq(schema.conversationThreads.tenantId, tenant.id),
+                eq(schema.conversationThreads.source, thread.source)
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.conversationThreads)
-          .values({
-            tenantId: tenant.id,
-            patientId: existingPatient.id,
-            channelType: 'whatsapp',
-            status: 'in_progress',
-            intent: 'reschedule_appointment',
-            priority: 'high',
-            source: 'seed_whatsapp_thread',
-            assignedUserId: null,
-            lastMessageAt: addHours(now, -1),
-            lastInboundAt: addHours(now, -1),
-            lastOutboundAt: addHours(now, -0.5),
-            requiresHumanReview: false,
-            resolution: null,
-          })
-          .returning(),
-        'Failed to create WhatsApp thread'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.conversationThreads)
+            .values({
+              tenantId: tenant.id,
+              patientId: patient.id,
+              channelType: thread.channelType,
+              status: thread.status,
+              intent: thread.intent,
+              priority: thread.priority,
+              source: thread.source,
+              assignedUserId: thread.assignedUserId,
+              lastMessageAt: thread.lastMessageAt,
+              lastInboundAt: thread.lastInboundAt,
+              lastOutboundAt: thread.lastOutboundAt,
+              requiresHumanReview: thread.requiresHumanReview,
+              resolution: thread.resolution,
+            })
+            .returning(),
+          `Failed to create thread ${thread.key}`
+        )
+    );
+    threadRows.set(thread.key, row);
+  }
 
-  const voiceThread = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.conversationThreads)
-          .where(
-            and(
-              eq(schema.conversationThreads.tenantId, tenant.id),
-              eq(schema.conversationThreads.source, 'seed_voice_thread')
-            )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.conversationThreads)
-          .values({
-            tenantId: tenant.id,
-            patientId: newLead.id,
-            channelType: 'voice',
-            status: 'pending_form',
-            intent: 'new_patient',
-            priority: 'normal',
-            source: 'seed_voice_thread',
-            assignedUserId: null,
-            lastMessageAt: addHours(now, -2),
-            lastInboundAt: addHours(now, -2),
-            lastOutboundAt: addHours(now, -1.75),
-            requiresHumanReview: true,
-            resolution: null,
-          })
-          .returning(),
-        'Failed to create voice thread'
-      )
-  );
+  for (const message of fixture.messages) {
+    const patient = patientRows.get(message.patientKey);
+    const thread = threadRows.get(message.threadKey);
+    if (!patient || !thread) {
+      throw new Error(`Missing relation for message ${message.key}`);
+    }
 
-  const messageRows = [
-    {
-      threadId: whatsappThread.id,
-      patientId: existingPatient.id,
-      direction: 'inbound',
-      channelType: 'whatsapp',
-      messageType: 'text',
-      body: 'Hola, necesito cambiar mi cita de hoy a primera hora de manana.',
-      payload: { sourceChannelId: whatsappChannel.id },
-      deliveryStatus: 'received',
-      providerMessageId: 'seed-msg-001',
-      sentAt: null,
-      receivedAt: addHours(now, -1),
-    },
-    {
-      threadId: whatsappThread.id,
-      patientId: existingPatient.id,
-      direction: 'outbound',
-      channelType: 'whatsapp',
-      messageType: 'template',
-      body: 'Puedo ofrecerte manana a las 10:30. Te viene bien?',
-      payload: { sourceChannelId: whatsappChannel.id },
-      deliveryStatus: 'delivered',
-      providerMessageId: 'seed-msg-002',
-      sentAt: addHours(now, -0.5),
-      receivedAt: null,
-    },
-  ] as const;
-
-  for (const messageRow of messageRows) {
     await ensureOne(
       async () =>
         (
@@ -822,7 +587,7 @@ async function seedClinicDemo(db: Database, userId: string) {
             .where(
               and(
                 eq(schema.conversationMessages.tenantId, tenant.id),
-                eq(schema.conversationMessages.providerMessageId, messageRow.providerMessageId)
+                eq(schema.conversationMessages.providerMessageId, message.providerMessageId)
               )
             )
             .limit(1)
@@ -833,326 +598,213 @@ async function seedClinicDemo(db: Database, userId: string) {
             .insert(schema.conversationMessages)
             .values({
               tenantId: tenant.id,
-              ...messageRow,
+              threadId: thread.id,
+              patientId: patient.id,
+              direction: message.direction,
+              channelType: message.channelType,
+              messageType: message.messageType,
+              body: message.body,
+              payload: message.payload,
+              deliveryStatus: message.deliveryStatus,
+              providerMessageId: message.providerMessageId,
+              sentAt: message.sentAt,
+              receivedAt: message.receivedAt,
             })
             .returning(),
-          `Failed to create message ${messageRow.providerMessageId}`
+          `Failed to create message ${message.providerMessageId}`
         )
     );
   }
 
-  const callSession = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.callSessions)
-          .where(
-            and(
-              eq(schema.callSessions.tenantId, tenant.id),
-              eq(schema.callSessions.providerCallId, 'seed-call-001')
+  const callRows = new Map<string, typeof schema.callSessions.$inferSelect>();
+  for (const call of fixture.calls) {
+    const patient = patientRows.get(call.patientKey);
+    const thread = threadRows.get(call.threadKey);
+    if (!patient || !thread) throw new Error(`Missing relation for call ${call.key}`);
+
+    const row = await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.callSessions)
+            .where(
+              and(
+                eq(schema.callSessions.tenantId, tenant.id),
+                eq(schema.callSessions.providerCallId, call.providerCallId)
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.callSessions)
-          .values({
-            tenantId: tenant.id,
-            patientId: newLead.id,
-            threadId: voiceThread.id,
-            direction: 'inbound',
-            status: 'callback_required',
-            providerCallId: 'seed-call-001',
-            fromNumber: newLead.phone!,
-            toNumber: voiceChannel.phoneNumber!,
-            startedAt: addHours(now, -2),
-            endedAt: addHours(now, -1.95),
-            durationSeconds: 180,
-            summary: 'New patient asked about first cleaning appointment and insurance coverage.',
-            transcript:
-              'Hola, queria pedir una primera cita para limpieza y saber si aceptais mi seguro.',
-            resolution: 'Needs intake form before booking.',
-            requiresHumanReview: true,
-          })
-          .returning(),
-        'Failed to create call session'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.callSessions)
+            .values({
+              tenantId: tenant.id,
+              patientId: patient.id,
+              threadId: thread.id,
+              direction: call.direction,
+              status: call.status,
+              providerCallId: call.providerCallId,
+              fromNumber: call.fromNumber,
+              toNumber: call.toNumber,
+              startedAt: call.startedAt,
+              endedAt: call.endedAt,
+              durationSeconds: call.durationSeconds,
+              summary: call.summary,
+              transcript: call.transcript,
+              resolution: call.resolution,
+              requiresHumanReview: call.requiresHumanReview,
+            })
+            .returning(),
+          `Failed to create call ${call.providerCallId}`
+        )
+    );
+    callRows.set(call.key, row);
+  }
 
-  const intakeTemplate = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.intakeFormTemplates)
-          .where(
-            and(
-              eq(schema.intakeFormTemplates.tenantId, tenant.id),
-              eq(schema.intakeFormTemplates.slug, 'new-patient-intake'),
-              eq(schema.intakeFormTemplates.version, '1.0.0')
+  const templateRows = new Map<string, typeof schema.intakeFormTemplates.$inferSelect>();
+  for (const template of fixture.formTemplates) {
+    const row = await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.intakeFormTemplates)
+            .where(
+              and(
+                eq(schema.intakeFormTemplates.tenantId, tenant.id),
+                eq(schema.intakeFormTemplates.slug, template.slug),
+                eq(schema.intakeFormTemplates.version, template.version)
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.intakeFormTemplates)
-          .values({
-            tenantId: tenant.id,
-            name: 'New Patient Intake',
-            slug: 'new-patient-intake',
-            version: '1.0.0',
-            schema: {
-              fields: [
-                { id: 'insurance', type: 'text', label: 'Insurance provider' },
-                { id: 'allergies', type: 'textarea', label: 'Allergies' },
-              ],
-            },
-            isActive: true,
-          })
-          .returning(),
-        'Failed to create intake form template'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.intakeFormTemplates)
+            .values({
+              tenantId: tenant.id,
+              name: template.name,
+              slug: template.slug,
+              version: template.version,
+              schema: template.schema,
+              isActive: true,
+            })
+            .returning(),
+          `Failed to create intake form template ${template.slug}`
+        )
+    );
+    templateRows.set(template.key, row);
+  }
 
-  const intakeSubmission = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.intakeFormSubmissions)
-          .where(
-            and(
-              eq(schema.intakeFormSubmissions.tenantId, tenant.id),
-              eq(schema.intakeFormSubmissions.templateId, intakeTemplate.id),
-              eq(schema.intakeFormSubmissions.patientId, newLead.id)
+  for (const submission of fixture.formSubmissions) {
+    const patient = patientRows.get(submission.patientKey);
+    const thread = threadRows.get(submission.threadKey);
+    const template = templateRows.get(submission.templateKey);
+    if (!patient || !thread || !template) {
+      throw new Error(`Missing relation for form submission ${submission.key}`);
+    }
+
+    await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.intakeFormSubmissions)
+            .where(
+              and(
+                eq(schema.intakeFormSubmissions.tenantId, tenant.id),
+                eq(schema.intakeFormSubmissions.templateId, template.id),
+                eq(schema.intakeFormSubmissions.patientId, patient.id)
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.intakeFormSubmissions)
-          .values({
-            tenantId: tenant.id,
-            templateId: intakeTemplate.id,
-            patientId: newLead.id,
-            threadId: voiceThread.id,
-            status: 'sent',
-            answers: {},
-            sentAt: addHours(now, -1.5),
-            openedAt: null,
-            completedAt: null,
-            expiresAt: addDays(now, 2),
-            requiredForBooking: true,
-          })
-          .returning(),
-        'Failed to create intake form submission'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.intakeFormSubmissions)
+            .values({
+              tenantId: tenant.id,
+              templateId: template.id,
+              patientId: patient.id,
+              threadId: thread.id,
+              status: submission.status,
+              answers: submission.answers,
+              sentAt: submission.sentAt,
+              openedAt: submission.openedAt,
+              completedAt: submission.completedAt,
+              expiresAt: submission.expiresAt,
+              requiredForBooking: submission.requiredForBooking,
+            })
+            .returning(),
+          `Failed to create intake form submission ${submission.key}`
+        )
+    );
+  }
 
-  const todayAppointment = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.appointments)
-          .where(
-            and(
-              eq(schema.appointments.tenantId, tenant.id),
-              eq(schema.appointments.externalAppointmentId, 'APPT-001')
+  const appointmentRows = new Map<string, typeof schema.appointments.$inferSelect>();
+  for (const appointment of fixture.appointments) {
+    const patient = patientRows.get(appointment.patientKey);
+    const service = serviceRows.get(appointment.serviceKey);
+    const practitioner = practitionerRows.get(appointment.practitionerKey);
+    const location = locationRows.get(appointment.locationKey);
+    const thread = appointment.threadKey ? threadRows.get(appointment.threadKey) : null;
+
+    if (!patient || !service || !practitioner || !location) {
+      throw new Error(`Missing relation for appointment ${appointment.key}`);
+    }
+
+    const row = await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.appointments)
+            .where(
+              and(
+                eq(schema.appointments.tenantId, tenant.id),
+                eq(schema.appointments.externalAppointmentId, appointment.externalAppointmentId)
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.appointments)
-          .values({
-            tenantId: tenant.id,
-            patientId: existingPatient.id,
-            externalAppointmentId: 'APPT-001',
-            serviceId: service.id,
-            practitionerId: practitioner.id,
-            locationId: location.id,
-            threadId: whatsappThread.id,
-            status: 'scheduled',
-            source: 'whatsapp',
-            startsAt: todayNine,
-            endsAt: addMinutes(todayNine, 45),
-            bookedAt: addDays(now, -7),
-            confirmationStatus: 'pending',
-            reminderStatus: 'scheduled',
-            metadata: {
-              room: 'Box 2',
-            },
-          })
-          .returning(),
-        'Failed to create same-day appointment'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.appointments)
+            .values({
+              tenantId: tenant.id,
+              patientId: patient.id,
+              externalAppointmentId: appointment.externalAppointmentId,
+              serviceId: service.id,
+              practitionerId: practitioner.id,
+              locationId: location.id,
+              threadId: thread?.id ?? null,
+              status: appointment.status,
+              source: appointment.source,
+              startsAt: appointment.startsAt,
+              endsAt: appointment.endsAt,
+              bookedAt: appointment.bookedAt,
+              confirmationStatus: appointment.confirmationStatus,
+              reminderStatus: appointment.reminderStatus,
+              cancellationReason: appointment.cancellationReason,
+              metadata: appointment.metadata,
+            })
+            .returning(),
+          `Failed to create appointment ${appointment.externalAppointmentId}`
+        )
+    );
+    appointmentRows.set(appointment.key, row);
+  }
 
-  const confirmedAppointment = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.appointments)
-          .where(
-            and(
-              eq(schema.appointments.tenantId, tenant.id),
-              eq(schema.appointments.externalAppointmentId, 'APPT-002')
-            )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.appointments)
-          .values({
-            tenantId: tenant.id,
-            patientId: existingPatient.id,
-            externalAppointmentId: 'APPT-002',
-            serviceId: service.id,
-            practitionerId: practitioner.id,
-            locationId: location.id,
-            threadId: whatsappThread.id,
-            status: 'confirmed',
-            source: 'manual',
-            startsAt: tomorrowTen,
-            endsAt: addMinutes(tomorrowTen, 45),
-            bookedAt: addDays(now, -3),
-            confirmationStatus: 'confirmed',
-            reminderStatus: 'sent',
-            metadata: {
-              note: 'Patient already confirmed via WhatsApp.',
-            },
-          })
-          .returning(),
-        'Failed to create confirmed appointment'
-      )
-  );
+  for (const event of fixture.appointmentEvents) {
+    const appointment = appointmentRows.get(event.appointmentKey);
+    if (!appointment) throw new Error(`Missing appointment for event ${event.eventType}`);
 
-  const cancelledAppointment = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.appointments)
-          .where(
-            and(
-              eq(schema.appointments.tenantId, tenant.id),
-              eq(schema.appointments.externalAppointmentId, 'APPT-003')
-            )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.appointments)
-          .values({
-            tenantId: tenant.id,
-            patientId: inactivePatient.id,
-            externalAppointmentId: 'APPT-003',
-            serviceId: service.id,
-            practitionerId: practitioner.id,
-            locationId: location.id,
-            threadId: null,
-            status: 'cancelled',
-            source: 'manual',
-            startsAt: todayEleven,
-            endsAt: addMinutes(todayEleven, 45),
-            bookedAt: addDays(now, -14),
-            confirmationStatus: 'declined',
-            reminderStatus: 'completed',
-            cancellationReason: 'Patient requested reschedule',
-            metadata: {
-              cancelledBy: 'patient',
-            },
-          })
-          .returning(),
-        'Failed to create cancelled appointment'
-      )
-  );
-
-  const reactivatedAppointment = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.appointments)
-          .where(
-            and(
-              eq(schema.appointments.tenantId, tenant.id),
-              eq(schema.appointments.externalAppointmentId, 'APPT-004')
-            )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.appointments)
-          .values({
-            tenantId: tenant.id,
-            patientId: inactivePatient.id,
-            externalAppointmentId: 'APPT-004',
-            serviceId: service.id,
-            practitionerId: practitioner.id,
-            locationId: location.id,
-            threadId: null,
-            status: 'scheduled',
-            source: 'campaign',
-            startsAt: nextWeekTen,
-            endsAt: addMinutes(nextWeekTen, 45),
-            bookedAt: addHours(now, -6),
-            confirmationStatus: 'pending',
-            reminderStatus: 'pending',
-            metadata: {
-              bookedFromCampaign: true,
-            },
-          })
-          .returning(),
-        'Failed to create reactivated appointment'
-      )
-  );
-
-  const appointmentEventRows = [
-    {
-      appointmentId: todayAppointment.id,
-      eventType: 'scheduled',
-      actorType: 'ai',
-      payload: { threadId: whatsappThread.id },
-    },
-    {
-      appointmentId: confirmedAppointment.id,
-      eventType: 'confirmed',
-      actorType: 'patient',
-      payload: { channelType: 'whatsapp' },
-    },
-    {
-      appointmentId: cancelledAppointment.id,
-      eventType: 'cancelled',
-      actorType: 'patient',
-      payload: { reason: 'Patient requested reschedule' },
-    },
-    {
-      appointmentId: reactivatedAppointment.id,
-      eventType: 'booked_from_campaign',
-      actorType: 'ai',
-      payload: { campaignHint: 'spring-hygiene-recall' },
-    },
-  ] as const;
-
-  for (const eventRow of appointmentEventRows) {
     await ensureOne(
       async () =>
         (
@@ -1161,8 +813,8 @@ async function seedClinicDemo(db: Database, userId: string) {
             .from(schema.appointmentEvents)
             .where(
               and(
-                eq(schema.appointmentEvents.appointmentId, eventRow.appointmentId),
-                eq(schema.appointmentEvents.eventType, eventRow.eventType)
+                eq(schema.appointmentEvents.appointmentId, appointment.id),
+                eq(schema.appointmentEvents.eventType, event.eventType)
               )
             )
             .limit(1)
@@ -1173,256 +825,275 @@ async function seedClinicDemo(db: Database, userId: string) {
             .insert(schema.appointmentEvents)
             .values({
               tenantId: tenant.id,
-              ...eventRow,
+              appointmentId: appointment.id,
+              eventType: event.eventType,
+              actorType: event.actorType,
+              payload: event.payload,
             })
             .returning(),
-          `Failed to create appointment event ${eventRow.eventType}`
+          `Failed to create appointment event ${event.eventType}`
         )
     );
   }
 
-  await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.reminderJobs)
-          .where(
-            and(
-              eq(schema.reminderJobs.tenantId, tenant.id),
-              eq(schema.reminderJobs.appointmentId, todayAppointment.id),
-              eq(schema.reminderJobs.templateKey, 'appointment_reminder_24h')
+  for (const reminder of fixture.reminders) {
+    const appointment = appointmentRows.get(reminder.appointmentKey);
+    if (!appointment) throw new Error(`Missing appointment for reminder ${reminder.templateKey}`);
+
+    await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.reminderJobs)
+            .where(
+              and(
+                eq(schema.reminderJobs.tenantId, tenant.id),
+                eq(schema.reminderJobs.appointmentId, appointment.id),
+                eq(schema.reminderJobs.templateKey, reminder.templateKey)
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.reminderJobs)
-          .values({
-            tenantId: tenant.id,
-            appointmentId: todayAppointment.id,
-            channelType: 'whatsapp',
-            status: 'scheduled',
-            scheduledFor: addHours(now, 1),
-            sentAt: null,
-            templateKey: 'appointment_reminder_24h',
-            attemptCount: 0,
-            lastError: null,
-          })
-          .returning(),
-        'Failed to create reminder job'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.reminderJobs)
+            .values({
+              tenantId: tenant.id,
+              appointmentId: appointment.id,
+              channelType: reminder.channelType,
+              status: reminder.status,
+              scheduledFor: reminder.scheduledFor,
+              sentAt: reminder.sentAt,
+              templateKey: reminder.templateKey,
+              attemptCount: reminder.attemptCount,
+              lastError: reminder.lastError,
+            })
+            .returning(),
+          `Failed to create reminder ${reminder.templateKey}`
+        )
+    );
+  }
 
-  await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.confirmationRequests)
-          .where(
-            and(
-              eq(schema.confirmationRequests.tenantId, tenant.id),
-              eq(schema.confirmationRequests.appointmentId, todayAppointment.id)
+  for (const confirmation of fixture.confirmations) {
+    const appointment = appointmentRows.get(confirmation.appointmentKey);
+    if (!appointment) throw new Error(`Missing appointment for confirmation`);
+
+    await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.confirmationRequests)
+            .where(
+              and(
+                eq(schema.confirmationRequests.tenantId, tenant.id),
+                eq(schema.confirmationRequests.appointmentId, appointment.id)
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.confirmationRequests)
-          .values({
-            tenantId: tenant.id,
-            appointmentId: todayAppointment.id,
-            channelType: 'whatsapp',
-            status: 'pending',
-            requestedAt: addHours(now, -3),
-            dueAt: addHours(now, 4),
-            respondedAt: null,
-            responsePayload: {},
-          })
-          .returning(),
-        'Failed to create confirmation request'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.confirmationRequests)
+            .values({
+              tenantId: tenant.id,
+              appointmentId: appointment.id,
+              channelType: confirmation.channelType,
+              status: confirmation.status,
+              requestedAt: confirmation.requestedAt,
+              dueAt: confirmation.dueAt,
+              respondedAt: confirmation.respondedAt,
+              responsePayload: confirmation.responsePayload,
+            })
+            .returning(),
+          'Failed to create confirmation request'
+        )
+    );
+  }
 
-  const waitlistRequest = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.waitlistRequests)
-          .where(
-            and(
-              eq(schema.waitlistRequests.tenantId, tenant.id),
-              eq(schema.waitlistRequests.patientId, newLead.id)
+  const waitlistRows = new Map<string, typeof schema.waitlistRequests.$inferSelect>();
+  for (const waitlist of fixture.waitlistRequests) {
+    const patient = patientRows.get(waitlist.patientKey);
+    const service = serviceRows.get(waitlist.serviceKey);
+    const practitioner = practitionerRows.get(waitlist.practitionerKey);
+    const location = locationRows.get(waitlist.locationKey);
+    if (!patient || !service || !practitioner || !location) {
+      throw new Error(`Missing relation for waitlist ${waitlist.key}`);
+    }
+
+    const row = await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.waitlistRequests)
+            .where(
+              and(
+                eq(schema.waitlistRequests.tenantId, tenant.id),
+                eq(schema.waitlistRequests.patientId, patient.id)
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.waitlistRequests)
-          .values({
-            tenantId: tenant.id,
-            patientId: newLead.id,
-            serviceId: service.id,
-            practitionerId: practitioner.id,
-            locationId: location.id,
-            preferredWindows: [
-              { start: '09:00', end: '12:00', label: 'mornings' },
-              { start: '16:00', end: '18:00', label: 'late-afternoon' },
-            ],
-            status: 'active',
-            priorityScore: 0.82,
-            notes: 'Happy to come earlier this week if a slot opens up.',
-          })
-          .returning(),
-        'Failed to create waitlist request'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.waitlistRequests)
+            .values({
+              tenantId: tenant.id,
+              patientId: patient.id,
+              serviceId: service.id,
+              practitionerId: practitioner.id,
+              locationId: location.id,
+              preferredWindows: waitlist.preferredWindows,
+              status: waitlist.status,
+              priorityScore: waitlist.priorityScore,
+              notes: waitlist.notes,
+            })
+            .returning(),
+          `Failed to create waitlist ${waitlist.key}`
+        )
+    );
+    waitlistRows.set(waitlist.key, row);
+  }
 
-  const gapOpportunity = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.gapOpportunities)
-          .where(
-            and(
-              eq(schema.gapOpportunities.tenantId, tenant.id),
-              eq(schema.gapOpportunities.originAppointmentId, cancelledAppointment.id)
+  const gapRows = new Map<string, typeof schema.gapOpportunities.$inferSelect>();
+  for (const gap of fixture.gaps) {
+    const appointment = appointmentRows.get(gap.originAppointmentKey);
+    const service = serviceRows.get(gap.serviceKey);
+    const practitioner = practitionerRows.get(gap.practitionerKey);
+    const location = locationRows.get(gap.locationKey);
+    if (!appointment || !service || !practitioner || !location) {
+      throw new Error(`Missing relation for gap ${gap.key}`);
+    }
+
+    const row = await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.gapOpportunities)
+            .where(
+              and(
+                eq(schema.gapOpportunities.tenantId, tenant.id),
+                eq(schema.gapOpportunities.originAppointmentId, appointment.id)
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.gapOpportunities)
-          .values({
-            tenantId: tenant.id,
-            originAppointmentId: cancelledAppointment.id,
-            serviceId: service.id,
-            practitionerId: practitioner.id,
-            locationId: location.id,
-            startsAt: cancelledAppointment.startsAt,
-            endsAt: cancelledAppointment.endsAt,
-            status: 'open',
-            origin: 'cancellation',
-          })
-          .returning(),
-        'Failed to create gap opportunity'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.gapOpportunities)
+            .values({
+              tenantId: tenant.id,
+              originAppointmentId: appointment.id,
+              serviceId: service.id,
+              practitionerId: practitioner.id,
+              locationId: location.id,
+              startsAt: gap.startsAt,
+              endsAt: gap.endsAt,
+              status: gap.status,
+              origin: gap.origin,
+            })
+            .returning(),
+          `Failed to create gap ${gap.key}`
+        )
+    );
+    gapRows.set(gap.key, row);
+  }
 
-  await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.gapOutreachAttempts)
-          .where(
-            and(
-              eq(schema.gapOutreachAttempts.tenantId, tenant.id),
-              eq(schema.gapOutreachAttempts.gapOpportunityId, gapOpportunity.id),
-              eq(schema.gapOutreachAttempts.patientId, waitlistRequest.patientId)
+  for (const outreach of fixture.gapOutreachAttempts) {
+    const gap = gapRows.get(outreach.gapKey);
+    const patient = patientRows.get(outreach.patientKey);
+    if (!gap || !patient) throw new Error(`Missing relation for gap outreach ${outreach.key}`);
+
+    await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.gapOutreachAttempts)
+            .where(
+              and(
+                eq(schema.gapOutreachAttempts.tenantId, tenant.id),
+                eq(schema.gapOutreachAttempts.gapOpportunityId, gap.id),
+                eq(schema.gapOutreachAttempts.patientId, patient.id)
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.gapOutreachAttempts)
-          .values({
-            tenantId: tenant.id,
-            gapOpportunityId: gapOpportunity.id,
-            patientId: waitlistRequest.patientId,
-            channelType: 'whatsapp',
-            status: 'sent',
-            sentAt: addHours(now, -0.75),
-            respondedAt: null,
-            result: 'Awaiting reply',
-            metadata: {
-              campaign: 'gap-fill',
-            },
-          })
-          .returning(),
-        'Failed to create gap outreach attempt'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.gapOutreachAttempts)
+            .values({
+              tenantId: tenant.id,
+              gapOpportunityId: gap.id,
+              patientId: patient.id,
+              channelType: outreach.channelType,
+              status: outreach.status,
+              sentAt: outreach.sentAt,
+              respondedAt: outreach.respondedAt,
+              result: outreach.result,
+              metadata: outreach.metadata,
+            })
+            .returning(),
+          `Failed to create gap outreach ${outreach.key}`
+        )
+    );
+  }
 
-  const reactivationCampaign = await ensureOne(
-    async () =>
-      (
-        await db
-          .select()
-          .from(schema.reactivationCampaigns)
-          .where(
-            and(
-              eq(schema.reactivationCampaigns.tenantId, tenant.id),
-              eq(schema.reactivationCampaigns.name, 'Spring hygiene recall')
+  const campaignRows = new Map<string, typeof schema.reactivationCampaigns.$inferSelect>();
+  for (const campaign of fixture.campaigns) {
+    const row = await ensureOne(
+      async () =>
+        (
+          await db
+            .select()
+            .from(schema.reactivationCampaigns)
+            .where(
+              and(
+                eq(schema.reactivationCampaigns.tenantId, tenant.id),
+                eq(schema.reactivationCampaigns.name, campaign.name)
+              )
             )
-          )
-          .limit(1)
-      )[0],
-    async () =>
-      insertOne(
-        db
-          .insert(schema.reactivationCampaigns)
-          .values({
-            tenantId: tenant.id,
-            name: 'Spring hygiene recall',
-            campaignType: 'hygiene_recall',
-            status: 'running',
-            audienceDefinition: {
-              inactiveDays: 180,
-              serviceSlug: service.slug,
-            },
-            messageTemplate: {
-              title: 'Time for your hygiene check',
-              body: 'We have a few openings this week if you want to book your hygiene visit.',
-            },
-            channelPolicy: {
-              primaryChannel: 'whatsapp',
-              fallbackChannel: 'email',
-            },
-            scheduledAt: addDays(now, -1),
-            startedAt: addHours(now, -12),
-            completedAt: null,
-          })
-          .returning(),
-        'Failed to create reactivation campaign'
-      )
-  );
+            .limit(1)
+        )[0],
+      async () =>
+        insertOne(
+          db
+            .insert(schema.reactivationCampaigns)
+            .values({
+              tenantId: tenant.id,
+              name: campaign.name,
+              campaignType: campaign.campaignType,
+              status: campaign.status,
+              audienceDefinition: campaign.audienceDefinition,
+              messageTemplate: campaign.messageTemplate,
+              channelPolicy: campaign.channelPolicy,
+              scheduledAt: campaign.scheduledAt,
+              startedAt: campaign.startedAt,
+              completedAt: campaign.completedAt,
+            })
+            .returning(),
+          `Failed to create campaign ${campaign.name}`
+        )
+    );
+    campaignRows.set(campaign.key, row);
+  }
 
-  const recipientRows = [
-    {
-      patientId: inactivePatient.id,
-      status: 'booked',
-      lastContactAt: addHours(now, -8),
-      lastResponseAt: addHours(now, -6),
-      result: 'Booked hygiene recall',
-      generatedAppointmentId: reactivatedAppointment.id,
-      metadata: { sourceChannel: 'whatsapp' },
-    },
-    {
-      patientId: existingPatient.id,
-      status: 'contacted',
-      lastContactAt: addHours(now, -4),
-      lastResponseAt: null,
-      result: 'Awaiting reply',
-      generatedAppointmentId: null,
-      metadata: { sourceChannel: 'email' },
-    },
-  ] as const;
+  for (const recipient of fixture.recipients) {
+    const campaign = campaignRows.get(recipient.campaignKey);
+    const patient = patientRows.get(recipient.patientKey);
+    const generatedAppointment = recipient.generatedAppointmentKey
+      ? appointmentRows.get(recipient.generatedAppointmentKey)
+      : null;
+    if (!campaign || !patient) throw new Error(`Missing relation for recipient ${recipient.key}`);
 
-  for (const recipientRow of recipientRows) {
     await ensureOne(
       async () =>
         (
@@ -1432,8 +1103,8 @@ async function seedClinicDemo(db: Database, userId: string) {
             .where(
               and(
                 eq(schema.reactivationRecipients.tenantId, tenant.id),
-                eq(schema.reactivationRecipients.campaignId, reactivationCampaign.id),
-                eq(schema.reactivationRecipients.patientId, recipientRow.patientId)
+                eq(schema.reactivationRecipients.campaignId, campaign.id),
+                eq(schema.reactivationRecipients.patientId, patient.id)
               )
             )
             .limit(1)
@@ -1444,11 +1115,17 @@ async function seedClinicDemo(db: Database, userId: string) {
             .insert(schema.reactivationRecipients)
             .values({
               tenantId: tenant.id,
-              campaignId: reactivationCampaign.id,
-              ...recipientRow,
+              campaignId: campaign.id,
+              patientId: patient.id,
+              status: recipient.status,
+              lastContactAt: recipient.lastContactAt,
+              lastResponseAt: recipient.lastResponseAt,
+              result: recipient.result,
+              generatedAppointmentId: generatedAppointment?.id ?? null,
+              metadata: recipient.metadata,
             })
             .returning(),
-          `Failed to create campaign recipient ${recipientRow.patientId}`
+          `Failed to create campaign recipient ${recipient.key}`
         )
     );
   }
@@ -1456,29 +1133,8 @@ async function seedClinicDemo(db: Database, userId: string) {
   return {
     tenant,
     clinicProfile,
-    whatsappChannel,
-    voiceChannel,
-    service,
-    practitioner,
-    location,
-    patients: [existingPatient, newLead, inactivePatient],
-    whatsappThread,
-    voiceThread,
-    callSession,
-    intakeSubmission,
-    appointments: [
-      todayAppointment,
-      confirmedAppointment,
-      cancelledAppointment,
-      reactivatedAppointment,
-    ],
-    gapOpportunity,
-    reactivationCampaign,
+    summary: fixture.summary,
   };
-}
-
-function addMinutes(date: Date, minutes: number) {
-  return new Date(date.getTime() + minutes * 60 * 1000);
 }
 
 async function seed() {
@@ -1493,14 +1149,21 @@ async function seed() {
 
   print('Seed complete.');
   print(`  User:            ${user.id} (${ADMIN_EMAIL})`);
+  print(`  Password:        ${ADMIN_PASSWORD}`);
   print(`  Workspace demo:  ${genericTenant.id} (${genericTenant.name})`);
   print(`  Clinic demo:     ${clinicDemo.tenant.id} (${clinicDemo.tenant.name})`);
   print(`  Clinic profile:  ${clinicDemo.clinicProfile.displayName}`);
-  print(`  Patients:        ${clinicDemo.patients.length}`);
-  print(`  Threads:         2`);
-  print(`  Appointments:    ${clinicDemo.appointments.length}`);
-  print(`  Active gap:      ${clinicDemo.gapOpportunity.id}`);
-  print(`  Campaign:        ${clinicDemo.reactivationCampaign.name}`);
+  print(`  Patients:        ${clinicDemo.summary.counts.patients}`);
+  print(
+    `  Threads:         ${
+      clinicDemo.summary.counts.whatsappThreads + clinicDemo.summary.counts.voiceThreads
+    }`
+  );
+  print(`  Calls:           ${clinicDemo.summary.counts.calls}`);
+  print(`  Forms:           ${clinicDemo.summary.counts.formSubmissions}`);
+  print(`  Appointments:    ${clinicDemo.summary.counts.appointments}`);
+  print(`  Active gap:      ${clinicDemo.summary.journeys.gapRecovery.gapKey}`);
+  print(`  Campaign:        ${clinicDemo.summary.journeys.reactivation.campaignKey}`);
 
   await client.end();
 }

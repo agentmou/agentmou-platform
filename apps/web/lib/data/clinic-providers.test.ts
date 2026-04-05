@@ -24,16 +24,44 @@ describe('clinic data providers', () => {
   });
 
   it('returns deterministic clinic fixtures from the mock provider', async () => {
-    const patients = await mockProvider.listClinicPatients('demo-workspace', {
-      hasPendingForm: true,
-    });
-    const calls = await mockProvider.listClinicCalls('demo-workspace', {
-      channelType: 'voice',
-    });
+    const [patients, conversations, calls, appointments, gaps, campaigns] = await Promise.all([
+      mockProvider.listClinicPatients('demo-workspace', {
+        hasPendingForm: true,
+      }),
+      mockProvider.listClinicConversations('demo-workspace', {
+        status: 'pending_form',
+      }),
+      mockProvider.listClinicCalls('demo-workspace', {
+        status: 'callback_required',
+      }),
+      mockProvider.listClinicAppointments('demo-workspace', {
+        confirmationStatus: 'pending',
+      }),
+      mockProvider.listClinicGaps('demo-workspace', {
+        status: 'open',
+      }),
+      mockProvider.listClinicReactivationCampaigns('demo-workspace', {
+        status: 'running',
+      }),
+    ]);
 
-    expect(patients.patients.map((patient) => patient.fullName)).toEqual(['Ana Garcia']);
+    expect(patients.patients.map((patient) => patient.fullName)).toEqual([
+      'Sofia Romero',
+      'Pablo Ortiz',
+    ]);
+    expect(conversations.threads.map((thread) => thread.id)).toEqual([
+      'thread-sofia-whatsapp',
+      'thread-pablo-whatsapp',
+    ]);
     expect(calls.calls).toHaveLength(1);
     expect(calls.calls[0]?.status).toBe('callback_required');
+    expect(appointments.appointments.map((appointment) => appointment.id)).toEqual([
+      'appointment-ana',
+      'appointment-marta',
+      'appointment-carmen',
+    ]);
+    expect(gaps[0]?.outreachAttempts[0]?.status).toBe('sent');
+    expect(campaigns.campaigns[0]?.id).toBe('campaign-hygiene-recall');
   });
 
   it('keeps clinic demo data available through the demo provider', async () => {
@@ -43,8 +71,10 @@ describe('clinic data providers', () => {
       demoProvider.getClinicExperience('demo-workspace'),
     ]);
 
-    expect(dashboard.kpis.pendingConfirmations).toBe(1);
-    expect(campaigns.campaigns[0]?.name).toContain('Revision');
+    expect(dashboard.kpis.pendingConfirmations).toBe(2);
+    expect(dashboard.kpis.pendingForms).toBe(2);
+    expect(dashboard.prioritizedInbox[0]?.id).toBe('thread-lucia-voice');
+    expect(campaigns.campaigns[0]?.name).toContain('higiene');
     expect(experience?.flags.internalPlatformVisible).toBe(false);
   });
 
