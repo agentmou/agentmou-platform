@@ -1,4 +1,4 @@
-const TEST_DATABASE_URL = 'postgresql://postgres:postgres@127.0.0.1:5432/agentmou';
+const TEST_DATABASE_URL = 'postgresql://agentmou:changeme@127.0.0.1:5432/agentmou';
 
 function ensureDatabaseUrl(value: string) {
   const parsed = new URL(value);
