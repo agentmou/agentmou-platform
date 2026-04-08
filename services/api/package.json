@@ -18,7 +18,7 @@
     "@agentmou/connectors": "workspace:*",
     "@agentmou/db": "workspace:*",
     "@agentmou/queue": "workspace:*",
-    "drizzle-orm": "^0.39.0",
+    "drizzle-orm": "^0.45.2",
     "@agentmou/auth": "workspace:*",
     "@agentmou/contracts": "workspace:*",
     "@agentmou/agent-engine": "workspace:*",
