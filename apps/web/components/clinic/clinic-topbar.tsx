@@ -128,11 +128,18 @@ export function ClinicTopbar({
       </header>
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="p-0">
+        <SheetContent
+          side="left"
+          className="flex h-[100dvh] w-72 max-w-[85vw] flex-col border-r border-border/60 bg-sidebar p-0"
+        >
           <SheetHeader className="sr-only">
             <SheetTitle>Navegacion clinica</SheetTitle>
           </SheetHeader>
-          <ClinicSidebar tenantId={experience.tenantId} pathname={pathname} />
+          <ClinicSidebar
+            tenantId={experience.tenantId}
+            pathname={pathname}
+            onNavigate={() => setMobileOpen(false)}
+          />
         </SheetContent>
       </Sheet>
     </>
