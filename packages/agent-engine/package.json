@@ -15,7 +15,7 @@
     "@agentmou/contracts": "workspace:*",
     "@agentmou/db": "workspace:*",
     "@agentmou/observability": "workspace:*",
-    "drizzle-orm": "^0.39.0",
+    "drizzle-orm": "^0.45.2",
     "openai": "^4.80.0"
   },
   "devDependencies": {
