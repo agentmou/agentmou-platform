@@ -3,20 +3,31 @@
 import * as React from 'react';
 import type {
   ClinicChannel,
-  ClinicExperience,
   ClinicModuleEntitlement,
   ClinicNavigationKey,
   ClinicProfile,
   Tenant,
-  TenantSettings,
-  VerticalKey,
+  TenantExperience,
+  TenantNavigationKey,
+  TenantShellKey,
 } from '@agentmou/contracts';
-import { usePathname } from 'next/navigation';
 
-import type { DataProvider } from '@/lib/data/provider';
 import { useAuthStore } from '@/lib/auth/store';
+import type { DataProvider } from '@/lib/data/provider';
+import type { TenantSearchMode } from '@/lib/vertical-registry';
+import { getTenantDefaultHref, getVerticalRegistryEntry } from '@/lib/vertical-registry';
+import {
+  isSharedVertical,
+  resolveActiveVertical as resolveTenantVertical,
+} from '@/lib/tenant-vertical';
 
-export type TenantShellMode = 'clinic' | 'platform_internal';
+export {
+  isClinicDentalMode,
+  isClinicUiEnabled,
+  resolveActiveVertical,
+} from '@/lib/tenant-vertical';
+
+export type TenantShellMode = TenantShellKey;
 
 export interface ClinicUiCapabilities {
   coreReceptionEnabled: boolean;
@@ -41,11 +52,15 @@ export interface TenantExperienceState {
   profile: ClinicProfile | null;
   modules: ClinicModuleEntitlement[];
   channels: ClinicChannel[];
-  resolvedExperience: ClinicExperience | null;
-  permissions: ClinicExperience['permissions'];
-  allowedNavigation: ClinicNavigationKey[];
+  resolvedExperience: TenantExperience | null;
+  permissions: TenantExperience['permissions'];
+  allowedNavigation: TenantNavigationKey[];
+  activeVertical: TenantExperience['activeVertical'];
+  shellKey: TenantShellKey;
+  defaultRoute: string;
+  searchMode: TenantSearchMode;
   isClinicTenant: boolean;
-  isPlatformRoute: boolean;
+  isSharedVertical: boolean;
   mode: TenantShellMode;
   canAccessInternalPlatform: boolean;
   capabilities: ClinicUiCapabilities;
@@ -101,30 +116,6 @@ export function normalizeMemberRole(role?: string) {
   return role === 'member' ? 'operator' : role;
 }
 
-export function resolveActiveVertical(settings?: Partial<TenantSettings> | null): VerticalKey {
-  if (
-    settings?.activeVertical === 'internal' ||
-    settings?.activeVertical === 'clinic' ||
-    settings?.activeVertical === 'fisio'
-  ) {
-    return settings.activeVertical;
-  }
-
-  if (typeof settings?.verticalClinicUi === 'boolean') {
-    return settings.verticalClinicUi ? 'clinic' : 'internal';
-  }
-
-  return 'internal';
-}
-
-export function isClinicUiEnabled(settings?: Partial<TenantSettings> | null) {
-  return resolveActiveVertical(settings) === 'clinic';
-}
-
-export function isClinicDentalMode(settings?: Partial<TenantSettings> | null) {
-  return isClinicUiEnabled(settings) && Boolean(settings?.clinicDentalMode);
-}
-
 function isModuleEnabled(
   modules: Array<{ moduleKey: string; status: string; enabled?: boolean }>,
   moduleKey: string
@@ -147,7 +138,7 @@ export function resolveClinicCapabilities(params: {
   channels: ClinicChannel[];
   profile: ClinicProfile | null;
   role?: string;
-  experience?: ClinicExperience | null;
+  experience?: Pick<TenantExperience, 'flags' | 'permissions' | 'canAccessInternalPlatform'> | null;
 }): ClinicUiCapabilities {
   const { modules, channels, profile, role, experience } = params;
   const moduleByKey = Object.fromEntries(
@@ -176,6 +167,7 @@ export function resolveClinicCapabilities(params: {
     (growthEnabled && profile?.reactivationPolicy.enabled !== false);
   const multiLocationEnabled = channels.length > 1;
   const canAccessInternalPlatform =
+    experience?.canAccessInternalPlatform ??
     experience?.permissions.includes('view_internal_platform') ??
     (internalPlatformEnabled && (normalizedRole === 'owner' || normalizedRole === 'admin'));
 
@@ -222,7 +214,6 @@ export function hasClinicNavigationAccess(
 }
 
 export function useResolvedTenantExperience(tenantId: string, provider: DataProvider) {
-  const pathname = usePathname();
   const hydrate = useAuthStore((state) => state.hydrate);
   const authTenants = useAuthStore((state) => state.tenants);
   const isHydrated = useAuthStore((state) => state.isHydrated);
@@ -231,7 +222,7 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
   const [profile, setProfile] = React.useState<ClinicProfile | null>(null);
   const [modules, setModules] = React.useState<ClinicModuleEntitlement[]>([]);
   const [channels, setChannels] = React.useState<ClinicChannel[]>([]);
-  const [resolvedExperience, setResolvedExperience] = React.useState<ClinicExperience | null>(null);
+  const [resolvedExperience, setResolvedExperience] = React.useState<TenantExperience | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -248,42 +239,43 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
 
       setIsLoading(true);
 
-      const [resolvedTenant, resolvedProfile, nextExperience] = await Promise.all([
+      const [resolvedTenant, nextExperience] = await Promise.all([
         provider.getTenant(tenantId).catch(() => null),
-        provider.getClinicProfile(tenantId).catch(() => null),
-        provider.getClinicExperience(tenantId).catch(() => null),
+        provider.getTenantExperience(tenantId).catch(() => null),
       ]);
 
       if (!active) {
         return;
       }
 
-      const nextTenant = resolvedTenant;
-      const shouldLoadClinicContext =
-        resolveActiveVertical(nextTenant?.settings) === 'clinic' ||
-        resolvedProfile !== null ||
-        nextExperience !== null;
+      const nextVertical =
+        nextExperience?.activeVertical ?? resolveTenantVertical(resolvedTenant?.settings);
+      const shouldLoadClinicContext = isSharedVertical(nextVertical);
 
+      let nextProfile: ClinicProfile | null = null;
       let nextModules: ClinicModuleEntitlement[] = nextExperience?.modules ?? [];
       let nextChannels: ClinicChannel[] = [];
 
       if (shouldLoadClinicContext) {
-        const [loadedModules, loadedChannels] = await Promise.all([
+        const [loadedProfile, loadedModules, loadedChannels] = await Promise.all([
+          provider.getClinicProfile(tenantId).catch(() => null),
           nextModules.length > 0
             ? Promise.resolve(nextModules)
             : provider.listClinicModules(tenantId).catch(() => []),
           provider.listClinicChannels(tenantId).catch(() => []),
         ]);
-        nextModules = loadedModules;
-        nextChannels = loadedChannels;
 
         if (!active) {
           return;
         }
+
+        nextProfile = loadedProfile;
+        nextModules = loadedModules;
+        nextChannels = loadedChannels;
       }
 
-      setTenant(nextTenant);
-      setProfile(resolvedProfile);
+      setTenant(resolvedTenant);
+      setProfile(nextProfile);
       setModules(nextModules);
       setChannels(nextChannels);
       setResolvedExperience(nextExperience);
@@ -301,13 +293,15 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
   const hasTenantAccess =
     tenantId === 'demo-workspace' || authTenants.some((item) => item.id === tenantId);
   const fallbackTenantId = authTenants[0]?.id ?? null;
-  const isClinicTenant =
-    resolvedExperience?.isClinicTenant ??
-    (resolveActiveVertical(tenant?.settings) === 'clinic' || profile !== null);
-  const isPlatformRoute = pathname ? isPlatformPath(pathname, tenantId) : false;
+  const activeVertical =
+    resolvedExperience?.activeVertical ?? resolveTenantVertical(tenant?.settings);
+  const registryEntry = getVerticalRegistryEntry(resolvedExperience ?? tenant?.settings);
+  const sharedVertical = isSharedVertical(activeVertical);
+  const isClinicTenant = activeVertical === 'clinic';
+  const normalizedRole = resolvedExperience?.normalizedRole ?? normalizeMemberRole(role);
   const capabilities = React.useMemo(
     () =>
-      isClinicTenant
+      sharedVertical
         ? resolveClinicCapabilities({
             modules,
             channels,
@@ -316,13 +310,15 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
             experience: resolvedExperience,
           })
         : DEFAULT_CAPABILITIES,
-    [channels, isClinicTenant, modules, profile, resolvedExperience, role]
+    [channels, modules, profile, resolvedExperience, role, sharedVertical]
   );
   const canAccessInternalPlatform =
-    resolvedExperience?.permissions.includes('view_internal_platform') ??
-    capabilities.canAccessInternalPlatform;
-  const mode: TenantShellMode = isClinicTenant && !isPlatformRoute ? 'clinic' : 'platform_internal';
-  const normalizedRole = resolvedExperience?.normalizedRole ?? normalizeMemberRole(role);
+    resolvedExperience?.canAccessInternalPlatform ??
+    (activeVertical === 'internal' && capabilities.canAccessInternalPlatform);
+  const shellKey = resolvedExperience?.shellKey ?? registryEntry.shellKey;
+  const defaultRoute =
+    resolvedExperience?.defaultRoute ??
+    getTenantDefaultHref(tenantId, resolvedExperience ?? tenant?.settings);
 
   return {
     tenantId,
@@ -334,36 +330,18 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
     channels,
     resolvedExperience,
     permissions: resolvedExperience?.permissions ?? [],
-    allowedNavigation: resolvedExperience?.allowedNavigation ?? [],
+    allowedNavigation: resolvedExperience?.allowedNavigation ?? registryEntry.navigationSchema,
+    activeVertical,
+    shellKey,
+    defaultRoute,
+    searchMode: registryEntry.searchMode,
     isClinicTenant,
-    isPlatformRoute,
-    mode,
+    isSharedVertical: sharedVertical,
+    mode: shellKey,
     canAccessInternalPlatform,
     capabilities,
     hasTenantAccess,
     fallbackTenantId,
     isLoading: !isHydrated || isLoading,
   } satisfies TenantExperienceState;
-}
-
-export function getPlatformPath(tenantId: string, path: string) {
-  const normalized = path.startsWith('/') ? path : `/${path}`;
-  return `/app/${tenantId}/platform${normalized}`;
-}
-
-export function isPlatformPath(pathname: string, tenantId: string) {
-  const base = `/app/${tenantId}`;
-  const platformPrefixes = [
-    '/platform',
-    '/approvals',
-    '/marketplace',
-    '/installer',
-    '/fleet',
-    '/runs',
-    '/observability',
-    '/security',
-    '/settings',
-  ];
-
-  return platformPrefixes.some((prefix) => pathname.startsWith(`${base}${prefix}`));
 }

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { useTheme } from 'next-themes';
 import {
   Card,
@@ -621,11 +620,5 @@ function SettingsPageContent() {
 }
 
 export default function SettingsPage() {
-  const redirected = useLegacyPlatformRedirect('/settings');
-
-  if (redirected) {
-    return null;
-  }
-
   return <SettingsPageContent />;
 }

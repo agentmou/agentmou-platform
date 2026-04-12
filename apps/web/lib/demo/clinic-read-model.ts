@@ -28,6 +28,7 @@ import type {
   ReactivationCampaignsResponse,
   ReactivationRecipient,
   ReminderJob,
+  TenantExperience,
 } from '@agentmou/contracts';
 
 import {
@@ -88,6 +89,10 @@ export function getClinicExperience(tenantId: string): ClinicExperience {
   return clone(getDataset(tenantId).experience);
 }
 
+export function getTenantExperience(tenantId: string): TenantExperience {
+  return clone(getDataset(tenantId).tenantExperience);
+}
+
 export function listClinicModules(tenantId: string): ClinicModuleEntitlement[] {
   return clone(getDataset(tenantId).modules);
 }
@@ -102,7 +107,10 @@ export function listClinicPatients(
 ): PatientsResponse {
   const items = getDataset(tenantId).patientListItems.filter((patient) => {
     if (
-      !matchesSearch([patient.fullName, patient.phone ?? null, patient.email ?? null], filters.search)
+      !matchesSearch(
+        [patient.fullName, patient.phone ?? null, patient.email ?? null],
+        filters.search
+      )
     ) {
       return false;
     }
@@ -197,9 +205,7 @@ export function listClinicConversationMessages(
   tenantId: string,
   threadId: string
 ): ConversationMessage[] {
-  return clone(
-    getDataset(tenantId).messages.filter((message) => message.threadId === threadId)
-  );
+  return clone(getDataset(tenantId).messages.filter((message) => message.threadId === threadId));
 }
 
 export function listClinicCalls(tenantId: string, filters: CallFilters = {}): CallsResponse {
@@ -302,10 +308,7 @@ export function listClinicConfirmations(
   );
 }
 
-export function listClinicGaps(
-  tenantId: string,
-  filters: GapFilters = {}
-): GapOpportunityDetail[] {
+export function listClinicGaps(tenantId: string, filters: GapFilters = {}): GapOpportunityDetail[] {
   return clone(
     getDataset(tenantId).gaps.filter((gap) => {
       if (filters.status && gap.status !== filters.status) return false;
@@ -326,10 +329,20 @@ export function listClinicReactivationCampaigns(
   const items = getDataset(tenantId).campaigns.filter((campaign) => {
     if (filters.status && campaign.status !== filters.status) return false;
     if (filters.campaignType && campaign.campaignType !== filters.campaignType) return false;
-    if (!isOnOrAfter(campaign.scheduledAt ?? campaign.startedAt ?? campaign.createdAt, filters.scheduledAfter)) {
+    if (
+      !isOnOrAfter(
+        campaign.scheduledAt ?? campaign.startedAt ?? campaign.createdAt,
+        filters.scheduledAfter
+      )
+    ) {
       return false;
     }
-    if (!isOnOrBefore(campaign.scheduledAt ?? campaign.startedAt ?? campaign.createdAt, filters.scheduledBefore)) {
+    if (
+      !isOnOrBefore(
+        campaign.scheduledAt ?? campaign.startedAt ?? campaign.createdAt,
+        filters.scheduledBefore
+      )
+    ) {
       return false;
     }
     return true;

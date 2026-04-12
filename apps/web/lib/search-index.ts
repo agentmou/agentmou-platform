@@ -171,7 +171,7 @@ export async function buildSearchIndex(
   const navigationItems = mode === 'clinic' ? clinicNavigationItems : platformNavigationItems;
 
   if (mode === 'clinic') {
-    const experience = await provider.getClinicExperience(tenantId).catch(() => null);
+    const experience = await provider.getTenantExperience(tenantId).catch(() => null);
     const allowedNavigation = new Set(experience?.allowedNavigation ?? []);
     const shouldShowClinicNav = (navId: string) => {
       const key = {
@@ -212,45 +212,51 @@ export async function buildSearchIndex(
     ]);
 
     items.push(
-      ...patients.patients.slice(0, 6).map((patient) => ({
-        type: 'action' as const,
-        id: `patient-${patient.id}`,
-        label: patient.fullName,
-        keywords: [patient.status, patient.phone ?? '', patient.email ?? ''].filter(Boolean),
-        href: `/app/${tenantId}/pacientes`,
-        icon: 'users',
-        description: patient.isReactivationCandidate
-          ? 'Paciente para reactivar'
-          : patient.hasPendingForm
-            ? 'Paciente con formulario pendiente'
-            : 'Abrir listado de pacientes',
-        category: patient.isExisting ? 'Paciente existente' : 'Nuevo paciente',
-      })),
-      ...conversations.threads.slice(0, 6).map((thread) => ({
-        type: 'action' as const,
-        id: `thread-${thread.id}`,
-        label: thread.patient?.fullName ?? 'Conversacion sin identificar',
-        keywords: [thread.channelType, thread.status, thread.intent, thread.priority],
-        href: `/app/${tenantId}/bandeja`,
-        icon: thread.channelType === 'voice' ? 'phone' : 'inbox',
-        description: thread.lastMessagePreview ?? 'Abrir bandeja',
-        category: 'Bandeja',
-      })),
-      ...appointments.appointments.slice(0, 6).map((appointment) => ({
-        type: 'action' as const,
-        id: `appointment-${appointment.id}`,
-        label: appointment.patient?.fullName ?? 'Cita agendada',
-        keywords: [
-          appointment.status,
-          appointment.confirmationStatus,
-          appointment.location?.name ?? '',
-          appointment.service?.name ?? '',
-        ].filter(Boolean),
-        href: `/app/${tenantId}/agenda`,
-        icon: 'calendar-days',
-        description: `Cita ${new Date(appointment.startsAt).toLocaleString()}`,
-        category: 'Agenda',
-      })),
+      ...(allowedNavigation.size === 0 || allowedNavigation.has('patients')
+        ? patients.patients.slice(0, 6).map((patient) => ({
+            type: 'action' as const,
+            id: `patient-${patient.id}`,
+            label: patient.fullName,
+            keywords: [patient.status, patient.phone ?? '', patient.email ?? ''].filter(Boolean),
+            href: `/app/${tenantId}/pacientes`,
+            icon: 'users',
+            description: patient.isReactivationCandidate
+              ? 'Paciente para reactivar'
+              : patient.hasPendingForm
+                ? 'Paciente con formulario pendiente'
+                : 'Abrir listado de pacientes',
+            category: patient.isExisting ? 'Paciente existente' : 'Nuevo paciente',
+          }))
+        : []),
+      ...(allowedNavigation.size === 0 || allowedNavigation.has('inbox')
+        ? conversations.threads.slice(0, 6).map((thread) => ({
+            type: 'action' as const,
+            id: `thread-${thread.id}`,
+            label: thread.patient?.fullName ?? 'Conversacion sin identificar',
+            keywords: [thread.channelType, thread.status, thread.intent, thread.priority],
+            href: `/app/${tenantId}/bandeja`,
+            icon: thread.channelType === 'voice' ? 'phone' : 'inbox',
+            description: thread.lastMessagePreview ?? 'Abrir bandeja',
+            category: 'Bandeja',
+          }))
+        : []),
+      ...(allowedNavigation.size === 0 || allowedNavigation.has('appointments')
+        ? appointments.appointments.slice(0, 6).map((appointment) => ({
+            type: 'action' as const,
+            id: `appointment-${appointment.id}`,
+            label: appointment.patient?.fullName ?? 'Cita agendada',
+            keywords: [
+              appointment.status,
+              appointment.confirmationStatus,
+              appointment.location?.name ?? '',
+              appointment.service?.name ?? '',
+            ].filter(Boolean),
+            href: `/app/${tenantId}/agenda`,
+            icon: 'calendar-days',
+            description: `Cita ${new Date(appointment.startsAt).toLocaleString()}`,
+            category: 'Agenda',
+          }))
+        : []),
       ...(allowedNavigation.size === 0 || allowedNavigation.has('reactivation')
         ? campaigns.campaigns.slice(0, 4).map((campaign) => ({
             type: 'action' as const,
@@ -308,8 +314,8 @@ export async function buildSearchIndex(
   for (const navItem of navigationItems) {
     const href =
       navItem.id === 'nav-dashboard'
-        ? `/app/${tenantId}/platform/dashboard`
-        : `/app/${tenantId}/platform/${navItem.id.replace('nav-', '')}`;
+        ? `/app/${tenantId}/dashboard`
+        : `/app/${tenantId}/${navItem.id.replace('nav-', '')}`;
 
     items.push({
       ...navItem,

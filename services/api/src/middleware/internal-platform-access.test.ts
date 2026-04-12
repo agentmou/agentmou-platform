@@ -32,7 +32,7 @@ describe('requireInternalPlatformAccess', () => {
     vi.clearAllMocks();
   });
 
-  it('returns 409 when the internal platform is not visible for the tenant', async () => {
+  it('returns 409 when a clinic tenant tries to enter the internal platform', async () => {
     loadContextMock.mockResolvedValue({
       tenantId: 'tenant-1',
       plan: 'enterprise',
@@ -81,7 +81,7 @@ describe('requireInternalPlatformAccess', () => {
     await app.close();
   });
 
-  it('returns 403 when the user role is not allowed to enter the internal platform', async () => {
+  it('returns 409 when a fisio tenant tries to enter the internal platform', async () => {
     loadContextMock.mockResolvedValue({
       tenantId: 'tenant-1',
       plan: 'enterprise',
@@ -90,10 +90,10 @@ describe('requireInternalPlatformAccess', () => {
         defaultHITL: false,
         logRetentionDays: 30,
         memoryRetentionDays: 7,
-        activeVertical: 'clinic',
+        activeVertical: 'fisio',
         isPlatformAdminTenant: false,
         settingsVersion: 2,
-        verticalClinicUi: true,
+        verticalClinicUi: false,
         clinicDentalMode: true,
         internalPlatformVisible: true,
       },
@@ -111,6 +111,43 @@ describe('requireInternalPlatformAccess', () => {
           updatedAt: '2025-01-15T09:00:00.000Z',
         },
       ],
+      channels: [],
+    });
+
+    const app = await buildInternalPlatformApp('admin');
+    const response = await app.inject({
+      method: 'GET',
+      url: '/tenants/tenant-1/internal-check',
+    });
+
+    expect(response.statusCode).toBe(409);
+    expect(response.json()).toMatchObject({
+      code: 'clinic_feature_unavailable',
+      reason: 'hidden_internal_only',
+      moduleKey: 'internal_platform',
+    });
+
+    await app.close();
+  });
+
+  it('returns 403 when an internal tenant role is not allowed to enter the internal platform', async () => {
+    loadContextMock.mockResolvedValue({
+      tenantId: 'tenant-1',
+      plan: 'enterprise',
+      settings: {
+        timezone: 'Europe/Madrid',
+        defaultHITL: false,
+        logRetentionDays: 30,
+        memoryRetentionDays: 7,
+        activeVertical: 'internal',
+        isPlatformAdminTenant: true,
+        settingsVersion: 2,
+        verticalClinicUi: false,
+        clinicDentalMode: false,
+        internalPlatformVisible: true,
+      },
+      profile: null,
+      modules: [],
       channels: [],
     });
 

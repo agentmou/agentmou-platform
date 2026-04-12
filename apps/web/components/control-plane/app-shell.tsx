@@ -48,7 +48,8 @@ import { Logo } from '@/components/brand';
 import { CommandPalette } from '@/components/control-plane/command-palette';
 import { useAuthStore } from '@/lib/auth/store';
 import { useDataProvider } from '@/lib/providers/context';
-import { getPlatformPath, useTenantExperience } from '@/lib/tenant-experience';
+import { useTenantExperience } from '@/lib/tenant-experience';
+import { getTenantDefaultHref } from '@/lib/vertical-registry';
 
 const navSections = [
   {
@@ -214,10 +215,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
     return pathname.startsWith(fullPath);
   };
 
-  const platformBasePath =
-    experience.isClinicTenant && experience.mode === 'platform_internal' ? '/platform' : '';
-  const getShellHref = (href: string) =>
-    platformBasePath ? getPlatformPath(tenantId, href) : `/app/${tenantId}${href}`;
+  const getShellHref = (href: string) => `/app/${tenantId}${href}`;
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-sidebar">
@@ -397,11 +395,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
               {tenants.map((tenant) => (
                 <DropdownMenuItem key={tenant.id} asChild>
                   <Link
-                    href={
-                      platformBasePath
-                        ? getPlatformPath(tenant.id, '/dashboard')
-                        : `/app/${tenant.id}/dashboard`
-                    }
+                    href={getTenantDefaultHref(tenant.id, tenant.settings)}
                     className="flex items-center gap-2"
                   >
                     {tenant.type === 'business' ? (
@@ -489,7 +483,11 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
       </div>
 
       {/* Command Palette */}
-      <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} mode="platform_internal" />
+      <CommandPalette
+        open={commandOpen}
+        onOpenChange={setCommandOpen}
+        mode={experience.searchMode}
+      />
     </div>
   );
 }

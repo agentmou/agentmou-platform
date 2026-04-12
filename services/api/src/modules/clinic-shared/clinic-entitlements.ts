@@ -449,12 +449,7 @@ export function resolveTenantExperience(context: ClinicEntitlementContext): Tena
   const coreEnabled = moduleByKey.core_reception.enabled;
   const growthEnabled = moduleByKey.growth.enabled;
   const advancedEnabled = moduleByKey.advanced_mode.enabled;
-  const internalModuleEnabled = moduleByKey.internal_platform.enabled;
-  const internalPlatformVisibleSetting = Boolean(context.settings.internalPlatformVisible);
-  const canAccessInternalPlatform =
-    internalModuleEnabled &&
-    internalPlatformVisibleSetting &&
-    canRoleAccessInternalPlatform(context.tenantRole);
+  const canAccessInternalPlatform = false;
 
   const flags = {
     activeVertical: 'clinic',
@@ -473,7 +468,7 @@ export function resolveTenantExperience(context: ClinicEntitlementContext): Tena
     smartGapFillEnabled: growthEnabled && context.profile?.gapRecoveryPolicy.enabled !== false,
     reactivationEnabled: growthEnabled && context.profile?.reactivationPolicy.enabled !== false,
     advancedClinicModeEnabled: advancedEnabled,
-    internalPlatformVisible: internalModuleEnabled && internalPlatformVisibleSetting,
+    internalPlatformVisible: false,
   } satisfies TenantExperience['flags'];
 
   const permissions = resolveClinicPermissions({

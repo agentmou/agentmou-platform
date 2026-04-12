@@ -20,6 +20,7 @@ describe('clinic search index', () => {
 
     expect(items.some((item) => item.label === 'Marketplace')).toBe(true);
     expect(items.some((item) => item.label === 'Runs')).toBe(true);
-    expect(items.some((item) => item.href.startsWith('/app/demo-workspace/platform'))).toBe(true);
+    expect(items.some((item) => item.href.startsWith('/app/demo-workspace/platform'))).toBe(false);
+    expect(items.some((item) => item.href.startsWith('/app/demo-workspace/runs'))).toBe(true);
   });
 });

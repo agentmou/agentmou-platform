@@ -28,6 +28,7 @@ export type {
   TenantType,
   TenantPlan,
   Tenant,
+  TenantExperience,
   UserRole,
   TenantMember,
   // Installations

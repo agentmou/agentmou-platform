@@ -51,6 +51,51 @@ describe('api client runtime parsing', () => {
     expect(tenants[0]?.settings.timezone).toBe('UTC');
   });
 
+  it('parses tenant experience through the generic routing contract', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          experience: {
+            tenantId: 'tenant-1',
+            activeVertical: 'internal',
+            shellKey: 'platform_internal',
+            defaultRoute: '/app/tenant-1/dashboard',
+            role: 'owner',
+            normalizedRole: 'owner',
+            permissions: ['view_internal_platform'],
+            allowedNavigation: ['platform_internal'],
+            modules: [],
+            flags: {
+              activeVertical: 'internal',
+              isPlatformAdminTenant: true,
+              verticalClinicUi: false,
+              clinicDentalMode: false,
+              voiceInboundEnabled: false,
+              voiceOutboundEnabled: false,
+              whatsappOutboundEnabled: false,
+              intakeFormsEnabled: false,
+              appointmentConfirmationsEnabled: false,
+              smartGapFillEnabled: false,
+              reactivationEnabled: false,
+              advancedClinicModeEnabled: false,
+              internalPlatformVisible: true,
+            },
+            settingsSections: ['general', 'team', 'security', 'platform'],
+            canAccessInternalPlatform: true,
+            canAccessAdminConsole: true,
+          },
+        }),
+        { status: 200 }
+      )
+    ) as typeof fetch;
+
+    const { fetchTenantExperience } = await import('./client');
+    const experience = await fetchTenantExperience('tenant-1');
+
+    expect(experience?.activeVertical).toBe('internal');
+    expect(experience?.shellKey).toBe('platform_internal');
+  });
+
   it('fills installation defaults from the validated contract', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue(
       new Response(

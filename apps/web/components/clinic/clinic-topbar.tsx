@@ -20,6 +20,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 import { useTenantExperience } from '@/lib/tenant-experience';
+import { getTenantDefaultHref } from '@/lib/vertical-registry';
 import { ClinicSidebar } from './clinic-sidebar';
 
 export function ClinicTopbar({
@@ -65,7 +66,7 @@ export function ClinicTopbar({
             <DropdownMenuSeparator />
             {tenants.map((tenant) => (
               <DropdownMenuItem key={tenant.id} asChild>
-                <Link href={`/app/${tenant.id}/dashboard`}>{tenant.name}</Link>
+                <Link href={getTenantDefaultHref(tenant.id, tenant.settings)}>{tenant.name}</Link>
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>

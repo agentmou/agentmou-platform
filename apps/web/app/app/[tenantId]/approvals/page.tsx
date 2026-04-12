@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -618,11 +617,5 @@ function ApprovalsPageContent() {
 }
 
 export default function ApprovalsPage() {
-  const redirected = useLegacyPlatformRedirect('/approvals');
-
-  if (redirected) {
-    return null;
-  }
-
   return <ApprovalsPageContent />;
 }

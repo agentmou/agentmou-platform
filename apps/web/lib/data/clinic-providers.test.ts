@@ -65,10 +65,11 @@ describe('clinic data providers', () => {
   });
 
   it('keeps clinic demo data available through the demo provider', async () => {
-    const [dashboard, campaigns, experience] = await Promise.all([
+    const [dashboard, campaigns, experience, tenantExperience] = await Promise.all([
       demoProvider.getClinicDashboard('demo-workspace'),
       demoProvider.listClinicReactivationCampaigns('demo-workspace'),
       demoProvider.getClinicExperience('demo-workspace'),
+      demoProvider.getTenantExperience('demo-workspace'),
     ]);
 
     expect(dashboard.kpis.pendingConfirmations).toBe(2);
@@ -76,6 +77,8 @@ describe('clinic data providers', () => {
     expect(dashboard.prioritizedInbox[0]?.id).toBe('thread-lucia-voice');
     expect(campaigns.campaigns[0]?.name).toContain('higiene');
     expect(experience?.flags.internalPlatformVisible).toBe(false);
+    expect(tenantExperience?.activeVertical).toBe('clinic');
+    expect(tenantExperience?.shellKey).toBe('clinic');
   });
 
   it('unwraps appointment mutation responses in the api provider', async () => {

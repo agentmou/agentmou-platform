@@ -10,6 +10,7 @@ import type { DataProvider } from './provider';
 import {
   listTenants as _listTenants,
   getTenant as _getTenant,
+  getTenantExperience as _getTenantExperience,
   listCatalogAgentTemplates as _listCatalogAgentTemplates,
   listMarketplaceAgentTemplates as _listMarketplaceAgentTemplates,
   getAgentTemplate as _getAgentTemplate,
@@ -77,6 +78,7 @@ export const mockProvider: DataProvider = {
   // Tenancy
   listTenants: async () => _listTenants(),
   getTenant: async (id) => _getTenant(id),
+  getTenantExperience: async (tenantId) => _getTenantExperience(tenantId),
   listTenantMembers: async (id) => _listTenantMembers(id),
 
   // Installations

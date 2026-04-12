@@ -1,10 +1,7 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import type { ClinicFeatureUnavailableReason } from '@agentmou/contracts';
 
-import {
-  findClinicModuleEntitlement,
-  resolveClinicExperience,
-} from '../modules/clinic-shared/clinic-entitlements.js';
+import { resolveTenantExperience } from '../modules/clinic-shared/clinic-entitlements.js';
 import { ClinicExperienceRepository } from '../modules/clinic-shared/clinic-experience.repository.js';
 import { ClinicFeatureUnavailableRouteError } from '../modules/clinic-shared/clinic.errors.js';
 
@@ -23,14 +20,13 @@ export async function requireInternalPlatformAccess(request: FastifyRequest, rep
     return reply.status(404).send({ error: 'Tenant not found' });
   }
 
-  const experience = resolveClinicExperience({
+  const experience = resolveTenantExperience({
     ...context,
     tenantRole: request.tenantRole,
   });
-  const internalModule = findClinicModuleEntitlement(experience.modules, 'internal_platform');
 
-  if (!internalModule || !internalModule.enabled || !experience.flags.internalPlatformVisible) {
-    const reason = getFeatureUnavailableReason(internalModule?.visibilityReason);
+  if (experience.activeVertical !== 'internal') {
+    const reason = getFeatureUnavailableReason('hidden_internal_only');
     return reply.status(409).send(
       new ClinicFeatureUnavailableRouteError({
         reason,
@@ -40,7 +36,10 @@ export async function requireInternalPlatformAccess(request: FastifyRequest, rep
     );
   }
 
-  if (!experience.permissions.includes('view_internal_platform')) {
+  if (
+    !experience.canAccessInternalPlatform ||
+    !experience.permissions.includes('view_internal_platform')
+  ) {
     return reply.status(403).send({ error: 'Internal platform access is restricted' });
   }
 }

@@ -74,7 +74,7 @@ describe('clinic entitlements', () => {
     });
   });
 
-  it('exposes internal platform only to owner/admin when tenant visibility is enabled', () => {
+  it('keeps clinic tenants out of the internal platform even when the module is enabled', () => {
     const experience = resolveClinicExperience({
       ...baseContext,
       tenantRole: 'admin',
@@ -93,9 +93,10 @@ describe('clinic entitlements', () => {
       ],
     });
 
-    expect(experience.permissions).toContain('view_internal_platform');
-    expect(experience.allowedNavigation).toContain('platform_internal');
-    expect(experience.isInternalUser).toBe(true);
+    expect(experience.permissions).not.toContain('view_internal_platform');
+    expect(experience.allowedNavigation).not.toContain('platform_internal');
+    expect(experience.isInternalUser).toBe(false);
+    expect(experience.flags.internalPlatformVisible).toBe(false);
   });
 
   it('keeps operators out of the internal platform permission set', () => {
