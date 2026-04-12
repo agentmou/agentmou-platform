@@ -5,6 +5,7 @@ import { HalftoneBackground } from '@/components/brand/halftone-background';
 import { ContactSalesForm } from '@/components/marketing';
 import { FadeContent } from '@/components/reactbits/fade-content';
 import { MinimalButton } from '@/components/ui/minimal-button';
+import { clinicOnboardingSteps } from '@/lib/marketing/clinic-site';
 import { PUBLIC_DEMO_CLINIC_HREF } from '@/lib/marketing/public-links';
 
 export const metadata: Metadata = {
@@ -73,22 +74,15 @@ export default function ContactSalesPage() {
                 <div className="mt-8 rounded-[24px] border border-border/60 bg-[var(--marketing-bg-alt)] p-6">
                   <p className="text-sm font-semibold">Que pasa despues de enviar el formulario?</p>
                   <ol className="mt-4 space-y-3 text-sm text-muted-foreground">
-                    <li className="flex gap-3">
-                      <span className="font-semibold text-foreground">1.</span>
-                      <span>Recibimos tus datos y el foco operativo que quieres resolver.</span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="font-semibold text-foreground">2.</span>
-                      <span>
-                        Preparamos una demo con el modulo o combinacion de modulos mas util.
-                      </span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="font-semibold text-foreground">3.</span>
-                      <span>
-                        Te mostramos el flujo completo y los siguientes pasos de despliegue.
-                      </span>
-                    </li>
+                    {clinicOnboardingSteps.map((step, index) => (
+                      <li key={step.title} className="flex gap-3">
+                        <span className="font-semibold text-foreground">{index + 1}.</span>
+                        <span>
+                          <span className="font-medium text-foreground">{step.title}:</span>{' '}
+                          {step.description}
+                        </span>
+                      </li>
+                    ))}
                   </ol>
                 </div>
               </div>

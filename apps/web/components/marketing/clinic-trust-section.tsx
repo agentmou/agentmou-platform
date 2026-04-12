@@ -12,11 +12,11 @@ export function ClinicTrustSection() {
         <FadeContent>
           <p className="text-editorial-tiny">Confianza y control</p>
           <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
-            Tecnologia visible para negocio, control visible para la clinica
+            Confianza suficiente para delegar, control suficiente para supervisar
           </h2>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-            La experiencia publica vende recepcion, agenda y recuperacion. Detras, el equipo
-            conserva revision humana, permisos y trazabilidad.
+            Seguridad, reglas, handoff humano y ajuste a dental tienen que quedar claros antes de
+            hablar de despliegue. Esa es la diferencia entre una demo bonita y una compra real.
           </p>
         </FadeContent>
 

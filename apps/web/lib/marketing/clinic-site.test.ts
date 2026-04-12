@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
+  clinicBeforeAfter,
+  clinicCostOfInactionMetrics,
   clinicFlowPaths,
+  clinicHowItWorksCards,
   clinicMarketingJobs,
+  clinicOnboardingSteps,
+  clinicPainPoints,
+  clinicPatientJourney,
   clinicPricingPlans,
+  clinicProofPanels,
+  clinicRecoveryCapabilities,
   clinicSecurityPillars,
   clinicShowcaseCards,
   clinicModules,
@@ -17,12 +25,36 @@ describe('clinic marketing content', () => {
     ]);
   });
 
+  it('models the pain and cost-of-inaction blocks as configurable content', () => {
+    expect(clinicPainPoints).toHaveLength(3);
+    expect(clinicCostOfInactionMetrics).toHaveLength(3);
+    expect(clinicCostOfInactionMetrics.every((metric) => typeof metric.note === 'string')).toBe(
+      true
+    );
+  });
+
+  it('describes how the clinic experience works across four operational surfaces', () => {
+    expect(clinicHowItWorksCards.map((card) => card.title)).toEqual([
+      'WhatsApp entrante',
+      'Llamadas entrantes',
+      'Mensajes salientes',
+      'Centro de recepcion',
+    ]);
+  });
+
   it('models new and existing patient flows separately', () => {
     expect(clinicFlowPaths.map((path) => path.title)).toEqual([
       'Ruta A - Paciente existente',
       'Ruta B - Paciente nuevo',
     ]);
     expect(clinicFlowPaths.every((path) => path.steps.length === 4)).toBe(true);
+    expect(clinicPatientJourney.steps).toHaveLength(5);
+    expect(clinicPatientJourney.outcomes.map((outcome) => outcome.label)).toEqual([
+      'Paciente creado',
+      'Cita registrada',
+      'Formulario completado',
+      'Recordatorio programado',
+    ]);
   });
 
   it('exposes the clinic control center surfaces highlighted on the homepage', () => {
@@ -34,6 +66,9 @@ describe('clinic marketing content', () => {
       'Growth',
       'Reactivacion',
     ]);
+    expect(clinicProofPanels).toHaveLength(2);
+    expect(clinicRecoveryCapabilities).toHaveLength(4);
+    expect(clinicBeforeAfter).toHaveLength(2);
   });
 
   it('keeps packaging and pricing organized around clinic modules, not runs', () => {
@@ -50,10 +85,16 @@ describe('clinic marketing content', () => {
       'Enterprise',
     ]);
     expect(JSON.stringify(clinicPricingPlans).toLowerCase()).not.toContain('runs');
+    expect(clinicPricingPlans.every((plan) => plan.bestFor.length > 0)).toBe(true);
   });
 
-  it('keeps trust messaging grounded in clinic operations', () => {
+  it('keeps trust messaging grounded in clinic operations and closes with onboarding steps', () => {
     expect(clinicSecurityPillars).toHaveLength(4);
     expect(JSON.stringify(clinicSecurityPillars)).toContain('tenant');
+    expect(clinicOnboardingSteps.map((step) => step.title)).toEqual([
+      'Demo personalizada',
+      'Configuracion guiada',
+      'Tu recepcion IA activa',
+    ]);
   });
 });

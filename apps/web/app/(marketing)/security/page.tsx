@@ -18,33 +18,33 @@ export const metadata: Metadata = {
 const capabilityCards = [
   {
     icon: Shield,
-    title: 'Privacidad por clinica',
+    title: 'Seguridad y privacidad',
     description:
-      'Cada tenant opera con aislamiento multi-tenant, canales propios y control de acceso acotado al contexto de su clinica.',
+      'Cada tenant opera con aislamiento por clinica, canales propios y control de acceso acotado al contexto real de trabajo.',
   },
   {
     icon: Eye,
-    title: 'Trazabilidad visible',
+    title: 'Tu clinica, tus reglas',
     description:
-      'Mensajes, llamadas, confirmaciones, cambios y revisiones humanas quedan registrados para soporte, auditoria y mejora continua.',
+      'Permisos, visibilidad, handoff y reglas operativas se adaptan al modo en que tu recepcion trabaja hoy.',
   },
   {
     icon: Workflow,
-    title: 'Revision humana cuando importa',
+    title: 'Derivacion a humano',
     description:
       'La recepcion IA no fuerza automatizacion ciega. Los casos sensibles, callbacks y excepciones pueden pasar a humano con contexto.',
   },
   {
     icon: KeyRound,
-    title: 'Integraciones seguras',
+    title: 'Disenado para dental',
     description:
-      'Canales e integraciones operan con credenciales protegidas y configuracion controlada por tenant.',
+      'No hablamos de seguridad en abstracto: hablamos de primeras visitas, confirmaciones, recalls, huecos y operacion dental real.',
   },
 ];
 
 const operatingPractices = [
   {
-    title: 'Control operativo',
+    title: 'Control operativo visible',
     items: [
       'Permisos por rol y visibilidad por tenant',
       'Modo interno separado de la experiencia clinica',
@@ -60,11 +60,11 @@ const operatingPractices = [
     ],
   },
   {
-    title: 'Seguridad de plataforma',
+    title: 'Configuracion y reglas',
     items: [
-      'Aislamiento multi-tenant para datos y operaciones',
-      'Control plane y worker separados de la shell publica',
-      'Integraciones y callbacks con configuracion segura',
+      'Handoff humano para casos delicados o callbacks',
+      'Reglas configurables para agenda, seguimiento y escalado',
+      'Ajuste al flujo dental sin exponer complejidad tecnica al equipo',
     ],
   },
 ];
@@ -80,12 +80,12 @@ export default function SecurityPage() {
                 Seguridad para recepcion clinica
               </Badge>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                Confianza, control y trazabilidad para cada clinica
+                Seguridad, reglas y control para una recepcion dental real
               </h1>
               <p className="mt-6 text-lg text-muted-foreground">
-                Agentmou Clinics protege la operacion de recepcion con permisos, aislamiento por
-                tenant, revision humana y canales seguros sin convertir la pagina en un pitch de
-                buyer DevOps.
+                Agentmou Clinics protege la operacion de recepcion con privacidad por clinica,
+                reglas configurables, derivacion a humano y trazabilidad sin convertir la pagina
+                en un pitch de buyer DevOps.
               </p>
             </div>
           </FadeContent>
@@ -97,7 +97,7 @@ export default function SecurityPage() {
           <FadeContent>
             <div id="aislamiento" className="mt-24">
               <h2 className="text-center text-2xl font-bold">
-                Lo que ve la clinica y lo que protege el sistema
+                Lo que ve la clinica y lo que necesita confiar antes de comprar
               </h2>
               <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {capabilityCards.map((capability, index) => {
@@ -186,8 +186,8 @@ export default function SecurityPage() {
                     <h3 className="text-lg font-semibold">Necesitas revisar algo con el equipo?</h3>
                   </div>
                   <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                    Podemos compartir el framing de seguridad, despliegue y control operativo
-                    durante la demo comercial.
+                    Podemos revisar privacidad, handoff humano, reglas y despliegue durante la demo
+                    comercial con el contexto real de tu clinica.
                   </p>
                 </div>
               </div>
