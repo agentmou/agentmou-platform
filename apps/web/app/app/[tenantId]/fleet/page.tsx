@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -722,11 +721,5 @@ function FleetPageContent() {
 }
 
 export default function FleetPage() {
-  const redirected = useLegacyPlatformRedirect('/fleet');
-
-  if (redirected) {
-    return null;
-  }
-
   return <FleetPageContent />;
 }

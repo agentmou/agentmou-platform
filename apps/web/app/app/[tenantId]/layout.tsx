@@ -1,20 +1,33 @@
 'use client';
 
 import * as React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 
-import { ClinicShell } from '@/components/clinic/clinic-shell';
-import { AgentmouShell } from '@/components/control-plane/app-shell';
+import { useAuthStore } from '@/lib/auth/store';
 import { DataProviderContext } from '@/lib/providers/context';
 import { getTenantDataProvider } from '@/lib/providers/tenant';
+import { getShellComponent } from '@/lib/shell-registry';
+import { resolveTenantRouteRedirect } from '@/lib/tenant-routing';
 import { TenantExperienceProvider, useResolvedTenantExperience } from '@/lib/tenant-experience';
+import { getTenantDefaultHref } from '@/lib/vertical-registry';
 
 export default function TenantLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();
+  const pathname = usePathname();
   const router = useRouter();
   const tenantId = params.tenantId as string;
+  const authTenants = useAuthStore((state) => state.tenants);
   const provider = React.useMemo(() => getTenantDataProvider(tenantId), [tenantId]);
   const experience = useResolvedTenantExperience(tenantId, provider);
+  const fallbackTenant = authTenants.find((tenant) => tenant.id === experience.fallbackTenantId);
+  const redirectTarget =
+    pathname && experience.resolvedExperience
+      ? resolveTenantRouteRedirect({
+          pathname,
+          tenantId,
+          experience: experience.resolvedExperience,
+        })
+      : null;
 
   React.useEffect(() => {
     if (experience.isLoading || experience.hasTenantAccess) {
@@ -22,12 +35,28 @@ export default function TenantLayout({ children }: { children: React.ReactNode }
     }
 
     if (experience.fallbackTenantId) {
-      router.replace(`/app/${experience.fallbackTenantId}/dashboard`);
+      router.replace(
+        getTenantDefaultHref(experience.fallbackTenantId, fallbackTenant?.settings ?? 'internal')
+      );
       return;
     }
 
     router.replace('/app');
-  }, [experience.fallbackTenantId, experience.hasTenantAccess, experience.isLoading, router]);
+  }, [
+    experience.fallbackTenantId,
+    experience.hasTenantAccess,
+    experience.isLoading,
+    fallbackTenant?.settings,
+    router,
+  ]);
+
+  React.useEffect(() => {
+    if (experience.isLoading || !experience.hasTenantAccess || !redirectTarget) {
+      return;
+    }
+
+    router.replace(redirectTarget);
+  }, [experience.hasTenantAccess, experience.isLoading, redirectTarget, router]);
 
   if (experience.isLoading) {
     return (
@@ -41,7 +70,11 @@ export default function TenantLayout({ children }: { children: React.ReactNode }
     return null;
   }
 
-  const Shell = experience.mode === 'clinic' ? ClinicShell : AgentmouShell;
+  if (redirectTarget) {
+    return null;
+  }
+
+  const Shell = getShellComponent(experience.shellKey);
 
   return (
     <DataProviderContext.Provider value={provider}>

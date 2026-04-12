@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -618,11 +617,5 @@ function InstallerWizardPageContent() {
 }
 
 export default function InstallerWizardPage() {
-  const redirected = useLegacyPlatformRedirect('/installer/new');
-
-  if (redirected) {
-    return null;
-  }
-
   return <InstallerWizardPageContent />;
 }

@@ -19,6 +19,7 @@ import {
 } from '@/lib/demo-catalog';
 import type {
   Tenant,
+  TenantExperience,
   AgentTemplate,
   WorkflowTemplate,
   PackTemplate,
@@ -34,6 +35,7 @@ import type {
   N8nConnection,
   DashboardMetrics,
 } from '@/lib/control-plane/types';
+import { getTenantExperience as getClinicTenantExperience } from '@/lib/demo/clinic-read-model';
 
 export interface FleetSecret {
   id: string;
@@ -107,6 +109,86 @@ export function listTenants(): Tenant[] {
 
 export function getTenant(tenantId: string): Tenant {
   return tenants.find((tenant) => tenant.id === tenantId) || tenants[0];
+}
+
+export function getTenantExperience(tenantId: string): TenantExperience | null {
+  if (tenantId === 'demo-workspace') {
+    return getClinicTenantExperience(tenantId);
+  }
+
+  const tenant = tenants.find((item) => item.id === tenantId);
+  if (!tenant) {
+    return null;
+  }
+
+  const activeVertical =
+    tenant.settings.activeVertical ?? (tenant.settings.verticalClinicUi ? 'clinic' : 'internal');
+
+  if (activeVertical === 'clinic') {
+    return getClinicTenantExperience(tenantId);
+  }
+
+  if (activeVertical === 'fisio') {
+    return {
+      tenantId,
+      activeVertical: 'fisio',
+      shellKey: 'fisio',
+      defaultRoute: `/app/${tenantId}/dashboard`,
+      normalizedRole: 'admin',
+      permissions: [],
+      allowedNavigation: ['dashboard', 'configuration'],
+      modules: [],
+      flags: {
+        activeVertical: 'fisio',
+        isPlatformAdminTenant: Boolean(tenant.settings.isPlatformAdminTenant),
+        verticalClinicUi: Boolean(tenant.settings.verticalClinicUi),
+        clinicDentalMode: Boolean(tenant.settings.clinicDentalMode),
+        voiceInboundEnabled: false,
+        voiceOutboundEnabled: false,
+        whatsappOutboundEnabled: false,
+        intakeFormsEnabled: false,
+        appointmentConfirmationsEnabled: false,
+        smartGapFillEnabled: false,
+        reactivationEnabled: false,
+        advancedClinicModeEnabled: false,
+        internalPlatformVisible: false,
+      },
+      settingsSections: ['general'],
+      canAccessInternalPlatform: false,
+      canAccessAdminConsole: false,
+    };
+  }
+
+  return {
+    tenantId,
+    activeVertical: 'internal',
+    shellKey: 'platform_internal',
+    defaultRoute: `/app/${tenantId}/dashboard`,
+    normalizedRole: 'admin',
+    permissions: ['view_internal_platform'],
+    allowedNavigation: ['platform_internal'],
+    modules: [],
+    flags: {
+      activeVertical: 'internal',
+      isPlatformAdminTenant: Boolean(tenant.settings.isPlatformAdminTenant),
+      verticalClinicUi: false,
+      clinicDentalMode: false,
+      voiceInboundEnabled: false,
+      voiceOutboundEnabled: false,
+      whatsappOutboundEnabled: false,
+      intakeFormsEnabled: false,
+      appointmentConfirmationsEnabled: false,
+      smartGapFillEnabled: false,
+      reactivationEnabled: false,
+      advancedClinicModeEnabled: false,
+      internalPlatformVisible: true,
+    },
+    settingsSections: tenant.settings.isPlatformAdminTenant
+      ? ['general', 'team', 'security', 'platform']
+      : ['general', 'team', 'security'],
+    canAccessInternalPlatform: true,
+    canAccessAdminConsole: Boolean(tenant.settings.isPlatformAdminTenant),
+  };
 }
 
 export function listCatalogAgentTemplates(): AgentTemplate[] {

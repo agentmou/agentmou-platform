@@ -1,15 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  getPlatformPath,
   hasClinicNavigationAccess,
-  isClinicDentalMode,
-  isClinicUiEnabled,
-  isPlatformPath,
   normalizeMemberRole,
-  resolveActiveVertical,
   resolveClinicCapabilities,
 } from './tenant-experience';
+import { isClinicDentalMode, isClinicUiEnabled, resolveActiveVertical } from './tenant-vertical';
 
 describe('tenant experience helpers', () => {
   const baseModule = {
@@ -162,13 +158,6 @@ describe('tenant experience helpers', () => {
     expect(capabilities.whatsappAvailable).toBe(true);
     expect(capabilities.voiceChannelAvailable).toBe(true);
     expect(capabilities.canAccessInternalPlatform).toBe(true);
-  });
-
-  it('builds and recognizes platform paths for clinic tenants', () => {
-    expect(getPlatformPath('tenant-1', '/runs')).toBe('/app/tenant-1/platform/runs');
-    expect(isPlatformPath('/app/tenant-1/platform/runs', 'tenant-1')).toBe(true);
-    expect(isPlatformPath('/app/tenant-1/runs', 'tenant-1')).toBe(true);
-    expect(isPlatformPath('/app/tenant-1/bandeja', 'tenant-1')).toBe(false);
   });
 
   it('prefers resolved navigation over fallback capabilities when available', () => {

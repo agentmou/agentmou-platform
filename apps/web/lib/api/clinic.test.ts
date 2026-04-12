@@ -259,8 +259,8 @@ describe('clinic api client', () => {
             defaultMode: 'clinic',
             role: 'admin',
             normalizedRole: 'admin',
-            isInternalUser: true,
-            permissions: ['view_dashboard', 'manage_clinic_settings', 'view_internal_platform'],
+            isInternalUser: false,
+            permissions: ['view_dashboard', 'manage_clinic_settings'],
             flags: {
               verticalClinicUi: true,
               clinicDentalMode: true,
@@ -272,7 +272,7 @@ describe('clinic api client', () => {
               smartGapFillEnabled: true,
               reactivationEnabled: true,
               advancedClinicModeEnabled: false,
-              internalPlatformVisible: true,
+              internalPlatformVisible: false,
             },
             modules: [
               {
@@ -294,7 +294,7 @@ describe('clinic api client', () => {
                 visibilityReason: 'active',
               },
             ],
-            allowedNavigation: ['dashboard', 'configuration', 'platform_internal'],
+            allowedNavigation: ['dashboard', 'configuration'],
           },
         }),
         { status: 200 }
@@ -304,7 +304,7 @@ describe('clinic api client', () => {
     const { fetchClinicExperience } = await import('./clinic');
     const experience = await fetchClinicExperience('tenant-1');
 
-    expect(experience.permissions).toContain('view_internal_platform');
-    expect(experience.allowedNavigation).toContain('platform_internal');
+    expect(experience.permissions).not.toContain('view_internal_platform');
+    expect(experience.allowedNavigation).not.toContain('platform_internal');
   });
 });

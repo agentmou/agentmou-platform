@@ -18,6 +18,7 @@ import {
   fetchInstalledAgents,
   fetchInstalledWorkflows,
   fetchTenant,
+  fetchTenantExperience,
   fetchTenantApprovals,
   fetchTenantAuditLogs,
   fetchTenantInvoices,
@@ -116,6 +117,13 @@ export const apiProvider: DataProvider = {
   // Tenancy
   listTenants: () => fetchTenants(),
   getTenant: (id) => fetchTenant(id),
+  getTenantExperience: async (tenantId) => {
+    try {
+      return await fetchTenantExperience(tenantId);
+    } catch {
+      return null;
+    }
+  },
   listTenantMembers: (id) => fetchTenantMembers(id),
 
   // Installations

@@ -11,6 +11,7 @@
 
 import {
   Tenant,
+  TenantExperience,
   TenantMember,
   AgentTemplate,
   WorkflowTemplate,
@@ -147,6 +148,7 @@ export interface CatalogMethods {
 export interface TenancyMethods {
   listTenants(): Promise<Tenant[]>;
   getTenant(tenantId: string): Promise<Tenant | null>;
+  getTenantExperience(tenantId: string): Promise<TenantExperience | null>;
   listTenantMembers(tenantId: string): Promise<TenantMember[]>;
 }
 

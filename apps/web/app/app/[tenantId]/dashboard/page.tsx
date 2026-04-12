@@ -583,7 +583,7 @@ function PlatformDashboardPageContent() {
 export default function DashboardPage() {
   const experience = useTenantExperience();
 
-  if (experience.isClinicTenant) {
+  if (experience.isSharedVertical) {
     return <ClinicOverviewPage />;
   }
 

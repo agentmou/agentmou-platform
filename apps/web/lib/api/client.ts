@@ -24,6 +24,7 @@ import {
   SecurityFindingsResponseSchema,
   SecurityPoliciesResponseSchema,
   TenantMembersResponseSchema,
+  TenantExperienceResponseSchema,
   TenantResponseSchema,
   TenantsResponseSchema,
   WorkflowTemplatesResponseSchema,
@@ -40,6 +41,7 @@ import {
   type SecurityFinding,
   type SecurityPolicy,
   type Tenant,
+  type TenantExperience,
   type TenantMember,
   type WorkflowEngineStatus,
   type WorkflowTemplate,
@@ -77,6 +79,22 @@ export async function fetchTenant(tenantId: string): Promise<Tenant | null> {
   try {
     const data = await requestParsed(`/api/v1/tenants/${tenantId}`, TenantResponseSchema);
     return data.tenant;
+  } catch (error) {
+    if (isApiNotFound(error)) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+export async function fetchTenantExperience(tenantId: string): Promise<TenantExperience | null> {
+  try {
+    const data = await requestParsed(
+      `/api/v1/tenants/${tenantId}/experience`,
+      TenantExperienceResponseSchema
+    );
+    return data.experience;
   } catch (error) {
     if (isApiNotFound(error)) {
       return null;

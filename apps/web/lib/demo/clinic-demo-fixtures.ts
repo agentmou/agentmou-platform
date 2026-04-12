@@ -23,6 +23,7 @@ import type {
   ReactivationCampaignDetail,
   ReactivationRecipient,
   ReminderJob,
+  TenantExperience,
   WaitlistRequest,
 } from '@agentmou/contracts';
 
@@ -103,6 +104,7 @@ export interface ClinicDemoDataset {
   campaignDetails: ReactivationCampaignDetail[];
   recipients: ReactivationRecipient[];
   dashboard: ClinicDashboard;
+  tenantExperience: TenantExperience;
   experience: ClinicExperience;
   summary: ClinicDemoFixtureSummary;
 }
@@ -293,7 +295,10 @@ function buildDashboard(
     (thread) => !['resolved', 'closed'].includes(thread.status)
   );
   const agenda = appointments
-    .filter((appointment) => appointment.status !== 'cancelled' && isSameDay(appointment.startsAt, new Date(generatedAt)))
+    .filter(
+      (appointment) =>
+        appointment.status !== 'cancelled' && isSameDay(appointment.startsAt, new Date(generatedAt))
+    )
     .sort((left, right) => left.startsAt.localeCompare(right.startsAt));
   const pendingForms = formSubmissions.filter(
     (submission) => submission.status !== 'completed' && submission.status !== 'waived'
@@ -1135,7 +1140,11 @@ export function buildClinicDemoDataset(
     }
   );
 
-  const refreshedPatientListItems = buildPatientListItems(patients, appointmentDetails, formSubmissions);
+  const refreshedPatientListItems = buildPatientListItems(
+    patients,
+    appointmentDetails,
+    formSubmissions
+  );
   const refreshedPatientListMap = new Map(
     refreshedPatientListItems.map((patient) => [patient.id, patient])
   );
@@ -1902,13 +1911,13 @@ export function buildClinicDemoDataset(
     recipients: recipients.filter((recipient) => recipient.campaignId === campaign.id),
   }));
 
-  const experience: ClinicExperience = {
+  const tenantExperience: TenantExperience = {
     tenantId,
-    isClinicTenant: true,
-    defaultMode: 'clinic',
+    activeVertical: 'clinic',
+    shellKey: 'clinic',
+    defaultRoute: `/app/${tenantId}/dashboard`,
     role: 'admin',
     normalizedRole: 'admin',
-    isInternalUser: false,
     permissions: [
       'view_dashboard',
       'view_inbox',
@@ -1924,20 +1933,6 @@ export function buildClinicDemoDataset(
       'view_reports',
       'manage_clinic_settings',
     ],
-    flags: {
-      verticalClinicUi: true,
-      clinicDentalMode: true,
-      voiceInboundEnabled: true,
-      voiceOutboundEnabled: true,
-      whatsappOutboundEnabled: true,
-      intakeFormsEnabled: true,
-      appointmentConfirmationsEnabled: true,
-      smartGapFillEnabled: true,
-      reactivationEnabled: true,
-      advancedClinicModeEnabled: false,
-      internalPlatformVisible: false,
-    },
-    modules: clinicModules,
     allowedNavigation: [
       'dashboard',
       'inbox',
@@ -1951,6 +1946,55 @@ export function buildClinicDemoDataset(
       'reports',
       'configuration',
     ],
+    modules: clinicModules,
+    flags: {
+      activeVertical: 'clinic',
+      isPlatformAdminTenant: false,
+      verticalClinicUi: true,
+      clinicDentalMode: true,
+      voiceInboundEnabled: true,
+      voiceOutboundEnabled: true,
+      whatsappOutboundEnabled: true,
+      intakeFormsEnabled: true,
+      appointmentConfirmationsEnabled: true,
+      smartGapFillEnabled: true,
+      reactivationEnabled: true,
+      advancedClinicModeEnabled: false,
+      internalPlatformVisible: false,
+    },
+    settingsSections: ['general', 'modules', 'channels'],
+    canAccessInternalPlatform: false,
+    canAccessAdminConsole: false,
+  };
+
+  const experience: ClinicExperience = {
+    tenantId,
+    isClinicTenant: true,
+    defaultMode: 'clinic',
+    role: 'admin',
+    normalizedRole: 'admin',
+    isInternalUser: false,
+    permissions: tenantExperience.permissions.filter(
+      (permission): permission is ClinicExperience['permissions'][number] =>
+        permission !== 'view_admin_console'
+    ),
+    flags: {
+      verticalClinicUi: tenantExperience.flags.verticalClinicUi,
+      clinicDentalMode: tenantExperience.flags.clinicDentalMode,
+      voiceInboundEnabled: tenantExperience.flags.voiceInboundEnabled,
+      voiceOutboundEnabled: tenantExperience.flags.voiceOutboundEnabled,
+      whatsappOutboundEnabled: tenantExperience.flags.whatsappOutboundEnabled,
+      intakeFormsEnabled: tenantExperience.flags.intakeFormsEnabled,
+      appointmentConfirmationsEnabled: tenantExperience.flags.appointmentConfirmationsEnabled,
+      smartGapFillEnabled: tenantExperience.flags.smartGapFillEnabled,
+      reactivationEnabled: tenantExperience.flags.reactivationEnabled,
+      advancedClinicModeEnabled: tenantExperience.flags.advancedClinicModeEnabled,
+      internalPlatformVisible: tenantExperience.flags.internalPlatformVisible,
+    },
+    modules: tenantExperience.modules,
+    allowedNavigation: tenantExperience.allowedNavigation.filter(
+      (key): key is ClinicExperience['allowedNavigation'][number] => key !== 'admin_console'
+    ),
   };
 
   const dashboard = buildDashboard(
@@ -1973,8 +2017,9 @@ export function buildClinicDemoDataset(
       calls: calls.length,
       forms: formSubmissions.length,
       appointments: appointmentDetails.length,
-      confirmationsPending: confirmations.filter((confirmation) => confirmation.status === 'pending')
-        .length,
+      confirmationsPending: confirmations.filter(
+        (confirmation) => confirmation.status === 'pending'
+      ).length,
       activeGaps: gaps.filter((gap) => gap.status === 'open' || gap.status === 'offered').length,
       activeCampaigns: campaigns.filter((campaign) => campaign.status === 'running').length,
     },
@@ -2041,6 +2086,7 @@ export function buildClinicDemoDataset(
     campaignDetails,
     recipients,
     dashboard,
+    tenantExperience,
     experience,
     summary,
   };

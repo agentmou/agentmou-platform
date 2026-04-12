@@ -3,7 +3,6 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FadeContent } from '@/components/reactbits/fade-content';
 import { Button } from '@/components/ui/button';
@@ -706,11 +705,5 @@ function ObservabilityPageContent() {
 }
 
 export default function ObservabilityPage() {
-  const redirected = useLegacyPlatformRedirect('/observability');
-
-  if (redirected) {
-    return null;
-  }
-
   return <ObservabilityPageContent />;
 }

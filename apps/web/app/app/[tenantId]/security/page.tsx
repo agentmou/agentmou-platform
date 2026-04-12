@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -555,11 +554,5 @@ function SecurityPageContent() {
 }
 
 export default function SecurityPage() {
-  const redirected = useLegacyPlatformRedirect('/security');
-
-  if (redirected) {
-    return null;
-  }
-
   return <SecurityPageContent />;
 }

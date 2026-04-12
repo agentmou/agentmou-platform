@@ -3,7 +3,6 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
-import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -687,11 +686,5 @@ function RunsListPageContent() {
 }
 
 export default function RunsListPage() {
-  const redirected = useLegacyPlatformRedirect('/runs');
-
-  if (redirected) {
-    return null;
-  }
-
   return <RunsListPageContent />;
 }

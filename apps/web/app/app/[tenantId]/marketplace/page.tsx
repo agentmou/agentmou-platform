@@ -3,7 +3,6 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useLegacyPlatformRedirect } from '@/components/control-plane/legacy-platform-redirect';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -436,11 +435,5 @@ function MarketplacePageContent() {
 }
 
 export default function MarketplacePage() {
-  const redirected = useLegacyPlatformRedirect('/marketplace');
-
-  if (redirected) {
-    return null;
-  }
-
   return <MarketplacePageContent />;
 }
