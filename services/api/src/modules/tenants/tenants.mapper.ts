@@ -3,6 +3,7 @@ import {
   TenantSettingsSchema,
   type Tenant,
   type TenantSettings,
+  type VerticalKey,
 } from '@agentmou/contracts';
 import { tenants } from '@agentmou/db';
 
@@ -15,15 +16,54 @@ const DEFAULT_TENANT_SETTINGS: TenantSettings = {
   defaultHITL: false,
   logRetentionDays: 30,
   memoryRetentionDays: 7,
+  activeVertical: 'internal',
+  isPlatformAdminTenant: false,
+  settingsVersion: 2,
   verticalClinicUi: false,
   clinicDentalMode: false,
   internalPlatformVisible: false,
 };
 
-export function normalizeTenantSettings(settings: unknown): TenantSettings {
-  if (!isRecord(settings)) {
-    return DEFAULT_TENANT_SETTINGS;
+interface NormalizeTenantSettingsOptions {
+  defaultActiveVertical?: VerticalKey;
+}
+
+function resolveActiveVertical(
+  settings: Record<string, unknown>,
+  defaultActiveVertical: VerticalKey
+): VerticalKey {
+  if (
+    settings.activeVertical === 'internal' ||
+    settings.activeVertical === 'clinic' ||
+    settings.activeVertical === 'fisio'
+  ) {
+    return settings.activeVertical;
   }
+
+  if (typeof settings.verticalClinicUi === 'boolean') {
+    return settings.verticalClinicUi ? 'clinic' : 'internal';
+  }
+
+  return defaultActiveVertical;
+}
+
+export function normalizeTenantSettings(
+  settings: unknown,
+  options: NormalizeTenantSettingsOptions = {}
+): TenantSettings {
+  if (!isRecord(settings)) {
+    return TenantSettingsSchema.parse({
+      ...DEFAULT_TENANT_SETTINGS,
+      activeVertical: options.defaultActiveVertical ?? DEFAULT_TENANT_SETTINGS.activeVertical,
+      verticalClinicUi:
+        (options.defaultActiveVertical ?? DEFAULT_TENANT_SETTINGS.activeVertical) === 'clinic',
+    });
+  }
+
+  const activeVertical = resolveActiveVertical(
+    settings,
+    options.defaultActiveVertical ?? DEFAULT_TENANT_SETTINGS.activeVertical
+  );
 
   return TenantSettingsSchema.parse({
     timezone:
@@ -40,10 +80,19 @@ export function normalizeTenantSettings(settings: unknown): TenantSettings {
       typeof settings.memoryRetentionDays === 'number'
         ? settings.memoryRetentionDays
         : DEFAULT_TENANT_SETTINGS.memoryRetentionDays,
+    activeVertical,
+    isPlatformAdminTenant:
+      typeof settings.isPlatformAdminTenant === 'boolean'
+        ? settings.isPlatformAdminTenant
+        : DEFAULT_TENANT_SETTINGS.isPlatformAdminTenant,
+    settingsVersion:
+      typeof settings.settingsVersion === 'number'
+        ? settings.settingsVersion
+        : DEFAULT_TENANT_SETTINGS.settingsVersion,
     verticalClinicUi:
       typeof settings.verticalClinicUi === 'boolean'
         ? settings.verticalClinicUi
-        : DEFAULT_TENANT_SETTINGS.verticalClinicUi,
+        : activeVertical === 'clinic',
     clinicDentalMode:
       typeof settings.clinicDentalMode === 'boolean'
         ? settings.clinicDentalMode
@@ -60,10 +109,22 @@ export function mergeTenantSettings(
   updates: TenantSettingsInput
 ): TenantSettings {
   const normalizedCurrent = normalizeTenantSettings(current);
-
-  return TenantSettingsSchema.parse({
+  const nextSettings: Record<string, unknown> = {
     ...normalizedCurrent,
     ...updates,
+  };
+
+  if (updates.activeVertical && typeof updates.verticalClinicUi !== 'boolean') {
+    nextSettings.verticalClinicUi = updates.activeVertical === 'clinic';
+  }
+
+  if (updates.activeVertical && updates.activeVertical !== 'clinic') {
+    nextSettings.clinicDentalMode =
+      typeof updates.clinicDentalMode === 'boolean' ? updates.clinicDentalMode : false;
+  }
+
+  return normalizeTenantSettings(nextSettings, {
+    defaultActiveVertical: normalizedCurrent.activeVertical,
   });
 }
 

@@ -8,6 +8,9 @@ import type {
   ClinicProfile,
   ModuleKey,
   ModuleStatus,
+  TenantExperience,
+  TenantNavigationKey,
+  TenantPermission,
   TenantModule,
   TenantPlan,
   TenantSettings,
@@ -17,6 +20,36 @@ import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
 const ACTIVE_MODULE_STATUSES = new Set<ModuleStatus>(['enabled', 'beta']);
 const MANAGE_SETTINGS_ROLES = new Set(['owner', 'admin']);
 const INTERNAL_PLATFORM_ROLES = new Set(['owner', 'admin']);
+const CLINIC_PERMISSION_SET = new Set<ClinicPermission>([
+  'view_dashboard',
+  'view_inbox',
+  'manage_inbox',
+  'view_appointments',
+  'manage_appointments',
+  'view_patients',
+  'manage_patients',
+  'view_follow_up',
+  'manage_follow_up',
+  'view_reactivation',
+  'manage_reactivation',
+  'view_reports',
+  'manage_clinic_settings',
+  'view_internal_platform',
+]);
+const CLINIC_NAVIGATION_SET = new Set<ClinicNavigationKey>([
+  'dashboard',
+  'inbox',
+  'appointments',
+  'patients',
+  'follow_up',
+  'forms',
+  'confirmations',
+  'gaps',
+  'reactivation',
+  'reports',
+  'configuration',
+  'platform_internal',
+]);
 
 type ModuleBaseline = {
   status: ModuleStatus;
@@ -284,8 +317,130 @@ function canRoleAccessInternalPlatform(role?: string) {
   return INTERNAL_PLATFORM_ROLES.has(normalizeTenantMembershipRole(role) ?? '');
 }
 
-export function resolveClinicExperience(context: ClinicEntitlementContext): ClinicExperience {
+function buildBaseFlags(settings: TenantSettings): TenantExperience['flags'] {
+  return {
+    activeVertical: settings.activeVertical,
+    isPlatformAdminTenant: Boolean(settings.isPlatformAdminTenant),
+    verticalClinicUi: Boolean(settings.verticalClinicUi),
+    clinicDentalMode: Boolean(settings.clinicDentalMode),
+    voiceInboundEnabled: false,
+    voiceOutboundEnabled: false,
+    whatsappOutboundEnabled: false,
+    intakeFormsEnabled: false,
+    appointmentConfirmationsEnabled: false,
+    smartGapFillEnabled: false,
+    reactivationEnabled: false,
+    advancedClinicModeEnabled: false,
+    internalPlatformVisible: Boolean(settings.internalPlatformVisible),
+  };
+}
+
+function buildClinicSettingsSections(canAccessInternalPlatform: boolean) {
+  const sections: TenantExperience['settingsSections'] = ['general', 'modules', 'channels'];
+  if (canAccessInternalPlatform) {
+    sections.push('platform');
+  }
+  return sections;
+}
+
+function buildInternalSettingsSections(canAccessAdminConsole: boolean) {
+  const sections: TenantExperience['settingsSections'] = ['general', 'team', 'security'];
+  if (canAccessAdminConsole) {
+    sections.push('platform');
+  }
+  return sections;
+}
+
+function toClinicExperience(experience: TenantExperience): ClinicExperience {
+  const permissions = experience.permissions.filter((permission): permission is ClinicPermission =>
+    CLINIC_PERMISSION_SET.has(permission as ClinicPermission)
+  );
+  const allowedNavigation = experience.allowedNavigation.filter((key): key is ClinicNavigationKey =>
+    CLINIC_NAVIGATION_SET.has(key as ClinicNavigationKey)
+  );
+
+  return {
+    tenantId: experience.tenantId,
+    isClinicTenant: experience.activeVertical === 'clinic',
+    defaultMode: experience.shellKey === 'platform_internal' ? 'platform_internal' : 'clinic',
+    role: experience.role,
+    normalizedRole: experience.normalizedRole,
+    isInternalUser: experience.canAccessInternalPlatform,
+    permissions,
+    flags: {
+      verticalClinicUi: experience.flags.verticalClinicUi,
+      clinicDentalMode: experience.flags.clinicDentalMode,
+      voiceInboundEnabled: experience.flags.voiceInboundEnabled,
+      voiceOutboundEnabled: experience.flags.voiceOutboundEnabled,
+      whatsappOutboundEnabled: experience.flags.whatsappOutboundEnabled,
+      intakeFormsEnabled: experience.flags.intakeFormsEnabled,
+      appointmentConfirmationsEnabled: experience.flags.appointmentConfirmationsEnabled,
+      smartGapFillEnabled: experience.flags.smartGapFillEnabled,
+      reactivationEnabled: experience.flags.reactivationEnabled,
+      advancedClinicModeEnabled: experience.flags.advancedClinicModeEnabled,
+      internalPlatformVisible: experience.flags.internalPlatformVisible,
+    },
+    modules: experience.modules,
+    allowedNavigation,
+  };
+}
+
+export function resolveTenantExperience(context: ClinicEntitlementContext): TenantExperience {
   const normalizedRole = normalizeTenantMembershipRole(context.tenantRole);
+  const canAccessAdminConsole =
+    Boolean(context.settings.isPlatformAdminTenant) &&
+    canRoleAccessInternalPlatform(context.tenantRole);
+
+  if (context.settings.activeVertical === 'internal') {
+    const permissions: TenantPermission[] = [];
+    const allowedNavigation: TenantNavigationKey[] = ['platform_internal'];
+
+    if (canRoleAccessInternalPlatform(context.tenantRole)) {
+      permissions.push('view_internal_platform');
+    }
+    if (canAccessAdminConsole) {
+      permissions.push('view_admin_console');
+      allowedNavigation.push('admin_console');
+    }
+
+    return {
+      tenantId: context.tenantId,
+      activeVertical: 'internal',
+      shellKey: 'platform_internal',
+      defaultRoute: `/app/${context.tenantId}/dashboard`,
+      role: context.tenantRole,
+      normalizedRole,
+      permissions,
+      allowedNavigation,
+      modules: [],
+      flags: {
+        ...buildBaseFlags(context.settings),
+        internalPlatformVisible: canRoleAccessInternalPlatform(context.tenantRole),
+      },
+      settingsSections: buildInternalSettingsSections(canAccessAdminConsole),
+      canAccessInternalPlatform: canRoleAccessInternalPlatform(context.tenantRole),
+      canAccessAdminConsole,
+    };
+  }
+
+  if (context.settings.activeVertical === 'fisio') {
+    return {
+      tenantId: context.tenantId,
+      activeVertical: 'fisio',
+      shellKey: 'fisio',
+      defaultRoute: `/app/${context.tenantId}/dashboard`,
+      role: context.tenantRole,
+      normalizedRole,
+      permissions: [],
+      allowedNavigation: ['dashboard', 'configuration'],
+      modules: [],
+      flags: buildBaseFlags(context.settings),
+      settingsSections: ['general'],
+      canAccessInternalPlatform: false,
+      canAccessAdminConsole: false,
+    };
+  }
+
   const modules = resolveClinicModuleEntitlements(context);
   const moduleByKey = Object.fromEntries(
     modules.map((module) => [module.moduleKey, module] as const)
@@ -302,6 +457,8 @@ export function resolveClinicExperience(context: ClinicEntitlementContext): Clin
     canRoleAccessInternalPlatform(context.tenantRole);
 
   const flags = {
+    activeVertical: 'clinic',
+    isPlatformAdminTenant: Boolean(context.settings.isPlatformAdminTenant),
     verticalClinicUi: Boolean(context.settings.verticalClinicUi),
     clinicDentalMode: Boolean(context.settings.clinicDentalMode),
     voiceInboundEnabled:
@@ -317,13 +474,13 @@ export function resolveClinicExperience(context: ClinicEntitlementContext): Clin
     reactivationEnabled: growthEnabled && context.profile?.reactivationPolicy.enabled !== false,
     advancedClinicModeEnabled: advancedEnabled,
     internalPlatformVisible: internalModuleEnabled && internalPlatformVisibleSetting,
-  } satisfies ClinicExperience['flags'];
+  } satisfies TenantExperience['flags'];
 
   const permissions = resolveClinicPermissions({
     tenantRole: context.tenantRole,
     canAccessInternalPlatform,
-  });
-  const allowedNavigation: ClinicNavigationKey[] = [];
+  }) as TenantPermission[];
+  const allowedNavigation: TenantNavigationKey[] = [];
 
   const permissionSet = new Set(permissions);
   if (coreEnabled && permissionSet.has('view_dashboard')) {
@@ -362,19 +519,30 @@ export function resolveClinicExperience(context: ClinicEntitlementContext): Clin
   if (permissionSet.has('view_internal_platform')) {
     allowedNavigation.push('platform_internal');
   }
+  if (canAccessAdminConsole) {
+    allowedNavigation.push('admin_console');
+    permissions.push('view_admin_console');
+  }
 
   return {
     tenantId: context.tenantId,
-    isClinicTenant: flags.verticalClinicUi || context.profile !== null,
-    defaultMode: 'clinic',
+    activeVertical: 'clinic',
+    shellKey: 'clinic',
+    defaultRoute: `/app/${context.tenantId}/dashboard`,
     role: context.tenantRole,
     normalizedRole,
-    isInternalUser: canAccessInternalPlatform,
     permissions,
-    flags,
-    modules,
     allowedNavigation,
+    modules,
+    flags,
+    settingsSections: buildClinicSettingsSections(canAccessInternalPlatform),
+    canAccessInternalPlatform,
+    canAccessAdminConsole,
   };
+}
+
+export function resolveClinicExperience(context: ClinicEntitlementContext): ClinicExperience {
+  return toClinicExperience(resolveTenantExperience(context));
 }
 
 export function findClinicModuleEntitlement(

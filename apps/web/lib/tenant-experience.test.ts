@@ -7,6 +7,7 @@ import {
   isClinicUiEnabled,
   isPlatformPath,
   normalizeMemberRole,
+  resolveActiveVertical,
   resolveClinicCapabilities,
 } from './tenant-experience';
 
@@ -27,10 +28,14 @@ describe('tenant experience helpers', () => {
   };
 
   it('normalizes clinic ui settings flags', () => {
-    expect(isClinicUiEnabled({ verticalClinicUi: true })).toBe(true);
-    expect(isClinicUiEnabled({ verticalClinicUi: false })).toBe(false);
-    expect(isClinicDentalMode({ clinicDentalMode: true })).toBe(true);
-    expect(isClinicDentalMode({ clinicDentalMode: false })).toBe(false);
+    expect(resolveActiveVertical({ activeVertical: 'clinic' })).toBe('clinic');
+    expect(resolveActiveVertical({ verticalClinicUi: true })).toBe('clinic');
+    expect(resolveActiveVertical({ verticalClinicUi: false })).toBe('internal');
+    expect(isClinicUiEnabled({ activeVertical: 'clinic' })).toBe(true);
+    expect(isClinicUiEnabled({ activeVertical: 'fisio' })).toBe(false);
+    expect(isClinicDentalMode({ activeVertical: 'clinic', clinicDentalMode: true })).toBe(true);
+    expect(isClinicDentalMode({ activeVertical: 'clinic', clinicDentalMode: false })).toBe(false);
+    expect(isClinicDentalMode({ activeVertical: 'fisio', clinicDentalMode: true })).toBe(false);
   });
 
   it('normalizes legacy member roles to operator', () => {

@@ -37,6 +37,14 @@ export class AuthService {
           type: 'business',
           plan: 'free',
           ownerId: user.id,
+          settings: normalizeTenantSettings(
+            {
+              activeVertical: 'clinic',
+            },
+            {
+              defaultActiveVertical: 'clinic',
+            }
+          ),
         })
         .returning({
           id: tenants.id,

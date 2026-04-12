@@ -21,7 +21,9 @@ export class TenantsService {
         type: data.type,
         plan: data.plan,
         ownerId: data.ownerId,
-        settings: normalizeTenantSettings(data.settings),
+        settings: normalizeTenantSettings(data.settings, {
+          defaultActiveVertical: 'clinic',
+        }),
       })
       .returning();
     return mapTenant(tenant);

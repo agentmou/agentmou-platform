@@ -9,6 +9,7 @@ import type {
   ClinicProfile,
   Tenant,
   TenantSettings,
+  VerticalKey,
 } from '@agentmou/contracts';
 import { usePathname } from 'next/navigation';
 
@@ -100,12 +101,28 @@ export function normalizeMemberRole(role?: string) {
   return role === 'member' ? 'operator' : role;
 }
 
+export function resolveActiveVertical(settings?: Partial<TenantSettings> | null): VerticalKey {
+  if (
+    settings?.activeVertical === 'internal' ||
+    settings?.activeVertical === 'clinic' ||
+    settings?.activeVertical === 'fisio'
+  ) {
+    return settings.activeVertical;
+  }
+
+  if (typeof settings?.verticalClinicUi === 'boolean') {
+    return settings.verticalClinicUi ? 'clinic' : 'internal';
+  }
+
+  return 'internal';
+}
+
 export function isClinicUiEnabled(settings?: Partial<TenantSettings> | null) {
-  return Boolean(settings?.verticalClinicUi);
+  return resolveActiveVertical(settings) === 'clinic';
 }
 
 export function isClinicDentalMode(settings?: Partial<TenantSettings> | null) {
-  return Boolean(settings?.clinicDentalMode);
+  return isClinicUiEnabled(settings) && Boolean(settings?.clinicDentalMode);
 }
 
 function isModuleEnabled(
@@ -243,7 +260,7 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
 
       const nextTenant = resolvedTenant;
       const shouldLoadClinicContext =
-        isClinicUiEnabled(nextTenant?.settings) ||
+        resolveActiveVertical(nextTenant?.settings) === 'clinic' ||
         resolvedProfile !== null ||
         nextExperience !== null;
 
@@ -285,7 +302,8 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
     tenantId === 'demo-workspace' || authTenants.some((item) => item.id === tenantId);
   const fallbackTenantId = authTenants[0]?.id ?? null;
   const isClinicTenant =
-    resolvedExperience?.isClinicTenant ?? (isClinicUiEnabled(tenant?.settings) || profile !== null);
+    resolvedExperience?.isClinicTenant ??
+    (resolveActiveVertical(tenant?.settings) === 'clinic' || profile !== null);
   const isPlatformRoute = pathname ? isPlatformPath(pathname, tenantId) : false;
   const capabilities = React.useMemo(
     () =>

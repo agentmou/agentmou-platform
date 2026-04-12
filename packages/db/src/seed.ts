@@ -11,6 +11,7 @@ import postgres from 'postgres';
 import { buildClinicDemoSeedFixture } from './clinic-demo-fixture';
 import { getDatabaseUrl } from './config';
 import * as schema from './schema';
+import { buildTenantVerticalConfigSeedRows } from './tenant-vertical-config-fixture';
 
 const DATABASE_URL = getDatabaseUrl();
 const ADMIN_EMAIL = 'admin@agentmou.dev';
@@ -19,6 +20,7 @@ const ADMIN_PASSWORD_HASH =
   '10a4edfff587919abdfe1649f43cf23e:9f2cb2ca9bc9da1b7de5c0a59185530a55979fc722b9e58fc7767deaa45112b01fae2b27c759e7a29bed02329dc3e9bf4763e5d9a0ac2c26242b585df9d1d059';
 const GENERIC_TENANT_NAME = 'Demo Workspace';
 const CLINIC_TENANT_NAME = 'Dental Demo Clinic';
+const FISIO_TENANT_NAME = 'Fisio Pilot Workspace';
 
 type Database = ReturnType<typeof drizzle<typeof schema>>;
 
@@ -103,6 +105,32 @@ async function ensureTenant(
   );
 }
 
+async function ensureTenantRecord(
+  db: Database,
+  values: Pick<
+    typeof schema.tenants.$inferInsert,
+    'name' | 'type' | 'plan' | 'ownerId' | 'settings'
+  >
+) {
+  const existing = await ensureTenant(db, values);
+  const [updated] = await db
+    .update(schema.tenants)
+    .set({
+      type: values.type,
+      plan: values.plan,
+      settings: values.settings,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.tenants.id, existing.id))
+    .returning();
+
+  if (!updated) {
+    throw new Error(`Failed to update ${values.name}`);
+  }
+
+  return updated;
+}
+
 async function ensureMembership(db: Database, tenantId: string, userId: string, role: string) {
   return ensureOne(
     async () =>
@@ -166,8 +194,51 @@ async function ensureConnectorAccount(
   );
 }
 
+async function ensureTenantVerticalConfig(
+  db: Database,
+  values: Pick<
+    typeof schema.tenantVerticalConfigs.$inferInsert,
+    'tenantId' | 'verticalKey' | 'config'
+  >
+) {
+  const existing = (
+    await db
+      .select()
+      .from(schema.tenantVerticalConfigs)
+      .where(
+        and(
+          eq(schema.tenantVerticalConfigs.tenantId, values.tenantId),
+          eq(schema.tenantVerticalConfigs.verticalKey, values.verticalKey)
+        )
+      )
+      .limit(1)
+  )[0];
+
+  if (!existing) {
+    return insertOne(
+      db.insert(schema.tenantVerticalConfigs).values(values).returning(),
+      `Failed to create tenant vertical config ${values.verticalKey}`
+    );
+  }
+
+  const [updated] = await db
+    .update(schema.tenantVerticalConfigs)
+    .set({
+      config: values.config,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.tenantVerticalConfigs.id, existing.id))
+    .returning();
+
+  if (!updated) {
+    throw new Error(`Failed to update tenant vertical config ${values.verticalKey}`);
+  }
+
+  return updated;
+}
+
 async function seedGenericDemo(db: Database, userId: string) {
-  const tenant = await ensureTenant(db, {
+  const tenant = await ensureTenantRecord(db, {
     name: GENERIC_TENANT_NAME,
     type: 'business',
     plan: 'pro',
@@ -177,10 +248,26 @@ async function seedGenericDemo(db: Database, userId: string) {
       defaultHITL: true,
       logRetentionDays: 30,
       memoryRetentionDays: 7,
+      activeVertical: 'internal',
+      isPlatformAdminTenant: true,
+      settingsVersion: 2,
+      verticalClinicUi: false,
+      clinicDentalMode: false,
+      internalPlatformVisible: false,
     },
   });
 
   await ensureMembership(db, tenant.id, userId, 'owner');
+  for (const row of buildTenantVerticalConfigSeedRows({
+    tenantId: tenant.id,
+    activeVertical: 'internal',
+    config: {
+      label: 'control_plane',
+      isPlatformAdminTenant: true,
+    },
+  })) {
+    await ensureTenantVerticalConfig(db, row);
+  }
 
   for (const provider of ['gmail', 'slack', 'notion']) {
     await ensureConnectorAccount(db, {
@@ -196,10 +283,45 @@ async function seedGenericDemo(db: Database, userId: string) {
   return tenant;
 }
 
+async function seedFisioDemo(db: Database, userId: string) {
+  const tenant = await ensureTenantRecord(db, {
+    name: FISIO_TENANT_NAME,
+    type: 'business',
+    plan: 'starter',
+    ownerId: userId,
+    settings: {
+      timezone: 'Europe/Madrid',
+      defaultHITL: false,
+      logRetentionDays: 30,
+      memoryRetentionDays: 7,
+      activeVertical: 'fisio',
+      isPlatformAdminTenant: false,
+      settingsVersion: 2,
+      verticalClinicUi: false,
+      clinicDentalMode: false,
+      internalPlatformVisible: false,
+    },
+  });
+
+  await ensureMembership(db, tenant.id, userId, 'admin');
+  for (const row of buildTenantVerticalConfigSeedRows({
+    tenantId: tenant.id,
+    activeVertical: 'fisio',
+    config: {
+      specialty: 'sports_rehab',
+      status: 'architecture_fixture',
+    },
+  })) {
+    await ensureTenantVerticalConfig(db, row);
+  }
+
+  return tenant;
+}
+
 async function seedClinicDemo(db: Database, userId: string) {
   const fixture = buildClinicDemoSeedFixture(new Date());
 
-  const tenant = await ensureTenant(db, {
+  const tenant = await ensureTenantRecord(db, {
     name: CLINIC_TENANT_NAME,
     type: 'business',
     plan: 'enterprise',
@@ -208,11 +330,17 @@ async function seedClinicDemo(db: Database, userId: string) {
   });
 
   await ensureMembership(db, tenant.id, userId, 'owner');
+  for (const row of fixture.verticalConfigs.flatMap((config) =>
+    buildTenantVerticalConfigSeedRows({
+      tenantId: tenant.id,
+      activeVertical: config.verticalKey,
+      config: config.config,
+    })
+  )) {
+    await ensureTenantVerticalConfig(db, row);
+  }
 
-  const connectorAccounts = new Map<
-    string,
-    typeof schema.connectorAccounts.$inferSelect
-  >();
+  const connectorAccounts = new Map<string, typeof schema.connectorAccounts.$inferSelect>();
   for (const connector of fixture.connectorAccounts) {
     const row = await ensureConnectorAccount(db, {
       tenantId: tenant.id,
@@ -381,10 +509,7 @@ async function seedClinicDemo(db: Database, userId: string) {
             .where(
               and(
                 eq(schema.practitioners.tenantId, tenant.id),
-                eq(
-                  schema.practitioners.externalPractitionerId,
-                  practitioner.externalPractitionerId
-                )
+                eq(schema.practitioners.externalPractitionerId, practitioner.externalPractitionerId)
               )
             )
             .limit(1)
@@ -1145,12 +1270,14 @@ async function seed() {
 
   const user = await ensureUser(db);
   const genericTenant = await seedGenericDemo(db, user.id);
+  const fisioTenant = await seedFisioDemo(db, user.id);
   const clinicDemo = await seedClinicDemo(db, user.id);
 
   print('Seed complete.');
   print(`  User:            ${user.id} (${ADMIN_EMAIL})`);
   print(`  Password:        ${ADMIN_PASSWORD}`);
   print(`  Workspace demo:  ${genericTenant.id} (${genericTenant.name})`);
+  print(`  Fisio fixture:   ${fisioTenant.id} (${fisioTenant.name})`);
   print(`  Clinic demo:     ${clinicDemo.tenant.id} (${clinicDemo.tenant.name})`);
   print(`  Clinic profile:  ${clinicDemo.clinicProfile.displayName}`);
   print(`  Patients:        ${clinicDemo.summary.counts.patients}`);
