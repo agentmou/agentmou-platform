@@ -1,10 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { Logo } from '@/components/brand';
 import { ClinicCommandSurface } from './clinic-command-surface';
 import { ClinicSidebar } from './clinic-sidebar';
 import { ClinicTopbar } from './clinic-topbar';
@@ -29,12 +27,7 @@ export function ClinicShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div data-surface="app" className="surface-app flex min-h-screen bg-background">
-      <aside className="hidden w-72 shrink-0 border-r border-border/60 bg-sidebar lg:flex lg:flex-col">
-        <div className="flex h-16 items-center border-b border-border/60 px-4">
-          <Link href={`/app/${experience.tenantId}/dashboard`} className="flex items-center">
-            <Logo variant="sidebar" />
-          </Link>
-        </div>
+      <aside className="hidden w-72 shrink-0 self-start border-r border-border/60 bg-sidebar lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col">
         <ClinicSidebar tenantId={experience.tenantId} pathname={pathname} />
       </aside>
 
