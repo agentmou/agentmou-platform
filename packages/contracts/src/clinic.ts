@@ -1112,6 +1112,11 @@ export const ClinicExperienceResponseSchema = z.object({
 });
 export type ClinicExperienceResponse = z.infer<typeof ClinicExperienceResponseSchema>;
 
+export const TenantExperienceResponseSchema = z.object({
+  experience: TenantExperienceSchema,
+});
+export type TenantExperienceResponse = z.infer<typeof TenantExperienceResponseSchema>;
+
 export const ClinicProfileResponseSchema = z.object({
   profile: ClinicProfileSchema,
 });

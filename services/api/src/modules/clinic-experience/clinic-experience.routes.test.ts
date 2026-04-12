@@ -5,7 +5,8 @@ import { zodValidatorCompiler } from '../../routes/zod-validator.js';
 
 const { mockService } = vi.hoisted(() => ({
   mockService: {
-    getExperience: vi.fn(),
+    getTenantExperience: vi.fn(),
+    getClinicExperience: vi.fn(),
   },
 }));
 
@@ -36,15 +37,163 @@ describe('clinicExperienceRoutes', () => {
     vi.clearAllMocks();
   });
 
+  it('returns the resolved tenant experience envelope for internal workspaces', async () => {
+    mockService.getTenantExperience.mockResolvedValue({
+      tenantId: 'tenant-1',
+      activeVertical: 'internal',
+      shellKey: 'platform_internal',
+      defaultRoute: '/app/tenant-1/dashboard',
+      role: 'admin',
+      normalizedRole: 'admin',
+      permissions: ['view_internal_platform', 'view_admin_console'],
+      allowedNavigation: ['platform_internal', 'admin_console'],
+      modules: [],
+      flags: {
+        activeVertical: 'internal',
+        isPlatformAdminTenant: true,
+        verticalClinicUi: false,
+        clinicDentalMode: false,
+        voiceInboundEnabled: false,
+        voiceOutboundEnabled: false,
+        whatsappOutboundEnabled: false,
+        intakeFormsEnabled: false,
+        appointmentConfirmationsEnabled: false,
+        smartGapFillEnabled: false,
+        reactivationEnabled: false,
+        advancedClinicModeEnabled: false,
+        internalPlatformVisible: true,
+      },
+      settingsSections: ['general', 'team', 'security', 'platform'],
+      canAccessInternalPlatform: true,
+      canAccessAdminConsole: true,
+    });
+
+    const app = await buildClinicExperienceApp();
+    const response = await app.inject({
+      method: 'GET',
+      url: '/tenants/tenant-1/experience',
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      experience: {
+        tenantId: 'tenant-1',
+        activeVertical: 'internal',
+        shellKey: 'platform_internal',
+        allowedNavigation: ['platform_internal', 'admin_console'],
+      },
+    });
+
+    await app.close();
+  });
+
+  it('returns the resolved tenant experience envelope for fisio workspaces', async () => {
+    mockService.getTenantExperience.mockResolvedValue({
+      tenantId: 'tenant-1',
+      activeVertical: 'fisio',
+      shellKey: 'fisio',
+      defaultRoute: '/app/tenant-1/dashboard',
+      role: 'admin',
+      normalizedRole: 'admin',
+      permissions: [],
+      allowedNavigation: ['dashboard', 'configuration'],
+      modules: [],
+      flags: {
+        activeVertical: 'fisio',
+        isPlatformAdminTenant: false,
+        verticalClinicUi: false,
+        clinicDentalMode: false,
+        voiceInboundEnabled: false,
+        voiceOutboundEnabled: false,
+        whatsappOutboundEnabled: false,
+        intakeFormsEnabled: false,
+        appointmentConfirmationsEnabled: false,
+        smartGapFillEnabled: false,
+        reactivationEnabled: false,
+        advancedClinicModeEnabled: false,
+        internalPlatformVisible: false,
+      },
+      settingsSections: ['general'],
+      canAccessInternalPlatform: false,
+      canAccessAdminConsole: false,
+    });
+
+    const app = await buildClinicExperienceApp();
+    const response = await app.inject({
+      method: 'GET',
+      url: '/tenants/tenant-1/experience',
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      experience: {
+        activeVertical: 'fisio',
+        shellKey: 'fisio',
+        allowedNavigation: ['dashboard', 'configuration'],
+      },
+    });
+
+    await app.close();
+  });
+
+  it('returns the resolved tenant experience envelope for clinic workspaces', async () => {
+    mockService.getTenantExperience.mockResolvedValue({
+      tenantId: 'tenant-1',
+      activeVertical: 'clinic',
+      shellKey: 'clinic',
+      defaultRoute: '/app/tenant-1/dashboard',
+      role: 'admin',
+      normalizedRole: 'admin',
+      permissions: ['view_dashboard', 'manage_clinic_settings'],
+      allowedNavigation: ['dashboard', 'inbox', 'configuration'],
+      modules: [],
+      flags: {
+        activeVertical: 'clinic',
+        isPlatformAdminTenant: false,
+        verticalClinicUi: true,
+        clinicDentalMode: true,
+        voiceInboundEnabled: true,
+        voiceOutboundEnabled: false,
+        whatsappOutboundEnabled: true,
+        intakeFormsEnabled: true,
+        appointmentConfirmationsEnabled: true,
+        smartGapFillEnabled: false,
+        reactivationEnabled: false,
+        advancedClinicModeEnabled: false,
+        internalPlatformVisible: false,
+      },
+      settingsSections: ['general', 'modules', 'channels'],
+      canAccessInternalPlatform: false,
+      canAccessAdminConsole: false,
+    });
+
+    const app = await buildClinicExperienceApp();
+    const response = await app.inject({
+      method: 'GET',
+      url: '/tenants/tenant-1/experience',
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      experience: {
+        activeVertical: 'clinic',
+        shellKey: 'clinic',
+        allowedNavigation: ['dashboard', 'inbox', 'configuration'],
+      },
+    });
+
+    await app.close();
+  });
+
   it('returns the resolved clinic experience envelope', async () => {
-    mockService.getExperience.mockResolvedValue({
+    mockService.getClinicExperience.mockResolvedValue({
       tenantId: 'tenant-1',
       isClinicTenant: true,
       defaultMode: 'clinic',
       role: 'admin',
       normalizedRole: 'admin',
-      isInternalUser: true,
-      permissions: ['view_dashboard', 'manage_clinic_settings', 'view_internal_platform'],
+      isInternalUser: false,
+      permissions: ['view_dashboard', 'manage_clinic_settings'],
       flags: {
         verticalClinicUi: true,
         clinicDentalMode: true,
@@ -56,7 +205,7 @@ describe('clinicExperienceRoutes', () => {
         smartGapFillEnabled: false,
         reactivationEnabled: false,
         advancedClinicModeEnabled: false,
-        internalPlatformVisible: true,
+        internalPlatformVisible: false,
       },
       modules: [
         {
@@ -78,7 +227,7 @@ describe('clinicExperienceRoutes', () => {
           visibilityReason: 'active',
         },
       ],
-      allowedNavigation: ['dashboard', 'configuration', 'platform_internal'],
+      allowedNavigation: ['dashboard', 'configuration'],
     });
 
     const app = await buildClinicExperienceApp();
@@ -92,7 +241,7 @@ describe('clinicExperienceRoutes', () => {
       experience: {
         tenantId: 'tenant-1',
         normalizedRole: 'admin',
-        allowedNavigation: ['dashboard', 'configuration', 'platform_internal'],
+        allowedNavigation: ['dashboard', 'configuration'],
       },
     });
 

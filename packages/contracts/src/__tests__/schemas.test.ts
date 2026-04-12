@@ -40,6 +40,7 @@ import {
   CreatePatientBodySchema,
   ClinicPermissionSchema,
   TenantExperienceSchema,
+  TenantExperienceResponseSchema,
   OfferGapBodySchema,
   ModuleKeySchema,
   ModuleVisibilityReasonSchema,
@@ -146,6 +147,43 @@ describe('Clinic domain schemas', () => {
 
     expect(result.flags.activeVertical).toBe('clinic');
     expect(result.settingsSections).toContain('modules');
+  });
+
+  it('parses generic tenant experience response envelopes', () => {
+    const result = TenantExperienceResponseSchema.parse({
+      experience: {
+        tenantId: 'tenant-1',
+        activeVertical: 'internal',
+        shellKey: 'platform_internal',
+        defaultRoute: '/app/tenant-1/dashboard',
+        role: 'owner',
+        normalizedRole: 'owner',
+        permissions: ['view_internal_platform', 'view_admin_console'],
+        allowedNavigation: ['platform_internal', 'admin_console'],
+        modules: [],
+        flags: {
+          activeVertical: 'internal',
+          isPlatformAdminTenant: true,
+          verticalClinicUi: false,
+          clinicDentalMode: false,
+          voiceInboundEnabled: false,
+          voiceOutboundEnabled: false,
+          whatsappOutboundEnabled: false,
+          intakeFormsEnabled: false,
+          appointmentConfirmationsEnabled: false,
+          smartGapFillEnabled: false,
+          reactivationEnabled: false,
+          advancedClinicModeEnabled: false,
+          internalPlatformVisible: true,
+        },
+        settingsSections: ['general', 'team', 'security', 'platform'],
+        canAccessInternalPlatform: true,
+        canAccessAdminConsole: true,
+      },
+    });
+
+    expect(result.experience.shellKey).toBe('platform_internal');
+    expect(result.experience.allowedNavigation).toContain('platform_internal');
   });
 
   it('parses a clinic profile with policy payloads', () => {
