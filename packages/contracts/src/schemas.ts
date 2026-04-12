@@ -62,6 +62,9 @@ export {
   TenantMemberResponseSchema,
 } from './tenancy';
 
+/** Re-exported vertical schemas. */
+export { VerticalKeySchema } from './verticals';
+
 /** Re-exported installation schemas. */
 export {
   InstalledStatusSchema,

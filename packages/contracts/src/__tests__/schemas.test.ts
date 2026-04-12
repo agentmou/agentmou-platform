@@ -39,12 +39,14 @@ import {
   PatientsResponseSchema,
   CreatePatientBodySchema,
   ClinicPermissionSchema,
+  TenantExperienceSchema,
   OfferGapBodySchema,
   ModuleKeySchema,
   ModuleVisibilityReasonSchema,
   ModuleVisibilityStateSchema,
   ReminderJobResponseSchema,
   TenantModuleResponseSchema,
+  VerticalKeySchema,
   WaitlistRequestResponseSchema,
   TwilioWhatsAppConfigSchema,
   TwilioVoiceConfigSchema,
@@ -87,6 +89,9 @@ describe('TenantSchema', () => {
     const result = TenantSchema.parse(validTenant);
     expect(result.id).toBe('tenant-1');
     expect(result.plan).toBe('pro');
+    expect(result.settings.activeVertical).toBe('internal');
+    expect(result.settings.isPlatformAdminTenant).toBe(false);
+    expect(result.settings.settingsVersion).toBe(2);
     expect(result.settings.verticalClinicUi).toBe(false);
     expect(result.settings.clinicDentalMode).toBe(false);
     expect(result.settings.internalPlatformVisible).toBe(false);
@@ -106,6 +111,43 @@ describe('TenantSchema', () => {
 });
 
 describe('Clinic domain schemas', () => {
+  it('parses generic tenant experience payloads and vertical keys', () => {
+    expect(VerticalKeySchema.parse('clinic')).toBe('clinic');
+
+    const result = TenantExperienceSchema.parse({
+      tenantId: 'tenant-1',
+      activeVertical: 'clinic',
+      shellKey: 'clinic',
+      defaultRoute: '/app/tenant-1/dashboard',
+      role: 'owner',
+      normalizedRole: 'owner',
+      permissions: ['view_dashboard', 'view_internal_platform'],
+      allowedNavigation: ['dashboard', 'platform_internal'],
+      modules: [],
+      flags: {
+        activeVertical: 'clinic',
+        isPlatformAdminTenant: false,
+        verticalClinicUi: true,
+        clinicDentalMode: true,
+        voiceInboundEnabled: true,
+        voiceOutboundEnabled: true,
+        whatsappOutboundEnabled: true,
+        intakeFormsEnabled: true,
+        appointmentConfirmationsEnabled: true,
+        smartGapFillEnabled: true,
+        reactivationEnabled: true,
+        advancedClinicModeEnabled: false,
+        internalPlatformVisible: true,
+      },
+      settingsSections: ['general', 'modules', 'channels'],
+      canAccessInternalPlatform: true,
+      canAccessAdminConsole: false,
+    });
+
+    expect(result.flags.activeVertical).toBe('clinic');
+    expect(result.settingsSections).toContain('modules');
+  });
+
   it('parses a clinic profile with policy payloads', () => {
     const result = ClinicProfileSchema.parse({
       id: 'clinic-profile-1',
