@@ -13,9 +13,28 @@ describe('tenants.mapper', () => {
       defaultHITL: false,
       logRetentionDays: 30,
       memoryRetentionDays: 7,
+      activeVertical: 'internal',
+      isPlatformAdminTenant: false,
+      settingsVersion: 2,
       verticalClinicUi: false,
       clinicDentalMode: false,
       internalPlatformVisible: false,
+    });
+  });
+
+  it('prefers the explicit active vertical over legacy defaults for new clinic tenants', () => {
+    expect(
+      normalizeTenantSettings(
+        {},
+        {
+          defaultActiveVertical: 'clinic',
+        }
+      )
+    ).toMatchObject({
+      activeVertical: 'clinic',
+      verticalClinicUi: true,
+      isPlatformAdminTenant: false,
+      settingsVersion: 2,
     });
   });
 
@@ -35,9 +54,37 @@ describe('tenants.mapper', () => {
       defaultHITL: true,
       logRetentionDays: 14,
       memoryRetentionDays: 7,
+      activeVertical: 'internal',
+      isPlatformAdminTenant: false,
+      settingsVersion: 2,
       verticalClinicUi: false,
       clinicDentalMode: false,
       internalPlatformVisible: false,
+    });
+  });
+
+  it('derives clinic compatibility flags from activeVertical updates', () => {
+    expect(
+      mergeTenantSettings(
+        {
+          timezone: 'UTC',
+          defaultHITL: false,
+          logRetentionDays: 30,
+          memoryRetentionDays: 7,
+          activeVertical: 'internal',
+          isPlatformAdminTenant: false,
+          settingsVersion: 2,
+          verticalClinicUi: false,
+          clinicDentalMode: false,
+          internalPlatformVisible: false,
+        },
+        {
+          activeVertical: 'clinic',
+        }
+      )
+    ).toMatchObject({
+      activeVertical: 'clinic',
+      verticalClinicUi: true,
     });
   });
 
@@ -65,6 +112,9 @@ describe('tenants.mapper', () => {
         defaultHITL: false,
         logRetentionDays: 30,
         memoryRetentionDays: 7,
+        activeVertical: 'internal',
+        isPlatformAdminTenant: false,
+        settingsVersion: 2,
         verticalClinicUi: false,
         clinicDentalMode: false,
         internalPlatformVisible: false,

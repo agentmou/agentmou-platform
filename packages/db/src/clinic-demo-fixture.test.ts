@@ -17,7 +17,13 @@ describe('buildClinicDemoSeedFixture', () => {
       activeGaps: 1,
       activeCampaigns: 1,
     });
+    expect(fixture.tenantSettings.activeVertical).toBe('clinic');
+    expect(fixture.tenantSettings.isPlatformAdminTenant).toBe(false);
+    expect(fixture.tenantSettings.settingsVersion).toBe(2);
     expect(fixture.tenantSettings.internalPlatformVisible).toBe(true);
+    expect(fixture.verticalConfigs[0]).toMatchObject({
+      verticalKey: 'clinic',
+    });
     expect(fixture.summary.journeys.newPatient.appointmentKey).toBe('appointment-ana');
     expect(fixture.summary.journeys.reactivation.generatedAppointmentKey).toBe(
       'appointment-carmen'

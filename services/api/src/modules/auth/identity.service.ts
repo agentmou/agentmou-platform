@@ -1,5 +1,6 @@
 import { db, users, tenants, memberships, userIdentities } from '@agentmou/db';
 import { eq, and } from 'drizzle-orm';
+import { normalizeTenantSettings } from '../tenants/tenants.mapper.js';
 
 export type OAuthProfile = {
   provider: 'google' | 'microsoft';
@@ -95,6 +96,14 @@ export async function findOrCreateUserFromOAuthProfile(
         type: 'business',
         plan: 'free',
         ownerId: user.id,
+        settings: normalizeTenantSettings(
+          {
+            activeVertical: 'clinic',
+          },
+          {
+            defaultActiveVertical: 'clinic',
+          }
+        ),
       })
       .returning({ id: tenants.id });
 

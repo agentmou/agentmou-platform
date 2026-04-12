@@ -44,6 +44,28 @@ export const tenants = pgTable('tenants', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+/** Vertical-scoped configuration records for future multi-vertical shells. */
+export const tenantVerticalConfigs = pgTable(
+  'tenant_vertical_configs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    verticalKey: text('vertical_key').notNull(),
+    config: jsonb('config').default({}).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('tenant_vertical_configs_tenant_vertical_uidx').on(
+      table.tenantId,
+      table.verticalKey
+    ),
+    index('tenant_vertical_configs_tenant_idx').on(table.tenantId),
+  ]
+);
+
 // ---------------------------------------------------------------------------
 // Memberships (user ↔ tenant)
 // ---------------------------------------------------------------------------

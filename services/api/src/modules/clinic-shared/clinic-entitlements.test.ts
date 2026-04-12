@@ -4,6 +4,7 @@ import {
   resolveClinicExperience,
   resolveClinicModuleEntitlements,
   resolveClinicPermissions,
+  resolveTenantExperience,
 } from './clinic-entitlements.js';
 
 const baseContext = {
@@ -14,6 +15,9 @@ const baseContext = {
     defaultHITL: false,
     logRetentionDays: 30,
     memoryRetentionDays: 7,
+    activeVertical: 'clinic' as const,
+    isPlatformAdminTenant: false,
+    settingsVersion: 2,
     verticalClinicUi: true,
     clinicDentalMode: true,
     internalPlatformVisible: true,
@@ -102,5 +106,50 @@ describe('clinic entitlements', () => {
 
     expect(permissions).not.toContain('view_internal_platform');
     expect(permissions).toContain('manage_inbox');
+  });
+
+  it('resolves a generic internal tenant experience for platform admin workspaces', () => {
+    const experience = resolveTenantExperience({
+      ...baseContext,
+      tenantRole: 'owner',
+      profile: null,
+      modules: [],
+      channels: [],
+      settings: {
+        ...baseContext.settings,
+        activeVertical: 'internal',
+        isPlatformAdminTenant: true,
+        verticalClinicUi: false,
+        clinicDentalMode: false,
+        internalPlatformVisible: false,
+      },
+    });
+
+    expect(experience.shellKey).toBe('platform_internal');
+    expect(experience.permissions).toContain('view_internal_platform');
+    expect(experience.permissions).toContain('view_admin_console');
+    expect(experience.canAccessAdminConsole).toBe(true);
+  });
+
+  it('returns a minimal fisio tenant experience without clinic shell flags', () => {
+    const experience = resolveTenantExperience({
+      ...baseContext,
+      tenantRole: 'admin',
+      profile: null,
+      modules: [],
+      channels: [],
+      settings: {
+        ...baseContext.settings,
+        activeVertical: 'fisio',
+        verticalClinicUi: false,
+        clinicDentalMode: false,
+        internalPlatformVisible: false,
+      },
+    });
+
+    expect(experience.activeVertical).toBe('fisio');
+    expect(experience.shellKey).toBe('fisio');
+    expect(experience.allowedNavigation).toEqual(['dashboard', 'configuration']);
+    expect(experience.flags.verticalClinicUi).toBe(false);
   });
 });

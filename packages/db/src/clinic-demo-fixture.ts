@@ -49,10 +49,17 @@ export interface ClinicDemoSeedBlueprint {
     defaultHITL: boolean;
     logRetentionDays: number;
     memoryRetentionDays: number;
+    activeVertical: 'clinic';
+    isPlatformAdminTenant: boolean;
+    settingsVersion: number;
     verticalClinicUi: boolean;
     clinicDentalMode: boolean;
     internalPlatformVisible: boolean;
   };
+  verticalConfigs: Array<{
+    verticalKey: 'clinic';
+    config: Record<string, unknown>;
+  }>;
   connectorAccounts: Array<{
     key: 'whatsapp' | 'voice';
     provider: 'twilio_whatsapp' | 'twilio_voice';
@@ -524,10 +531,23 @@ export function buildClinicDemoSeedFixture(now = new Date()): ClinicDemoSeedBlue
       defaultHITL: true,
       logRetentionDays: 60,
       memoryRetentionDays: 30,
+      activeVertical: 'clinic',
+      isPlatformAdminTenant: false,
+      settingsVersion: 2,
       verticalClinicUi: true,
       clinicDentalMode: true,
       internalPlatformVisible: true,
     },
+    verticalConfigs: [
+      {
+        verticalKey: 'clinic',
+        config: {
+          displayName: 'Sonrisa Norte Dental',
+          specialty: 'odontologia general y ortodoncia',
+          verticalType: 'clinic_dental',
+        },
+      },
+    ],
     connectorAccounts: [
       {
         key: 'whatsapp',
@@ -1174,7 +1194,8 @@ export function buildClinicDemoSeedFixture(now = new Date()): ClinicDemoSeedBlue
         endedAt: addMinutes(anchor, -20),
         durationSeconds: 175,
         summary: 'Callback de seguimiento tras no responder al recordatorio.',
-        transcript: 'Te llamamos para confirmar la revision. Nos dices que responderas por WhatsApp.',
+        transcript:
+          'Te llamamos para confirmar la revision. Nos dices que responderas por WhatsApp.',
         resolution: 'Follow-up closed',
         requiresHumanReview: false,
       },

@@ -29,6 +29,9 @@ export interface AuthTenant {
     defaultHITL: boolean;
     logRetentionDays: number;
     memoryRetentionDays: number;
+    activeVertical?: 'internal' | 'clinic' | 'fisio';
+    isPlatformAdminTenant?: boolean;
+    settingsVersion?: number;
     verticalClinicUi?: boolean;
     clinicDentalMode?: boolean;
     internalPlatformVisible?: boolean;
