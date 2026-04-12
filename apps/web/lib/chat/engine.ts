@@ -63,10 +63,11 @@ function generatePublicResponse(userMessage: string): EngineOutput {
       return {
         content: `**Asi funciona Agentmou Clinics hoy:**
 
-- Atiende WhatsApp y llamadas desde una misma operacion de recepcion
-- Diferencia paciente nuevo vs existente antes de cerrar agenda
-- Activa formularios, recordatorios, confirmaciones, huecos y reactivacion
-- Mantiene el engine tecnico en una capa secundaria para que la home siga siendo clinica
+- Hace visible el dolor operativo: llamadas perdidas, WhatsApps sin responder y huecos que se pierden
+- Reordena la recepcion en torno a una sola operacion visible para la clinica
+- Ordena la propuesta en atender, agendar y recuperar agenda
+- Explica el flujo por canales, journey de paciente y resultado visible para la clinica
+- Ensena prueba de producto real con bandeja, agenda, KPIs, confirmaciones y growth
 
 Si quieres, puedo llevarte a pricing, seguridad o la demo clinic directamente.`,
         actions: [
@@ -80,10 +81,10 @@ Si quieres, puedo llevarte a pricing, seguridad o la demo clinic directamente.`,
       return {
         content: `**Packaging clinico actual:**
 
-- **Reception**: recepcion, agenda, formularios, recordatorios y confirmaciones
-- **Reception + Voice**: suma llamadas entrantes, callbacks y visibilidad por canal
-- **Reception + Growth**: suma huecos liberados, lista de espera y reactivacion
-- **Enterprise**: permisos ampliados, despliegues complejos y acompanamiento
+- **Reception**: para clinicas que quieren ordenar WhatsApp, agenda, formularios y confirmaciones
+- **Reception + Voice**: para equipos donde el telefono sigue generando primeras visitas y callbacks
+- **Reception + Growth**: para proteger ingresos con huecos, reactivacion y lista de espera
+- **Enterprise**: para grupos, varias sedes y operaciones mas complejas
 
 La narrativa publica no vende runs ni agentes sueltos. Se organiza por modulos y operacion real de clinica.`,
         actions: [
@@ -131,9 +132,9 @@ La pagina publica se centra en estos jobs clinicos y lleva primero a demo, prici
         content: `**Seguridad y control para clinicas:**
 
 - **Aislamiento por clinica** para datos, canales y operaciones
-- **Permisos y trazabilidad** sobre mensajes, llamadas, cambios y revisiones
+- **Tu clinica, tus reglas** para permisos, visibilidad y handoff humano
 - **Revision humana** para callbacks, excepciones y casos sensibles
-- **Canales protegidos** con estado, validacion y fallback visible
+- **Disenado para dental** con lenguaje operativo y fallback visible
 
 Puedo llevarte a la pagina de seguridad o a la demo clinic si quieres revisar el framing con mas detalle.`,
         actions: [

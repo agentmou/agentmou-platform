@@ -53,14 +53,19 @@ const comparisonRows = [
 
 const faqs = [
   {
-    question: 'Se paga por runs o por volumen tecnico?',
+    question: 'Como elijo entre Reception, Voice y Growth?',
     answer:
-      'No vendemos la solucion por runs visibles al cliente. El packaging publico se organiza por modulos y despliegue operativo.',
+      'Reception suele ser el punto de entrada para ordenar WhatsApp, agenda, formularios y confirmaciones. Voice entra cuando el telefono sigue cargando primeras visitas y callbacks. Growth entra cuando la clinica ya atiende bien y quiere recuperar huecos, recalls y pacientes inactivos.',
   },
   {
-    question: 'Puedo empezar solo con WhatsApp y agenda?',
+    question: 'Puedo empezar por una base y ampliar despues?',
     answer:
-      'Si. Reception cubre la base de recepcion, agenda, formularios, recordatorios y confirmaciones. Voice y Growth se activan cuando encajan.',
+      'Si. La activacion esta pensada para avanzar por fases. Puedes empezar con Reception y sumar Voice o Growth cuando el equipo ya tenga visibilidad y criterio sobre el siguiente cuello de botella.',
+  },
+  {
+    question: 'Que parte requiere configuracion guiada?',
+    answer:
+      'Siempre acompanamos el arranque para ajustar canales, handoff humano, reglas de agenda y el modulo que mas valor puede capturar primero. La idea no es venderte un builder tecnico, sino una operacion que empiece bien.',
   },
   {
     question: 'Voice y Growth son obligatorios?',
@@ -132,6 +137,13 @@ export default function PricingPage() {
                           {module}
                         </span>
                       ))}
+                    </div>
+
+                    <div className="mb-8 rounded-2xl border border-border/60 bg-muted/40 p-4">
+                      <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                        Para quien encaja
+                      </p>
+                      <p className="mt-2 text-sm font-medium">{plan.bestFor}</p>
                     </div>
 
                     <ul className="mb-8 space-y-3">
@@ -226,8 +238,8 @@ export default function PricingPage() {
               Quieres ver el packaging aplicado a tu clinica?
             </h2>
             <p className="mb-8 text-muted-foreground">
-              Te ensenamos que combinacion de modulos encaja con tus canales, agenda y volumen
-              operativo.
+              Te ensenamos que combinacion de modulos encaja con tus canales, agenda, volumen
+              operativo y momento de madurez.
             </p>
             <Link href="/contact-sales">
               <MinimalButton size="lg">

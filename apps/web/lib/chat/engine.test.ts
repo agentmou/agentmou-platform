@@ -39,7 +39,8 @@ describe('generateResponse', () => {
     });
 
     expect(response.content).toContain('recepcion');
-    expect(response.content).toContain('WhatsApp y llamadas');
+    expect(response.content).toContain('llamadas perdidas');
+    expect(response.content).toContain('journey de paciente');
     expect(response.actions).toEqual(
       expect.arrayContaining([
         { label: 'Solicitar demo', href: '/contact-sales' },
@@ -56,7 +57,7 @@ describe('generateResponse', () => {
     });
 
     expect(response.content).toContain('Reception + Voice');
-    expect(response.content).toContain('Reception + Growth');
+    expect(response.content).toContain('telefono');
     expect(response.content.toLowerCase()).not.toContain('1,000 runs');
     expect(response.actions?.some((action) => action.href === '/contact-sales')).toBe(true);
     expect(response.actions?.some((action) => action.href === '/platform')).toBe(false);
@@ -69,6 +70,7 @@ describe('generateResponse', () => {
     });
 
     expect(response.content).toContain('Aislamiento por clinica');
+    expect(response.content).toContain('Tu clinica, tus reglas');
     expect(response.content).not.toContain('SOC 2 Type II');
     expect(response.content).not.toContain('End-to-end encryption');
     expect(response.content).not.toContain('automatic rotation');

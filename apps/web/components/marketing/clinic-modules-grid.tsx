@@ -38,6 +38,9 @@ export function ClinicModulesGrid() {
                   {module.highlight ? <Badge>Base recomendada</Badge> : null}
                 </div>
                 <p className="mt-4 text-sm leading-6 text-muted-foreground">{module.description}</p>
+                <div className="mt-5 rounded-2xl border border-border/60 bg-[var(--marketing-bg-alt)] p-4">
+                  <p className="text-sm font-medium">{module.fit}</p>
+                </div>
                 <ul className="mt-6 space-y-3">
                   {module.capabilities.map((capability) => (
                     <li key={capability} className="flex items-start gap-3 text-sm">

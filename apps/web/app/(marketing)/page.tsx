@@ -1,10 +1,15 @@
 import type { Metadata } from 'next';
 import {
+  ClinicBeforeAfterSection,
+  ClinicCostOfInaction,
   ClinicControlCenterShowcase,
   ClinicCtaBand,
-  ClinicFlowPaths,
+  ClinicHowItWorksGrid,
   ClinicIntegrationStrip,
   ClinicModulesGrid,
+  ClinicPainSection,
+  ClinicPatientJourney,
+  ClinicRevenueRecoverySection,
   ClinicTrustSection,
   ClinicValueGrid,
   MarketingHeroClinic,
@@ -20,9 +25,14 @@ export default function HomePage() {
   return (
     <div>
       <MarketingHeroClinic />
+      <ClinicPainSection />
+      <ClinicCostOfInaction />
       <ClinicValueGrid />
-      <ClinicFlowPaths />
+      <ClinicHowItWorksGrid />
+      <ClinicPatientJourney />
       <ClinicControlCenterShowcase />
+      <ClinicRevenueRecoverySection />
+      <ClinicBeforeAfterSection />
       <ClinicModulesGrid />
       <ClinicIntegrationStrip />
       <ClinicTrustSection />

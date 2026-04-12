@@ -1,8 +1,14 @@
+export { ClinicBeforeAfterSection } from './clinic-before-after-section';
+export { ClinicCostOfInaction } from './clinic-cost-of-inaction';
 export { ClinicCtaBand } from './clinic-cta-band';
 export { ClinicControlCenterShowcase } from './clinic-control-center-showcase';
 export { ClinicFlowPaths } from './clinic-flow-paths';
+export { ClinicHowItWorksGrid } from './clinic-how-it-works-grid';
 export { ClinicIntegrationStrip } from './clinic-integration-strip';
 export { ClinicModulesGrid } from './clinic-modules-grid';
+export { ClinicPainSection } from './clinic-pain-section';
+export { ClinicPatientJourney } from './clinic-patient-journey';
+export { ClinicRevenueRecoverySection } from './clinic-revenue-recovery-section';
 export { ClinicTrustSection } from './clinic-trust-section';
 export { ClinicValueGrid } from './clinic-value-grid';
 export { ContactSalesForm } from './contact-sales-form';
