@@ -1,6 +1,7 @@
 // Mock Chat Engine for Agentmou Assistant
 // This file is designed to be easily replaced with OpenAI integration
 
+import { PUBLIC_DEMO_CLINIC_HREF, TECHNICAL_ENGINE_HREF } from '@/lib/marketing/public-links';
 import type { ActionSuggestion, ChatMode, WorkspaceContextSnapshot } from './types';
 
 interface EngineInput {
@@ -67,11 +68,11 @@ function generatePublicResponse(userMessage: string): EngineOutput {
 - Activa formularios, recordatorios, confirmaciones, huecos y reactivacion
 - Mantiene el engine tecnico en una capa secundaria para que la home siga siendo clinica
 
-Si quieres, puedo llevarte a pricing, seguridad, la demo clinic o la narrativa tecnica en /platform.`,
+Si quieres, puedo llevarte a pricing, seguridad o la demo clinic directamente.`,
         actions: [
           { label: 'Solicitar demo', href: '/contact-sales' },
           { label: 'Ver pricing', href: '/pricing' },
-          { label: 'Ver demo clinic', href: workspaceHref(undefined, '/dashboard') },
+          { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
         ],
       };
 
@@ -102,10 +103,10 @@ Para una clinica dental solemos ordenar la conversacion asi:
 - **Growth** si quieres recuperar huecos, lista de espera y pacientes inactivos
 - **Enterprise** si hay varias sedes, permisos avanzados o despliegue complejo
 
-Si buscas entender el motor interno de agentes, approvals y catalogo, la ruta correcta es /platform.`,
+Si alguien necesita la narrativa tecnica del motor, queda fuera del funnel comercial en ${TECHNICAL_ENGINE_HREF}.`,
         actions: [
           { label: 'Ver modulos', href: '/#modulos' },
-          { label: 'Ver plataforma', href: '/platform' },
+          { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
         ],
       };
 
@@ -118,10 +119,10 @@ Si buscas entender el motor interno de agentes, approvals y catalogo, la ruta co
 - **Agenda y PMS** como capa de disponibilidad y contexto
 - **Google Calendar y email operativo** cuando el despliegue lo necesita
 
-La pagina publica se centra en estos jobs clinicos. La historia tecnica mas amplia sigue en /platform.`,
+La pagina publica se centra en estos jobs clinicos y lleva primero a demo, pricing y seguridad.`,
         actions: [
           { label: 'Ver seguridad', href: '/security' },
-          { label: 'Ver plataforma', href: '/platform' },
+          { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
         ],
       };
 
@@ -137,7 +138,7 @@ La pagina publica se centra en estos jobs clinicos. La historia tecnica mas ampl
 Puedo llevarte a la pagina de seguridad o a la demo clinic si quieres revisar el framing con mas detalle.`,
         actions: [
           { label: 'Ver seguridad', href: '/security' },
-          { label: 'Ver demo clinic', href: workspaceHref(undefined, '/dashboard') },
+          { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
         ],
       };
 
@@ -145,10 +146,10 @@ Puedo llevarte a la pagina de seguridad o a la demo clinic si quieres revisar el
       return {
         content: `**Este asistente no activa despliegues desde chat.**
 
-Si quieres avanzar, lo util es pedir una demo comercial, revisar pricing y decidir si el punto de entrada es Reception, Voice o Growth. El engine tecnico permanece disponible en /platform.`,
+Si quieres avanzar, lo util es pedir una demo comercial, revisar pricing y decidir si el punto de entrada es Reception, Voice o Growth.`,
         actions: [
           { label: 'Solicitar demo', href: '/contact-sales' },
-          { label: 'Ver plataforma', href: '/platform' },
+          { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
         ],
       };
 
@@ -161,13 +162,13 @@ Te orientare mejor si quieres saber:
 - Como funciona la recepcion IA para clinicas
 - Que incluye pricing y como se organizan los modulos
 - Que cubre seguridad, permisos y trazabilidad
-- Donde ver la capa tecnica del engine
+- Donde encaja la demo clinic dentro del recorrido comercial
 
 Si prefieres, puedes solicitar una demo comercial o abrir la demo clinic.`,
         actions: [
           { label: 'Solicitar demo', href: '/contact-sales' },
-          { label: 'Ver plataforma', href: '/platform' },
-          { label: 'Ver demo clinic', href: workspaceHref(undefined, '/dashboard') },
+          { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
+          { label: 'Ver seguridad', href: '/security' },
         ],
       };
   }
