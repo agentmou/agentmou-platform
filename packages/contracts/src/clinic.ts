@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { TenantPlanSchema, UserRoleSchema } from './tenancy';
+import { VerticalKeySchema } from './verticals';
 
 const DateTimeStringSchema = z.string();
 const JsonRecordSchema = z.record(z.unknown());
@@ -991,6 +992,26 @@ export const ClinicResolvedFlagsSchema = z.object({
 });
 export type ClinicResolvedFlags = z.infer<typeof ClinicResolvedFlagsSchema>;
 
+/** Permissions shared by tenant experience resolvers across verticals. */
+export const TenantPermissionSchema = z.enum([
+  'view_dashboard',
+  'view_inbox',
+  'manage_inbox',
+  'view_appointments',
+  'manage_appointments',
+  'view_patients',
+  'manage_patients',
+  'view_follow_up',
+  'manage_follow_up',
+  'view_reactivation',
+  'manage_reactivation',
+  'view_reports',
+  'manage_clinic_settings',
+  'view_internal_platform',
+  'view_admin_console',
+]);
+export type TenantPermission = z.infer<typeof TenantPermissionSchema>;
+
 /** Navigation sections the clinic web shell can safely expose. */
 export const ClinicNavigationKeySchema = z.enum([
   'dashboard',
@@ -1007,6 +1028,64 @@ export const ClinicNavigationKeySchema = z.enum([
   'platform_internal',
 ]);
 export type ClinicNavigationKey = z.infer<typeof ClinicNavigationKeySchema>;
+
+/** Navigation sections surfaced by the generic tenant experience model. */
+export const TenantNavigationKeySchema = z.enum([
+  'dashboard',
+  'inbox',
+  'appointments',
+  'patients',
+  'follow_up',
+  'forms',
+  'confirmations',
+  'gaps',
+  'reactivation',
+  'reports',
+  'configuration',
+  'platform_internal',
+  'admin_console',
+]);
+export type TenantNavigationKey = z.infer<typeof TenantNavigationKeySchema>;
+
+/** High-level shell families exposed by the tenant experience resolver. */
+export const TenantShellKeySchema = z.enum(['clinic', 'platform_internal', 'fisio']);
+export type TenantShellKey = z.infer<typeof TenantShellKeySchema>;
+
+/** Settings sections that a tenant can safely configure in-product. */
+export const TenantSettingsSectionSchema = z.enum([
+  'general',
+  'modules',
+  'channels',
+  'team',
+  'security',
+  'platform',
+]);
+export type TenantSettingsSection = z.infer<typeof TenantSettingsSectionSchema>;
+
+/** Generic resolved flags exposed to web and API consumers across verticals. */
+export const TenantResolvedFlagsSchema = ClinicResolvedFlagsSchema.extend({
+  activeVertical: VerticalKeySchema,
+  isPlatformAdminTenant: z.boolean(),
+});
+export type TenantResolvedFlags = z.infer<typeof TenantResolvedFlagsSchema>;
+
+/** Generic tenant experience payload that normalizes shell resolution. */
+export const TenantExperienceSchema = z.object({
+  tenantId: z.string(),
+  activeVertical: VerticalKeySchema,
+  shellKey: TenantShellKeySchema,
+  defaultRoute: z.string(),
+  role: z.string().optional(),
+  normalizedRole: UserRoleSchema.optional(),
+  permissions: z.array(TenantPermissionSchema),
+  allowedNavigation: z.array(TenantNavigationKeySchema),
+  modules: z.array(ClinicModuleEntitlementSchema),
+  flags: TenantResolvedFlagsSchema,
+  settingsSections: z.array(TenantSettingsSectionSchema),
+  canAccessInternalPlatform: z.boolean(),
+  canAccessAdminConsole: z.boolean(),
+});
+export type TenantExperience = z.infer<typeof TenantExperienceSchema>;
 
 /** Single resolved tenant experience payload for clinic-aware tenants. */
 export const ClinicExperienceSchema = z.object({

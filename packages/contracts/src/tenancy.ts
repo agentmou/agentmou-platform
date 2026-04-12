@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { VerticalKeySchema } from './verticals';
 
 // ---------------------------------------------------------------------------
 // Tenant
@@ -22,6 +23,11 @@ export const TenantSettingsSchema = z.object({
   defaultHITL: z.boolean(),
   logRetentionDays: z.number(),
   memoryRetentionDays: z.number(),
+  activeVertical: VerticalKeySchema.default('internal'),
+  isPlatformAdminTenant: z.boolean().default(false),
+  settingsVersion: z.number().default(2),
+  // Legacy compatibility flags kept while clinic-first shells migrate to
+  // activeVertical-driven experience resolution.
   verticalClinicUi: z.boolean().default(false),
   clinicDentalMode: z.boolean().default(false),
   internalPlatformVisible: z.boolean().default(false),

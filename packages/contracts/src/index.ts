@@ -1,5 +1,6 @@
 // Domain modules (prefer direct imports for tree-shaking)
 export * from './catalog';
+export * from './verticals';
 export * from './tenancy';
 export * from './installations';
 export * from './execution';
