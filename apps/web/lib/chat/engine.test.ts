@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { generateResponse } from './engine';
+import { PUBLIC_DEMO_CLINIC_HREF } from '@/lib/marketing/public-links';
 import type { WorkspaceContextSnapshot } from './types';
 
 const readyContext: WorkspaceContextSnapshot = {
@@ -45,6 +46,7 @@ describe('generateResponse', () => {
         { label: 'Ver pricing', href: '/pricing' },
       ])
     );
+    expect(response.actions?.some((action) => action.href === '/platform')).toBe(false);
   });
 
   it('keeps public pricing answers focused on modules instead of runs', () => {
@@ -57,6 +59,7 @@ describe('generateResponse', () => {
     expect(response.content).toContain('Reception + Growth');
     expect(response.content.toLowerCase()).not.toContain('1,000 runs');
     expect(response.actions?.some((action) => action.href === '/contact-sales')).toBe(true);
+    expect(response.actions?.some((action) => action.href === '/platform')).toBe(false);
   });
 
   it('keeps public security answers free of unsupported security claims', () => {
@@ -69,6 +72,22 @@ describe('generateResponse', () => {
     expect(response.content).not.toContain('SOC 2 Type II');
     expect(response.content).not.toContain('End-to-end encryption');
     expect(response.content).not.toContain('automatic rotation');
+    expect(response.actions?.some((action) => action.href === PUBLIC_DEMO_CLINIC_HREF)).toBe(true);
+  });
+
+  it('keeps public module recommendations inside the commercial journey', () => {
+    const response = generateResponse({
+      mode: 'public',
+      userMessage: 'Which voice or growth module do you recommend for a clinic?',
+    });
+
+    expect(response.actions).toEqual(
+      expect.arrayContaining([
+        { label: 'Ver modulos', href: '/#modulos' },
+        { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
+      ])
+    );
+    expect(response.actions?.some((action) => action.href === '/platform')).toBe(false);
   });
 
   it('treats go-live requests as preview-only in copilot mode', () => {

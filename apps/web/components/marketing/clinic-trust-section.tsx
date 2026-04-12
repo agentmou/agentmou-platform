@@ -3,6 +3,7 @@ import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { FadeContent } from '@/components/reactbits/fade-content';
 import { MinimalButton } from '@/components/ui/minimal-button';
 import { clinicTrustCards } from '@/lib/marketing/clinic-site';
+import { PUBLIC_DEMO_CLINIC_HREF } from '@/lib/marketing/public-links';
 
 export function ClinicTrustSection() {
   return (
@@ -38,17 +39,15 @@ export function ClinicTrustSection() {
         <FadeContent delay={0.1}>
           <div className="mt-12 flex flex-col gap-4 rounded-[24px] border border-border/60 bg-[var(--marketing-bg-alt)] p-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-lg font-semibold">
-                Quieres ver como se gobierna el engine interno?
-              </p>
+              <p className="text-lg font-semibold">Quieres ver el centro de recepcion en accion?</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                La home publica ya no lo usa como narrativa principal, pero sigue accesible para
-                partners, operaciones internas y evaluacion tecnica.
+                La forma mas util de evaluarlo es abrir la demo clinic y recorrer bandeja, agenda,
+                formularios y recuperacion desde la vista real de la clinica.
               </p>
             </div>
-            <Link href="/platform">
+            <Link href={PUBLIC_DEMO_CLINIC_HREF}>
               <MinimalButton variant="outline">
-                Ver plataforma
+                Ver demo clinic
                 <ArrowRight className="h-4 w-4" />
               </MinimalButton>
             </Link>

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { publicMarketingFooterColumns, publicMarketingNavLinks } from './site-config';
+import { PUBLIC_DEMO_CLINIC_HREF } from './public-links';
 
 describe('publicMarketingNavLinks', () => {
   it('keeps the clinic marketing navigation focused on product, trust, and demo capture', () => {
@@ -22,14 +23,14 @@ describe('publicMarketingNavLinks', () => {
 });
 
 describe('publicMarketingFooterColumns', () => {
-  it('points technical public links to /platform instead of /docs', () => {
-    const platformColumn = publicMarketingFooterColumns.find(
-      (column) => column.title === 'Plataforma'
+  it('keeps the last footer column focused on access instead of platform storytelling', () => {
+    const accessColumn = publicMarketingFooterColumns.find(
+      (column) => column.title === 'Acceso'
     );
 
-    expect(platformColumn?.links).toEqual([
-      { label: 'Engine interno', href: '/platform' },
-      { label: 'Docs tecnicos', href: '/platform' },
+    expect(accessColumn?.links).toEqual([
+      { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
+      { label: 'Solicitar demo', href: '/contact-sales' },
       { label: 'Iniciar sesion', href: '/login' },
     ]);
   });
@@ -39,7 +40,7 @@ describe('publicMarketingFooterColumns', () => {
 
     expect(serialized).toContain('Recepcion IA');
     expect(serialized).toContain('WhatsApp');
-    expect(serialized).not.toContain('/docs');
+    expect(serialized).not.toContain('/platform');
     expect(serialized).not.toContain('Marketplace');
   });
 });

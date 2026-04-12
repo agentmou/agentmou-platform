@@ -5,6 +5,7 @@ import { HalftoneBackground } from '@/components/brand/halftone-background';
 import { ContactSalesForm } from '@/components/marketing';
 import { FadeContent } from '@/components/reactbits/fade-content';
 import { MinimalButton } from '@/components/ui/minimal-button';
+import { PUBLIC_DEMO_CLINIC_HREF } from '@/lib/marketing/public-links';
 
 export const metadata: Metadata = {
   title: 'Solicitar demo - Agentmou Clinics',
@@ -105,12 +106,10 @@ export default function ContactSalesPage() {
       <section className="border-t border-border/50 bg-[var(--marketing-bg-base)] py-20">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="max-w-2xl">
-            <p className="text-lg font-semibold">
-              Prefieres revisar primero pricing, seguridad o la capa tecnica?
-            </p>
+            <p className="text-lg font-semibold">Prefieres revisar primero pricing, seguridad o la demo clinic?</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Puedes volver a la home, revisar seguridad o entender el engine sin perder el foco en
-              la experiencia clinica.
+              Puedes volver a la home, revisar seguridad o abrir la demo clinic sin salir del
+              recorrido comercial.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -120,8 +119,8 @@ export default function ContactSalesPage() {
                 <ArrowRight className="h-4 w-4" />
               </MinimalButton>
             </Link>
-            <Link href="/platform">
-              <MinimalButton variant="outline">Ver plataforma</MinimalButton>
+            <Link href={PUBLIC_DEMO_CLINIC_HREF}>
+              <MinimalButton variant="outline">Ver demo clinic</MinimalButton>
             </Link>
           </div>
         </div>

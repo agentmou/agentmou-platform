@@ -1,3 +1,5 @@
+import { PUBLIC_DEMO_CLINIC_HREF } from './public-links';
+
 export interface MarketingNavItem {
   label: string;
   href: string;
@@ -51,10 +53,10 @@ export const publicMarketingFooterColumns: readonly MarketingFooterColumn[] = [
     ],
   },
   {
-    title: 'Plataforma',
+    title: 'Acceso',
     links: [
-      { label: 'Engine interno', href: '/platform' },
-      { label: 'Docs tecnicos', href: '/platform' },
+      { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
+      { label: 'Solicitar demo', href: '/contact-sales' },
       { label: 'Iniciar sesion', href: '/login' },
     ],
   },
