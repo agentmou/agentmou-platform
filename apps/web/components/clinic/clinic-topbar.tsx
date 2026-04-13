@@ -20,6 +20,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 import { useTenantExperience } from '@/lib/tenant-experience';
+import { cn } from '@/lib/utils';
 import { getTenantDefaultHref } from '@/lib/vertical-registry';
 import { ClinicSidebar } from './clinic-sidebar';
 
@@ -32,6 +33,7 @@ export function ClinicTopbar({
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
   const tenants = useAuthStore((state) => state.tenants);
+  const isImpersonation = useAuthStore((state) => Boolean(state.session?.isImpersonation));
   const logout = useAuthStore((state) => state.logout);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const experience = useTenantExperience();
@@ -43,7 +45,12 @@ export function ClinicTopbar({
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-border/60 bg-background/95 px-4 backdrop-blur lg:px-6">
+      <header
+        className={cn(
+          'sticky z-40 flex h-16 items-center gap-3 border-b border-border/60 bg-background/95 px-4 backdrop-blur lg:px-6',
+          isImpersonation ? 'top-11' : 'top-0'
+        )}
+      >
         <Button
           variant="ghost"
           size="icon"
