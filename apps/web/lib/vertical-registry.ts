@@ -50,7 +50,7 @@ const VERTICAL_REGISTRY: Record<VerticalKey, VerticalRegistryEntry> = {
     defaultRoute: '/dashboard',
     allowedRouteKinds: ['shared', 'internal'],
     navigationSchema: INTERNAL_NAVIGATION,
-    settingsExtensions: ['general', 'team', 'security', 'platform'],
+    settingsExtensions: ['internal_defaults', 'internal_approvals'],
     searchMode: 'platform_internal',
     copyTokens: {
       workspaceLabel: 'Workspace',
@@ -62,7 +62,15 @@ const VERTICAL_REGISTRY: Record<VerticalKey, VerticalRegistryEntry> = {
     defaultRoute: '/dashboard',
     allowedRouteKinds: ['shared', 'vertical_shared'],
     navigationSchema: CLINIC_NAVIGATION,
-    settingsExtensions: ['general', 'modules', 'channels'],
+    settingsExtensions: [
+      'care_profile',
+      'care_schedule',
+      'care_services',
+      'care_forms',
+      'care_confirmations',
+      'care_gap_recovery',
+      'care_reactivation',
+    ],
     searchMode: 'clinic',
     copyTokens: {
       workspaceLabel: 'Clinica',
@@ -74,7 +82,7 @@ const VERTICAL_REGISTRY: Record<VerticalKey, VerticalRegistryEntry> = {
     defaultRoute: '/dashboard',
     allowedRouteKinds: ['shared', 'vertical_shared'],
     navigationSchema: ['dashboard', 'configuration'],
-    settingsExtensions: ['general'],
+    settingsExtensions: ['care_profile', 'care_schedule'],
     searchMode: 'clinic',
     copyTokens: {
       workspaceLabel: 'Centro',

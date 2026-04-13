@@ -153,7 +153,15 @@ export function getTenantExperience(tenantId: string): TenantExperience | null {
         advancedClinicModeEnabled: false,
         internalPlatformVisible: false,
       },
-      settingsSections: ['general'],
+      settingsSections: [
+        'general',
+        'team',
+        'integrations',
+        'plan',
+        'security',
+        'care_profile',
+        'care_schedule',
+      ],
       canAccessInternalPlatform: false,
       canAccessAdminConsole: false,
     };
@@ -184,8 +192,16 @@ export function getTenantExperience(tenantId: string): TenantExperience | null {
       internalPlatformVisible: true,
     },
     settingsSections: tenant.settings.isPlatformAdminTenant
-      ? ['general', 'team', 'security', 'platform']
-      : ['general', 'team', 'security'],
+      ? [
+          'general',
+          'team',
+          'integrations',
+          'plan',
+          'security',
+          'internal_defaults',
+          'internal_approvals',
+        ]
+      : ['general', 'team', 'integrations', 'plan', 'security', 'internal_defaults'],
     canAccessInternalPlatform: true,
     canAccessAdminConsole: Boolean(tenant.settings.isPlatformAdminTenant),
   };
