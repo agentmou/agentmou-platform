@@ -24,9 +24,7 @@ describe('buildClinicDemoDataset', () => {
       submissionId: 'submission-ana',
       appointmentId: 'appointment-ana',
     });
-    expect(dataset.summary.journeys.reactivation.generatedAppointmentId).toBe(
-      'appointment-carmen'
-    );
+    expect(dataset.summary.journeys.reactivation.generatedAppointmentId).toBe('appointment-carmen');
     expect(dataset.experience.flags.internalPlatformVisible).toBe(false);
   });
 

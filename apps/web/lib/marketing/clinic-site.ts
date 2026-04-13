@@ -141,13 +141,15 @@ export const clinicCostOfInactionMetrics: readonly MarketingBenchmarkMetric[] = 
   {
     value: '23%',
     label: 'llamadas perdidas',
-    explanation: 'El telefono sigue absorbiendo demanda nueva aunque la clinica ya trabaje por WhatsApp.',
+    explanation:
+      'El telefono sigue absorbiendo demanda nueva aunque la clinica ya trabaje por WhatsApp.',
     note: 'Benchmark comercial editable para clinics SMB; ajustar por canal y especialidad cuando haga falta.',
   },
   {
     value: '15%',
     label: 'citas que terminan en no-show',
-    explanation: 'Sin confirmaciones y seguimiento operativo, los huecos del dia se convierten en tiempo muerto.',
+    explanation:
+      'Sin confirmaciones y seguimiento operativo, los huecos del dia se convierten en tiempo muerto.',
     note: 'Referencia editorial para marketing publico, no promesa contractual.',
   },
   {
@@ -211,28 +213,19 @@ export const clinicHowItWorksCards: readonly MarketingHowItWorksCard[] = [
     title: 'Llamadas entrantes',
     description:
       'El canal voz capta primeras visitas, dudas urgentes y callbacks sin depender de que recepcion descuelgue al instante.',
-    bullets: [
-      'Resumen operativo visible',
-      'Callback programado o derivacion a humano',
-    ],
+    bullets: ['Resumen operativo visible', 'Callback programado o derivacion a humano'],
   },
   {
     title: 'Mensajes salientes',
     description:
       'Confirmaciones, recordatorios, formularios y recuperacion de huecos salen de forma proactiva cuando toca.',
-    bullets: [
-      'Recordatorios y confirmaciones',
-      'Formularios y outreach de recuperacion',
-    ],
+    bullets: ['Recordatorios y confirmaciones', 'Formularios y outreach de recuperacion'],
   },
   {
     title: 'Centro de recepcion',
     description:
       'Todo aterriza en la misma superficie: conversaciones, llamadas, agenda, huecos y acciones de growth.',
-    bullets: [
-      'Bandeja priorizada y agenda del dia',
-      'KPIs y decisiones visibles para la clinica',
-    ],
+    bullets: ['Bandeja priorizada y agenda del dia', 'KPIs y decisiones visibles para la clinica'],
   },
 ] as const;
 
@@ -525,7 +518,8 @@ export const clinicPricingPlans: readonly PricingPlan[] = [
       'Pacientes nuevos vs existentes',
       'Formularios, recordatorios y confirmaciones',
     ],
-    bestFor: 'Clinicas pequenas o medianas que necesitan ordenar recepcion antes de ampliar canales.',
+    bestFor:
+      'Clinicas pequenas o medianas que necesitan ordenar recepcion antes de ampliar canales.',
     ctaLabel: 'Solicitar demo',
   },
   {

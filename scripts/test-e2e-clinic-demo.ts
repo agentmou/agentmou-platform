@@ -53,7 +53,10 @@ function readArray(value: unknown, label: string): unknown[] {
 }
 
 function readRecord(value: unknown, label: string): UnknownRecord {
-  assert(typeof value === 'object' && value !== null && !Array.isArray(value), `Expected ${label} to be an object`);
+  assert(
+    typeof value === 'object' && value !== null && !Array.isArray(value),
+    `Expected ${label} to be an object`
+  );
   return value as UnknownRecord;
 }
 
@@ -98,12 +101,18 @@ async function main() {
   );
 
   step('1. Demo dataset inventory');
-  assert(readNumber(summaryCounts.patients, 'summary.counts.patients') === 11, 'Expected exactly 11 demo patients');
+  assert(
+    readNumber(summaryCounts.patients, 'summary.counts.patients') === 11,
+    'Expected exactly 11 demo patients'
+  );
   assert(
     readNumber(summaryCounts.whatsappThreads, 'summary.counts.whatsappThreads') === 7,
     'Expected exactly 7 WhatsApp threads'
   );
-  assert(readNumber(summaryCounts.calls, 'summary.counts.calls') === 3, 'Expected exactly 3 call sessions');
+  assert(
+    readNumber(summaryCounts.calls, 'summary.counts.calls') === 3,
+    'Expected exactly 3 call sessions'
+  );
   assert(
     readNumber(summaryCounts.forms, 'summary.counts.forms') === 3,
     'Expected exactly 3 form submissions'
@@ -112,7 +121,10 @@ async function main() {
     readNumber(summaryCounts.appointments, 'summary.counts.appointments') === 6,
     'Expected exactly 6 appointments'
   );
-  assert(readNumber(summaryCounts.activeGaps, 'summary.counts.activeGaps') === 1, 'Expected exactly 1 open gap');
+  assert(
+    readNumber(summaryCounts.activeGaps, 'summary.counts.activeGaps') === 1,
+    'Expected exactly 1 open gap'
+  );
   assert(
     readNumber(summaryCounts.activeCampaigns, 'summary.counts.activeCampaigns') === 1,
     'Expected exactly 1 active campaign'
@@ -145,9 +157,18 @@ async function main() {
     ),
     'new patient appointment'
   );
-  assert(readString(newPatientRecord.fullName, 'new patient fullName') === 'Ana Garcia', 'New patient journey patient mismatch');
-  assert(readString(newPatientSubmission.status, 'new patient submission status') === 'completed', 'Expected completed intake form');
-  assert(readString(newPatientAppointment.status, 'new patient appointment status') === 'scheduled', 'Expected booked appointment');
+  assert(
+    readString(newPatientRecord.fullName, 'new patient fullName') === 'Ana Garcia',
+    'New patient journey patient mismatch'
+  );
+  assert(
+    readString(newPatientSubmission.status, 'new patient submission status') === 'completed',
+    'Expected completed intake form'
+  );
+  assert(
+    readString(newPatientAppointment.status, 'new patient appointment status') === 'scheduled',
+    'Expected booked appointment'
+  );
   log(`${newPatientRecord.fullName} -> form completed -> appointment booked`);
 
   step('3. Reschedule and confirmation journeys');
@@ -159,20 +180,32 @@ async function main() {
     ),
     'rescheduled appointment'
   );
-  const pendingConfirmations = readArray(dashboard.pendingConfirmations, 'dashboard.pendingConfirmations');
-  assert(readString(rescheduledAppointment.status, 'rescheduled appointment status') === 'rescheduled', 'Expected rescheduled appointment');
+  const pendingConfirmations = readArray(
+    dashboard.pendingConfirmations,
+    'dashboard.pendingConfirmations'
+  );
   assert(
-    pendingConfirmations.length === readNumber(summaryCounts.confirmationsPending, 'summary.counts.confirmationsPending'),
+    readString(rescheduledAppointment.status, 'rescheduled appointment status') === 'rescheduled',
+    'Expected rescheduled appointment'
+  );
+  assert(
+    pendingConfirmations.length ===
+      readNumber(summaryCounts.confirmationsPending, 'summary.counts.confirmationsPending'),
     'Pending confirmation KPI drifted from queue length'
   );
-  log(`rescheduled=${readString(rescheduledAppointment.id, 'rescheduled appointment id')}, pendingConfirmations=${pendingConfirmations.length}`);
+  log(
+    `rescheduled=${readString(rescheduledAppointment.id, 'rescheduled appointment id')}, pendingConfirmations=${pendingConfirmations.length}`
+  );
 
   step('4. Cancellation and gap recovery');
   const gapRecoveryJourney = readRecord(journeys.gapRecovery, 'journeys.gapRecovery');
   const gaps = clinicReadModelModule.listClinicGaps(DEMO_TENANT_ID, { status: 'open' });
   const gap = gaps.find((item) => {
     const record = readRecord(item, 'gap item');
-    return readString(record.id, 'gap.id') === readString(gapRecoveryJourney.gapId, 'journeys.gapRecovery.gapId');
+    return (
+      readString(record.id, 'gap.id') ===
+      readString(gapRecoveryJourney.gapId, 'journeys.gapRecovery.gapId')
+    );
   });
   assert(gap, 'Expected open gap for cancellation journey');
   const gapRecord = readRecord(gap, 'gap record');
@@ -182,8 +215,10 @@ async function main() {
       const record = readRecord(attempt, 'gap outreach attempt');
       return (
         readString(record.id, 'gap outreach attempt id') ===
-          readString(gapRecoveryJourney.outreachAttemptId, 'journeys.gapRecovery.outreachAttemptId') &&
-        readString(record.status, 'gap outreach attempt status') === 'sent'
+          readString(
+            gapRecoveryJourney.outreachAttemptId,
+            'journeys.gapRecovery.outreachAttemptId'
+          ) && readString(record.status, 'gap outreach attempt status') === 'sent'
       );
     }),
     'Expected sent gap outreach attempt'
@@ -201,11 +236,17 @@ async function main() {
   );
   const recipients = readArray(campaign.recipients, 'campaign.recipients');
   assert(
-    recipients.some((recipient) => readString(readRecord(recipient, 'recipient').status, 'recipient.status') === 'booked'),
+    recipients.some(
+      (recipient) =>
+        readString(readRecord(recipient, 'recipient').status, 'recipient.status') === 'booked'
+    ),
     'Expected booked reactivation recipient'
   );
   assert(
-    recipients.some((recipient) => readString(readRecord(recipient, 'recipient').status, 'recipient.status') === 'failed'),
+    recipients.some(
+      (recipient) =>
+        readString(readRecord(recipient, 'recipient').status, 'recipient.status') === 'failed'
+    ),
     'Expected failed reactivation recipient'
   );
   log(
@@ -265,7 +306,10 @@ async function runDatabaseSmoke(
   try {
     const tenants = readRecord(schema.tenants, 'schema.tenants');
     const patients = readRecord(schema.patients, 'schema.patients');
-    const conversationThreads = readRecord(schema.conversationThreads, 'schema.conversationThreads');
+    const conversationThreads = readRecord(
+      schema.conversationThreads,
+      'schema.conversationThreads'
+    );
     const callSessions = readRecord(schema.callSessions, 'schema.callSessions');
     const intakeFormSubmissions = readRecord(
       schema.intakeFormSubmissions,
@@ -318,8 +362,10 @@ async function runDatabaseSmoke(
       'Seed patient summary drifted from frontend summary'
     );
     assert(
-      readNumber(seedSummaryCounts.whatsappThreads, 'seedFixture.summary.counts.whatsappThreads') ===
-        readNumber(summaryCounts.whatsappThreads, 'summary.counts.whatsappThreads'),
+      readNumber(
+        seedSummaryCounts.whatsappThreads,
+        'seedFixture.summary.counts.whatsappThreads'
+      ) === readNumber(summaryCounts.whatsappThreads, 'summary.counts.whatsappThreads'),
       'Seed WhatsApp summary drifted from frontend summary'
     );
     assert(
@@ -328,8 +374,10 @@ async function runDatabaseSmoke(
       'Seed call summary drifted from frontend summary'
     );
     assert(
-      readNumber(seedSummaryCounts.formSubmissions, 'seedFixture.summary.counts.formSubmissions') ===
-        readNumber(summaryCounts.forms, 'summary.counts.forms'),
+      readNumber(
+        seedSummaryCounts.formSubmissions,
+        'seedFixture.summary.counts.formSubmissions'
+      ) === readNumber(summaryCounts.forms, 'summary.counts.forms'),
       'Seed form summary drifted from frontend summary'
     );
 
@@ -375,12 +423,16 @@ async function runDatabaseSmoke(
       .limit(100);
 
     assert(
-      dbPatients.length === readNumber(seedSummaryCounts.patients, 'seedFixture.summary.counts.patients'),
+      dbPatients.length ===
+        readNumber(seedSummaryCounts.patients, 'seedFixture.summary.counts.patients'),
       'Seed patient count drifted'
     );
     assert(
       dbThreads.length ===
-        readNumber(seedSummaryCounts.whatsappThreads, 'seedFixture.summary.counts.whatsappThreads') +
+        readNumber(
+          seedSummaryCounts.whatsappThreads,
+          'seedFixture.summary.counts.whatsappThreads'
+        ) +
           readNumber(seedSummaryCounts.voiceThreads, 'seedFixture.summary.counts.voiceThreads'),
       'Seed thread count drifted'
     );
@@ -394,12 +446,16 @@ async function runDatabaseSmoke(
       'Seed form submission count drifted'
     );
     assert(
-      dbAppointments.length === readNumber(seedSummaryCounts.appointments, 'seedFixture.summary.counts.appointments'),
+      dbAppointments.length ===
+        readNumber(seedSummaryCounts.appointments, 'seedFixture.summary.counts.appointments'),
       'Seed appointment count drifted'
     );
     assert(
       dbConfirmations.filter((item) => item.status === 'pending').length ===
-        readNumber(seedSummaryCounts.pendingConfirmations, 'seedFixture.summary.counts.pendingConfirmations'),
+        readNumber(
+          seedSummaryCounts.pendingConfirmations,
+          'seedFixture.summary.counts.pendingConfirmations'
+        ),
       'Seed pending confirmation count drifted'
     );
     assert(
@@ -435,7 +491,10 @@ async function runDatabaseSmoke(
       .where(
         and(
           eq(patients.tenantId, clinicTenantId),
-          eq(patients.externalPatientId, readString(newPatientFixtureRecord.externalPatientId, 'new patient external id'))
+          eq(
+            patients.externalPatientId,
+            readString(newPatientFixtureRecord.externalPatientId, 'new patient external id')
+          )
         )
       )
       .limit(1);
@@ -456,7 +515,10 @@ async function runDatabaseSmoke(
       );
     });
     assert(cancelledAppointmentFixture, 'Missing cancelled appointment fixture');
-    const cancelledAppointmentFixtureRecord = readRecord(cancelledAppointmentFixture, 'cancelled appointment fixture');
+    const cancelledAppointmentFixtureRecord = readRecord(
+      cancelledAppointmentFixture,
+      'cancelled appointment fixture'
+    );
     const [cancelledAppointment] = await typedDb
       .select()
       .from(appointments)
@@ -465,7 +527,10 @@ async function runDatabaseSmoke(
           eq(appointments.tenantId, clinicTenantId),
           eq(
             appointments.externalAppointmentId,
-            readString(cancelledAppointmentFixtureRecord.externalAppointmentId, 'cancelled appointment external id')
+            readString(
+              cancelledAppointmentFixtureRecord.externalAppointmentId,
+              'cancelled appointment external id'
+            )
           )
         )
       )
@@ -478,7 +543,10 @@ async function runDatabaseSmoke(
       .where(
         and(
           eq(gapOpportunities.tenantId, clinicTenantId),
-          eq(gapOpportunities.originAppointmentId, readString(cancelledAppointment.id, 'cancelled appointment id'))
+          eq(
+            gapOpportunities.originAppointmentId,
+            readString(cancelledAppointment.id, 'cancelled appointment id')
+          )
         )
       )
       .limit(1);
@@ -502,7 +570,10 @@ async function runDatabaseSmoke(
       .where(
         and(
           eq(patients.tenantId, clinicTenantId),
-          eq(patients.externalPatientId, readString(candidateFixtureRecord.externalPatientId, 'candidate external patient id'))
+          eq(
+            patients.externalPatientId,
+            readString(candidateFixtureRecord.externalPatientId, 'candidate external patient id')
+          )
         )
       )
       .limit(1);
@@ -520,7 +591,10 @@ async function runDatabaseSmoke(
       )
       .limit(1);
     assert(gapOutreach, 'Expected gap outreach attempt for candidate patient');
-    assert(readString(gapOutreach.status, 'gap outreach status') === 'sent', 'Expected sent gap outreach');
+    assert(
+      readString(gapOutreach.status, 'gap outreach status') === 'sent',
+      'Expected sent gap outreach'
+    );
 
     const reactivationJourney = readRecord(
       seedJourneys.reactivation,
@@ -544,7 +618,10 @@ async function runDatabaseSmoke(
       .where(
         and(
           eq(reactivationCampaigns.tenantId, clinicTenantId),
-          eq(reactivationCampaigns.name, readString(campaignFixtureRecord.name, 'campaign fixture name'))
+          eq(
+            reactivationCampaigns.name,
+            readString(campaignFixtureRecord.name, 'campaign fixture name')
+          )
         )
       )
       .limit(1);
@@ -560,12 +637,16 @@ async function runDatabaseSmoke(
         )
       )
       .limit(20);
-    const recipientStatuses = dbRecipients.map((recipient) => readString(recipient.status, 'reactivation recipient status'));
+    const recipientStatuses = dbRecipients.map((recipient) =>
+      readString(recipient.status, 'reactivation recipient status')
+    );
     assert(recipientStatuses.includes('booked'), 'Expected booked reactivation recipient');
     assert(recipientStatuses.includes('contacted'), 'Expected contacted reactivation recipient');
     assert(recipientStatuses.includes('failed'), 'Expected failed reactivation recipient');
 
-    log(`tenant=${clinicTenantId}, patients=${dbPatients.length}, appointments=${dbAppointments.length}, campaigns=${dbCampaigns.length}`);
+    log(
+      `tenant=${clinicTenantId}, patients=${dbPatients.length}, appointments=${dbAppointments.length}, campaigns=${dbCampaigns.length}`
+    );
   } finally {
     await close();
   }
@@ -583,7 +664,12 @@ async function runApiSmoke(summary: UnknownRecord) {
     buildApp: () => {
       ready: () => Promise<void>;
       close: () => Promise<void>;
-      inject: (options: { method: string; url: string; payload?: UnknownRecord; headers?: Record<string, string> }) => Promise<{
+      inject: (options: {
+        method: string;
+        url: string;
+        payload?: UnknownRecord;
+        headers?: Record<string, string>;
+      }) => Promise<{
         statusCode: number;
         json: () => unknown;
         body: string;
@@ -607,7 +693,10 @@ async function runApiSmoke(summary: UnknownRecord) {
         'content-type': 'application/json',
       },
     });
-    assert(loginResponse.statusCode === 200, `Expected seeded login to succeed, received ${loginResponse.statusCode}: ${loginResponse.body}`);
+    assert(
+      loginResponse.statusCode === 200,
+      `Expected seeded login to succeed, received ${loginResponse.statusCode}: ${loginResponse.body}`
+    );
     const loginBody = readRecord(loginResponse.json(), 'login response');
     const token = readString(loginBody.token, 'login token');
     const tenants = readArray(loginBody.tenants, 'login tenants');
@@ -616,7 +705,10 @@ async function runApiSmoke(summary: UnknownRecord) {
       return readString(record.name, 'login tenant name') === CLINIC_TENANT_NAME;
     });
     assert(clinicTenant, 'Expected seeded login to expose Dental Demo Clinic');
-    const clinicTenantId = readString(readRecord(clinicTenant, 'clinic tenant').id, 'clinic tenant id');
+    const clinicTenantId = readString(
+      readRecord(clinicTenant, 'clinic tenant').id,
+      'clinic tenant id'
+    );
 
     const authHeaders = {
       authorization: `Bearer ${token}`,
@@ -627,27 +719,45 @@ async function runApiSmoke(summary: UnknownRecord) {
       url: `/api/v1/tenants/${clinicTenantId}/clinic/experience`,
       headers: authHeaders,
     });
-    assert(experienceResponse.statusCode === 200, `Expected clinic experience route to succeed, received ${experienceResponse.statusCode}`);
+    assert(
+      experienceResponse.statusCode === 200,
+      `Expected clinic experience route to succeed, received ${experienceResponse.statusCode}`
+    );
     const experienceBody = readRecord(experienceResponse.json(), 'experience response');
     const experience = readRecord(experienceBody.experience, 'experience');
     const flags = readRecord(experience.flags, 'experience.flags');
     const permissions = readArray(experience.permissions, 'experience.permissions');
-    assert(readString(experience.defaultMode, 'experience.defaultMode') === 'clinic', 'Expected clinic tenant default mode');
-    assert(flags.internalPlatformVisible === true, 'Expected seeded clinic tenant to expose internal mode');
-    assert(permissions.includes('view_internal_platform'), 'Expected owner seed user to see internal platform');
+    assert(
+      readString(experience.defaultMode, 'experience.defaultMode') === 'clinic',
+      'Expected clinic tenant default mode'
+    );
+    assert(
+      flags.internalPlatformVisible === true,
+      'Expected seeded clinic tenant to expose internal mode'
+    );
+    assert(
+      permissions.includes('view_internal_platform'),
+      'Expected owner seed user to see internal platform'
+    );
 
     const dashboardResponse = await app.inject({
       method: 'GET',
       url: `/api/v1/tenants/${clinicTenantId}/clinic/dashboard`,
       headers: authHeaders,
     });
-    assert(dashboardResponse.statusCode === 200, `Expected clinic dashboard route to succeed, received ${dashboardResponse.statusCode}`);
+    assert(
+      dashboardResponse.statusCode === 200,
+      `Expected clinic dashboard route to succeed, received ${dashboardResponse.statusCode}`
+    );
     const dashboardBody = readRecord(dashboardResponse.json(), 'dashboard response');
     const dashboard = readRecord(dashboardBody.dashboard, 'dashboard');
     const dashboardKpis = readRecord(dashboard.kpis, 'dashboard.kpis');
     assert(
       readNumber(dashboardKpis.pendingConfirmations, 'dashboard.kpis.pendingConfirmations') ===
-        readNumber(readRecord(summary.counts, 'summary.counts').confirmationsPending, 'summary.counts.confirmationsPending'),
+        readNumber(
+          readRecord(summary.counts, 'summary.counts').confirmationsPending,
+          'summary.counts.confirmationsPending'
+        ),
       'Expected dashboard KPI to match fixture confirmation count'
     );
 
@@ -656,12 +766,22 @@ async function runApiSmoke(summary: UnknownRecord) {
       url: `/api/v1/tenants/${clinicTenantId}/patients?limit=20`,
       headers: authHeaders,
     });
-    assert(patientsResponse.statusCode === 200, `Expected patients route to succeed, received ${patientsResponse.statusCode}`);
+    assert(
+      patientsResponse.statusCode === 200,
+      `Expected patients route to succeed, received ${patientsResponse.statusCode}`
+    );
     const patientsBody = readRecord(patientsResponse.json(), 'patients response');
     const patientItems = readArray(patientsBody.patients, 'patients response items');
-    assert(patientItems.length === 11, `Expected 11 patients from API, received ${patientItems.length}`);
     assert(
-      patientItems.some((patient) => readString(readRecord(patient, 'patient item').fullName, 'patient fullName') === 'Ana Garcia'),
+      patientItems.length === 11,
+      `Expected 11 patients from API, received ${patientItems.length}`
+    );
+    assert(
+      patientItems.some(
+        (patient) =>
+          readString(readRecord(patient, 'patient item').fullName, 'patient fullName') ===
+          'Ana Garcia'
+      ),
       'Expected Ana Garcia in API patients response'
     );
 
@@ -670,7 +790,10 @@ async function runApiSmoke(summary: UnknownRecord) {
       url: `/api/v1/tenants/${clinicTenantId}/conversations?limit=20`,
       headers: authHeaders,
     });
-    assert(conversationsResponse.statusCode === 200, `Expected conversations route to succeed, received ${conversationsResponse.statusCode}`);
+    assert(
+      conversationsResponse.statusCode === 200,
+      `Expected conversations route to succeed, received ${conversationsResponse.statusCode}`
+    );
     const conversationsBody = readRecord(conversationsResponse.json(), 'conversations response');
     const threads = readArray(conversationsBody.threads, 'conversation threads');
     assert(threads.length === 10, `Expected 10 seeded inbox threads, received ${threads.length}`);
@@ -687,12 +810,22 @@ async function runApiSmoke(summary: UnknownRecord) {
       url: `/api/v1/tenants/${clinicTenantId}/appointments?limit=20`,
       headers: authHeaders,
     });
-    assert(appointmentsResponse.statusCode === 200, `Expected appointments route to succeed, received ${appointmentsResponse.statusCode}`);
+    assert(
+      appointmentsResponse.statusCode === 200,
+      `Expected appointments route to succeed, received ${appointmentsResponse.statusCode}`
+    );
     const appointmentsBody = readRecord(appointmentsResponse.json(), 'appointments response');
     const appointments = readArray(appointmentsBody.appointments, 'appointments');
-    assert(appointments.length === 6, `Expected 6 seeded appointments, received ${appointments.length}`);
     assert(
-      appointments.some((appointment) => readString(readRecord(appointment, 'appointment').status, 'appointment.status') === 'rescheduled'),
+      appointments.length === 6,
+      `Expected 6 seeded appointments, received ${appointments.length}`
+    );
+    assert(
+      appointments.some(
+        (appointment) =>
+          readString(readRecord(appointment, 'appointment').status, 'appointment.status') ===
+          'rescheduled'
+      ),
       'Expected one rescheduled appointment in API response'
     );
 
@@ -701,23 +834,33 @@ async function runApiSmoke(summary: UnknownRecord) {
       url: `/api/v1/tenants/${clinicTenantId}/follow-up/confirmations?status=pending`,
       headers: authHeaders,
     });
-    assert(confirmationsResponse.statusCode === 200, `Expected confirmations route to succeed, received ${confirmationsResponse.statusCode}`);
+    assert(
+      confirmationsResponse.statusCode === 200,
+      `Expected confirmations route to succeed, received ${confirmationsResponse.statusCode}`
+    );
     const confirmationsBody = readRecord(confirmationsResponse.json(), 'confirmations response');
     const confirmations = readArray(confirmationsBody.confirmations, 'confirmations');
-    assert(confirmations.length === 2, `Expected 2 pending confirmations, received ${confirmations.length}`);
+    assert(
+      confirmations.length === 2,
+      `Expected 2 pending confirmations, received ${confirmations.length}`
+    );
 
     const gapsResponse = await app.inject({
       method: 'GET',
       url: `/api/v1/tenants/${clinicTenantId}/follow-up/gaps?status=open`,
       headers: authHeaders,
     });
-    assert(gapsResponse.statusCode === 200, `Expected gaps route to succeed, received ${gapsResponse.statusCode}`);
+    assert(
+      gapsResponse.statusCode === 200,
+      `Expected gaps route to succeed, received ${gapsResponse.statusCode}`
+    );
     const gapsBody = readRecord(gapsResponse.json(), 'gaps response');
     const gaps = readArray(gapsBody.gaps, 'gaps');
     assert(gaps.length === 1, `Expected 1 open gap, received ${gaps.length}`);
     assert(
       readArray(readRecord(gaps[0], 'gap').outreachAttempts, 'gap.outreachAttempts').some(
-        (attempt) => readString(readRecord(attempt, 'gap outreach').status, 'gap outreach status') === 'sent'
+        (attempt) =>
+          readString(readRecord(attempt, 'gap outreach').status, 'gap outreach status') === 'sent'
       ),
       'Expected sent outreach attempt in API gap response'
     );
@@ -727,10 +870,16 @@ async function runApiSmoke(summary: UnknownRecord) {
       url: `/api/v1/tenants/${clinicTenantId}/reactivation/campaigns?limit=10`,
       headers: authHeaders,
     });
-    assert(campaignsResponse.statusCode === 200, `Expected campaigns route to succeed, received ${campaignsResponse.statusCode}`);
+    assert(
+      campaignsResponse.statusCode === 200,
+      `Expected campaigns route to succeed, received ${campaignsResponse.statusCode}`
+    );
     const campaignsBody = readRecord(campaignsResponse.json(), 'campaigns response');
     const campaigns = readArray(campaignsBody.campaigns, 'campaigns');
-    assert(campaigns.length === 1, `Expected 1 seeded reactivation campaign, received ${campaigns.length}`);
+    assert(
+      campaigns.length === 1,
+      `Expected 1 seeded reactivation campaign, received ${campaigns.length}`
+    );
 
     const campaignId = readString(readRecord(campaigns[0], 'campaign').id, 'campaign id');
     const campaignResponse = await app.inject({
@@ -738,18 +887,32 @@ async function runApiSmoke(summary: UnknownRecord) {
       url: `/api/v1/tenants/${clinicTenantId}/reactivation/campaigns/${campaignId}`,
       headers: authHeaders,
     });
-    assert(campaignResponse.statusCode === 200, `Expected campaign detail route to succeed, received ${campaignResponse.statusCode}`);
+    assert(
+      campaignResponse.statusCode === 200,
+      `Expected campaign detail route to succeed, received ${campaignResponse.statusCode}`
+    );
     const campaignBody = readRecord(campaignResponse.json(), 'campaign detail response');
     const campaign = readRecord(campaignBody.campaign, 'campaign detail');
     const recipients = readArray(campaign.recipients, 'campaign recipients');
     const recipientStatuses = recipients.map((recipient) =>
       readString(readRecord(recipient, 'campaign recipient').status, 'campaign recipient status')
     );
-    assert(recipientStatuses.includes('booked'), 'Expected booked reactivation recipient in API response');
-    assert(recipientStatuses.includes('contacted'), 'Expected contacted reactivation recipient in API response');
-    assert(recipientStatuses.includes('failed'), 'Expected failed reactivation recipient in API response');
+    assert(
+      recipientStatuses.includes('booked'),
+      'Expected booked reactivation recipient in API response'
+    );
+    assert(
+      recipientStatuses.includes('contacted'),
+      'Expected contacted reactivation recipient in API response'
+    );
+    assert(
+      recipientStatuses.includes('failed'),
+      'Expected failed reactivation recipient in API response'
+    );
 
-    log(`tenant=${clinicTenantId}, patients=${patientItems.length}, threads=${threads.length}, appointments=${appointments.length}`);
+    log(
+      `tenant=${clinicTenantId}, patients=${patientItems.length}, threads=${threads.length}, appointments=${appointments.length}`
+    );
   } finally {
     await app.close();
   }

@@ -24,9 +24,7 @@ describe('publicMarketingNavLinks', () => {
 
 describe('publicMarketingFooterColumns', () => {
   it('keeps the last footer column focused on access instead of platform storytelling', () => {
-    const accessColumn = publicMarketingFooterColumns.find(
-      (column) => column.title === 'Acceso'
-    );
+    const accessColumn = publicMarketingFooterColumns.find((column) => column.title === 'Acceso');
 
     expect(accessColumn?.links).toEqual([
       { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },

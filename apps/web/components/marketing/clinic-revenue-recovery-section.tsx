@@ -21,9 +21,7 @@ export function ClinicRevenueRecoverySection() {
             <FadeContent key={capability.title} delay={index * 0.05}>
               <article className="rounded-[24px] border border-border/60 bg-card p-6 shadow-sm">
                 <p className="text-editorial-tiny">Recuperacion</p>
-                <h3 className="mt-3 text-2xl font-semibold tracking-tight">
-                  {capability.title}
-                </h3>
+                <h3 className="mt-3 text-2xl font-semibold tracking-tight">{capability.title}</h3>
                 <p className="mt-4 text-sm leading-6 text-muted-foreground">
                   {capability.description}
                 </p>

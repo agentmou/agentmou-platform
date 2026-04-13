@@ -36,9 +36,7 @@ export function ClinicHowItWorksGrid() {
                     </div>
                   </div>
                   <h3 className="mt-4 text-xl font-semibold tracking-tight">{card.title}</h3>
-                  <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                    {card.description}
-                  </p>
+                  <p className="mt-4 text-sm leading-6 text-muted-foreground">{card.description}</p>
                   <ul className="mt-6 space-y-3">
                     {card.bullets.map((bullet) => (
                       <li key={bullet} className="flex gap-3 text-sm">

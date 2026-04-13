@@ -36,11 +36,13 @@ async function migrate() {
       )
     `);
 
-    const dbMigrations = await client.unsafe<{
-      id: number;
-      hash: string;
-      created_at: string | number;
-    }[]>(
+    const dbMigrations = await client.unsafe<
+      {
+        id: number;
+        hash: string;
+        created_at: string | number;
+      }[]
+    >(
       `select id, hash, created_at
          from "${MIGRATIONS_SCHEMA}"."${MIGRATIONS_TABLE}"
         order by created_at desc
@@ -51,10 +53,7 @@ async function migrate() {
     let applied = 0;
 
     for (const migration of migrations) {
-      if (
-        lastDbMigration &&
-        Number(lastDbMigration.created_at) >= migration.folderMillis
-      ) {
+      if (lastDbMigration && Number(lastDbMigration.created_at) >= migration.folderMillis) {
         continue;
       }
 
