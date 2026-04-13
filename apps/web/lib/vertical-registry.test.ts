@@ -12,6 +12,7 @@ describe('vertical registry', () => {
 
     expect(entry.shellKey).toBe('platform_internal');
     expect(entry.allowedRouteKinds).toEqual(['shared', 'internal']);
+    expect(entry.settingsExtensions).toEqual(['internal_defaults', 'internal_approvals']);
     expect(entry.searchMode).toBe('platform_internal');
     expect(getTenantDefaultHref('tenant-internal', 'internal')).toBe(
       '/app/tenant-internal/dashboard'
@@ -24,8 +25,10 @@ describe('vertical registry', () => {
 
     expect(clinicEntry.shellKey).toBe('clinic');
     expect(clinicEntry.allowedRouteKinds).toEqual(['shared', 'vertical_shared']);
+    expect(clinicEntry.settingsExtensions).toContain('care_profile');
     expect(fisioEntry.shellKey).toBe('fisio');
     expect(fisioEntry.allowedRouteKinds).toEqual(['shared', 'vertical_shared']);
+    expect(fisioEntry.settingsExtensions).toEqual(['care_profile', 'care_schedule']);
     expect(fisioEntry.searchMode).toBe('clinic');
   });
 

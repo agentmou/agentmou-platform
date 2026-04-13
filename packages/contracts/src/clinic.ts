@@ -1054,11 +1054,19 @@ export type TenantShellKey = z.infer<typeof TenantShellKeySchema>;
 /** Settings sections that a tenant can safely configure in-product. */
 export const TenantSettingsSectionSchema = z.enum([
   'general',
-  'modules',
-  'channels',
   'team',
+  'integrations',
+  'plan',
   'security',
-  'platform',
+  'care_profile',
+  'care_schedule',
+  'care_services',
+  'care_forms',
+  'care_confirmations',
+  'care_gap_recovery',
+  'care_reactivation',
+  'internal_defaults',
+  'internal_approvals',
 ]);
 export type TenantSettingsSection = z.infer<typeof TenantSettingsSectionSchema>;
 

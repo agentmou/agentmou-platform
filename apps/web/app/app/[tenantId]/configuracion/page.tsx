@@ -1,7 +1,7 @@
 'use client';
 
-import { ClinicSettingsPage } from '@/components/clinic/clinic-pages';
+import { TenantSettingsPage } from '@/components/settings/tenant-settings-page';
 
 export default function ConfigurationPage() {
-  return <ClinicSettingsPage />;
+  return <TenantSettingsPage />;
 }

@@ -63,6 +63,7 @@ export interface TenantExperienceState {
   isSharedVertical: boolean;
   mode: TenantShellMode;
   canAccessInternalPlatform: boolean;
+  canAccessAdminConsole: boolean;
   capabilities: ClinicUiCapabilities;
   hasTenantAccess: boolean;
   fallbackTenantId: string | null;
@@ -315,6 +316,7 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
   const canAccessInternalPlatform =
     resolvedExperience?.canAccessInternalPlatform ??
     (activeVertical === 'internal' && capabilities.canAccessInternalPlatform);
+  const canAccessAdminConsole = resolvedExperience?.canAccessAdminConsole ?? false;
   const shellKey = resolvedExperience?.shellKey ?? registryEntry.shellKey;
   const defaultRoute =
     resolvedExperience?.defaultRoute ??
@@ -339,6 +341,7 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
     isSharedVertical: sharedVertical,
     mode: shellKey,
     canAccessInternalPlatform,
+    canAccessAdminConsole,
     capabilities,
     hasTenantAccess,
     fallbackTenantId,

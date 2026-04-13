@@ -18,6 +18,7 @@ import {
   PatientStatusBadge,
   ReactivationCampaignCard,
 } from '@/components/clinic';
+import { TenantSettingsPage } from '@/components/settings/tenant-settings-page';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -740,127 +741,7 @@ export function ClinicPerformancePage() {
 }
 
 export function ClinicSettingsPage() {
-  const experience = useTenantExperience();
-  const { data: profile } = useProviderQuery(
-    (provider) => provider.getClinicProfile(experience.tenantId),
-    null,
-    [experience.tenantId]
-  );
-  const { data: modules } = useProviderQuery(
-    (provider) => provider.listClinicModules(experience.tenantId),
-    [],
-    [experience.tenantId]
-  );
-  const { data: channels } = useProviderQuery(
-    (provider) => provider.listClinicChannels(experience.tenantId),
-    [],
-    [experience.tenantId]
-  );
-  const { data: integrations } = useProviderQuery(
-    (provider) => provider.listTenantIntegrations(experience.tenantId),
-    [],
-    [experience.tenantId]
-  );
-  const { data: members } = useProviderQuery(
-    (provider) => provider.listTenantMembers(experience.tenantId),
-    [],
-    [experience.tenantId]
-  );
-
-  return (
-    <div className="space-y-6 p-6 lg:p-8">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Configuracion</h1>
-        <p className="text-sm text-muted-foreground">
-          Canales, horarios, reglas, integraciones y acceso interno del centro de recepcion.
-        </p>
-      </div>
-
-      <ModuleVisibilityGuard
-        enabled={hasClinicNavigationAccess(experience, 'configuration')}
-        title="Configuracion no disponible"
-        description="Solo owner o admin con acceso clinico pueden gestionar esta seccion."
-      >
-        <div className="grid gap-6 xl:grid-cols-2">
-          <Card className="border-border/60">
-            <CardHeader>
-              <CardTitle className="text-base">Perfil de clinica</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
-              <p>Nombre visible: {profile?.displayName ?? 'Sin configurar'}</p>
-              <p>Zona horaria: {profile?.timezone ?? 'Sin configurar'}</p>
-              <p>Especialidad: {profile?.specialty ?? 'Sin especificar'}</p>
-              <p>Canal principal: {profile?.defaultInboundChannel ?? 'Sin definir'}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/60" id="configuracion-modulos">
-            <CardHeader>
-              <CardTitle className="text-base">Modulos activos</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {modules.map((module) => (
-                <div
-                  key={module.id}
-                  className="flex items-center justify-between rounded-xl border border-border/60 p-3"
-                >
-                  <div>
-                    <p className="font-medium">{module.displayName}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {module.visibilityReason === 'active'
-                        ? module.visibleToClient
-                          ? 'Visible al cliente'
-                          : 'Solo interno'
-                        : module.visibilityReason === 'not_in_plan'
-                          ? 'No incluido en el plan'
-                          : module.visibilityReason === 'requires_configuration'
-                            ? 'Pendiente de configuracion'
-                            : module.visibilityReason === 'hidden_internal_only'
-                              ? 'Solo interno'
-                              : 'Desactivado por tenant'}
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-                    {module.status}
-                  </span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      </ModuleVisibilityGuard>
-
-      <div className="grid gap-6 xl:grid-cols-3">
-        <SettingsSection
-          title="Canales"
-          items={channels.map((channel) => `${channel.channelType} · ${channel.status}`)}
-        />
-        <SettingsSection
-          title="Integraciones"
-          items={integrations.map((integration) => `${integration.name} · ${integration.status}`)}
-        />
-        <SettingsSection
-          title="Acceso y privacidad"
-          items={members.map((member) => `${member.name} · ${member.role}`)}
-        />
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-3">
-        <EmptySettingsCard
-          title="Servicios"
-          description="Los servicios y duraciones apareceran aqui cuando la gestion fina del catalogo clinico quede expuesta en API."
-        />
-        <EmptySettingsCard
-          title="Profesionales"
-          description="La ficha de profesionales quedara disponible cuando el backend publique la superficie dedicada."
-        />
-        <EmptySettingsCard
-          title="Sedes y horarios"
-          description="Mientras tanto usamos el perfil y los canales ya configurados como referencia principal."
-        />
-      </div>
-    </div>
-  );
+  return <TenantSettingsPage />;
 }
 
 function FollowUpShortcut({
@@ -890,36 +771,5 @@ function FollowUpShortcut({
         </CardContent>
       </Card>
     </Link>
-  );
-}
-
-function SettingsSection({ title, items }: { title: string; items: string[] }) {
-  return (
-    <Card className="border-border/60">
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2 text-sm text-muted-foreground">
-        {items.map((item) => (
-          <div key={item} className="rounded-xl border border-border/60 p-3">
-            {item}
-          </div>
-        ))}
-        {items.length === 0 ? <p>Sin elementos configurados todavia.</p> : null}
-      </CardContent>
-    </Card>
-  );
-}
-
-function EmptySettingsCard({ title, description }: { title: string; description: string }) {
-  return (
-    <Card className="border-dashed border-border/60">
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </CardContent>
-    </Card>
   );
 }

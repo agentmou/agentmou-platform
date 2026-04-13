@@ -335,19 +335,65 @@ function buildBaseFlags(settings: TenantSettings): TenantExperience['flags'] {
   };
 }
 
-function buildClinicSettingsSections(canAccessInternalPlatform: boolean) {
-  const sections: TenantExperience['settingsSections'] = ['general', 'modules', 'channels'];
-  if (canAccessInternalPlatform) {
-    sections.push('platform');
+function buildClinicSettingsSections(
+  flags: Pick<
+    TenantExperience['flags'],
+    | 'intakeFormsEnabled'
+    | 'appointmentConfirmationsEnabled'
+    | 'smartGapFillEnabled'
+    | 'reactivationEnabled'
+  >
+) {
+  const sections: TenantExperience['settingsSections'] = [
+    'general',
+    'team',
+    'integrations',
+    'plan',
+    'security',
+    'care_profile',
+    'care_schedule',
+    'care_services',
+  ];
+  if (flags.intakeFormsEnabled) {
+    sections.push('care_forms');
+  }
+  if (flags.appointmentConfirmationsEnabled) {
+    sections.push('care_confirmations');
+  }
+  if (flags.smartGapFillEnabled) {
+    sections.push('care_gap_recovery');
+  }
+  if (flags.reactivationEnabled) {
+    sections.push('care_reactivation');
   }
   return sections;
 }
 
 function buildInternalSettingsSections(canAccessAdminConsole: boolean) {
-  const sections: TenantExperience['settingsSections'] = ['general', 'team', 'security'];
+  const sections: TenantExperience['settingsSections'] = [
+    'general',
+    'team',
+    'integrations',
+    'plan',
+    'security',
+    'internal_defaults',
+  ];
   if (canAccessAdminConsole) {
-    sections.push('platform');
+    sections.push('internal_approvals');
   }
+  return sections;
+}
+
+function buildFisioSettingsSections() {
+  const sections: TenantExperience['settingsSections'] = [
+    'general',
+    'team',
+    'integrations',
+    'plan',
+    'security',
+    'care_profile',
+    'care_schedule',
+  ];
   return sections;
 }
 
@@ -435,7 +481,7 @@ export function resolveTenantExperience(context: ClinicEntitlementContext): Tena
       allowedNavigation: ['dashboard', 'configuration'],
       modules: [],
       flags: buildBaseFlags(context.settings),
-      settingsSections: ['general'],
+      settingsSections: buildFisioSettingsSections(),
       canAccessInternalPlatform: false,
       canAccessAdminConsole: false,
     };
@@ -530,7 +576,7 @@ export function resolveTenantExperience(context: ClinicEntitlementContext): Tena
     allowedNavigation,
     modules,
     flags,
-    settingsSections: buildClinicSettingsSections(canAccessInternalPlatform),
+    settingsSections: buildClinicSettingsSections(flags),
     canAccessInternalPlatform,
     canAccessAdminConsole,
   };
