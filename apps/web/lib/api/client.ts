@@ -6,6 +6,13 @@
  */
 
 import {
+  AdminDeleteTenantUserResponseSchema,
+  AdminStartImpersonationResponseSchema,
+  AdminStopImpersonationResponseSchema,
+  AdminTenantDetailResponseSchema,
+  AdminTenantListResponseSchema,
+  AdminTenantUserMutationResponseSchema,
+  AdminTenantUsersResponseSchema,
   ApprovalRequestsResponseSchema,
   ApprovalResponseSchema,
   AgentTemplateResponseSchema,
@@ -29,6 +36,19 @@ import {
   TenantsResponseSchema,
   WorkflowTemplatesResponseSchema,
   WorkflowEngineStatusResponseSchema,
+  type AdminChangeTenantVerticalInput,
+  type AdminCreateTenantUserInput,
+  type AdminDeleteTenantUserResponse,
+  type AdminStartImpersonationInput,
+  type AdminStartImpersonationResponse,
+  type AdminStopImpersonationInput,
+  type AdminStopImpersonationResponse,
+  type AdminTenantDetail,
+  type AdminTenantListFilters,
+  type AdminTenantListResponse,
+  type AdminTenantUser,
+  type AdminTenantUserMutationResponse,
+  type AdminUpdateTenantUserInput,
   type ApprovalRequest,
   type AgentTemplate,
   type BillingOverview,
@@ -48,7 +68,7 @@ import {
 } from '@agentmou/contracts';
 import { z } from 'zod';
 
-import { isApiNotFound, requestParsed } from './core';
+import { buildQueryString, isApiNotFound, requestParsed } from './core';
 
 const secretsResponseSchema = z.object({
   secrets: z.array(
@@ -65,6 +85,13 @@ const secretsResponseSchema = z.object({
 
 export type ApiSecret = z.infer<typeof secretsResponseSchema>['secrets'][number];
 export { ApiContractError, ApiError } from './core';
+
+function adminHeaders(adminTenantId: string, headers?: HeadersInit): HeadersInit {
+  return {
+    ...headers,
+    'x-tenant-id': adminTenantId,
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Tenants
@@ -102,6 +129,149 @@ export async function fetchTenantExperience(tenantId: string): Promise<TenantExp
 
     throw error;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Admin
+// ---------------------------------------------------------------------------
+
+export async function fetchAdminTenants(
+  adminTenantId: string,
+  filters: AdminTenantListFilters = {}
+): Promise<AdminTenantListResponse> {
+  return requestParsed(
+    `/api/v1/admin/tenants${buildQueryString(filters)}`,
+    AdminTenantListResponseSchema,
+    {
+      headers: adminHeaders(adminTenantId),
+    }
+  );
+}
+
+export async function fetchAdminTenantDetail(
+  adminTenantId: string,
+  tenantId: string
+): Promise<AdminTenantDetail | null> {
+  try {
+    const data = await requestParsed(
+      `/api/v1/admin/tenants/${tenantId}`,
+      AdminTenantDetailResponseSchema,
+      {
+        headers: adminHeaders(adminTenantId),
+      }
+    );
+    return data.tenant;
+  } catch (error) {
+    if (isApiNotFound(error)) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+export async function fetchAdminTenantUsers(
+  adminTenantId: string,
+  tenantId: string
+): Promise<AdminTenantUser[]> {
+  const data = await requestParsed(
+    `/api/v1/admin/tenants/${tenantId}/users`,
+    AdminTenantUsersResponseSchema,
+    {
+      headers: adminHeaders(adminTenantId),
+    }
+  );
+  return data.users;
+}
+
+export async function createAdminTenantUser(
+  adminTenantId: string,
+  tenantId: string,
+  body: AdminCreateTenantUserInput
+): Promise<AdminTenantUserMutationResponse> {
+  return requestParsed(
+    `/api/v1/admin/tenants/${tenantId}/users`,
+    AdminTenantUserMutationResponseSchema,
+    {
+      method: 'POST',
+      headers: adminHeaders(adminTenantId),
+      body: JSON.stringify(body),
+    }
+  );
+}
+
+export async function updateAdminTenantUser(
+  adminTenantId: string,
+  tenantId: string,
+  userId: string,
+  body: AdminUpdateTenantUserInput
+): Promise<AdminTenantUserMutationResponse> {
+  return requestParsed(
+    `/api/v1/admin/tenants/${tenantId}/users/${userId}`,
+    AdminTenantUserMutationResponseSchema,
+    {
+      method: 'PATCH',
+      headers: adminHeaders(adminTenantId),
+      body: JSON.stringify(body),
+    }
+  );
+}
+
+export async function deleteAdminTenantUser(
+  adminTenantId: string,
+  tenantId: string,
+  userId: string
+): Promise<AdminDeleteTenantUserResponse> {
+  return requestParsed(
+    `/api/v1/admin/tenants/${tenantId}/users/${userId}`,
+    AdminDeleteTenantUserResponseSchema,
+    {
+      method: 'DELETE',
+      headers: adminHeaders(adminTenantId),
+    }
+  );
+}
+
+export async function changeAdminTenantVertical(
+  adminTenantId: string,
+  tenantId: string,
+  body: AdminChangeTenantVerticalInput
+): Promise<AdminTenantDetail> {
+  const data = await requestParsed(
+    `/api/v1/admin/tenants/${tenantId}/vertical`,
+    AdminTenantDetailResponseSchema,
+    {
+      method: 'PATCH',
+      headers: adminHeaders(adminTenantId),
+      body: JSON.stringify(body),
+    }
+  );
+  return data.tenant;
+}
+
+export async function startAdminImpersonation(
+  adminTenantId: string,
+  tenantId: string,
+  body: AdminStartImpersonationInput
+): Promise<AdminStartImpersonationResponse> {
+  return requestParsed(
+    `/api/v1/admin/tenants/${tenantId}/impersonation`,
+    AdminStartImpersonationResponseSchema,
+    {
+      method: 'POST',
+      headers: adminHeaders(adminTenantId),
+      body: JSON.stringify(body),
+    }
+  );
+}
+
+export async function stopAdminImpersonation(
+  body: AdminStopImpersonationInput
+): Promise<AdminStopImpersonationResponse> {
+  return requestParsed('/api/v1/admin/impersonation/stop', AdminStopImpersonationResponseSchema, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
 }
 
 async function fetchInstallations(tenantId: string) {

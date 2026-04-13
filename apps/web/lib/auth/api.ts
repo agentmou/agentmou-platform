@@ -4,7 +4,7 @@
  * Endpoints consumed:
  *   POST /api/v1/auth/register → { user, tenant, token }
  *   POST /api/v1/auth/login    → { user, tenants, token }
- *   GET  /api/v1/auth/me       → { user: { ...user, tenants } }
+ *   GET  /api/v1/auth/me       → { user: { ...user, tenants }, session }
  *   GET  /api/v1/auth/oauth/providers
  *   POST /api/v1/auth/oauth/exchange → { user, tenants, token }
  *   POST /api/v1/auth/forgot-password → { ok: true }
@@ -38,6 +38,15 @@ export interface AuthTenant {
   };
 }
 
+export interface AuthSession {
+  isImpersonation: boolean;
+  impersonationSessionId: string | null;
+  actorUserId: string | null;
+  actorTenantId: string | null;
+  targetUserId: string | null;
+  targetTenantId: string | null;
+}
+
 export interface RegisterResponse {
   user: AuthUser;
   tenant: AuthTenant;
@@ -52,6 +61,7 @@ export interface LoginResponse {
 
 export interface MeResponse {
   user: AuthUser & { tenants: (AuthTenant & { role?: string })[] };
+  session: AuthSession | null;
 }
 
 class AuthApiError extends Error {

@@ -2,15 +2,19 @@
 
 import * as React from 'react';
 import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
+import { ImpersonationBanner } from '@/components/admin/impersonation-banner';
 import { ClinicCommandSurface } from './clinic-command-surface';
 import { ClinicSidebar } from './clinic-sidebar';
 import { ClinicTopbar } from './clinic-topbar';
+import { useAuthStore } from '@/lib/auth/store';
 import { useTenantExperience } from '@/lib/tenant-experience';
 
 export function ClinicShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const experience = useTenantExperience();
+  const isImpersonation = useAuthStore((state) => Boolean(state.session?.isImpersonation));
   const [commandOpen, setCommandOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -26,14 +30,23 @@ export function ClinicShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div data-surface="app" className="surface-app flex min-h-screen bg-background">
-      <aside className="hidden w-72 shrink-0 self-start border-r border-border/60 bg-sidebar lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col">
-        <ClinicSidebar tenantId={experience.tenantId} pathname={pathname} />
-      </aside>
+    <div data-surface="app" className="surface-app flex min-h-screen flex-col bg-background">
+      <ImpersonationBanner />
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <ClinicTopbar onCommandOpenChange={setCommandOpen} />
-        <main className="flex-1">{children}</main>
+      <div className="flex flex-1">
+        <aside
+          className={cn(
+            'hidden w-72 shrink-0 self-start border-r border-border/60 bg-sidebar lg:flex lg:flex-col lg:sticky',
+            isImpersonation ? 'lg:top-11 lg:h-[calc(100vh-2.75rem)]' : 'lg:top-0 lg:h-screen'
+          )}
+        >
+          <ClinicSidebar tenantId={experience.tenantId} pathname={pathname} />
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <ClinicTopbar onCommandOpenChange={setCommandOpen} />
+          <main className="flex-1">{children}</main>
+        </div>
       </div>
 
       <ClinicCommandSurface open={commandOpen} onOpenChange={setCommandOpen} />

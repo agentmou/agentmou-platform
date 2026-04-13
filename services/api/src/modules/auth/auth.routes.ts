@@ -46,8 +46,8 @@ export async function authRoutes(fastify: FastifyInstance) {
   );
 
   fastify.get('/me', async (request: FastifyRequest, reply: FastifyReply) => {
-    const user = await service.getCurrentUser(request.headers.authorization);
-    return reply.send({ user });
+    const result = await service.getCurrentUser(request.headers.authorization);
+    return reply.send(result);
   });
 
   fastify.post(

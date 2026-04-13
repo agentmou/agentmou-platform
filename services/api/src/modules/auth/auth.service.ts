@@ -148,12 +148,24 @@ export class AuthService {
       .where(eq(memberships.userId, user.id));
 
     return {
-      ...user,
-      tenants: userTenants.map((tenant) => ({
-        ...tenant,
-        role: normalizeTenantMembershipRole(tenant.role),
-        settings: normalizeTenantSettings(tenant.settings),
-      })),
+      user: {
+        ...user,
+        tenants: userTenants.map((tenant) => ({
+          ...tenant,
+          role: normalizeTenantMembershipRole(tenant.role),
+          settings: normalizeTenantSettings(tenant.settings),
+        })),
+      },
+      session: payload.isImpersonation
+        ? {
+            isImpersonation: true,
+            impersonationSessionId: payload.impersonationSessionId ?? null,
+            actorUserId: payload.actorUserId ?? null,
+            actorTenantId: payload.actorTenantId ?? null,
+            targetUserId: payload.targetUserId ?? null,
+            targetTenantId: payload.targetTenantId ?? null,
+          }
+        : null,
     };
   }
 

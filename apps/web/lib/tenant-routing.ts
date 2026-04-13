@@ -19,6 +19,7 @@ const INTERNAL_ROUTE_PATTERNS: Array<{
   prefix: string;
   navigationKey: TenantNavigationKey;
 }> = [
+  { prefix: '/admin', navigationKey: 'admin_console' },
   { prefix: '/approvals', navigationKey: 'platform_internal' },
   { prefix: '/marketplace', navigationKey: 'platform_internal' },
   { prefix: '/installer', navigationKey: 'platform_internal' },
@@ -88,11 +89,17 @@ export function matchTenantRoute(pathname: string, tenantId: string): RoutePatte
         ? '/dashboard'
         : relativePath.slice('/platform'.length) || '/dashboard';
 
+    const navigationKey = canonicalPath.startsWith('/admin')
+      ? 'admin_console'
+      : canonicalPath === '/dashboard'
+        ? undefined
+        : 'platform_internal';
+
     return {
       kind: 'platform_alias',
       relativePath,
       canonicalPath,
-      navigationKey: 'platform_internal',
+      navigationKey,
     };
   }
 

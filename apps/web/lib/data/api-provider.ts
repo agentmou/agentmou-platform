@@ -7,8 +7,14 @@
 
 import type { DataProvider } from './provider';
 import {
+  changeAdminTenantVertical,
+  createAdminTenantUser,
+  deleteAdminTenantUser,
   approveRequest as apiApprove,
   fetchBillingOverview,
+  fetchAdminTenantDetail,
+  fetchAdminTenantUsers,
+  fetchAdminTenants,
   fetchCatalogAgent,
   fetchCatalogAgents,
   fetchCatalogPack,
@@ -33,6 +39,9 @@ import {
   installAgent as apiInstallAgent,
   installPack as apiInstallPack,
   rejectRequest as apiReject,
+  startAdminImpersonation,
+  stopAdminImpersonation,
+  updateAdminTenantUser,
 } from '@/lib/api/client';
 import {
   assignConversation,
@@ -125,6 +134,22 @@ export const apiProvider: DataProvider = {
     }
   },
   listTenantMembers: (id) => fetchTenantMembers(id),
+  listAdminTenants: (adminTenantId, filters) => fetchAdminTenants(adminTenantId, filters),
+  getAdminTenantDetail: (adminTenantId, managedTenantId) =>
+    fetchAdminTenantDetail(adminTenantId, managedTenantId),
+  listAdminTenantUsers: (adminTenantId, managedTenantId) =>
+    fetchAdminTenantUsers(adminTenantId, managedTenantId),
+  createAdminTenantUser: (adminTenantId, managedTenantId, body) =>
+    createAdminTenantUser(adminTenantId, managedTenantId, body),
+  updateAdminTenantUser: (adminTenantId, managedTenantId, userId, body) =>
+    updateAdminTenantUser(adminTenantId, managedTenantId, userId, body),
+  deleteAdminTenantUser: (adminTenantId, managedTenantId, userId) =>
+    deleteAdminTenantUser(adminTenantId, managedTenantId, userId),
+  changeAdminTenantVertical: (adminTenantId, managedTenantId, body) =>
+    changeAdminTenantVertical(adminTenantId, managedTenantId, body),
+  startAdminImpersonation: (adminTenantId, managedTenantId, body) =>
+    startAdminImpersonation(adminTenantId, managedTenantId, body),
+  stopAdminImpersonation: (body) => stopAdminImpersonation(body),
 
   // Installations
   listTenantInstalledAgents: (id) => fetchInstalledAgents(id),

@@ -37,6 +37,17 @@ import {
   getTenantDashboardMetrics as _getTenantDashboardMetrics,
 } from '@/lib/demo/read-model';
 import {
+  changeAdminTenantVertical as _changeAdminTenantVertical,
+  createAdminTenantUser as _createAdminTenantUser,
+  deleteAdminTenantUser as _deleteAdminTenantUser,
+  getAdminTenantDetail as _getAdminTenantDetail,
+  listAdminTenantUsers as _listAdminTenantUsers,
+  listAdminTenants as _listAdminTenants,
+  startAdminImpersonation as _startAdminImpersonation,
+  stopAdminImpersonation as _stopAdminImpersonation,
+  updateAdminTenantUser as _updateAdminTenantUser,
+} from '@/lib/demo/admin-read-model';
+import {
   getClinicAppointment as _getClinicAppointment,
   getClinicCall as _getClinicCall,
   getClinicConversation as _getClinicConversation,
@@ -80,6 +91,22 @@ export const mockProvider: DataProvider = {
   getTenant: async (id) => _getTenant(id),
   getTenantExperience: async (tenantId) => _getTenantExperience(tenantId),
   listTenantMembers: async (id) => _listTenantMembers(id),
+  listAdminTenants: async (_adminTenantId, filters) => _listAdminTenants(filters),
+  getAdminTenantDetail: async (_adminTenantId, managedTenantId) =>
+    _getAdminTenantDetail(managedTenantId),
+  listAdminTenantUsers: async (_adminTenantId, managedTenantId) =>
+    _listAdminTenantUsers(managedTenantId),
+  createAdminTenantUser: async (_adminTenantId, managedTenantId, body) =>
+    _createAdminTenantUser(managedTenantId, body),
+  updateAdminTenantUser: async (_adminTenantId, managedTenantId, userId, body) =>
+    _updateAdminTenantUser(managedTenantId, userId, body),
+  deleteAdminTenantUser: async (_adminTenantId, managedTenantId, userId) =>
+    _deleteAdminTenantUser(managedTenantId, userId),
+  changeAdminTenantVertical: async (_adminTenantId, managedTenantId, body) =>
+    _changeAdminTenantVertical(managedTenantId, body),
+  startAdminImpersonation: async (_adminTenantId, managedTenantId, body) =>
+    _startAdminImpersonation(managedTenantId, body),
+  stopAdminImpersonation: async (body) => _stopAdminImpersonation(body),
 
   // Installations
   listTenantInstalledAgents: async (id) => _listTenantInstalledAgents(id),

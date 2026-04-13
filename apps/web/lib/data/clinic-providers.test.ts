@@ -81,6 +81,31 @@ describe('clinic data providers', () => {
     expect(tenantExperience?.shellKey).toBe('clinic');
   });
 
+  it('exposes the admin read model through mock and demo providers', async () => {
+    const [mockTenants, demoTenants, detail, usersBeforeCreate] = await Promise.all([
+      mockProvider.listAdminTenants('tenant-admin', { limit: 10 }),
+      demoProvider.listAdminTenants('tenant-admin', { limit: 10 }),
+      mockProvider.getAdminTenantDetail('tenant-admin', 'demo-workspace'),
+      mockProvider.listAdminTenantUsers('tenant-admin', 'demo-workspace'),
+    ]);
+    const createdUser = await mockProvider.createAdminTenantUser('tenant-admin', 'demo-workspace', {
+      email: 'new-admin-ui@example.com',
+      name: 'New Admin UI',
+      role: 'operator',
+    });
+    const usersAfterCreate = await mockProvider.listAdminTenantUsers(
+      'tenant-admin',
+      'demo-workspace'
+    );
+
+    expect(mockTenants.tenants.length).toBeGreaterThan(0);
+    expect(demoTenants.tenants.length).toBeGreaterThan(0);
+    expect(detail?.id).toBe('demo-workspace');
+    expect(usersAfterCreate.length).toBe(usersBeforeCreate.length + 1);
+    expect(usersAfterCreate.some((user) => user.email === 'new-admin-ui@example.com')).toBe(true);
+    expect(createdUser.activation?.link).toContain('/reset-password?token=');
+  });
+
   it('unwraps appointment mutation responses in the api provider', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue(
       new Response(

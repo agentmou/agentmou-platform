@@ -45,40 +45,26 @@ import {
   Command,
 } from 'lucide-react';
 import { Logo } from '@/components/brand';
+import { ImpersonationBanner } from '@/components/admin/impersonation-banner';
 import { CommandPalette } from '@/components/control-plane/command-palette';
 import { useAuthStore } from '@/lib/auth/store';
 import { useDataProvider } from '@/lib/providers/context';
 import { useTenantExperience } from '@/lib/tenant-experience';
+import { resolveInternalNavigation } from '@/lib/internal-navigation';
 import { getTenantDefaultHref } from '@/lib/vertical-registry';
 
-const navSections = [
-  {
-    label: 'Overview',
-    items: [
-      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { href: '/approvals', label: 'Approvals', icon: CheckCircle, badge: true },
-    ],
-  },
-  {
-    label: 'Agents',
-    items: [
-      { href: '/marketplace', label: 'Marketplace', icon: Store },
-      { href: '/installer/new', label: 'Installer', icon: Download },
-      { href: '/fleet', label: 'Fleet', icon: Package },
-    ],
-  },
-  {
-    label: 'Operations',
-    items: [
-      { href: '/runs', label: 'Runs', icon: Activity },
-      { href: '/observability', label: 'Observability', icon: Eye },
-    ],
-  },
-  {
-    label: 'Security',
-    items: [{ href: '/security', label: 'Security', icon: Shield }],
-  },
-];
+const INTERNAL_NAV_ICONS = {
+  'layout-dashboard': LayoutDashboard,
+  'check-circle': CheckCircle,
+  store: Store,
+  download: Download,
+  package: Package,
+  activity: Activity,
+  eye: Eye,
+  shield: Shield,
+  building2: Building2,
+  settings: Settings,
+};
 
 interface AgentmouShellProps {
   children: React.ReactNode;
@@ -93,6 +79,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
   const authUser = useAuthStore((s) => s.user);
   const authTenants = useAuthStore((s) => s.tenants);
   const isHydrated = useAuthStore((s) => s.isHydrated);
+  const isImpersonation = useAuthStore((s) => Boolean(s.session?.isImpersonation));
   const logout = useAuthStore((s) => s.logout);
   const hydrate = useAuthStore((s) => s.hydrate);
 
@@ -151,6 +138,14 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [collapsed, setCollapsed] = React.useState(false);
   const [commandOpen, setCommandOpen] = React.useState(false);
+  const navigation = React.useMemo(
+    () =>
+      resolveInternalNavigation({
+        allowedNavigation: experience.allowedNavigation,
+        canAccessAdminConsole: experience.canAccessAdminConsole,
+      }),
+    [experience.allowedNavigation, experience.canAccessAdminConsole]
+  );
 
   // Global keyboard shortcut for command palette
   React.useEffect(() => {
@@ -273,7 +268,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
       {/* Navigation - grouped by sections */}
       <ScrollArea className="flex-1 px-3 py-6">
         <nav className="flex flex-col gap-6">
-          {navSections.map((section) => (
+          {navigation.sections.map((section) => (
             <div key={section.label} className="flex flex-col gap-0.5">
               {!collapsed && (
                 <p className="text-editorial-tiny text-muted-foreground px-3 mb-1 uppercase tracking-[0.05em]">
@@ -282,6 +277,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
               )}
               {section.items.map((item) => {
                 const active = isActive(item.href);
+                const Icon = INTERNAL_NAV_ICONS[item.icon];
                 return (
                   <Link
                     key={item.href}
@@ -295,7 +291,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                     )}
                     onClick={() => setMobileOpen(false)}
                   >
-                    <item.icon
+                    <Icon
                       className={cn(
                         'h-4 w-4 shrink-0 transition-colors',
                         active ? 'text-accent' : 'text-muted-foreground group-hover:text-foreground'
@@ -304,7 +300,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                     {!collapsed && (
                       <>
                         <span className="flex-1">{item.label}</span>
-                        {item.badge && pendingApprovals > 0 && (
+                        {item.badge === 'pending_approvals' && pendingApprovals > 0 && (
                           <span className="flex h-4 min-w-4 items-center justify-center rounded-sm bg-accent px-1 text-[10px] font-bold text-accent-foreground">
                             {pendingApprovals}
                           </span>
@@ -321,7 +317,10 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
 
       {/* Settings - bottom of sidebar */}
       <div className="border-t border-border/50 p-3 flex flex-col gap-2">
-        <Link href={getShellHref('/settings')} onClick={() => setMobileOpen(false)}>
+        <Link
+          href={getShellHref(navigation.footerItem?.href ?? '/settings')}
+          onClick={() => setMobileOpen(false)}
+        >
           <Button
             variant="outline"
             className={cn(
@@ -338,156 +337,166 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
   );
 
   return (
-    <div data-surface="app" className="surface-app flex min-h-screen bg-background">
-      {/* Desktop Sidebar - fixed so it stays visible on scroll */}
-      <aside
-        className={cn(
-          'fixed inset-y-0 left-0 z-40 hidden lg:flex flex-col border-r border-border/50 bg-sidebar transition-all duration-300',
-          collapsed ? 'w-16' : 'w-56'
-        )}
-      >
-        <SidebarContent />
-      </aside>
+    <div data-surface="app" className="surface-app flex min-h-screen flex-col bg-background">
+      <ImpersonationBanner />
 
-      {/* Mobile Sidebar */}
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-56 p-0 bg-sidebar">
-          <SheetHeader className="sr-only">
-            <SheetTitle>Navigation menu</SheetTitle>
-            <SheetDescription>Main navigation sidebar.</SheetDescription>
-          </SheetHeader>
+      <div className="flex flex-1">
+        {/* Desktop Sidebar - fixed so it stays visible on scroll */}
+        <aside
+          className={cn(
+            'fixed left-0 z-40 hidden lg:flex flex-col border-r border-border/50 bg-sidebar transition-all duration-300',
+            isImpersonation ? 'bottom-0 top-11' : 'inset-y-0',
+            collapsed ? 'w-16' : 'w-56'
+          )}
+        >
           <SidebarContent />
-        </SheetContent>
-      </Sheet>
+        </aside>
 
-      {/* Main Content - margin-left to avoid overlap with fixed sidebar */}
-      <div className={cn('flex flex-1 flex-col min-w-0', collapsed ? 'lg:ml-16' : 'lg:ml-56')}>
-        {/* Top Bar - minimal editorial */}
-        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border/50 bg-sidebar/95 backdrop-blur-sm px-4 lg:px-6">
-          {/* Mobile menu button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden h-8 w-8"
-            onClick={() => setMobileOpen(true)}
+        {/* Mobile Sidebar */}
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetContent side="left" className="w-56 p-0 bg-sidebar">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Navigation menu</SheetTitle>
+              <SheetDescription>Main navigation sidebar.</SheetDescription>
+            </SheetHeader>
+            <SidebarContent />
+          </SheetContent>
+        </Sheet>
+
+        {/* Main Content - margin-left to avoid overlap with fixed sidebar */}
+        <div className={cn('flex flex-1 flex-col min-w-0', collapsed ? 'lg:ml-16' : 'lg:ml-56')}>
+          {/* Top Bar - minimal editorial */}
+          <header
+            className={cn(
+              'sticky z-40 flex h-14 items-center gap-4 border-b border-border/50 bg-sidebar/95 px-4 backdrop-blur-sm lg:px-6',
+              isImpersonation ? 'top-11' : 'top-0'
+            )}
           >
-            <Menu className="h-4 w-4" />
-          </Button>
-
-          {/* Tenant Switcher */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 text-sm hover:text-muted-foreground transition-colors">
-                {currentTenant.type === 'business' ? (
-                  <Building2 className="h-4 w-4" />
-                ) : (
-                  <UserCircle className="h-4 w-4" />
-                )}
-                <span className="hidden sm:inline font-medium">{currentTenant.name}</span>
-                <ChevronDown className="h-3 w-3 text-muted-foreground" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
-              <DropdownMenuLabel className="text-editorial-tiny">
-                Switch Workspace
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {tenants.map((tenant) => (
-                <DropdownMenuItem key={tenant.id} asChild>
-                  <Link
-                    href={getTenantDefaultHref(tenant.id, tenant.settings)}
-                    className="flex items-center gap-2"
-                  >
-                    {tenant.type === 'business' ? (
-                      <Building2 className="h-4 w-4" />
-                    ) : (
-                      <UserCircle className="h-4 w-4" />
-                    )}
-                    <span className="flex-1">{tenant.name}</span>
-                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                      {tenant.plan}
-                    </span>
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-muted-foreground">
-                <span>Create new workspace</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Global Search / Command Palette Trigger */}
-          <button
-            onClick={() => setCommandOpen(true)}
-            className="relative flex-1 max-w-md flex items-center gap-2 h-8 px-3 text-sm text-muted-foreground bg-muted/30 border border-border/50 rounded-sm hover:bg-muted/50 transition-colors"
-          >
-            <Search className="h-3.5 w-3.5" />
-            <span className="flex-1 text-left">Search...</span>
-            <Kbd className="hidden sm:flex">
-              <Command className="h-3 w-3" />K
-            </Kbd>
-          </button>
-
-          <div className="flex items-center gap-1 ml-auto">
-            {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative h-8 w-8">
-              <Bell className="h-4 w-4" />
-              {pendingApprovals > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-accent text-[9px] font-bold text-accent-foreground flex items-center justify-center">
-                  {pendingApprovals}
-                </span>
-              )}
+            {/* Mobile menu button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden h-8 w-8"
+              onClick={() => setMobileOpen(true)}
+            >
+              <Menu className="h-4 w-4" />
             </Button>
 
-            {/* User Menu */}
+            {/* Tenant Switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <User className="h-4 w-4" />
-                </Button>
+                <button className="flex items-center gap-2 text-sm hover:text-muted-foreground transition-colors">
+                  {currentTenant.type === 'business' ? (
+                    <Building2 className="h-4 w-4" />
+                  ) : (
+                    <UserCircle className="h-4 w-4" />
+                  )}
+                  <span className="hidden sm:inline font-medium">{currentTenant.name}</span>
+                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col">
-                    <span className="text-sm">{authUser?.name ?? 'Admin User'}</span>
-                    <span className="text-xs font-normal text-muted-foreground">
-                      {authUser?.email ?? 'admin@acme.com'}
-                    </span>
-                  </div>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuLabel className="text-editorial-tiny">
+                  Switch Workspace
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href={getShellHref('/settings')}>
-                    <Settings className="h-4 w-4 mr-2" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
+                {tenants.map((tenant) => (
+                  <DropdownMenuItem key={tenant.id} asChild>
+                    <Link
+                      href={getTenantDefaultHref(tenant.id, tenant.settings)}
+                      className="flex items-center gap-2"
+                    >
+                      {tenant.type === 'business' ? (
+                        <Building2 className="h-4 w-4" />
+                      ) : (
+                        <UserCircle className="h-4 w-4" />
+                      )}
+                      <span className="flex-1">{tenant.name}</span>
+                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                        {tenant.plan}
+                      </span>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => {
-                    logout();
-                    window.location.href = '/login';
-                  }}
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign out
+                <DropdownMenuItem className="text-muted-foreground">
+                  <span>Create new workspace</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-        </header>
 
-        {/* Page Content */}
-        <main className="flex-1">{children}</main>
+            {/* Global Search / Command Palette Trigger */}
+            <button
+              onClick={() => setCommandOpen(true)}
+              className="relative flex-1 max-w-md flex items-center gap-2 h-8 px-3 text-sm text-muted-foreground bg-muted/30 border border-border/50 rounded-sm hover:bg-muted/50 transition-colors"
+            >
+              <Search className="h-3.5 w-3.5" />
+              <span className="flex-1 text-left">Search...</span>
+              <Kbd className="hidden sm:flex">
+                <Command className="h-3 w-3" />K
+              </Kbd>
+            </button>
+
+            <div className="flex items-center gap-1 ml-auto">
+              {/* Notifications */}
+              <Button variant="ghost" size="icon" className="relative h-8 w-8">
+                <Bell className="h-4 w-4" />
+                {pendingApprovals > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-accent text-[9px] font-bold text-accent-foreground flex items-center justify-center">
+                    {pendingApprovals}
+                  </span>
+                )}
+              </Button>
+
+              {/* User Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <User className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col">
+                      <span className="text-sm">{authUser?.name ?? 'Admin User'}</span>
+                      <span className="text-xs font-normal text-muted-foreground">
+                        {authUser?.email ?? 'admin@acme.com'}
+                      </span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href={getShellHref('/settings')}>
+                      <Settings className="h-4 w-4 mr-2" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => {
+                      logout();
+                      window.location.href = '/login';
+                    }}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </header>
+
+          {/* Page Content */}
+          <main className="flex-1">{children}</main>
+        </div>
+
+        {/* Command Palette */}
+        <CommandPalette
+          open={commandOpen}
+          onOpenChange={setCommandOpen}
+          mode={experience.searchMode}
+        />
       </div>
-
-      {/* Command Palette */}
-      <CommandPalette
-        open={commandOpen}
-        onOpenChange={setCommandOpen}
-        mode={experience.searchMode}
-      />
     </div>
   );
 }
