@@ -27,6 +27,14 @@ export async function requireTenantAccess(request: FastifyRequest, reply: Fastif
     return reply.status(400).send({ error: 'Missing tenantId parameter' });
   }
 
+  if (
+    request.authContext?.isImpersonation &&
+    request.authContext.targetTenantId &&
+    request.authContext.targetTenantId !== tenantId
+  ) {
+    return reply.status(403).send({ error: 'Impersonation is restricted to the target tenant' });
+  }
+
   const [membership] = await db
     .select({ role: memberships.role })
     .from(memberships)

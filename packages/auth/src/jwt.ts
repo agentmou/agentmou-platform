@@ -11,17 +11,75 @@ function getSecret() {
 export interface TokenPayload extends JWTPayload {
   userId: string;
   email: string;
+  isImpersonation?: boolean;
+  isImpersonationRestore?: boolean;
+  impersonationSessionId?: string;
+  actorUserId?: string;
+  actorTenantId?: string;
+  targetUserId?: string;
+  targetTenantId?: string;
+}
+
+async function signPayload(payload: TokenPayload, expirationTime: string) {
+  return new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime(expirationTime)
+    .sign(getSecret());
 }
 
 /**
  * Create a signed JWT for a user session.
  */
 export async function createToken(payload: { userId: string; email: string }): Promise<string> {
-  return new SignJWT(payload)
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('7d')
-    .sign(getSecret());
+  return signPayload(payload, '7d');
+}
+
+export async function createImpersonationToken(payload: {
+  email: string;
+  impersonationSessionId: string;
+  actorUserId: string;
+  actorTenantId: string;
+  targetUserId: string;
+  targetTenantId: string;
+}): Promise<string> {
+  return signPayload(
+    {
+      userId: payload.targetUserId,
+      email: payload.email,
+      isImpersonation: true,
+      impersonationSessionId: payload.impersonationSessionId,
+      actorUserId: payload.actorUserId,
+      actorTenantId: payload.actorTenantId,
+      targetUserId: payload.targetUserId,
+      targetTenantId: payload.targetTenantId,
+    },
+    '30m'
+  );
+}
+
+export async function createImpersonationRestoreToken(payload: {
+  userId: string;
+  email: string;
+  impersonationSessionId: string;
+  actorUserId: string;
+  actorTenantId: string;
+  targetUserId: string;
+  targetTenantId: string;
+}): Promise<string> {
+  return signPayload(
+    {
+      userId: payload.userId,
+      email: payload.email,
+      isImpersonationRestore: true,
+      impersonationSessionId: payload.impersonationSessionId,
+      actorUserId: payload.actorUserId,
+      actorTenantId: payload.actorTenantId,
+      targetUserId: payload.targetUserId,
+      targetTenantId: payload.targetTenantId,
+    },
+    '30m'
+  );
 }
 
 /**

@@ -11,3 +11,4 @@ export * from './billing';
 export * from './dashboard';
 export * from './chat';
 export * from './clinic';
+export * from './admin';

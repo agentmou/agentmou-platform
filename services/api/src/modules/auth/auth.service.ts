@@ -1,9 +1,9 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { db, users, tenants, memberships, passwordResetTokens } from '@agentmou/db';
 import { createToken, verifyToken, hashPassword, verifyPassword } from '@agentmou/auth';
 import { eq } from 'drizzle-orm';
-import { getApiConfig } from '../../config.js';
 import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
+import { issuePasswordResetToken } from '../../lib/password-reset.js';
 import { normalizeTenantSettings } from '../tenants/tenants.mapper.js';
 
 export class AuthService {
@@ -171,21 +171,10 @@ export class AuthService {
       .limit(1);
 
     if (user) {
-      const plain = randomBytes(32).toString('hex');
-      const tokenHash = createHash('sha256').update(plain, 'utf8').digest('hex');
-      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
-      await db.insert(passwordResetTokens).values({
-        userId: user.id,
-        tokenHash,
-        expiresAt,
-      });
-
-      const { webAppBaseUrl } = getApiConfig();
-      const webBase = webAppBaseUrl;
-      const link = `${webBase.replace(/\/$/, '')}/reset-password?token=${plain}`;
+      const issuedToken = await issuePasswordResetToken(user.id);
 
       if (process.env.LOG_PASSWORD_RESET_LINK === '1' || process.env.NODE_ENV !== 'production') {
-        process.stdout.write(`[auth] password reset link for ${normalized}: ${link}\n`);
+        process.stdout.write(`[auth] password reset link for ${normalized}: ${issuedToken.link}\n`);
       }
     }
 

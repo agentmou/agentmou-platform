@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { createToken, verifyToken, hashPassword, verifyPassword } from '../index';
+import {
+  createImpersonationRestoreToken,
+  createImpersonationToken,
+  createToken,
+  verifyToken,
+  hashPassword,
+  verifyPassword,
+} from '../index';
 
 describe('JWT', () => {
   it('creates and verifies a valid token', async () => {
@@ -20,6 +27,42 @@ describe('JWT', () => {
   it('returns null for an empty string', async () => {
     const result = await verifyToken('');
     expect(result).toBeNull();
+  });
+
+  it('creates and verifies impersonation tokens with actor and target claims', async () => {
+    const token = await createImpersonationToken({
+      email: 'target@example.com',
+      impersonationSessionId: 'session-1',
+      actorUserId: 'actor-1',
+      actorTenantId: 'tenant-admin',
+      targetUserId: 'target-1',
+      targetTenantId: 'tenant-target',
+    });
+
+    const payload = await verifyToken(token);
+    expect(payload).not.toBeNull();
+    expect(payload?.isImpersonation).toBe(true);
+    expect(payload?.userId).toBe('target-1');
+    expect(payload?.actorUserId).toBe('actor-1');
+    expect(payload?.targetTenantId).toBe('tenant-target');
+  });
+
+  it('creates and verifies impersonation restore tokens', async () => {
+    const token = await createImpersonationRestoreToken({
+      userId: 'actor-1',
+      email: 'actor@example.com',
+      impersonationSessionId: 'session-1',
+      actorUserId: 'actor-1',
+      actorTenantId: 'tenant-admin',
+      targetUserId: 'target-1',
+      targetTenantId: 'tenant-target',
+    });
+
+    const payload = await verifyToken(token);
+    expect(payload).not.toBeNull();
+    expect(payload?.isImpersonationRestore).toBe(true);
+    expect(payload?.userId).toBe('actor-1');
+    expect(payload?.impersonationSessionId).toBe('session-1');
   });
 });
 

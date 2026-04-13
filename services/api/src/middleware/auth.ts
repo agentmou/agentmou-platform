@@ -1,9 +1,12 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import { verifyToken } from '@agentmou/auth';
+import { verifyToken, type TokenPayload } from '@agentmou/auth';
 
 declare module 'fastify' {
   interface FastifyRequest {
     userId?: string;
+    authContext?: TokenPayload;
+    adminTenantId?: string;
+    adminTenantRole?: string;
   }
 }
 
@@ -26,5 +29,21 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
     return reply.status(401).send({ error: 'Invalid or expired token' });
   }
 
+  if (payload.isImpersonationRestore) {
+    return reply.status(401).send({ error: 'Invalid session token' });
+  }
+
+  if (
+    payload.isImpersonation &&
+    (!payload.impersonationSessionId ||
+      !payload.actorUserId ||
+      !payload.actorTenantId ||
+      !payload.targetUserId ||
+      !payload.targetTenantId)
+  ) {
+    return reply.status(401).send({ error: 'Invalid impersonation token' });
+  }
+
   request.userId = payload.userId;
+  request.authContext = payload;
 }

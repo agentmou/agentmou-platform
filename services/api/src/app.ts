@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 
 import { authRoutes } from './modules/auth/index.js';
+import { adminImpersonationSessionRoutes, adminRoutes } from './modules/admin/index.js';
 import { tenantRoutes } from './modules/tenants/index.js';
 import { membershipRoutes } from './modules/memberships/index.js';
 import { catalogRoutes } from './modules/catalog/index.js';
@@ -32,6 +33,7 @@ import { followUpRoutes } from './modules/follow-up/index.js';
 import { reactivationRoutes } from './modules/reactivation/index.js';
 import {
   requireAuth,
+  requirePlatformAdmin,
   requireInternalPlatformAccess,
   requireTenantAccess,
 } from './middleware/index.js';
@@ -68,7 +70,14 @@ export function buildApp() {
   app.register(async function authenticatedRoutes(authedApp) {
     authedApp.addHook('preHandler', requireAuth);
 
-    authedApp.register(tenantRoutes, { prefix: '/api/v1/tenants' });
+    authedApp.register(adminImpersonationSessionRoutes, { prefix: '/api/v1/admin' });
+
+    authedApp.register(async function platformAdminRoutes(adminApp) {
+      adminApp.addHook('preHandler', requirePlatformAdmin);
+
+      adminApp.register(tenantRoutes, { prefix: '/api/v1/tenants' });
+      adminApp.register(adminRoutes, { prefix: '/api/v1/admin' });
+    });
 
     // Tenant-scoped routes (JWT + tenant membership required)
     authedApp.register(async function tenantScopedRoutes(tenantApp) {

@@ -64,6 +64,13 @@
       "when": 1775947200000,
       "tag": "0008_sturdy_polaris",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1776116100000,
+      "tag": "0009_solid_mimic",
+      "breakpoints": true
     }
   ]
 }

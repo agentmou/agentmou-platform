@@ -45,6 +45,7 @@ export const AuditEventCategorySchema = z.enum([
   'membership',
   'approval',
   'billing',
+  'admin',
 ]);
 
 /** TypeScript view of audit event categories. */
