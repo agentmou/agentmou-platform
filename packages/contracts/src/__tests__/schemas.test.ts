@@ -140,13 +140,26 @@ describe('Clinic domain schemas', () => {
         advancedClinicModeEnabled: false,
         internalPlatformVisible: true,
       },
-      settingsSections: ['general', 'modules', 'channels'],
+      settingsSections: [
+        'general',
+        'team',
+        'integrations',
+        'plan',
+        'security',
+        'care_profile',
+        'care_schedule',
+        'care_services',
+        'care_forms',
+        'care_confirmations',
+        'care_gap_recovery',
+        'care_reactivation',
+      ],
       canAccessInternalPlatform: true,
       canAccessAdminConsole: false,
     });
 
     expect(result.flags.activeVertical).toBe('clinic');
-    expect(result.settingsSections).toContain('modules');
+    expect(result.settingsSections).toContain('care_forms');
   });
 
   it('parses generic tenant experience response envelopes', () => {
@@ -176,7 +189,15 @@ describe('Clinic domain schemas', () => {
           advancedClinicModeEnabled: false,
           internalPlatformVisible: true,
         },
-        settingsSections: ['general', 'team', 'security', 'platform'],
+        settingsSections: [
+          'general',
+          'team',
+          'integrations',
+          'plan',
+          'security',
+          'internal_defaults',
+          'internal_approvals',
+        ],
         canAccessInternalPlatform: true,
         canAccessAdminConsole: true,
       },
