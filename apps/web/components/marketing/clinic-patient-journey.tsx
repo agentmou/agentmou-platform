@@ -4,7 +4,10 @@ import { clinicPatientJourney } from '@/lib/marketing/clinic-site';
 
 export function ClinicPatientJourney() {
   return (
-    <section id="flujo-clinico" className="border-t border-border/50 bg-[var(--marketing-bg-alt)] py-24">
+    <section
+      id="flujo-clinico"
+      className="border-t border-border/50 bg-[var(--marketing-bg-alt)] py-24"
+    >
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
           <FadeContent>
@@ -51,9 +54,7 @@ export function ClinicPatientJourney() {
                     className="rounded-2xl border border-border/60 bg-[var(--marketing-bg-base)] p-5"
                   >
                     <p className="text-sm font-semibold">{outcome.label}</p>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      {outcome.value}
-                    </p>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">{outcome.value}</p>
                   </div>
                 ))}
               </div>

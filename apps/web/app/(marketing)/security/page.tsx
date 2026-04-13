@@ -84,8 +84,8 @@ export default function SecurityPage() {
               </h1>
               <p className="mt-6 text-lg text-muted-foreground">
                 Agentmou Clinics protege la operacion de recepcion con privacidad por clinica,
-                reglas configurables, derivacion a humano y trazabilidad sin convertir la pagina
-                en un pitch de buyer DevOps.
+                reglas configurables, derivacion a humano y trazabilidad sin convertir la pagina en
+                un pitch de buyer DevOps.
               </p>
             </div>
           </FadeContent>

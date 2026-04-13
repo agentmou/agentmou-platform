@@ -35,9 +35,7 @@ export function ClinicPainSection() {
                       <Icon className="h-5 w-5" />
                     </div>
                   </div>
-                  <p className="mt-5 text-sm leading-6 text-muted-foreground">
-                    {pain.description}
-                  </p>
+                  <p className="mt-5 text-sm leading-6 text-muted-foreground">{pain.description}</p>
                   <div className="mt-6 rounded-2xl border border-border/60 bg-[var(--marketing-bg-alt)] p-4">
                     <p className="text-sm font-medium">{pain.impact}</p>
                   </div>

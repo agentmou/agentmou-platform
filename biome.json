@@ -10,6 +10,7 @@
       "!**/.pnpm-store",
       "!**/coverage",
       "!**/dist",
+      "!**/next-env.d.ts",
       "!**/*.md",
       "!**/*.mdc",
       "!**/*.yaml",

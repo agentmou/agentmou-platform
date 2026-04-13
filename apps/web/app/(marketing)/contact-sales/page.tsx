@@ -100,7 +100,9 @@ export default function ContactSalesPage() {
       <section className="border-t border-border/50 bg-[var(--marketing-bg-base)] py-20">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="max-w-2xl">
-            <p className="text-lg font-semibold">Prefieres revisar primero pricing, seguridad o la demo clinic?</p>
+            <p className="text-lg font-semibold">
+              Prefieres revisar primero pricing, seguridad o la demo clinic?
+            </p>
             <p className="mt-2 text-sm text-muted-foreground">
               Puedes volver a la home, revisar seguridad o abrir la demo clinic sin salir del
               recorrido comercial.
