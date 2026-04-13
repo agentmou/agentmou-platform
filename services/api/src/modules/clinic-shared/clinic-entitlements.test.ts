@@ -130,6 +130,8 @@ describe('clinic entitlements', () => {
     expect(experience.permissions).toContain('view_internal_platform');
     expect(experience.permissions).toContain('view_admin_console');
     expect(experience.canAccessAdminConsole).toBe(true);
+    expect(experience.settingsSections).toContain('internal_defaults');
+    expect(experience.settingsSections).toContain('internal_approvals');
   });
 
   it('returns a minimal fisio tenant experience without clinic shell flags', () => {
@@ -152,5 +154,31 @@ describe('clinic entitlements', () => {
     expect(experience.shellKey).toBe('fisio');
     expect(experience.allowedNavigation).toEqual(['dashboard', 'configuration']);
     expect(experience.flags.verticalClinicUi).toBe(false);
+    expect(experience.settingsSections).toEqual([
+      'general',
+      'team',
+      'integrations',
+      'plan',
+      'security',
+      'care_profile',
+      'care_schedule',
+    ]);
+  });
+
+  it('gates clinic settings sections from resolved module flags', () => {
+    const experience = resolveTenantExperience({
+      ...baseContext,
+      plan: 'enterprise',
+      tenantRole: 'admin',
+      modules: [],
+    });
+
+    expect(experience.settingsSections).toContain('care_profile');
+    expect(experience.settingsSections).toContain('care_schedule');
+    expect(experience.settingsSections).toContain('care_services');
+    expect(experience.settingsSections).toContain('care_forms');
+    expect(experience.settingsSections).toContain('care_confirmations');
+    expect(experience.settingsSections).toContain('care_gap_recovery');
+    expect(experience.settingsSections).not.toContain('internal_defaults');
   });
 });
