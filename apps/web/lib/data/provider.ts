@@ -10,6 +10,19 @@
  */
 
 import {
+  AdminChangeTenantVerticalInput,
+  AdminDeleteTenantUserResponse,
+  AdminStartImpersonationInput,
+  AdminStartImpersonationResponse,
+  AdminStopImpersonationInput,
+  AdminStopImpersonationResponse,
+  AdminTenantDetail,
+  AdminTenantListFilters,
+  AdminTenantListResponse,
+  AdminTenantUser,
+  AdminTenantUserMutationResponse,
+  AdminCreateTenantUserInput,
+  AdminUpdateTenantUserInput,
   Tenant,
   TenantExperience,
   TenantMember,
@@ -150,6 +163,47 @@ export interface TenancyMethods {
   getTenant(tenantId: string): Promise<Tenant | null>;
   getTenantExperience(tenantId: string): Promise<TenantExperience | null>;
   listTenantMembers(tenantId: string): Promise<TenantMember[]>;
+}
+
+export interface AdminMethods {
+  listAdminTenants(
+    adminTenantId: string,
+    filters?: AdminTenantListFilters
+  ): Promise<AdminTenantListResponse>;
+  getAdminTenantDetail(
+    adminTenantId: string,
+    managedTenantId: string
+  ): Promise<AdminTenantDetail | null>;
+  listAdminTenantUsers(adminTenantId: string, managedTenantId: string): Promise<AdminTenantUser[]>;
+  createAdminTenantUser(
+    adminTenantId: string,
+    managedTenantId: string,
+    body: AdminCreateTenantUserInput
+  ): Promise<AdminTenantUserMutationResponse>;
+  updateAdminTenantUser(
+    adminTenantId: string,
+    managedTenantId: string,
+    userId: string,
+    body: AdminUpdateTenantUserInput
+  ): Promise<AdminTenantUserMutationResponse>;
+  deleteAdminTenantUser(
+    adminTenantId: string,
+    managedTenantId: string,
+    userId: string
+  ): Promise<AdminDeleteTenantUserResponse>;
+  changeAdminTenantVertical(
+    adminTenantId: string,
+    managedTenantId: string,
+    body: AdminChangeTenantVerticalInput
+  ): Promise<AdminTenantDetail>;
+  startAdminImpersonation(
+    adminTenantId: string,
+    managedTenantId: string,
+    body: AdminStartImpersonationInput
+  ): Promise<AdminStartImpersonationResponse>;
+  stopAdminImpersonation(
+    body: AdminStopImpersonationInput
+  ): Promise<AdminStopImpersonationResponse>;
 }
 
 // ---------------------------------------------------------------------------
@@ -448,6 +502,7 @@ export interface DataProvider
   extends ProviderMetadata,
     CatalogMethods,
     TenancyMethods,
+    AdminMethods,
     InstallationMethods,
     ExecutionMethods,
     ApprovalMethods,

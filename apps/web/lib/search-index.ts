@@ -4,6 +4,7 @@ import { normalizeCategory } from '@/lib/control-plane/category-config';
 import { resolveCatalogAvailability } from '@/lib/catalog/availability';
 import type { DataProvider } from '@/lib/data/provider';
 import { resolveHonestSurfaceState } from '@/lib/honest-ui';
+import { resolveInternalNavigation } from '@/lib/internal-navigation';
 
 export type SearchItemType = 'navigate' | 'agent' | 'workflow' | 'pack' | 'run' | 'action';
 export type SearchMode = 'clinic' | 'platform_internal';
@@ -20,80 +21,48 @@ export interface SearchItem {
 }
 
 // Navigation items - available globally in the app
-const platformNavigationItems: Omit<SearchItem, 'href'>[] = [
-  {
-    type: 'navigate',
-    id: 'nav-dashboard',
-    label: 'Dashboard',
+const platformNavigationMetadata: Record<string, Pick<SearchItem, 'keywords' | 'description'>> = {
+  dashboard: {
     keywords: ['home', 'overview', 'stats'],
-    icon: 'layout-dashboard',
     description: 'View workspace overview',
   },
-  {
-    type: 'navigate',
-    id: 'nav-marketplace',
-    label: 'Marketplace',
-    keywords: ['browse', 'agents', 'workflows', 'packs', 'store'],
-    icon: 'store',
-    description: 'Browse agents and workflows',
-  },
-  {
-    type: 'navigate',
-    id: 'nav-installer',
-    label: 'Installer',
-    keywords: ['install', 'new', 'add', 'setup'],
-    icon: 'download',
-    description: 'Review the installer preview',
-  },
-  {
-    type: 'navigate',
-    id: 'nav-fleet',
-    label: 'Fleet',
-    keywords: ['installed', 'my agents', 'my workflows', 'manage'],
-    icon: 'package',
-    description: 'Manage installed agents',
-  },
-  {
-    type: 'navigate',
-    id: 'nav-runs',
-    label: 'Runs',
-    keywords: ['executions', 'logs', 'history', 'activity'],
-    icon: 'activity',
-    description: 'View execution history',
-  },
-  {
-    type: 'navigate',
-    id: 'nav-approvals',
-    label: 'Approvals',
+  approvals: {
     keywords: ['pending', 'hitl', 'review', 'approve', 'reject'],
-    icon: 'check-circle',
     description: 'Review pending approvals',
   },
-  {
-    type: 'navigate',
-    id: 'nav-observability',
-    label: 'Observability',
+  marketplace: {
+    keywords: ['browse', 'agents', 'workflows', 'packs', 'store'],
+    description: 'Browse agents and workflows',
+  },
+  installer: {
+    keywords: ['install', 'new', 'add', 'setup'],
+    description: 'Review the installer preview',
+  },
+  fleet: {
+    keywords: ['installed', 'my agents', 'my workflows', 'manage'],
+    description: 'Manage installed agents',
+  },
+  runs: {
+    keywords: ['executions', 'logs', 'history', 'activity'],
+    description: 'View execution history',
+  },
+  observability: {
     keywords: ['metrics', 'monitoring', 'charts', 'analytics'],
-    icon: 'eye',
     description: 'Review recent runs and preview analytics',
   },
-  {
-    type: 'navigate',
-    id: 'nav-security',
-    label: 'Security',
+  security: {
     keywords: ['secrets', 'keys', 'rbac', 'audit', 'policies'],
-    icon: 'shield',
     description: 'Review security access and preview states',
   },
-  {
-    type: 'navigate',
-    id: 'nav-settings',
-    label: 'Settings',
+  'admin-console': {
+    keywords: ['admin', 'tenants', 'users', 'impersonation', 'vertical'],
+    description: 'Manage tenants, users, and impersonation',
+  },
+  settings: {
     keywords: ['config', 'preferences', 'workspace', 'billing'],
-    icon: 'settings',
     description: 'Workspace settings',
   },
-];
+};
 
 const clinicNavigationItems: Omit<SearchItem, 'href'>[] = [
   {
@@ -168,7 +137,7 @@ export async function buildSearchIndex(
   mode: SearchMode = 'platform_internal'
 ): Promise<SearchItem[]> {
   const items: SearchItem[] = [];
-  const navigationItems = mode === 'clinic' ? clinicNavigationItems : platformNavigationItems;
+  const navigationItems = clinicNavigationItems;
 
   if (mode === 'clinic') {
     const experience = await provider.getTenantExperience(tenantId).catch(() => null);
@@ -310,16 +279,26 @@ export async function buildSearchIndex(
     tenantId,
   });
 
-  // Navigation items with tenant-specific hrefs
-  for (const navItem of navigationItems) {
-    const href =
-      navItem.id === 'nav-dashboard'
-        ? `/app/${tenantId}/dashboard`
-        : `/app/${tenantId}/${navItem.id.replace('nav-', '')}`;
+  const experience = await provider.getTenantExperience(tenantId).catch(() => null);
+  const navigation = resolveInternalNavigation({
+    allowedNavigation: experience?.allowedNavigation ?? [],
+    canAccessAdminConsole: experience?.canAccessAdminConsole ?? false,
+  });
+
+  for (const navItem of [
+    ...navigation.sections.flatMap((section) => section.items),
+    ...(navigation.footerItem ? [navigation.footerItem] : []),
+  ]) {
+    const metadata = platformNavigationMetadata[navItem.key];
 
     items.push({
-      ...navItem,
-      href,
+      type: 'navigate',
+      id: `nav-${navItem.key}`,
+      label: navItem.label,
+      keywords: metadata?.keywords ?? [],
+      href: `/app/${tenantId}${navItem.href}`,
+      icon: navItem.icon,
+      description: metadata?.description,
     });
   }
 

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveAppRootRedirect, resolveTenantRouteRedirect } from './tenant-routing';
+import {
+  matchTenantRoute,
+  resolveAppRootRedirect,
+  resolveTenantRouteRedirect,
+} from './tenant-routing';
 
 describe('tenant routing', () => {
   it('uses the active tenant vertical when redirecting /app', () => {
@@ -63,6 +67,14 @@ describe('tenant routing', () => {
     expect(target).toBe('/app/tenant-1/dashboard');
   });
 
+  it('classifies admin pages as internal admin-console routes', () => {
+    const match = matchTenantRoute('/app/tenant-1/admin/tenants', 'tenant-1');
+
+    expect(match.kind).toBe('internal');
+    expect(match.navigationKey).toBe('admin_console');
+    expect(match.canonicalPath).toBe('/admin/tenants');
+  });
+
   it('keeps fisio tenants on the shared shell but blocks routes outside their navigation', () => {
     const target = resolveTenantRouteRedirect({
       pathname: '/app/tenant-1/agenda',
@@ -70,6 +82,20 @@ describe('tenant routing', () => {
       experience: {
         activeVertical: 'fisio',
         allowedNavigation: ['dashboard', 'configuration'],
+        defaultRoute: '/app/tenant-1/dashboard',
+      },
+    });
+
+    expect(target).toBe('/app/tenant-1/dashboard');
+  });
+
+  it('redirects non-admin internal tenants away from the admin console', () => {
+    const target = resolveTenantRouteRedirect({
+      pathname: '/app/tenant-1/admin/tenants',
+      tenantId: 'tenant-1',
+      experience: {
+        activeVertical: 'internal',
+        allowedNavigation: ['platform_internal'],
         defaultRoute: '/app/tenant-1/dashboard',
       },
     });
