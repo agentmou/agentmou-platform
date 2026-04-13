@@ -19,3 +19,38 @@ export async function recordAuditEvent(input: AuditLogInput) {
     details: input.details ?? {},
   });
 }
+
+export interface AdminAuditLogInput {
+  actorId?: string | null;
+  actorTenantId: string;
+  targetTenantId: string;
+  action: string;
+  details?: Record<string, unknown>;
+}
+
+export async function recordAdminAuditEvent(input: AdminAuditLogInput) {
+  const details = {
+    targetTenantId: input.targetTenantId,
+    ...(input.details ?? {}),
+  };
+
+  await recordAuditEvent({
+    tenantId: input.targetTenantId,
+    actorId: input.actorId,
+    action: input.action,
+    category: 'admin',
+    details,
+  });
+
+  if (input.actorTenantId === input.targetTenantId) {
+    return;
+  }
+
+  await recordAuditEvent({
+    tenantId: input.actorTenantId,
+    actorId: input.actorId,
+    action: input.action,
+    category: 'admin',
+    details,
+  });
+}

@@ -117,6 +117,47 @@ export function normalizeMemberRole(role?: string) {
   return role === 'member' ? 'operator' : role;
 }
 
+function buildTenantFallbackFromAuthTenant(authTenant: {
+  id: string;
+  name: string;
+  plan: string;
+  settings?: {
+    timezone?: string;
+    defaultHITL?: boolean;
+    logRetentionDays?: number;
+    memoryRetentionDays?: number;
+    activeVertical?: 'internal' | 'clinic' | 'fisio';
+    isPlatformAdminTenant?: boolean;
+    settingsVersion?: number;
+    verticalClinicUi?: boolean;
+    clinicDentalMode?: boolean;
+    internalPlatformVisible?: boolean;
+  };
+}): Tenant {
+  const settings = authTenant.settings;
+
+  return {
+    id: authTenant.id,
+    name: authTenant.name,
+    type: 'business',
+    plan: authTenant.plan as Tenant['plan'],
+    createdAt: '',
+    ownerId: '',
+    settings: {
+      timezone: settings?.timezone ?? 'UTC',
+      defaultHITL: settings?.defaultHITL ?? false,
+      logRetentionDays: settings?.logRetentionDays ?? 30,
+      memoryRetentionDays: settings?.memoryRetentionDays ?? 7,
+      activeVertical: settings?.activeVertical ?? 'internal',
+      isPlatformAdminTenant: settings?.isPlatformAdminTenant ?? false,
+      settingsVersion: settings?.settingsVersion ?? 2,
+      verticalClinicUi: settings?.verticalClinicUi ?? false,
+      clinicDentalMode: settings?.clinicDentalMode ?? false,
+      internalPlatformVisible: settings?.internalPlatformVisible ?? false,
+    },
+  };
+}
+
 function isModuleEnabled(
   modules: Array<{ moduleKey: string; status: string; enabled?: boolean }>,
   moduleKey: string
@@ -249,8 +290,11 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
         return;
       }
 
+      const authTenant = authTenants.find((item) => item.id === tenantId) ?? null;
+
       const nextVertical =
-        nextExperience?.activeVertical ?? resolveTenantVertical(resolvedTenant?.settings);
+        nextExperience?.activeVertical ??
+        resolveTenantVertical(resolvedTenant?.settings ?? authTenant?.settings);
       const shouldLoadClinicContext = isSharedVertical(nextVertical);
 
       let nextProfile: ClinicProfile | null = null;
@@ -275,7 +319,9 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
         nextChannels = loadedChannels;
       }
 
-      setTenant(resolvedTenant);
+      setTenant(
+        resolvedTenant ?? (authTenant ? buildTenantFallbackFromAuthTenant(authTenant) : null)
+      );
       setProfile(nextProfile);
       setModules(nextModules);
       setChannels(nextChannels);

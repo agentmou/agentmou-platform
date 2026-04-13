@@ -104,7 +104,7 @@ export interface FleetAuditEvent {
   timestamp: string;
   action: string;
   actor: string;
-  category: 'agent' | 'workflow' | 'security' | 'billing';
+  category: 'agent' | 'workflow' | 'security' | 'billing' | 'admin';
   details: string;
 }
 
