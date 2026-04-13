@@ -71,18 +71,60 @@ export const tenantVerticalConfigs = pgTable(
 // ---------------------------------------------------------------------------
 
 /** Join table linking users to tenants with a role. */
-export const memberships = pgTable('memberships', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id')
-    .notNull()
-    .references(() => tenants.id),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => users.id),
-  role: text('role').notNull().default('viewer'),
-  joinedAt: timestamp('joined_at').defaultNow().notNull(),
-  lastActiveAt: timestamp('last_active_at').defaultNow().notNull(),
-});
+export const memberships = pgTable(
+  'memberships',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    role: text('role').notNull().default('viewer'),
+    joinedAt: timestamp('joined_at').defaultNow().notNull(),
+    lastActiveAt: timestamp('last_active_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('memberships_tenant_user_uidx').on(table.tenantId, table.userId),
+    index('memberships_tenant_idx').on(table.tenantId),
+    index('memberships_user_idx').on(table.userId),
+  ]
+);
+
+// ---------------------------------------------------------------------------
+// Admin impersonation sessions
+// ---------------------------------------------------------------------------
+
+/** Time-bounded admin impersonation sessions used for support/debug workflows. */
+export const adminImpersonationSessions = pgTable(
+  'admin_impersonation_sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    actorUserId: uuid('actor_user_id')
+      .notNull()
+      .references(() => users.id),
+    actorTenantId: uuid('actor_tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    targetUserId: uuid('target_user_id')
+      .notNull()
+      .references(() => users.id),
+    targetTenantId: uuid('target_tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    reason: text('reason'),
+    startedAt: timestamp('started_at').defaultNow().notNull(),
+    endedAt: timestamp('ended_at'),
+    expiresAt: timestamp('expires_at').notNull(),
+    metadata: jsonb('metadata').default({}).notNull(),
+  },
+  (table) => [
+    index('admin_impersonation_sessions_actor_tenant_idx').on(table.actorTenantId),
+    index('admin_impersonation_sessions_target_tenant_idx').on(table.targetTenantId),
+    index('admin_impersonation_sessions_target_user_idx').on(table.targetUserId),
+  ]
+);
 
 // ---------------------------------------------------------------------------
 // User identities (OAuth / enterprise IdP)
