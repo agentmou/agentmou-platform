@@ -81,6 +81,28 @@ describe('clinic data providers', () => {
     expect(tenantExperience?.shellKey).toBe('clinic');
   });
 
+  it('keeps mock tenant experiences aligned for internal and fisio workspaces', async () => {
+    const [internalExperience, fisioExperience] = await Promise.all([
+      mockProvider.getTenantExperience('tenant-acme'),
+      mockProvider.getTenantExperience('tenant-fisio'),
+    ]);
+
+    expect(internalExperience?.activeVertical).toBe('internal');
+    expect(internalExperience?.canAccessInternalPlatform).toBe(true);
+    expect(internalExperience?.flags.adminConsoleEnabled).toBe(false);
+    expect(fisioExperience?.activeVertical).toBe('fisio');
+    expect(fisioExperience?.shellKey).toBe('fisio');
+    expect(fisioExperience?.settingsSections).toEqual([
+      'general',
+      'team',
+      'integrations',
+      'plan',
+      'security',
+      'care_profile',
+      'care_schedule',
+    ]);
+  });
+
   it('exposes the admin read model through mock and demo providers', async () => {
     const [mockTenants, demoTenants, detail, usersBeforeCreate] = await Promise.all([
       mockProvider.listAdminTenants('tenant-admin', { limit: 10 }),

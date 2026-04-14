@@ -12,9 +12,10 @@ function buildContext(
     settingsSections: NonNullable<
       SettingsRegistryContext['experience']['resolvedExperience']
     >['settingsSections'];
+    capabilities?: Partial<SettingsRegistryContext['experience']['capabilities']>;
   }
 ): SettingsRegistryContext {
-  const { activeVertical, settingsSections, ...experienceOverrides } = overrides;
+  const { activeVertical, settingsSections, capabilities, ...experienceOverrides } = overrides;
 
   return {
     providerMode: 'mock',
@@ -94,6 +95,7 @@ function buildContext(
         voiceChannelAvailable: false,
         internalPlatformEnabled: activeVertical === 'internal',
         canAccessInternalPlatform: activeVertical === 'internal',
+        ...capabilities,
       },
       hasTenantAccess: true,
       fallbackTenantId: 'tenant-1',
@@ -237,5 +239,46 @@ describe('settings registry', () => {
 
     expect(resolveActiveSettingsSection(sections, 'care_forms')?.key).toBe('general');
     expect(resolveActiveSettingsSection(sections, 'plan')?.key).toBe('plan');
+  });
+
+  it('hides capability-gated care sections even when the experience lists them', () => {
+    const sections = getVisibleSettingsSections(
+      buildContext({
+        activeVertical: 'clinic',
+        settingsSections: [
+          'general',
+          'team',
+          'integrations',
+          'plan',
+          'security',
+          'care_forms',
+          'care_confirmations',
+          'care_gap_recovery',
+          'care_reactivation',
+        ],
+        capabilities: {
+          coreReceptionEnabled: true,
+          voiceEnabled: false,
+          growthEnabled: true,
+          formsEnabled: false,
+          confirmationsEnabled: false,
+          gapsEnabled: false,
+          reactivationEnabled: false,
+          multiLocationEnabled: false,
+          whatsappAvailable: true,
+          voiceChannelAvailable: false,
+          internalPlatformEnabled: false,
+          canAccessInternalPlatform: false,
+        },
+      })
+    );
+
+    expect(sections.map((section) => section.key)).toEqual([
+      'general',
+      'team',
+      'integrations',
+      'plan',
+      'security',
+    ]);
   });
 });

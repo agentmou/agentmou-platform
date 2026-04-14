@@ -89,6 +89,26 @@ export const tenants: Tenant[] = [
       internalPlatformVisible: false,
     },
   },
+  {
+    id: 'tenant-fisio',
+    name: 'Fisio Pilot Workspace',
+    type: 'business',
+    plan: 'starter',
+    createdAt: '2024-03-01T09:00:00Z',
+    ownerId: 'user-2',
+    settings: {
+      timezone: 'Europe/Madrid',
+      defaultHITL: false,
+      logRetentionDays: 30,
+      memoryRetentionDays: 7,
+      activeVertical: 'fisio',
+      isPlatformAdminTenant: false,
+      settingsVersion: 2,
+      verticalClinicUi: false,
+      clinicDentalMode: false,
+      internalPlatformVisible: false,
+    },
+  },
 ];
 
 // Workflow Templates (n8n assets) - MVP list from prompt
@@ -1688,6 +1708,15 @@ export const tenantMembers: TenantMember[] = [
     role: 'viewer',
     joinedAt: '2024-02-01T14:00:00Z',
     lastActiveAt: '2024-03-01T10:00:00Z',
+  },
+  {
+    id: 'member-4',
+    tenantId: 'tenant-fisio',
+    email: 'ops@fisio.test',
+    name: 'Fisio Operator',
+    role: 'admin',
+    joinedAt: '2024-03-01T09:00:00Z',
+    lastActiveAt: '2024-03-04T11:00:00Z',
   },
 ];
 

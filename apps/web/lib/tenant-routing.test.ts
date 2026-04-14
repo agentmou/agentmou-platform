@@ -7,6 +7,24 @@ import {
 } from './tenant-routing';
 
 describe('tenant routing', () => {
+  it('redirects /app to the internal workspace when the active tenant is internal', () => {
+    const target = resolveAppRootRedirect({
+      activeTenantId: 'tenant-internal',
+      tenants: [
+        {
+          id: 'tenant-clinic',
+          settings: { activeVertical: 'clinic' },
+        },
+        {
+          id: 'tenant-internal',
+          settings: { activeVertical: 'internal' },
+        },
+      ],
+    });
+
+    expect(target).toBe('/app/tenant-internal/dashboard');
+  });
+
   it('uses the active tenant vertical when redirecting /app', () => {
     const target = resolveAppRootRedirect({
       activeTenantId: 'tenant-clinic',
@@ -96,6 +114,20 @@ describe('tenant routing', () => {
       experience: {
         activeVertical: 'internal',
         allowedNavigation: ['platform_internal'],
+        defaultRoute: '/app/tenant-1/dashboard',
+      },
+    });
+
+    expect(target).toBe('/app/tenant-1/dashboard');
+  });
+
+  it('redirects clinic tenants away from admin routes even through the internal namespace', () => {
+    const target = resolveTenantRouteRedirect({
+      pathname: '/app/tenant-1/admin/tenants',
+      tenantId: 'tenant-1',
+      experience: {
+        activeVertical: 'clinic',
+        allowedNavigation: ['dashboard', 'inbox', 'configuration'],
         defaultRoute: '/app/tenant-1/dashboard',
       },
     });
