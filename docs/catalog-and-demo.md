@@ -92,9 +92,15 @@ For complete local verification, use:
 pnpm validate:clinic-demo
 ```
 
-The seeded clinic QA login is `admin@agentmou.dev` / `Demo1234!`. That seeded
-user sees the internal platform inside `Dental Demo Clinic`, while the public
-`demo-workspace` demo keeps internal mode hidden by design.
+The seeded local QA login is `admin@agentmou.dev` / `Demo1234!`. That user gets
+three database-backed tenants:
+
+- `Demo Workspace` as the internal admin workspace
+- `Dental Demo Clinic` as the seeded clinic tenant
+- `Fisio Pilot Workspace` as the minimal fisio fixture
+
+The public `demo-workspace` remains a separate read-only clinic demo and keeps
+internal/admin surfaces hidden by design.
 
 ## Generated Snapshot Workflow
 

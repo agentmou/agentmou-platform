@@ -184,7 +184,7 @@ Solutions to common problems you may encounter while developing on or running Ag
    ```
 
 4. Run the full validation helper to ensure PostgreSQL, migrations, seed, and
-   clinic smoke stay aligned:
+   the clinic + QA seed smoke lane stay aligned:
    ```bash
    pnpm validate:clinic-demo
    ```

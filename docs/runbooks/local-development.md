@@ -124,8 +124,11 @@ To access the web app:
 1. Navigate to http://localhost:3000
 2. Create an account, or use the seeded local login:
    `admin@agentmou.dev` / `Demo1234!`
-3. Explore `Demo Workspace` for the horizontal demo or `Dental Demo Clinic`
-   for the seeded clinic tenant with internal `/platform/*` access
+3. Use the seeded matrix according to what you need to validate:
+   - `Demo Workspace` for the internal admin workspace and Admin console
+   - `Dental Demo Clinic` for the seeded clinic tenant
+   - `Fisio Pilot Workspace` for the minimal fisio vertical fixture
+   - `/app/demo-workspace/dashboard` for the public read-only clinic demo
 
 ---
 

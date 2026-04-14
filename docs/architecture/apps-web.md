@@ -2,7 +2,7 @@
 
 `apps/web` is the user-facing surface of the monorepo. It combines the public
 marketing site, authentication flows, a tenant-scoped control center with
-clinic and platform modes, and a small set of Next.js API routes used by the
+vertical-aware shells, and a small set of Next.js API routes used by the
 frontend itself.
 
 ## Responsibilities
@@ -11,16 +11,17 @@ frontend itself.
 - Handle login, registration, password reset, and the B2C OAuth return flow
   under `app/(auth)`.
 - Render the authenticated tenant experience under `app/app/[tenantId]/`,
-  choosing between the clinic shell and the original platform shell.
+  choosing between `internal`, `clinic`, and `fisio` via the resolved
+  `TenantExperience`.
 - Consume `services/api` through typed client helpers in `lib/api/`, including
   the clinic backend fetchers added for the new tenant-scoped domain routes.
 - Expose web-owned API routes for marketing chat, public catalog cards, and
   contact-sales lead capture.
 - Keep demo and operational catalog experiences separated through the
   `DataProvider` abstraction.
-- Keep clinic and internal-platform navigation coherent for vertical tenants
-  through the resolved `ClinicExperience` payload, tenant-aware routing,
-  capability resolution, and redirect helpers.
+- Keep clinic, fisio, internal, and admin navigation coherent through the
+  resolved `TenantExperience` payload, tenant-aware routing, capability
+  resolution, and redirect helpers.
 
 ## Route Layout
 
@@ -65,6 +66,11 @@ Important behavior:
 app/app/
 ├── page.tsx
 └── [tenantId]/
+    ├── admin/
+    │   ├── page.tsx
+    │   └── tenants/
+    │       ├── page.tsx
+    │       └── [managedTenantId]/page.tsx
     ├── agenda/page.tsx
     ├── layout.tsx
     ├── approvals/page.tsx
@@ -80,7 +86,6 @@ app/app/
     ├── observability/page.tsx
     ├── pacientes/page.tsx
     ├── platform/
-    │   ├── layout.tsx
     │   ├── approvals/page.tsx
     │   ├── dashboard/page.tsx
     │   ├── fleet/page.tsx
@@ -108,31 +113,33 @@ from the login and register pages, and preserves public access to the
 `demo-workspace` tenant.
 
 `app/app/[tenantId]/layout.tsx` is the experience switch. It resolves the shell
-using `tenant.settings.verticalClinicUi` as the canonical signal and falls back
-to a loaded `clinic_profile` for older payloads. Clinical tenants render:
+from `GET /api/v1/tenants/:tenantId/experience`, using `activeVertical`,
+`shellKey`, `defaultRoute`, and `allowedNavigation` as the canonical signals.
+Shared-care tenants render:
 
 - `ClinicShell` for `dashboard` (`Resumen`), `bandeja`, `agenda`, `pacientes`,
   `seguimiento/*`, `reactivacion`, `rendimiento`, and `configuracion`
-- `AgentmouShell` only for `/platform/*`
-- redirects from legacy platform roots like `/runs` or `/marketplace` into
-  `/platform/*`
+- redirects from internal/admin routes back to their vertical default route
 
-Non-clinic tenants keep the original `AgentmouShell` and legacy root routes.
-`clinicDentalMode` travels in the same tenant settings payload so the web app
-does not need ad hoc heuristics to recognize the vertical before rendering
-navigation.
+Internal tenants keep `AgentmouShell`, use top-level internal routes such as
+`/runs`, `/marketplace`, `/settings`, and `/admin/tenants`, and still accept
+`/platform/*` only as a compatibility alias. `clinicDentalMode` and the old
+boolean settings still travel for compatibility, but the web app no longer uses
+them as the primary routing signal.
 
 Once the tenant is inside the app, `useResolvedTenantExperience` prefers
-`GET /clinic/experience` as the canonical source for:
+`GET /tenants/:tenantId/experience` as the canonical source for:
 
-- `clinic` vs `platform_internal` mode
+- `internal`, `clinic`, or `fisio`
 - normalized role and permissions
 - resolved feature flags
 - allowed navigation
+- settings sections
 - enriched module entitlements
 
 It only falls back to separate tenant/profile/module requests when that payload
-is not available.
+is not available. The legacy clinic-specific experience endpoint remains as a
+compatibility layer for clinic read models.
 
 ### Next.js API routes
 
@@ -168,9 +175,10 @@ The clinic fetchers in `lib/api/clinic.ts` now sit under the same
 clinic shell, the demo tenant, and mock-backed tests on the same frontend read
 surface without page-level `fetch` calls.
 
-The provider contract now also carries the resolved clinic experience so
-navigation, guards, command palette items, and internal-mode eligibility all
-derive from the same payload instead of each page re-implementing gating.
+The provider contract now also carries the resolved tenant experience so
+navigation, guards, command palette items, admin visibility, and internal-mode
+eligibility all derive from the same payload instead of each page
+re-implementing gating.
 
 Public marketing does not depend on `DataProvider` for its main story anymore.
 Instead:
@@ -186,7 +194,7 @@ Instead:
 - `lib/api/core.ts` centralizes request/error helpers shared by all web API
   clients.
 - `lib/api/client.ts` remains the typed fetcher layer for the original control
-  plane.
+  plane, including the Admin console routes.
 - `lib/api/clinic.ts` adds typed fetchers for clinic dashboard, profile,
   experience, modules, channels, patients, conversations, calls,
   appointments, forms, follow-up, and reactivation. It also parses structured `409`
@@ -197,12 +205,14 @@ Instead:
 - `lib/tenant-experience.tsx` resolves shell mode, clinic capability flags,
   internal-platform access, allowed navigation, and clinic fallbacks from
   tenant state plus the resolved experience payload.
+- `lib/vertical-registry.ts`, `lib/tenant-routing.ts`, and
+  `lib/internal-navigation.ts` encode shell, route, and navigation policy for
+  `internal`, `clinic`, and `fisio`.
 - `components/clinic/` contains the reusable domain UI used by the clinic
   shell, including `ClinicShell`, `ClinicSidebar`, `ClinicTopbar`,
   `ClinicCommandSurface`, domain cards, and `InternalModeSwitch`.
-- `components/control-plane/legacy-platform-redirect.tsx` moves clinic tenants
-  from legacy platform roots into `/platform/*` only when internal access is
-  allowed; otherwise it sends them back to the clinic dashboard.
+- `components/admin/` contains the internal Admin console for tenant
+  management, membership operations, vertical changes, and impersonation UI.
 - `lib/demo-catalog/` stores the curated demo inventory, featured marketing
   IDs, and the generated operational ID index.
 - `lib/demo/clinic-read-model.ts` provides deterministic clinic fixtures for
@@ -214,24 +224,17 @@ Instead:
 - `lib/honest-ui/` centralizes preview and placeholder labeling for the UI.
 - `components/marketing/` contains the clinic hero, value grids, patient-flow
   sections, trust blocks, platform grid, and `ContactSalesForm`.
-- `lib/search-index.ts` and the command palette now support `clinic` and
-  `platform_internal` modes so the clinic shell surfaces patients,
-  appointments, conversations, forms, gaps, and campaigns instead of
-  marketplace and runs.
+- `lib/search-index.ts` and the command palette now support the shared care
+  search mode plus the internal mode, including Admin navigation only when the
+  tenant can access it.
 - `components/` groups reusable UI and domain components used across the app.
 
 Hidden clinic routes now render controlled unavailable states based on the same
-resolved navigation and entitlement data; they do not rely on uncaught render
-errors to express access control.
-
-The internal switch is visible only when all of these are true:
-
-- normalized role is `owner` or `admin`
-- the resolved `internal_platform` module entitlement is enabled
-- `tenant.settings.internalPlatformVisible` is `true`
-
-`demo-workspace` keeps realistic clinic data but intentionally fails that final
-visibility condition so the internal switch stays hidden.
+resolved navigation, entitlement, and feature-flag data; they do not rely on
+uncaught render errors to express access control. `demo-workspace` keeps
+realistic clinic data but intentionally hides internal/admin surfaces so it can
+remain the public read-only demo, separate from the seeded local QA tenants in
+the database.
 
 ## How It Fits Into The Platform
 
