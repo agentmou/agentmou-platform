@@ -59,7 +59,7 @@ run_step() {
 }
 
 main() {
-  echo "== Clinic demo validation =="
+  echo "== Clinic demo + QA seed validation =="
   echo "DATABASE_URL=$DATABASE_URL"
 
   ensure_postgres
@@ -74,10 +74,10 @@ main() {
   run_step "api test" pnpm --filter @agentmou/api test
   run_step "web typecheck" pnpm --filter @agentmou/web typecheck
   run_step "web test" pnpm --filter @agentmou/web test
-  run_step "clinic demo smoke" node --import tsx scripts/test-e2e-clinic-demo.ts
+  run_step "clinic demo + qa seed smoke" node --import tsx scripts/test-e2e-clinic-demo.ts
   run_step "content validation" make validate-content
 
-  echo "== Clinic demo validation complete =="
+  echo "== Clinic demo + QA seed validation complete =="
 }
 
 main "$@"

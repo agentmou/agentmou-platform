@@ -536,7 +536,7 @@ export function buildClinicDemoSeedFixture(now = new Date()): ClinicDemoSeedBlue
       settingsVersion: 2,
       verticalClinicUi: true,
       clinicDentalMode: true,
-      internalPlatformVisible: true,
+      internalPlatformVisible: false,
     },
     verticalConfigs: [
       {

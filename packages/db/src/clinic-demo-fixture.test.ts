@@ -20,7 +20,7 @@ describe('buildClinicDemoSeedFixture', () => {
     expect(fixture.tenantSettings.activeVertical).toBe('clinic');
     expect(fixture.tenantSettings.isPlatformAdminTenant).toBe(false);
     expect(fixture.tenantSettings.settingsVersion).toBe(2);
-    expect(fixture.tenantSettings.internalPlatformVisible).toBe(true);
+    expect(fixture.tenantSettings.internalPlatformVisible).toBe(false);
     expect(fixture.verticalConfigs[0]).toMatchObject({
       verticalKey: 'clinic',
     });

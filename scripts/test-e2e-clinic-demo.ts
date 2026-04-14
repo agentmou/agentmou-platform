@@ -1,9 +1,14 @@
 #!/usr/bin/env tsx
 
+import {
+  CLINIC_QA_TENANT_NAME,
+  FISIO_QA_TENANT_NAME,
+  INTERNAL_QA_TENANT_NAME,
+  QA_SEED_ADMIN_EMAIL,
+  QA_SEED_ADMIN_PASSWORD,
+} from '../packages/db/src/seed-blueprints.ts';
+
 const DEMO_TENANT_ID = 'demo-workspace';
-const CLINIC_TENANT_NAME = 'Dental Demo Clinic';
-const ADMIN_EMAIL = 'admin@agentmou.dev';
-const ADMIN_PASSWORD = 'Demo1234!';
 
 process.env.NODE_ENV ??= 'test';
 process.env.CORS_ORIGIN ??= 'http://localhost:3000';
@@ -260,16 +265,18 @@ async function main() {
   const tenantSettings = readRecord(seedFixture.tenantSettings, 'seedFixture.tenantSettings');
   assert(flags.internalPlatformVisible === false, 'Demo workspace must hide internal mode');
   assert(
-    tenantSettings.internalPlatformVisible === true,
-    'Seeded internal clinic tenant must keep internal mode available'
+    tenantSettings.internalPlatformVisible === false,
+    'Seeded clinic fixture must keep internal mode hidden'
   );
-  log('demo hides internal mode; seeded clinic tenant keeps it enabled');
+  log(
+    'demo and seeded clinic both hide internal mode; internal access belongs to the admin workspace'
+  );
 
   await runDatabaseSmoke(summary, seedFixture, dbIndexModule);
   await runApiSmoke(summary);
 
   step('Done');
-  process.stdout.write('Clinic demo smoke checks passed.\n');
+  process.stdout.write('Clinic demo + QA seed smoke checks passed.\n');
 }
 
 async function runDatabaseSmoke(
@@ -305,6 +312,11 @@ async function runDatabaseSmoke(
 
   try {
     const tenants = readRecord(schema.tenants, 'schema.tenants');
+    const memberships = readRecord(schema.memberships, 'schema.memberships');
+    const tenantVerticalConfigs = readRecord(
+      schema.tenantVerticalConfigs,
+      'schema.tenantVerticalConfigs'
+    );
     const patients = readRecord(schema.patients, 'schema.patients');
     const conversationThreads = readRecord(
       schema.conversationThreads,
@@ -337,17 +349,91 @@ async function runDatabaseSmoke(
     const [clinicTenant] = await typedDb
       .select()
       .from(tenants)
-      .where(eq(tenants.name, CLINIC_TENANT_NAME))
+      .where(eq(tenants.name, CLINIC_QA_TENANT_NAME))
       .limit(1);
 
     assert(clinicTenant, 'Expected seeded clinic tenant to exist');
     const clinicTenantSettings = readRecord(clinicTenant.settings, 'clinicTenant.settings');
     assert(
-      clinicTenantSettings.internalPlatformVisible === true,
-      'Expected seeded clinic tenant to keep internal mode enabled'
+      clinicTenantSettings.internalPlatformVisible === false,
+      'Expected seeded clinic tenant to keep internal mode hidden'
     );
 
     const clinicTenantId = readString(clinicTenant.id, 'clinicTenant.id');
+    const [internalTenant] = await typedDb
+      .select()
+      .from(tenants)
+      .where(eq(tenants.name, INTERNAL_QA_TENANT_NAME))
+      .limit(1);
+    assert(internalTenant, 'Expected seeded internal admin tenant to exist');
+    const internalTenantSettings = readRecord(internalTenant.settings, 'internalTenant.settings');
+    assert(
+      readString(
+        internalTenantSettings.activeVertical,
+        'internalTenant.settings.activeVertical'
+      ) === 'internal',
+      'Expected internal seed workspace activeVertical=internal'
+    );
+    assert(
+      internalTenantSettings.isPlatformAdminTenant === true,
+      'Expected internal seed workspace to stay platform-admin enabled'
+    );
+    const [fisioTenant] = await typedDb
+      .select()
+      .from(tenants)
+      .where(eq(tenants.name, FISIO_QA_TENANT_NAME))
+      .limit(1);
+    assert(fisioTenant, 'Expected seeded fisio tenant to exist');
+    const fisioTenantSettings = readRecord(fisioTenant.settings, 'fisioTenant.settings');
+    assert(
+      readString(fisioTenantSettings.activeVertical, 'fisioTenant.settings.activeVertical') ===
+        'fisio',
+      'Expected fisio seed workspace activeVertical=fisio'
+    );
+
+    const [internalMembership] = await typedDb
+      .select()
+      .from(memberships)
+      .where(eq(memberships.tenantId, readString(internalTenant.id, 'internalTenant.id')))
+      .limit(5);
+    assert(internalMembership, 'Expected membership for internal seed workspace');
+    assert(
+      readString(internalMembership.role, 'internalMembership.role') === 'owner',
+      'Expected internal seed workspace to keep owner membership'
+    );
+    const [fisioMembership] = await typedDb
+      .select()
+      .from(memberships)
+      .where(eq(memberships.tenantId, readString(fisioTenant.id, 'fisioTenant.id')))
+      .limit(5);
+    assert(fisioMembership, 'Expected membership for fisio seed workspace');
+    assert(
+      readString(fisioMembership.role, 'fisioMembership.role') === 'admin',
+      'Expected fisio seed workspace to keep admin membership'
+    );
+
+    const [internalVerticalConfig] = await typedDb
+      .select()
+      .from(tenantVerticalConfigs)
+      .where(eq(tenantVerticalConfigs.tenantId, readString(internalTenant.id, 'internalTenant.id')))
+      .limit(5);
+    assert(internalVerticalConfig, 'Expected internal seed tenant vertical config');
+    assert(
+      readString(internalVerticalConfig.verticalKey, 'internalVerticalConfig.verticalKey') ===
+        'internal',
+      'Expected internal vertical config row'
+    );
+    const [fisioVerticalConfig] = await typedDb
+      .select()
+      .from(tenantVerticalConfigs)
+      .where(eq(tenantVerticalConfigs.tenantId, readString(fisioTenant.id, 'fisioTenant.id')))
+      .limit(5);
+    assert(fisioVerticalConfig, 'Expected fisio seed tenant vertical config');
+    assert(
+      readString(fisioVerticalConfig.verticalKey, 'fisioVerticalConfig.verticalKey') === 'fisio',
+      'Expected fisio vertical config row'
+    );
+
     const summaryCounts = readRecord(summary.counts, 'summary.counts');
     const seedSummary = readRecord(seedFixture.summary, 'seedFixture.summary');
     const seedSummaryCounts = readRecord(seedSummary.counts, 'seedFixture.summary.counts');
@@ -645,7 +731,7 @@ async function runDatabaseSmoke(
     assert(recipientStatuses.includes('failed'), 'Expected failed reactivation recipient');
 
     log(
-      `tenant=${clinicTenantId}, patients=${dbPatients.length}, appointments=${dbAppointments.length}, campaigns=${dbCampaigns.length}`
+      `clinic=${clinicTenantId}, internal=${readString(internalTenant.id, 'internalTenant.id')}, fisio=${readString(fisioTenant.id, 'fisioTenant.id')}`
     );
   } finally {
     await close();
@@ -686,8 +772,8 @@ async function runApiSmoke(summary: UnknownRecord) {
       method: 'POST',
       url: '/api/v1/auth/login',
       payload: {
-        email: ADMIN_EMAIL,
-        password: ADMIN_PASSWORD,
+        email: QA_SEED_ADMIN_EMAIL,
+        password: QA_SEED_ADMIN_PASSWORD,
       },
       headers: {
         'content-type': 'application/json',
@@ -702,13 +788,28 @@ async function runApiSmoke(summary: UnknownRecord) {
     const tenants = readArray(loginBody.tenants, 'login tenants');
     const clinicTenant = tenants.find((tenant) => {
       const record = readRecord(tenant, 'login tenant');
-      return readString(record.name, 'login tenant name') === CLINIC_TENANT_NAME;
+      return readString(record.name, 'login tenant name') === CLINIC_QA_TENANT_NAME;
     });
     assert(clinicTenant, 'Expected seeded login to expose Dental Demo Clinic');
     const clinicTenantId = readString(
       readRecord(clinicTenant, 'clinic tenant').id,
       'clinic tenant id'
     );
+    const internalTenant = tenants.find((tenant) => {
+      const record = readRecord(tenant, 'login tenant');
+      return readString(record.name, 'login tenant name') === INTERNAL_QA_TENANT_NAME;
+    });
+    assert(internalTenant, 'Expected seeded login to expose the internal admin workspace');
+    const internalTenantId = readString(
+      readRecord(internalTenant, 'internal tenant').id,
+      'internal tenant id'
+    );
+    const fisioTenant = tenants.find((tenant) => {
+      const record = readRecord(tenant, 'login tenant');
+      return readString(record.name, 'login tenant name') === FISIO_QA_TENANT_NAME;
+    });
+    assert(fisioTenant, 'Expected seeded login to expose the fisio workspace');
+    const fisioTenantId = readString(readRecord(fisioTenant, 'fisio tenant').id, 'fisio tenant id');
 
     const authHeaders = {
       authorization: `Bearer ${token}`,
@@ -732,12 +833,120 @@ async function runApiSmoke(summary: UnknownRecord) {
       'Expected clinic tenant default mode'
     );
     assert(
-      flags.internalPlatformVisible === true,
-      'Expected seeded clinic tenant to expose internal mode'
+      flags.internalPlatformVisible === false,
+      'Expected seeded clinic tenant to hide internal mode'
     );
     assert(
-      permissions.includes('view_internal_platform'),
-      'Expected owner seed user to see internal platform'
+      !permissions.includes('view_internal_platform'),
+      'Expected seeded clinic tenant to stay out of the internal platform'
+    );
+
+    const internalExperienceResponse = await app.inject({
+      method: 'GET',
+      url: `/api/v1/tenants/${internalTenantId}/experience`,
+      headers: authHeaders,
+    });
+    assert(
+      internalExperienceResponse.statusCode === 200,
+      `Expected internal tenant experience route to succeed, received ${internalExperienceResponse.statusCode}`
+    );
+    const internalExperienceBody = readRecord(
+      internalExperienceResponse.json(),
+      'internal experience response'
+    );
+    const internalExperience = readRecord(internalExperienceBody.experience, 'internal experience');
+    assert(
+      readString(internalExperience.activeVertical, 'internal experience.activeVertical') ===
+        'internal',
+      'Expected internal seed workspace activeVertical=internal'
+    );
+    assert(
+      readString(internalExperience.shellKey, 'internal experience.shellKey') ===
+        'platform_internal',
+      'Expected internal seed workspace to keep the internal shell'
+    );
+    assert(
+      readArray(
+        internalExperience.allowedNavigation,
+        'internal experience.allowedNavigation'
+      ).includes('admin_console'),
+      'Expected internal seed workspace to expose admin navigation'
+    );
+    assert(
+      internalExperience.canAccessAdminConsole === true,
+      'Expected internal seed workspace to access the admin console'
+    );
+
+    const fisioExperienceResponse = await app.inject({
+      method: 'GET',
+      url: `/api/v1/tenants/${fisioTenantId}/experience`,
+      headers: authHeaders,
+    });
+    assert(
+      fisioExperienceResponse.statusCode === 200,
+      `Expected fisio tenant experience route to succeed, received ${fisioExperienceResponse.statusCode}`
+    );
+    const fisioExperienceBody = readRecord(
+      fisioExperienceResponse.json(),
+      'fisio experience response'
+    );
+    const fisioExperience = readRecord(fisioExperienceBody.experience, 'fisio experience');
+    assert(
+      readString(fisioExperience.activeVertical, 'fisio experience.activeVertical') === 'fisio',
+      'Expected fisio seed workspace activeVertical=fisio'
+    );
+    assert(
+      readString(fisioExperience.shellKey, 'fisio experience.shellKey') === 'fisio',
+      'Expected fisio seed workspace to resolve the shared fisio shell'
+    );
+    assert(
+      readArray(fisioExperience.settingsSections, 'fisio experience.settingsSections').join(',') ===
+        [
+          'general',
+          'team',
+          'integrations',
+          'plan',
+          'security',
+          'care_profile',
+          'care_schedule',
+        ].join(','),
+      'Expected fisio seed workspace to expose only the prepared settings subset'
+    );
+
+    const adminTenantsResponse = await app.inject({
+      method: 'GET',
+      url: '/api/v1/admin/tenants?limit=10',
+      headers: {
+        ...authHeaders,
+        'x-tenant-id': internalTenantId,
+      },
+    });
+    assert(
+      adminTenantsResponse.statusCode === 200,
+      `Expected admin tenants route to succeed for the internal workspace, received ${adminTenantsResponse.statusCode}`
+    );
+    const adminTenantsBody = readRecord(adminTenantsResponse.json(), 'admin tenants response');
+    const adminTenantItems = readArray(adminTenantsBody.tenants, 'admin tenants');
+    assert(
+      adminTenantItems.some(
+        (tenant) =>
+          readString(readRecord(tenant, 'admin tenant').name, 'admin tenant.name') ===
+          CLINIC_QA_TENANT_NAME
+      ),
+      'Expected admin tenants list to include the seeded clinic workspace'
+    );
+
+    const forbiddenAdminResponse = await app.inject({
+      method: 'GET',
+      url: '/api/v1/admin/tenants?limit=10',
+      headers: {
+        ...authHeaders,
+        'x-tenant-id': fisioTenantId,
+      },
+    });
+    assert(
+      forbiddenAdminResponse.statusCode === 403,
+      `Expected fisio tenant to be rejected by admin routes, received ${forbiddenAdminResponse.statusCode}`
     );
 
     const dashboardResponse = await app.inject({
@@ -911,7 +1120,7 @@ async function runApiSmoke(summary: UnknownRecord) {
     );
 
     log(
-      `tenant=${clinicTenantId}, patients=${patientItems.length}, threads=${threads.length}, appointments=${appointments.length}`
+      `clinic=${clinicTenantId}, internal=${internalTenantId}, fisio=${fisioTenantId}, patients=${patientItems.length}`
     );
   } finally {
     await app.close();
