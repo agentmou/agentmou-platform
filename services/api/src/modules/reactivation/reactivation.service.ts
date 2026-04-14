@@ -9,7 +9,7 @@ import type {
 import { recordAuditEvent } from '../../lib/audit.js';
 import { ClinicAutomationService } from '../clinic-shared/clinic-automation.service.js';
 import {
-  assertClinicModuleAvailable,
+  assertClinicFeatureAvailable,
   assertClinicRole,
   getClinicListLimit,
 } from '../clinic-shared/clinic-access.js';
@@ -24,7 +24,7 @@ export class ReactivationService {
 
   async listCampaigns(tenantId: string, filters: CampaignFilters, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
-    await assertClinicModuleAvailable(tenantId, 'growth');
+    await assertClinicFeatureAvailable(tenantId, 'reactivation', tenantRole);
     const result = await this.repository.listCampaigns(tenantId, {
       ...filters,
       limit: getClinicListLimit(filters.limit),
@@ -38,7 +38,7 @@ export class ReactivationService {
 
   async getCampaign(tenantId: string, campaignId: string, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
-    await assertClinicModuleAvailable(tenantId, 'growth');
+    await assertClinicFeatureAvailable(tenantId, 'reactivation', tenantRole);
     return this.repository.getCampaign(tenantId, campaignId);
   }
 
@@ -49,7 +49,7 @@ export class ReactivationService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'manage');
-    await assertClinicModuleAvailable(tenantId, 'growth');
+    await assertClinicFeatureAvailable(tenantId, 'reactivation', tenantRole);
     const campaign = await this.repository.createCampaign(tenantId, body);
 
     if (body.scheduledAt) {
@@ -82,7 +82,7 @@ export class ReactivationService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'manage');
-    await assertClinicModuleAvailable(tenantId, 'growth');
+    await assertClinicFeatureAvailable(tenantId, 'reactivation', tenantRole);
     const campaign = await this.repository.startCampaign(tenantId, campaignId, body);
     if (!campaign) {
       return null;
@@ -115,7 +115,7 @@ export class ReactivationService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'manage');
-    await assertClinicModuleAvailable(tenantId, 'growth');
+    await assertClinicFeatureAvailable(tenantId, 'reactivation', tenantRole);
     const campaign = await this.repository.pauseCampaign(tenantId, campaignId, body);
     if (!campaign) {
       return null;
@@ -145,7 +145,7 @@ export class ReactivationService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'manage');
-    await assertClinicModuleAvailable(tenantId, 'growth');
+    await assertClinicFeatureAvailable(tenantId, 'reactivation', tenantRole);
     const campaign = await this.repository.resumeCampaign(tenantId, campaignId, body);
     if (!campaign) {
       return null;
@@ -173,7 +173,7 @@ export class ReactivationService {
 
   async listRecipients(tenantId: string, limit = 50, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
-    await assertClinicModuleAvailable(tenantId, 'growth');
+    await assertClinicFeatureAvailable(tenantId, 'reactivation', tenantRole);
     return this.repository.listRecipients(tenantId, getClinicListLimit(limit));
   }
 }

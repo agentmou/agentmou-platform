@@ -4,6 +4,10 @@ export interface ApiConfig {
   logLevel: string;
   corsOrigin: string;
   webAppBaseUrl: string;
+  reflagSdkKey?: string;
+  reflagEnvironment: string;
+  reflagBaseUrl?: string;
+  reflagLocalOverridesJson?: string;
 }
 
 function parsePort(value: string | undefined, fallback: number) {
@@ -46,5 +50,9 @@ export function getApiConfig(): ApiConfig {
     logLevel: process.env.LOG_LEVEL ?? 'info',
     corsOrigin: requireCorsOrigin(),
     webAppBaseUrl: requireWebAppBaseUrl(),
+    reflagSdkKey: process.env.REFLAG_SDK_KEY,
+    reflagEnvironment: process.env.REFLAG_ENVIRONMENT ?? process.env.NODE_ENV ?? 'development',
+    reflagBaseUrl: process.env.REFLAG_BASE_URL,
+    reflagLocalOverridesJson: process.env.REFLAG_LOCAL_OVERRIDES_JSON,
   };
 }

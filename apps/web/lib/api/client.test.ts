@@ -68,6 +68,7 @@ describe('api client runtime parsing', () => {
             flags: {
               activeVertical: 'internal',
               isPlatformAdminTenant: true,
+              adminConsoleEnabled: true,
               verticalClinicUi: false,
               clinicDentalMode: false,
               voiceInboundEnabled: false,

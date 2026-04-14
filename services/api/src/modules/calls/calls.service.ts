@@ -3,8 +3,7 @@ import type { CallFilters, CallbackCallBody, ResolveCallBody } from '@agentmou/c
 import { recordAuditEvent } from '../../lib/audit.js';
 import { ClinicAutomationService } from '../clinic-shared/clinic-automation.service.js';
 import {
-  assertClinicChannelAvailable,
-  assertClinicModuleAvailable,
+  assertClinicFeatureAvailable,
   assertClinicRole,
   getClinicListLimit,
 } from '../clinic-shared/clinic-access.js';
@@ -19,8 +18,7 @@ export class CallsService {
 
   async listCalls(tenantId: string, filters: CallFilters, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
-    await assertClinicModuleAvailable(tenantId, 'voice');
-    await assertClinicChannelAvailable(tenantId, 'voice');
+    await assertClinicFeatureAvailable(tenantId, 'voice_inbound', tenantRole);
     const result = await this.repository.listCalls(tenantId, {
       ...filters,
       limit: getClinicListLimit(filters.limit),
@@ -34,8 +32,7 @@ export class CallsService {
 
   async getCall(tenantId: string, callId: string, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
-    await assertClinicModuleAvailable(tenantId, 'voice');
-    await assertClinicChannelAvailable(tenantId, 'voice');
+    await assertClinicFeatureAvailable(tenantId, 'voice_inbound', tenantRole);
     return this.repository.getCall(tenantId, callId);
   }
 
@@ -47,8 +44,7 @@ export class CallsService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'operate');
-    await assertClinicModuleAvailable(tenantId, 'voice');
-    await assertClinicChannelAvailable(tenantId, 'voice');
+    await assertClinicFeatureAvailable(tenantId, 'voice_outbound', tenantRole);
     const call = await this.repository.scheduleCallback(tenantId, callId, body);
     if (!call) {
       return null;
@@ -79,8 +75,7 @@ export class CallsService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'operate');
-    await assertClinicModuleAvailable(tenantId, 'voice');
-    await assertClinicChannelAvailable(tenantId, 'voice');
+    await assertClinicFeatureAvailable(tenantId, 'voice_inbound', tenantRole);
     const call = await this.repository.resolveCall(tenantId, callId, body);
     if (!call) {
       return null;

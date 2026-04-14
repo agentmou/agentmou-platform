@@ -10,7 +10,7 @@ import type {
 import { recordAuditEvent } from '../../lib/audit.js';
 import { ClinicAutomationService } from '../clinic-shared/clinic-automation.service.js';
 import {
-  assertClinicModuleAvailable,
+  assertClinicFeatureAvailable,
   assertClinicRole,
   getClinicListLimit,
 } from '../clinic-shared/clinic-access.js';
@@ -25,14 +25,14 @@ export class FollowUpService {
 
   async listReminders(tenantId: string, limit = 50, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
-    await assertClinicModuleAvailable(tenantId, 'core_reception');
+    await assertClinicFeatureAvailable(tenantId, 'confirmations', tenantRole);
     const reminders = await this.repository.listReminders(tenantId, getClinicListLimit(limit));
     return reminders.map(mapReminderJob);
   }
 
   async listConfirmations(tenantId: string, filters: ConfirmationFilters, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
-    await assertClinicModuleAvailable(tenantId, 'core_reception');
+    await assertClinicFeatureAvailable(tenantId, 'confirmations', tenantRole);
     const confirmations = await this.repository.listConfirmations(tenantId, {
       ...filters,
       limit: getClinicListLimit(filters.limit),
@@ -48,7 +48,7 @@ export class FollowUpService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'operate');
-    await assertClinicModuleAvailable(tenantId, 'core_reception');
+    await assertClinicFeatureAvailable(tenantId, 'confirmations', tenantRole);
     const reminder = await this.repository.remindConfirmation(tenantId, confirmationId, body);
     if (!reminder) {
       return null;
@@ -82,7 +82,7 @@ export class FollowUpService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'operate');
-    await assertClinicModuleAvailable(tenantId, 'core_reception');
+    await assertClinicFeatureAvailable(tenantId, 'confirmations', tenantRole);
     const confirmation = await this.repository.escalateConfirmation(tenantId, confirmationId, body);
     if (!confirmation) {
       return null;
@@ -105,7 +105,7 @@ export class FollowUpService {
 
   async listGaps(tenantId: string, filters: GapFilters, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
-    await assertClinicModuleAvailable(tenantId, 'growth');
+    await assertClinicFeatureAvailable(tenantId, 'gaps', tenantRole);
     return this.repository.listGaps(tenantId, {
       ...filters,
       limit: getClinicListLimit(filters.limit),
@@ -120,7 +120,7 @@ export class FollowUpService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'operate');
-    await assertClinicModuleAvailable(tenantId, 'growth');
+    await assertClinicFeatureAvailable(tenantId, 'gaps', tenantRole);
     const result = await this.repository.offerGap(tenantId, gapId, body);
     if (!result) {
       return null;
@@ -152,7 +152,7 @@ export class FollowUpService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'operate');
-    await assertClinicModuleAvailable(tenantId, 'growth');
+    await assertClinicFeatureAvailable(tenantId, 'gaps', tenantRole);
     const gap = await this.repository.closeGap(tenantId, gapId, body);
     if (!gap) {
       return null;

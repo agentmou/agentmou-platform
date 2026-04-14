@@ -37,6 +37,15 @@ describe('internal navigation', () => {
     expect(navigation.sections.some((section) => section.label === 'Admin')).toBe(false);
   });
 
+  it('drops the admin block when the resolved experience disables the admin console', () => {
+    const navigation = resolveInternalNavigation({
+      allowedNavigation: ['platform_internal', 'admin_console'],
+      canAccessAdminConsole: false,
+    });
+
+    expect(navigation.sections.some((section) => section.label === 'Admin')).toBe(false);
+  });
+
   it('keeps dashboard and settings visible when only shared access is available', () => {
     const navigation = resolveInternalNavigation({
       allowedNavigation: [],
