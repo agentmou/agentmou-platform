@@ -394,7 +394,7 @@ const run = await fetch(`${API_URL}/api/v1/tenants/${tenantId}/runs`, {
 **Example E2E / smoke script:**
 - `scripts/test-e2e-triage.ts` — API-driven validation of the Gmail inbox triage slice
 - `scripts/test-e2e-clinic-demo.ts` — fixture, seed, and in-process API smoke
-  for the dental clinic journeys
+  for the public clinic demo plus the seeded internal/clinic/fisio QA matrix
 
 Run the clinic validation lane with:
 
@@ -403,8 +403,8 @@ pnpm validate:clinic-demo
 ```
 
 This command runs migrations, seed, package checks for `db`/`api`/`web`, the
-clinic smoke script, and `make validate-content`. If `DATABASE_URL` is not set,
-the helper starts the local Compose PostgreSQL service first.
+clinic + QA seed smoke script, and `make validate-content`. If `DATABASE_URL`
+is not set, the helper starts the local Compose PostgreSQL service first.
 
 ## Coverage Expectations
 

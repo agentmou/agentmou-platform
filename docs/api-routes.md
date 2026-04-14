@@ -89,8 +89,10 @@ These routes require a valid JWT plus access to the tenant in the path:
 
 - All clinic routes live under `/api/v1/tenants/:tenantId/*` and are registered
   inside the existing JWT + tenant-membership scope.
-- `GET /clinic/experience` is the canonical payload for shell mode,
-  permissions, flags, allowed navigation, and enriched module entitlements.
+- `GET /api/v1/tenants/:tenantId/experience` is the canonical payload for
+  shell mode, permissions, flags, allowed navigation, settings sections, and
+  enriched module entitlements. `GET /clinic/experience` remains as the clinic
+  compatibility layer.
 - Role handling normalizes legacy `member` to `operator` for outward-facing
   payloads and clinic access checks.
 - Read routes allow `owner`, `admin`, `operator`, and `viewer`.
@@ -98,12 +100,13 @@ These routes require a valid JWT plus access to the tenant in the path:
 - Profile, module, channel, and campaign management stays on `owner` and
   `admin`.
 - Module gating resolves a plan baseline first and then applies `tenant_modules`
-  overrides; channel gating uses `clinic_channels`.
+  overrides, operational prerequisites, and server-side feature-flag
+  evaluation; channel gating uses `clinic_channels`.
 - Inactive modules or channels return `409` with the machine-readable
   `clinic_feature_unavailable` payload so clients can distinguish
   `not_in_plan`, `hidden_internal_only`, `disabled_by_tenant`,
-  `requires_configuration`, `channel_inactive`, and `channel_missing`
-  from empty result sets.
+  `requires_configuration`, `channel_inactive`, `channel_missing`, and
+  `disabled_by_feature_flag` from empty result sets.
 - Conversation replies, reminders, form nudges, gap outreach, reactivation
   dispatches, and voice callbacks enqueue dedicated BullMQ clinic jobs instead
   of attempting provider delivery inline during the request.

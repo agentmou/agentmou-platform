@@ -75,10 +75,15 @@ snapshot metadata in `packages/db/drizzle/meta/`.
 
 - one admin user: `admin@agentmou.dev`
 - seed password for local QA: `Demo1234!`
-- one generic platform tenant: `Demo Workspace`
+- one internal admin workspace: `Demo Workspace`
 - one clinic demo tenant: `Dental Demo Clinic`
+- one fisio regression fixture: `Fisio Pilot Workspace`
 - clinic demo data covering modules, channels, patients, inbox threads, calls,
   forms, appointments, confirmations, gaps, and a running reactivation campaign
+
+Important: this seeded `Demo Workspace` is the local QA/internal tenant. It is
+not the same thing as the public frontend `demo-workspace`, which remains a
+read-only clinic demo in `apps/web`.
 
 The seeded clinic tenant now mirrors the closing dental journeys used by the
 frontend demo fixtures:
@@ -94,10 +99,13 @@ frontend demo fixtures:
   recipients
 
 The canonical seed blueprint lives in
-`packages/db/src/clinic-demo-fixture.ts`; `packages/db/src/seed.ts` only maps
-that blueprint into relational rows. `pnpm test:clinic-demo-smoke` validates
-the same journeys across frontend fixtures, seeded rows, and clinic API routes
-when `DATABASE_URL` is available.
+`packages/db/src/clinic-demo-fixture.ts`, while the local QA tenant matrix
+(`Demo Workspace`, `Dental Demo Clinic`, `Fisio Pilot Workspace`) is defined in
+`packages/db/src/seed-blueprints.ts`. `packages/db/src/seed.ts` only maps
+those blueprints into relational rows. `pnpm test:clinic-demo-smoke` validates
+the public clinic demo plus the seeded internal/clinic/fisio matrix across
+frontend fixtures, seeded rows, and tenant-scoped API routes when
+`DATABASE_URL` is available.
 
 ## Drizzle Kit and transitive dependencies
 

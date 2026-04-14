@@ -8,8 +8,9 @@ Next.js application for the Agentmou public site and tenant control-center UI.
 - Public marketing pages that sell Agentmou as a multichannel AI receptionist
   for clinics, with `/platform` as the secondary technical narrative and
   `/docs` preserved as an alias.
-- Authenticated tenant pages that either render the original platform shell or
-  the clinic control center, depending on tenant capabilities and settings.
+- Authenticated tenant pages that resolve `internal`, `clinic`, or `fisio`
+  from `TenantExperience`, with the Admin console only for admin-capable
+  internal tenants.
 
 The web app is intentionally a control-plane client. It does not execute agents
 or workflows itself.
@@ -31,12 +32,11 @@ or workflows itself.
   the UI shows a disabled SSO row with tooltip.
 - Protect tenant routes with Next.js proxy and a JWT cookie.
 - Consume the control-plane API through typed client helpers in `lib/api/`.
-- Resolve clinic vs platform tenant experience in `app/app/[tenantId]/layout.tsx`
-  using `tenant.settings.verticalClinicUi` with fallback to a loaded clinic
-  profile.
-- Preserve `verticalClinicUi`, `clinicDentalMode`, and
-  `internalPlatformVisible` through auth and tenancy payloads so shell
-  resolution happens before navigation renders.
+- Resolve the tenant shell in `app/app/[tenantId]/layout.tsx` from
+  `GET /api/v1/tenants/:tenantId/experience`, using `activeVertical`,
+  `shellKey`, `allowedNavigation`, and resolved flags as the primary signals.
+- Keep top-level internal routes canonical while preserving
+  `/app/[tenantId]/platform/*` as a legacy alias for old links.
 - Export typed clinic backend fetchers in `lib/api/clinic.ts` and consume them
   through the same `DataProvider` abstraction used by the rest of the tenant UI.
 - Keep the primary marketing narrative in `lib/marketing/clinic-site.ts` and
@@ -57,6 +57,9 @@ or workflows itself.
 - Overlay deterministic clinic demo data for `demo-workspace` and mock-backed
   surfaces so the vertical control center renders a realistic dental tenant
   without live writes.
+- Keep `demo-workspace` explicitly separate from the seeded local QA tenants:
+  `Demo Workspace` (internal admin), `Dental Demo Clinic`, and
+  `Fisio Pilot Workspace`.
 - Apply honest product labels for tenant surfaces that are still preview,
   read-only, demo, or not yet available.
 
@@ -71,9 +74,10 @@ or workflows itself.
 - Displays runs, approvals, connectors, and installations that are created and
   executed elsewhere in the stack.
 - Resolves a tenant-aware shell that keeps clinic UX at the tenant root and the
-  original platform surfaces under `/app/[tenantId]/platform/*`, using the
-  resolved clinic experience payload as the canonical source of mode,
-  permissions, navigation, and flags.
+  canonical internal surfaces at `/app/[tenantId]/*`, while treating
+  `/app/[tenantId]/platform/*` as a compatibility alias. `TenantExperience` is
+  the canonical source of mode, permissions, navigation, settings sections,
+  and flags.
 
 ## Local Usage
 
@@ -100,7 +104,7 @@ pnpm --filter @agentmou/web start
 | `app/(auth)` | Login and registration flows |
 | `app/auth/callback`, `app/reset-password` | OAuth return handling and password reset deep links |
 | `app/app` | Authenticated app shell and tenant redirects |
-| `app/app/[tenantId]` | Tenant-scoped control center with clinic pages at the tenant root and legacy platform pages still available |
+| `app/app/[tenantId]` | Tenant-scoped control center with vertical-aware routing, admin pages, and legacy `/platform/*` aliases |
 
 ### Data providers
 
@@ -128,6 +132,9 @@ pnpm --filter @agentmou/web start
 - `lib/data/demo-provider.ts` powers `demo-workspace` with read-only demo data
   and operational vs non-operational availability (`planned` + status note),
   plus the dental clinic overlay used by the clinic shell.
+- `lib/internal-navigation.ts`, `lib/tenant-routing.ts`, and
+  `lib/vertical-registry.ts` resolve shell, navigation, and route policies for
+  `internal`, `clinic`, and `fisio`.
 - `lib/demo/read-model.ts` is the synchronous selector layer used only behind
   `mockProvider`.
 - `lib/demo/clinic-demo-fixtures.ts` contains the dental demo tenant story used
@@ -153,18 +160,15 @@ pnpm --filter @agentmou/web start
   technical `/platform` grid, and `ContactSalesForm`.
 - `lib/auth/store.ts` owns login, registration, cookie hydration, and active-tenant selection.
 - `lib/tenant-experience.tsx` exposes `useResolvedTenantExperience`, which
-  prefers `GET /clinic/experience` and only falls back to tenant/profile/module
-  reads when the resolved payload is missing.
+  prefers `GET /tenants/:tenantId/experience` and only falls back to
+  tenant/profile/module reads when the resolved payload is missing.
 - `components/auth/` provides the tabbed sign-in / register UI (`AuthForm`,
   `PasswordInput`) used by `app/(auth)`.
 - `components/clinic/` contains the clinic shell, inbox/detail views, agenda
-  board, follow-up cards, KPI cards, and the internal platform switch shown
-  only to `owner|admin` users with `internal_platform` enabled and
-  `tenant.settings.internalPlatformVisible === true`.
-- `components/control-plane/legacy-platform-redirect.tsx` redirects clinic
-  tenants from legacy root platform routes like `/runs` or `/marketplace` into
-  `/platform/*` when internal access is allowed, otherwise back to the clinic
-  dashboard.
+  board, follow-up cards, KPI cards, and the shared impersonation banner used
+  when an operator is acting as another tenant user.
+- `components/admin/` contains the internal Admin console for tenant directory,
+  membership management, vertical changes, and impersonation flows.
 - `lib/search-index.ts` and the command palette switch between `clinic` and
   `platform_internal` inventories so clinic tenants search patients,
   appointments, conversations, forms, gaps, and campaigns instead of
@@ -181,13 +185,13 @@ Clinical tenants now use:
 - `reactivacion`, `rendimiento`, `configuracion`
 
 The original platform pages remain available under
-`/app/[tenantId]/platform/*`. Non-clinic tenants stay on the original shell and
-legacy route structure.
+`/app/[tenantId]/platform/*` as legacy aliases. Internal tenants use the same
+destinations through canonical top-level routes such as `/runs`, `/marketplace`,
+`/security`, `/settings`, and `/admin/tenants`.
 
-For clinic tenants without internal access, manual entry to `/platform/*`
-redirects back to the clinic dashboard. `demo-workspace` keeps a realistic
-clinic shell but hides the internal switch and blocks `/platform/*` by
-default.
+For clinic and fisio tenants, manual entry to internal or `/platform/*` routes
+redirects back to the vertical default route. `demo-workspace` keeps a
+realistic clinic shell but hides internal/admin surfaces by default.
 
 The demo clinic currently covers these reference journeys:
 

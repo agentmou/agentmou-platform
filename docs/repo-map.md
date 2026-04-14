@@ -115,7 +115,7 @@ Notes:
   center, while `components/control-plane/` still owns the original platform
   shell.
 - `lib/search-index.ts` splits search and command palette behavior into
-  `clinic` and `platform_internal` modes from the resolved experience payload.
+  shared-care and internal modes from the resolved tenant experience payload.
 
 ## services/
 
@@ -132,8 +132,10 @@ services/api/src/
 ├── middleware/
 │   ├── auth.ts
 │   ├── internal-platform-access.ts
+│   ├── platform-admin-access.ts
 │   └── tenant-access.ts
 ├── modules/
+│   ├── admin/
 │   ├── approvals/
 │   ├── auth/
 │   ├── billing/
@@ -146,6 +148,7 @@ services/api/src/
 │   ├── clinic-profile/
 │   ├── clinic-shared/
 │   ├── connectors/
+│   ├── feature-flags/
 │   ├── conversations/
 │   ├── follow-up/
 │   ├── forms/

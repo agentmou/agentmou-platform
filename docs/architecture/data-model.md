@@ -127,8 +127,10 @@ Multi-tenant data scoping and membership management.
 ```
 - Top-level tenant record scoping all data
 - One owner (creator); other members added via invites
-- Persists `verticalClinicUi`, `clinicDentalMode`, and
-  `internalPlatformVisible` alongside the original platform defaults
+- Persists the canonical tenant experience inputs (`activeVertical`,
+  `isPlatformAdminTenant`, `settingsVersion`) while keeping
+  `verticalClinicUi`, `clinicDentalMode`, and `internalPlatformVisible` as
+  compatibility fields
 
 #### memberships
 ```typescript

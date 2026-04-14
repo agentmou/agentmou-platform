@@ -10,13 +10,13 @@ Agentmou is a **multi-tenant platform whose visible product is a multichannel AI
 
 | Workspace | Description |
 | --------- | ----------- |
-| `apps/web` | Next.js 16 + React 19 frontend. Clinic-first public marketing site, auth flows, web-owned API routes, and authenticated tenant control center under `/app/[tenantId]/`. Resolves a tenant-aware `clinic` or `platform_internal` shell from the resolved clinic experience, keeps internal platform routes under `/app/[tenantId]/platform/*`, exposes `/platform` as the public technical narrative, `/docs` as its alias, and uses provider modes to switch between real tenant data and demo overlays. |
+| `apps/web` | Next.js 16 + React 19 frontend. Clinic-first public marketing site, auth flows, web-owned API routes, and authenticated tenant control center under `/app/[tenantId]/`. Resolves `internal`, `clinic`, and `fisio` experiences from `TenantExperience`, keeps top-level internal routes canonical while preserving `/app/[tenantId]/platform/*` as a legacy alias, exposes the Admin console only for admin-capable tenants, keeps `demo-workspace` as the public clinic demo, and uses provider modes to switch between real tenant data and demo overlays. |
 
 ### Services
 
 | Workspace | Description |
 | --------- | ----------- |
-| `services/api` | Fastify 5 REST API. Serves the existing control plane plus clinic tenant-scoped route families for dashboard, experience, profile, modules, channels, patients, inbox, calls, appointments, forms, follow-up, and reactivation. Resolves clinic entitlements from plan, modules, channels, and tenant settings; gates internal platform APIs for `/platform/*`; and uses JWT authentication with role-based access control and Zod validation on inputs. |
+| `services/api` | Fastify 5 REST API. Serves the control plane plus tenant-scoped route families for experience, dashboard, profile, modules, channels, patients, inbox, calls, appointments, forms, follow-up, and reactivation. Resolves `TenantExperience` and feature gating server-side from plan/module baseline, operational prerequisites, and Reflag overrides with fail-open fallback; exposes admin-only tenant-management APIs; and uses JWT authentication with role-based access control and Zod validation on inputs. |
 | `services/worker` | BullMQ background job processor. 5 queues: INSTALL_PACK, RUN_AGENT, RUN_WORKFLOW, SCHEDULE_TRIGGER, APPROVAL_TIMEOUT. Redis-backed with exponential backoff retry logic. |
 | `services/agents` | Python FastAPI sidecar for specialized AI tasks. Provides `/analyze-email` endpoint using GPT-4o-mini. X-API-Key authentication. |
 

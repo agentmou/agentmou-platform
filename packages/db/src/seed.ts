@@ -11,16 +11,17 @@ import postgres from 'postgres';
 import { buildClinicDemoSeedFixture } from './clinic-demo-fixture';
 import { getDatabaseUrl } from './config';
 import * as schema from './schema';
+import {
+  CLINIC_QA_TENANT_NAME,
+  fisioQaTenantSeed,
+  internalQaTenantSeed,
+  QA_SEED_ADMIN_EMAIL,
+  QA_SEED_ADMIN_PASSWORD,
+  QA_SEED_ADMIN_PASSWORD_HASH,
+} from './seed-blueprints';
 import { buildTenantVerticalConfigSeedRows } from './tenant-vertical-config-fixture';
 
 const DATABASE_URL = getDatabaseUrl();
-const ADMIN_EMAIL = 'admin@agentmou.dev';
-const ADMIN_PASSWORD = 'Demo1234!';
-const ADMIN_PASSWORD_HASH =
-  '10a4edfff587919abdfe1649f43cf23e:9f2cb2ca9bc9da1b7de5c0a59185530a55979fc722b9e58fc7767deaa45112b01fae2b27c759e7a29bed02329dc3e9bf4763e5d9a0ac2c26242b585df9d1d059';
-const GENERIC_TENANT_NAME = 'Demo Workspace';
-const CLINIC_TENANT_NAME = 'Dental Demo Clinic';
-const FISIO_TENANT_NAME = 'Fisio Pilot Workspace';
 
 type Database = ReturnType<typeof drizzle<typeof schema>>;
 
@@ -45,7 +46,7 @@ async function insertOne<T>(action: Promise<T[]>, errorMessage: string): Promise
 
 async function ensureUser(db: Database) {
   const existing = (
-    await db.select().from(schema.users).where(eq(schema.users.email, ADMIN_EMAIL)).limit(1)
+    await db.select().from(schema.users).where(eq(schema.users.email, QA_SEED_ADMIN_EMAIL)).limit(1)
   )[0];
 
   if (existing) {
@@ -53,7 +54,7 @@ async function ensureUser(db: Database) {
       .update(schema.users)
       .set({
         name: 'Admin User',
-        passwordHash: ADMIN_PASSWORD_HASH,
+        passwordHash: QA_SEED_ADMIN_PASSWORD_HASH,
         updatedAt: new Date(),
       })
       .where(eq(schema.users.id, existing.id))
@@ -70,9 +71,9 @@ async function ensureUser(db: Database) {
     db
       .insert(schema.users)
       .values({
-        email: ADMIN_EMAIL,
+        email: QA_SEED_ADMIN_EMAIL,
         name: 'Admin User',
-        passwordHash: ADMIN_PASSWORD_HASH,
+        passwordHash: QA_SEED_ADMIN_PASSWORD_HASH,
       })
       .returning(),
     'Failed to create seed user'
@@ -239,32 +240,18 @@ async function ensureTenantVerticalConfig(
 
 async function seedGenericDemo(db: Database, userId: string) {
   const tenant = await ensureTenantRecord(db, {
-    name: GENERIC_TENANT_NAME,
-    type: 'business',
-    plan: 'pro',
+    name: internalQaTenantSeed.name,
+    type: internalQaTenantSeed.type,
+    plan: internalQaTenantSeed.plan,
     ownerId: userId,
-    settings: {
-      timezone: 'America/New_York',
-      defaultHITL: true,
-      logRetentionDays: 30,
-      memoryRetentionDays: 7,
-      activeVertical: 'internal',
-      isPlatformAdminTenant: true,
-      settingsVersion: 2,
-      verticalClinicUi: false,
-      clinicDentalMode: false,
-      internalPlatformVisible: false,
-    },
+    settings: internalQaTenantSeed.settings,
   });
 
-  await ensureMembership(db, tenant.id, userId, 'owner');
+  await ensureMembership(db, tenant.id, userId, internalQaTenantSeed.membershipRole);
   for (const row of buildTenantVerticalConfigSeedRows({
     tenantId: tenant.id,
-    activeVertical: 'internal',
-    config: {
-      label: 'control_plane',
-      isPlatformAdminTenant: true,
-    },
+    activeVertical: internalQaTenantSeed.settings.activeVertical,
+    config: internalQaTenantSeed.verticalConfig,
   })) {
     await ensureTenantVerticalConfig(db, row);
   }
@@ -285,32 +272,18 @@ async function seedGenericDemo(db: Database, userId: string) {
 
 async function seedFisioDemo(db: Database, userId: string) {
   const tenant = await ensureTenantRecord(db, {
-    name: FISIO_TENANT_NAME,
-    type: 'business',
-    plan: 'starter',
+    name: fisioQaTenantSeed.name,
+    type: fisioQaTenantSeed.type,
+    plan: fisioQaTenantSeed.plan,
     ownerId: userId,
-    settings: {
-      timezone: 'Europe/Madrid',
-      defaultHITL: false,
-      logRetentionDays: 30,
-      memoryRetentionDays: 7,
-      activeVertical: 'fisio',
-      isPlatformAdminTenant: false,
-      settingsVersion: 2,
-      verticalClinicUi: false,
-      clinicDentalMode: false,
-      internalPlatformVisible: false,
-    },
+    settings: fisioQaTenantSeed.settings,
   });
 
-  await ensureMembership(db, tenant.id, userId, 'admin');
+  await ensureMembership(db, tenant.id, userId, fisioQaTenantSeed.membershipRole);
   for (const row of buildTenantVerticalConfigSeedRows({
     tenantId: tenant.id,
-    activeVertical: 'fisio',
-    config: {
-      specialty: 'sports_rehab',
-      status: 'architecture_fixture',
-    },
+    activeVertical: fisioQaTenantSeed.settings.activeVertical,
+    config: fisioQaTenantSeed.verticalConfig,
   })) {
     await ensureTenantVerticalConfig(db, row);
   }
@@ -322,7 +295,7 @@ async function seedClinicDemo(db: Database, userId: string) {
   const fixture = buildClinicDemoSeedFixture(new Date());
 
   const tenant = await ensureTenantRecord(db, {
-    name: CLINIC_TENANT_NAME,
+    name: CLINIC_QA_TENANT_NAME,
     type: 'business',
     plan: 'enterprise',
     ownerId: userId,
@@ -1274,8 +1247,8 @@ async function seed() {
   const clinicDemo = await seedClinicDemo(db, user.id);
 
   print('Seed complete.');
-  print(`  User:            ${user.id} (${ADMIN_EMAIL})`);
-  print(`  Password:        ${ADMIN_PASSWORD}`);
+  print(`  User:            ${user.id} (${QA_SEED_ADMIN_EMAIL})`);
+  print(`  Password:        ${QA_SEED_ADMIN_PASSWORD}`);
   print(`  Workspace demo:  ${genericTenant.id} (${genericTenant.name})`);
   print(`  Fisio fixture:   ${fisioTenant.id} (${fisioTenant.name})`);
   print(`  Clinic demo:     ${clinicDemo.tenant.id} (${clinicDemo.tenant.name})`);

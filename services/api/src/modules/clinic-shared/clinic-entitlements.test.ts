@@ -135,6 +135,38 @@ describe('clinic entitlements', () => {
     expect(experience.settingsSections).toContain('internal_approvals');
   });
 
+  it('keeps the admin console hidden when the internal tenant role is not admin-capable', async () => {
+    const experience = await resolveTenantExperience({
+      ...baseContext,
+      tenantRole: 'operator',
+      profile: null,
+      modules: [],
+      channels: [],
+      settings: {
+        ...baseContext.settings,
+        activeVertical: 'internal',
+        isPlatformAdminTenant: true,
+        verticalClinicUi: false,
+        clinicDentalMode: false,
+        internalPlatformVisible: false,
+      },
+    });
+
+    expect(experience.shellKey).toBe('platform_internal');
+    expect(experience.allowedNavigation).toEqual([]);
+    expect(experience.permissions).not.toContain('view_internal_platform');
+    expect(experience.permissions).not.toContain('view_admin_console');
+    expect(experience.canAccessAdminConsole).toBe(false);
+    expect(experience.settingsSections).toEqual([
+      'general',
+      'team',
+      'integrations',
+      'plan',
+      'security',
+      'internal_defaults',
+    ]);
+  });
+
   it('returns a minimal fisio tenant experience without clinic shell flags', async () => {
     const experience = await resolveTenantExperience({
       ...baseContext,
