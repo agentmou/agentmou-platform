@@ -22,7 +22,7 @@
     "@agentmou/observability": "workspace:*",
     "@agentmou/connectors": "workspace:*",
     "@agentmou/n8n-client": "workspace:*",
-    "drizzle-orm": "^0.39.0",
+    "drizzle-orm": "^0.45.2",
     "yaml": "^2.8.3"
   },
   "devDependencies": {
