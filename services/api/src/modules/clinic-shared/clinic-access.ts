@@ -12,8 +12,9 @@ import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
 import { ClinicFeatureUnavailableRouteError, ClinicForbiddenRouteError } from './clinic.errors.js';
 import {
   findClinicModuleEntitlement,
-  resolveClinicExperience,
+  resolveClinicModuleEntitlements,
   resolveClinicPermissions,
+  resolveTenantExperienceWithDecisions,
 } from './clinic-entitlements.js';
 import { ClinicExperienceRepository } from './clinic-experience.repository.js';
 
@@ -21,8 +22,23 @@ const ACTIVE_MODULE_STATUSES = new Set(['enabled', 'beta']);
 const READ_ROLES: UserRole[] = ['owner', 'admin', 'operator', 'viewer'];
 const OPERATE_ROLES: UserRole[] = ['owner', 'admin', 'operator'];
 const MANAGE_ROLES: UserRole[] = ['owner', 'admin'];
+const FEATURE_DECISION_KEY = {
+  voice_inbound: 'voiceInboundEnabled',
+  voice_outbound: 'voiceOutboundEnabled',
+  forms: 'intakeFormsEnabled',
+  confirmations: 'appointmentConfirmationsEnabled',
+  gaps: 'smartGapFillEnabled',
+  reactivation: 'reactivationEnabled',
+} as const;
 
 export type ClinicRoleScope = 'read' | 'operate' | 'manage';
+export type ClinicFeatureGate =
+  | 'voice_inbound'
+  | 'voice_outbound'
+  | 'forms'
+  | 'confirmations'
+  | 'gaps'
+  | 'reactivation';
 
 export function normalizeClinicRole(role: string | undefined): UserRole | undefined {
   return normalizeTenantMembershipRole(role);
@@ -62,7 +78,7 @@ export async function assertClinicModuleAvailable(tenantId: string, moduleKey: M
     });
   }
 
-  const module = findClinicModuleEntitlement(resolveClinicExperience(context).modules, moduleKey);
+  const module = findClinicModuleEntitlement(resolveClinicModuleEntitlements(context), moduleKey);
 
   if (
     !module ||
@@ -77,6 +93,39 @@ export async function assertClinicModuleAvailable(tenantId: string, moduleKey: M
   }
 
   return module;
+}
+
+export async function assertClinicFeatureAvailable(
+  tenantId: string,
+  featureKey: ClinicFeatureGate,
+  tenantRole?: string
+) {
+  const repository = new ClinicExperienceRepository();
+  const context = await repository.loadContext(tenantId);
+
+  if (!context) {
+    throw new ClinicFeatureUnavailableRouteError({
+      reason: 'not_in_plan',
+      detail: `Feature "${featureKey}" is not available for this tenant.`,
+    });
+  }
+
+  const { decisions } = await resolveTenantExperienceWithDecisions({
+    ...context,
+    tenantRole,
+  });
+  const decision = decisions[FEATURE_DECISION_KEY[featureKey]];
+
+  if (!decision.enabled) {
+    throw new ClinicFeatureUnavailableRouteError({
+      reason: decision.reason ?? 'not_in_plan',
+      moduleKey: decision.moduleKey,
+      channelType: decision.channelType,
+      detail: `Feature "${featureKey}" is not available for this tenant.`,
+    });
+  }
+
+  return decision;
 }
 
 export async function assertClinicChannelAvailable(tenantId: string, channelType: ChannelType) {

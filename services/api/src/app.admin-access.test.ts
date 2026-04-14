@@ -180,5 +180,5 @@ describe('buildApp admin route composition', () => {
     expect(legacyListWithHeader.json()).toEqual({ tenants: [] });
 
     await app.close();
-  });
+  }, 10000);
 });

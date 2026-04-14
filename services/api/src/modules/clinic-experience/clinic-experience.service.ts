@@ -16,7 +16,7 @@ export class ClinicExperienceService {
       return null;
     }
 
-    return resolveTenantExperience({
+    return await resolveTenantExperience({
       ...context,
       tenantRole,
     });
@@ -30,7 +30,7 @@ export class ClinicExperienceService {
       return null;
     }
 
-    return resolveClinicExperience({
+    return await resolveClinicExperience({
       ...context,
       tenantRole,
     });

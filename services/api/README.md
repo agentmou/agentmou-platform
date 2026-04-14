@@ -28,6 +28,8 @@ BullMQ.
 - Resolve clinic experience, permissions, navigation, and module visibility
   from tenant plan, `tenant_modules`, `clinic_channels`, `clinic_profiles`,
   and tenant settings.
+- Resolve server-side feature flags from plan/module baseline, operational
+  prerequisites, and Reflag overrides with local fail-open fallback.
 - Enforce clinic role checks, tenant-module gating, channel activation checks,
   and structured `409 clinic_feature_unavailable` responses for inactive
   features.
@@ -139,6 +141,9 @@ layer.
 - `src/modules/clinic-experience` resolves the canonical clinic experience
   payload used by the web shell for mode, permissions, flags, navigation, and
   enriched module entitlements.
+- `src/modules/feature-flags` centralizes server-side feature resolution,
+  Reflag evaluation, and local override fallback for tenant experience and
+  route gating.
 - `src/modules/clinic-*` plus `patients`, `conversations`, `calls`,
   `appointments`, `forms`, `follow-up`, and `reactivation` implement the
   tenant-scoped clinic backend families.
@@ -185,9 +190,40 @@ dependencies:
 | `TWILIO_WHATSAPP_FROM` | Optional default WhatsApp sender |
 | `TWILIO_WHATSAPP_MESSAGING_SERVICE_SID` | Optional default Messaging Service SID |
 | `TWILIO_VOICE_FROM` | Optional default voice caller ID |
+| `REFLAG_SDK_KEY` | Server-side SDK key for runtime feature evaluation in `services/api` |
+| `REFLAG_ENVIRONMENT` | Reflag environment name; defaults to `NODE_ENV`/`development` |
+| `REFLAG_BASE_URL` | Optional Reflag API base override |
+| `REFLAG_LOCAL_OVERRIDES_JSON` | Optional local/dev/test JSON overrides applied before remote evaluation |
 
 See [`infra/compose/.env.example`](../../infra/compose/.env.example) for the
 current local and VPS-oriented example values.
+
+## Feature Flag Matrix
+
+`services/api` resolves feature visibility in this order:
+
+1. Plan + `tenant_modules` baseline
+2. Operational prerequisites
+3. Reflag override
+4. Role-derived permissions
+5. UI visibility in the web shell
+
+Initial matrix:
+
+| Resolved feature | Baseline module | Stable flag key | Operational prerequisite |
+| --- | --- | --- | --- |
+| `voiceInboundEnabled` | `voice` | `clinic.voice.enabled` | Active voice inbound channel |
+| `voiceOutboundEnabled` | `voice` | `clinic.voice.outbound.enabled` | Voice inbound available plus active voice outbound channel |
+| `intakeFormsEnabled` | `core_reception` | `clinic.forms.enabled` | New-patient form policy/config enabled |
+| `appointmentConfirmationsEnabled` | `core_reception` | `clinic.confirmations.enabled` | Confirmation policy enabled |
+| `smartGapFillEnabled` | `growth` | `clinic.gaps.enabled` | Gap-recovery policy enabled |
+| `reactivationEnabled` | `growth` | `clinic.reactivation.enabled` | Reactivation policy enabled |
+| `advancedClinicModeEnabled` | `advanced_mode` | `clinic.advanced_settings.enabled` | Advanced mode module enabled |
+| `internalPlatformVisible` | `internal_platform` | `internal.platform.visible` | Tenant vertical is `internal` |
+| `adminConsoleEnabled` | N/A | `admin.console.enabled` | Tenant is a platform-admin tenant |
+
+If Reflag credentials are missing or evaluation fails, the API falls back to
+the baseline DB/package state and logs a warning in non-test environments.
 
 ## Development
 

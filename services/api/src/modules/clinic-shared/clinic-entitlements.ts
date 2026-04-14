@@ -16,6 +16,10 @@ import type {
   TenantSettings,
 } from '@agentmou/contracts';
 import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
+import {
+  FeatureFlagService,
+  type ResolvedTenantFeatureDecisions,
+} from '../feature-flags/feature-flag.service.js';
 
 const ACTIVE_MODULE_STATUSES = new Set<ModuleStatus>(['enabled', 'beta']);
 const MANAGE_SETTINGS_ROLES = new Set(['owner', 'admin']);
@@ -50,6 +54,7 @@ const CLINIC_NAVIGATION_SET = new Set<ClinicNavigationKey>([
   'configuration',
   'platform_internal',
 ]);
+const featureFlagService = new FeatureFlagService();
 
 type ModuleBaseline = {
   status: ModuleStatus;
@@ -321,6 +326,7 @@ function buildBaseFlags(settings: TenantSettings): TenantExperience['flags'] {
   return {
     activeVertical: settings.activeVertical,
     isPlatformAdminTenant: Boolean(settings.isPlatformAdminTenant),
+    adminConsoleEnabled: false,
     verticalClinicUi: Boolean(settings.verticalClinicUi),
     clinicDentalMode: Boolean(settings.clinicDentalMode),
     voiceInboundEnabled: false,
@@ -431,18 +437,35 @@ function toClinicExperience(experience: TenantExperience): ClinicExperience {
   };
 }
 
-export function resolveTenantExperience(context: ClinicEntitlementContext): TenantExperience {
+export async function resolveTenantExperienceWithDecisions(
+  context: ClinicEntitlementContext
+): Promise<{
+  experience: TenantExperience;
+  decisions: ResolvedTenantFeatureDecisions;
+}> {
   const normalizedRole = normalizeTenantMembershipRole(context.tenantRole);
-  const canAccessAdminConsole =
-    Boolean(context.settings.isPlatformAdminTenant) &&
-    canRoleAccessInternalPlatform(context.tenantRole);
 
   if (context.settings.activeVertical === 'internal') {
+    const flagResolution = await featureFlagService.resolve({
+      tenantId: context.tenantId,
+      activeVertical: 'internal',
+      isPlatformAdminTenant: Boolean(context.settings.isPlatformAdminTenant),
+      plan: context.plan,
+      modules: [],
+      channels: [],
+      profile: null,
+    });
+    const canAccessInternalPlatform =
+      flagResolution.flags.internalPlatformVisible &&
+      canRoleAccessInternalPlatform(context.tenantRole);
+    const canAccessAdminConsole =
+      flagResolution.flags.adminConsoleEnabled && canRoleAccessInternalPlatform(context.tenantRole);
     const permissions: TenantPermission[] = [];
-    const allowedNavigation: TenantNavigationKey[] = ['platform_internal'];
+    const allowedNavigation: TenantNavigationKey[] = [];
 
-    if (canRoleAccessInternalPlatform(context.tenantRole)) {
+    if (canAccessInternalPlatform) {
       permissions.push('view_internal_platform');
+      allowedNavigation.push('platform_internal');
     }
     if (canAccessAdminConsole) {
       permissions.push('view_admin_console');
@@ -450,40 +473,59 @@ export function resolveTenantExperience(context: ClinicEntitlementContext): Tena
     }
 
     return {
-      tenantId: context.tenantId,
-      activeVertical: 'internal',
-      shellKey: 'platform_internal',
-      defaultRoute: `/app/${context.tenantId}/dashboard`,
-      role: context.tenantRole,
-      normalizedRole,
-      permissions,
-      allowedNavigation,
-      modules: [],
-      flags: {
-        ...buildBaseFlags(context.settings),
-        internalPlatformVisible: canRoleAccessInternalPlatform(context.tenantRole),
+      experience: {
+        tenantId: context.tenantId,
+        activeVertical: 'internal',
+        shellKey: 'platform_internal',
+        defaultRoute: `/app/${context.tenantId}/dashboard`,
+        role: context.tenantRole,
+        normalizedRole,
+        permissions,
+        allowedNavigation,
+        modules: [],
+        flags: {
+          ...buildBaseFlags(context.settings),
+          ...flagResolution.flags,
+        },
+        settingsSections: buildInternalSettingsSections(canAccessAdminConsole),
+        canAccessInternalPlatform,
+        canAccessAdminConsole,
       },
-      settingsSections: buildInternalSettingsSections(canAccessAdminConsole),
-      canAccessInternalPlatform: canRoleAccessInternalPlatform(context.tenantRole),
-      canAccessAdminConsole,
+      decisions: flagResolution.decisions,
     };
   }
 
   if (context.settings.activeVertical === 'fisio') {
-    return {
+    const flagResolution = await featureFlagService.resolve({
       tenantId: context.tenantId,
       activeVertical: 'fisio',
-      shellKey: 'fisio',
-      defaultRoute: `/app/${context.tenantId}/dashboard`,
-      role: context.tenantRole,
-      normalizedRole,
-      permissions: [],
-      allowedNavigation: ['dashboard', 'configuration'],
+      isPlatformAdminTenant: Boolean(context.settings.isPlatformAdminTenant),
+      plan: context.plan,
       modules: [],
-      flags: buildBaseFlags(context.settings),
-      settingsSections: buildFisioSettingsSections(),
-      canAccessInternalPlatform: false,
-      canAccessAdminConsole: false,
+      channels: context.channels,
+      profile: context.profile,
+    });
+
+    return {
+      experience: {
+        tenantId: context.tenantId,
+        activeVertical: 'fisio',
+        shellKey: 'fisio',
+        defaultRoute: `/app/${context.tenantId}/dashboard`,
+        role: context.tenantRole,
+        normalizedRole,
+        permissions: [],
+        allowedNavigation: ['dashboard', 'configuration'],
+        modules: [],
+        flags: {
+          ...buildBaseFlags(context.settings),
+          ...flagResolution.flags,
+        },
+        settingsSections: buildFisioSettingsSections(),
+        canAccessInternalPlatform: false,
+        canAccessAdminConsole: false,
+      },
+      decisions: flagResolution.decisions,
     };
   }
 
@@ -491,30 +533,21 @@ export function resolveTenantExperience(context: ClinicEntitlementContext): Tena
   const moduleByKey = Object.fromEntries(
     modules.map((module) => [module.moduleKey, module] as const)
   ) as Record<ModuleKey, ClinicModuleEntitlement>;
-
-  const coreEnabled = moduleByKey.core_reception.enabled;
-  const growthEnabled = moduleByKey.growth.enabled;
-  const advancedEnabled = moduleByKey.advanced_mode.enabled;
-  const canAccessInternalPlatform = false;
-
-  const flags = {
+  const flagResolution = await featureFlagService.resolve({
+    tenantId: context.tenantId,
     activeVertical: 'clinic',
     isPlatformAdminTenant: Boolean(context.settings.isPlatformAdminTenant),
-    verticalClinicUi: Boolean(context.settings.verticalClinicUi),
-    clinicDentalMode: Boolean(context.settings.clinicDentalMode),
-    voiceInboundEnabled:
-      moduleByKey.voice.enabled && hasEnabledDirection(context.channels, 'voice', 'inbound'),
-    voiceOutboundEnabled:
-      moduleByKey.voice.enabled && hasEnabledDirection(context.channels, 'voice', 'outbound'),
-    whatsappOutboundEnabled:
-      coreEnabled && hasEnabledDirection(context.channels, 'whatsapp', 'outbound'),
-    intakeFormsEnabled: coreEnabled && Boolean(context.profile?.requiresNewPatientForm),
-    appointmentConfirmationsEnabled:
-      coreEnabled && context.profile?.confirmationPolicy.enabled !== false,
-    smartGapFillEnabled: growthEnabled && context.profile?.gapRecoveryPolicy.enabled !== false,
-    reactivationEnabled: growthEnabled && context.profile?.reactivationPolicy.enabled !== false,
-    advancedClinicModeEnabled: advancedEnabled,
-    internalPlatformVisible: false,
+    plan: context.plan,
+    modules,
+    channels: context.channels,
+    profile: context.profile,
+  });
+  const canAccessInternalPlatform = false;
+  const canAccessAdminConsole =
+    flagResolution.flags.adminConsoleEnabled && canRoleAccessInternalPlatform(context.tenantRole);
+  const flags = {
+    ...buildBaseFlags(context.settings),
+    ...flagResolution.flags,
   } satisfies TenantExperience['flags'];
 
   const permissions = resolveClinicPermissions({
@@ -524,19 +557,19 @@ export function resolveTenantExperience(context: ClinicEntitlementContext): Tena
   const allowedNavigation: TenantNavigationKey[] = [];
 
   const permissionSet = new Set(permissions);
-  if (coreEnabled && permissionSet.has('view_dashboard')) {
+  if (moduleByKey.core_reception.enabled && permissionSet.has('view_dashboard')) {
     allowedNavigation.push('dashboard');
   }
-  if (coreEnabled && permissionSet.has('view_inbox')) {
+  if (moduleByKey.core_reception.enabled && permissionSet.has('view_inbox')) {
     allowedNavigation.push('inbox');
   }
-  if (coreEnabled && permissionSet.has('view_appointments')) {
+  if (moduleByKey.core_reception.enabled && permissionSet.has('view_appointments')) {
     allowedNavigation.push('appointments');
   }
-  if (coreEnabled && permissionSet.has('view_patients')) {
+  if (moduleByKey.core_reception.enabled && permissionSet.has('view_patients')) {
     allowedNavigation.push('patients');
   }
-  if (coreEnabled && permissionSet.has('view_follow_up')) {
+  if (moduleByKey.core_reception.enabled && permissionSet.has('view_follow_up')) {
     allowedNavigation.push('follow_up');
   }
   if (flags.intakeFormsEnabled && permissionSet.has('view_follow_up')) {
@@ -566,24 +599,36 @@ export function resolveTenantExperience(context: ClinicEntitlementContext): Tena
   }
 
   return {
-    tenantId: context.tenantId,
-    activeVertical: 'clinic',
-    shellKey: 'clinic',
-    defaultRoute: `/app/${context.tenantId}/dashboard`,
-    role: context.tenantRole,
-    normalizedRole,
-    permissions,
-    allowedNavigation,
-    modules,
-    flags,
-    settingsSections: buildClinicSettingsSections(flags),
-    canAccessInternalPlatform,
-    canAccessAdminConsole,
+    experience: {
+      tenantId: context.tenantId,
+      activeVertical: 'clinic',
+      shellKey: 'clinic',
+      defaultRoute: `/app/${context.tenantId}/dashboard`,
+      role: context.tenantRole,
+      normalizedRole,
+      permissions,
+      allowedNavigation,
+      modules,
+      flags,
+      settingsSections: buildClinicSettingsSections(flags),
+      canAccessInternalPlatform,
+      canAccessAdminConsole,
+    },
+    decisions: flagResolution.decisions,
   };
 }
 
-export function resolveClinicExperience(context: ClinicEntitlementContext): ClinicExperience {
-  return toClinicExperience(resolveTenantExperience(context));
+export async function resolveTenantExperience(
+  context: ClinicEntitlementContext
+): Promise<TenantExperience> {
+  const result = await resolveTenantExperienceWithDecisions(context);
+  return result.experience;
+}
+
+export async function resolveClinicExperience(
+  context: ClinicEntitlementContext
+): Promise<ClinicExperience> {
+  return toClinicExperience(await resolveTenantExperience(context));
 }
 
 export function findClinicModuleEntitlement(

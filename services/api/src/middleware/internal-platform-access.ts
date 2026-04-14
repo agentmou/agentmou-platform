@@ -20,7 +20,7 @@ export async function requireInternalPlatformAccess(request: FastifyRequest, rep
     return reply.status(404).send({ error: 'Tenant not found' });
   }
 
-  const experience = resolveTenantExperience({
+  const experience = await resolveTenantExperience({
     ...context,
     tenantRole: request.tenantRole,
   });

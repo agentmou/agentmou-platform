@@ -8,6 +8,7 @@ import {
 
 import { recordAuditEvent } from '../../lib/audit.js';
 import {
+  assertClinicFeatureAvailable,
   assertClinicModuleAvailable,
   assertClinicRole,
   getClinicListLimit,
@@ -92,7 +93,7 @@ export class PatientsService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'operate');
-    await assertClinicModuleAvailable(tenantId, 'growth');
+    await assertClinicFeatureAvailable(tenantId, 'reactivation', tenantRole);
     const patient = await this.repository.reactivatePatient(tenantId, patientId, body);
     if (!patient) {
       return null;
@@ -121,7 +122,7 @@ export class PatientsService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'operate');
-    await assertClinicModuleAvailable(tenantId, 'growth');
+    await assertClinicFeatureAvailable(tenantId, 'gaps', tenantRole);
     const waitlistRequest = await this.repository.createWaitlistRequest(tenantId, patientId, body);
 
     await recordAuditEvent({

@@ -51,6 +51,7 @@ describe('clinicExperienceRoutes', () => {
       flags: {
         activeVertical: 'internal',
         isPlatformAdminTenant: true,
+        adminConsoleEnabled: true,
         verticalClinicUi: false,
         clinicDentalMode: false,
         voiceInboundEnabled: false,
@@ -109,6 +110,7 @@ describe('clinicExperienceRoutes', () => {
       flags: {
         activeVertical: 'fisio',
         isPlatformAdminTenant: false,
+        adminConsoleEnabled: false,
         verticalClinicUi: false,
         clinicDentalMode: false,
         voiceInboundEnabled: false,
@@ -166,6 +168,7 @@ describe('clinicExperienceRoutes', () => {
       flags: {
         activeVertical: 'clinic',
         isPlatformAdminTenant: false,
+        adminConsoleEnabled: false,
         verticalClinicUi: true,
         clinicDentalMode: true,
         voiceInboundEnabled: true,

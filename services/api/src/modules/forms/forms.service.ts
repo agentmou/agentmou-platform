@@ -6,7 +6,7 @@ import type {
 
 import { recordAuditEvent } from '../../lib/audit.js';
 import { ClinicAutomationService } from '../clinic-shared/clinic-automation.service.js';
-import { assertClinicModuleAvailable, assertClinicRole } from '../clinic-shared/clinic-access.js';
+import { assertClinicFeatureAvailable, assertClinicRole } from '../clinic-shared/clinic-access.js';
 import { mapIntakeFormSubmission, mapIntakeFormTemplate } from '../clinic-shared/clinic.mapper.js';
 import { FormsRepository } from './forms.repository.js';
 
@@ -18,21 +18,21 @@ export class FormsService {
 
   async listTemplates(tenantId: string, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
-    await assertClinicModuleAvailable(tenantId, 'core_reception');
+    await assertClinicFeatureAvailable(tenantId, 'forms', tenantRole);
     const templates = await this.repository.listTemplates(tenantId);
     return templates.map(mapIntakeFormTemplate);
   }
 
   async listSubmissions(tenantId: string, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
-    await assertClinicModuleAvailable(tenantId, 'core_reception');
+    await assertClinicFeatureAvailable(tenantId, 'forms', tenantRole);
     const submissions = await this.repository.listSubmissions(tenantId);
     return submissions.map(mapIntakeFormSubmission);
   }
 
   async getSubmission(tenantId: string, submissionId: string, tenantRole?: string) {
     assertClinicRole(tenantRole, 'read');
-    await assertClinicModuleAvailable(tenantId, 'core_reception');
+    await assertClinicFeatureAvailable(tenantId, 'forms', tenantRole);
     const submission = await this.repository.getSubmission(tenantId, submissionId);
     return submission ? mapIntakeFormSubmission(submission) : null;
   }
@@ -45,7 +45,7 @@ export class FormsService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'operate');
-    await assertClinicModuleAvailable(tenantId, 'core_reception');
+    await assertClinicFeatureAvailable(tenantId, 'forms', tenantRole);
     const submission = await this.repository.sendSubmission(tenantId, submissionId, body);
     if (!submission) {
       return null;
@@ -78,7 +78,7 @@ export class FormsService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'operate');
-    await assertClinicModuleAvailable(tenantId, 'core_reception');
+    await assertClinicFeatureAvailable(tenantId, 'forms', tenantRole);
     const submission = await this.repository.completeSubmission(tenantId, submissionId, body);
     if (!submission) {
       return null;
@@ -105,7 +105,7 @@ export class FormsService {
     tenantRole?: string
   ) {
     assertClinicRole(tenantRole, 'operate');
-    await assertClinicModuleAvailable(tenantId, 'core_reception');
+    await assertClinicFeatureAvailable(tenantId, 'forms', tenantRole);
     const submission = await this.repository.waiveSubmission(tenantId, submissionId, body);
     if (!submission) {
       return null;

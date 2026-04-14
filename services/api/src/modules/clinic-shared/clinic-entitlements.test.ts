@@ -74,8 +74,8 @@ describe('clinic entitlements', () => {
     });
   });
 
-  it('keeps clinic tenants out of the internal platform even when the module is enabled', () => {
-    const experience = resolveClinicExperience({
+  it('keeps clinic tenants out of the internal platform even when the module is enabled', async () => {
+    const experience = await resolveClinicExperience({
       ...baseContext,
       tenantRole: 'admin',
       modules: [
@@ -109,8 +109,8 @@ describe('clinic entitlements', () => {
     expect(permissions).toContain('manage_inbox');
   });
 
-  it('resolves a generic internal tenant experience for platform admin workspaces', () => {
-    const experience = resolveTenantExperience({
+  it('resolves a generic internal tenant experience for platform admin workspaces', async () => {
+    const experience = await resolveTenantExperience({
       ...baseContext,
       tenantRole: 'owner',
       profile: null,
@@ -130,12 +130,13 @@ describe('clinic entitlements', () => {
     expect(experience.permissions).toContain('view_internal_platform');
     expect(experience.permissions).toContain('view_admin_console');
     expect(experience.canAccessAdminConsole).toBe(true);
+    expect(experience.flags.adminConsoleEnabled).toBe(true);
     expect(experience.settingsSections).toContain('internal_defaults');
     expect(experience.settingsSections).toContain('internal_approvals');
   });
 
-  it('returns a minimal fisio tenant experience without clinic shell flags', () => {
-    const experience = resolveTenantExperience({
+  it('returns a minimal fisio tenant experience without clinic shell flags', async () => {
+    const experience = await resolveTenantExperience({
       ...baseContext,
       tenantRole: 'admin',
       profile: null,
@@ -154,6 +155,7 @@ describe('clinic entitlements', () => {
     expect(experience.shellKey).toBe('fisio');
     expect(experience.allowedNavigation).toEqual(['dashboard', 'configuration']);
     expect(experience.flags.verticalClinicUi).toBe(false);
+    expect(experience.flags.adminConsoleEnabled).toBe(false);
     expect(experience.settingsSections).toEqual([
       'general',
       'team',
@@ -165,8 +167,8 @@ describe('clinic entitlements', () => {
     ]);
   });
 
-  it('gates clinic settings sections from resolved module flags', () => {
-    const experience = resolveTenantExperience({
+  it('gates clinic settings sections from resolved module flags', async () => {
+    const experience = await resolveTenantExperience({
       ...baseContext,
       plan: 'enterprise',
       tenantRole: 'admin',

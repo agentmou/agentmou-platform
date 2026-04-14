@@ -22,10 +22,12 @@ export class ClinicModulesService {
       return [];
     }
 
-    return resolveClinicExperience({
-      ...context,
-      tenantRole,
-    }).modules;
+    return (
+      await resolveClinicExperience({
+        ...context,
+        tenantRole,
+      })
+    ).modules;
   }
 
   async updateModule(
@@ -60,10 +62,12 @@ export class ClinicModulesService {
     }
 
     return findClinicModuleEntitlement(
-      resolveClinicExperience({
-        ...context,
-        tenantRole,
-      }).modules,
+      (
+        await resolveClinicExperience({
+          ...context,
+          tenantRole,
+        })
+      ).modules,
       moduleKey
     );
   }
