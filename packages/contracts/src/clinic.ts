@@ -1074,6 +1074,7 @@ export type TenantSettingsSection = z.infer<typeof TenantSettingsSectionSchema>;
 export const TenantResolvedFlagsSchema = ClinicResolvedFlagsSchema.extend({
   activeVertical: VerticalKeySchema,
   isPlatformAdminTenant: z.boolean(),
+  adminConsoleEnabled: z.boolean(),
 });
 export type TenantResolvedFlags = z.infer<typeof TenantResolvedFlagsSchema>;
 
@@ -1278,6 +1279,7 @@ export const ClinicFeatureUnavailableReasonSchema = z.enum([
   'not_in_plan',
   'hidden_internal_only',
   'disabled_by_tenant',
+  'disabled_by_feature_flag',
   'requires_configuration',
   'channel_inactive',
   'channel_missing',

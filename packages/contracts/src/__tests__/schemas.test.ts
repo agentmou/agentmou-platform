@@ -55,6 +55,7 @@ import {
   TwilioVoiceWebhookPayloadSchema,
   NormalizedClinicWebhookEventSchema,
   ClinicDeliveryResultSchema,
+  ClinicFeatureUnavailableReasonSchema,
 } from '../index';
 
 describe('CategorySchema', () => {
@@ -112,6 +113,12 @@ describe('TenantSchema', () => {
 });
 
 describe('Clinic domain schemas', () => {
+  it('accepts disabled_by_feature_flag in clinic feature errors', () => {
+    expect(ClinicFeatureUnavailableReasonSchema.parse('disabled_by_feature_flag')).toBe(
+      'disabled_by_feature_flag'
+    );
+  });
+
   it('parses generic tenant experience payloads and vertical keys', () => {
     expect(VerticalKeySchema.parse('clinic')).toBe('clinic');
 
@@ -128,6 +135,7 @@ describe('Clinic domain schemas', () => {
       flags: {
         activeVertical: 'clinic',
         isPlatformAdminTenant: false,
+        adminConsoleEnabled: false,
         verticalClinicUi: true,
         clinicDentalMode: true,
         voiceInboundEnabled: true,
@@ -159,6 +167,7 @@ describe('Clinic domain schemas', () => {
     });
 
     expect(result.flags.activeVertical).toBe('clinic');
+    expect(result.flags.adminConsoleEnabled).toBe(false);
     expect(result.settingsSections).toContain('care_forms');
   });
 
@@ -177,6 +186,7 @@ describe('Clinic domain schemas', () => {
         flags: {
           activeVertical: 'internal',
           isPlatformAdminTenant: true,
+          adminConsoleEnabled: true,
           verticalClinicUi: false,
           clinicDentalMode: false,
           voiceInboundEnabled: false,
@@ -204,6 +214,7 @@ describe('Clinic domain schemas', () => {
     });
 
     expect(result.experience.shellKey).toBe('platform_internal');
+    expect(result.experience.flags.adminConsoleEnabled).toBe(true);
     expect(result.experience.allowedNavigation).toContain('platform_internal');
   });
 
