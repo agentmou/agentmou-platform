@@ -42,6 +42,7 @@ function buildContext(
         flags: {
           activeVertical,
           isPlatformAdminTenant: activeVertical === 'internal',
+          adminConsoleEnabled: activeVertical === 'internal',
           verticalClinicUi: activeVertical === 'clinic',
           clinicDentalMode: activeVertical === 'clinic',
           voiceInboundEnabled: false,

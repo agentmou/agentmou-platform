@@ -1950,6 +1950,7 @@ export function buildClinicDemoDataset(
     flags: {
       activeVertical: 'clinic',
       isPlatformAdminTenant: false,
+      adminConsoleEnabled: false,
       verticalClinicUi: true,
       clinicDentalMode: true,
       voiceInboundEnabled: true,

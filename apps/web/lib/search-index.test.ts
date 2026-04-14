@@ -31,6 +31,7 @@ describe('clinic search index', () => {
         flags: {
           activeVertical: 'internal',
           isPlatformAdminTenant: false,
+          adminConsoleEnabled: false,
           verticalClinicUi: false,
           clinicDentalMode: false,
           voiceInboundEnabled: false,
@@ -73,6 +74,7 @@ describe('clinic search index', () => {
         flags: {
           activeVertical: 'internal',
           isPlatformAdminTenant: true,
+          adminConsoleEnabled: true,
           verticalClinicUi: false,
           clinicDentalMode: false,
           voiceInboundEnabled: false,

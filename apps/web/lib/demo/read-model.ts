@@ -141,6 +141,7 @@ export function getTenantExperience(tenantId: string): TenantExperience | null {
       flags: {
         activeVertical: 'fisio',
         isPlatformAdminTenant: Boolean(tenant.settings.isPlatformAdminTenant),
+        adminConsoleEnabled: false,
         verticalClinicUi: Boolean(tenant.settings.verticalClinicUi),
         clinicDentalMode: Boolean(tenant.settings.clinicDentalMode),
         voiceInboundEnabled: false,
@@ -179,6 +180,7 @@ export function getTenantExperience(tenantId: string): TenantExperience | null {
     flags: {
       activeVertical: 'internal',
       isPlatformAdminTenant: Boolean(tenant.settings.isPlatformAdminTenant),
+      adminConsoleEnabled: Boolean(tenant.settings.isPlatformAdminTenant),
       verticalClinicUi: false,
       clinicDentalMode: false,
       voiceInboundEnabled: false,
