@@ -1,10 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-const TOKEN_COOKIE = 'agentmou-token';
+import { AUTH_SESSION_COOKIE_NAME } from '@/lib/auth/constants';
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get(TOKEN_COOKIE)?.value;
+  const token = request.cookies.get(AUTH_SESSION_COOKIE_NAME)?.value;
   const isPublicDemoPath =
     pathname === '/app/demo-workspace' || pathname.startsWith('/app/demo-workspace/');
 

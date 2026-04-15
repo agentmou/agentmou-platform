@@ -7,13 +7,13 @@ import { resolveAppRootRedirect } from '@/lib/tenant-routing';
 
 /**
  * /app entry point — redirects authenticated users to their first tenant dashboard.
- * Falls back to demo-workspace for unauthenticated visits (proxy will redirect
- * to /login if there's no token cookie, so this only runs for logged-in users).
+ * When auth bootstrap resolves to no valid session, sends the user back to /login.
  */
 export default function AppPage() {
   const router = useRouter();
   const hydrate = useAuthStore((s) => s.hydrate);
   const isHydrated = useAuthStore((s) => s.isHydrated);
+  const user = useAuthStore((s) => s.user);
   const activeTenantId = useAuthStore((s) => s.activeTenantId);
   const tenants = useAuthStore((s) => s.tenants);
 
@@ -23,8 +23,12 @@ export default function AppPage() {
 
   useEffect(() => {
     if (!isHydrated) return;
+    if (!user) {
+      router.replace('/login');
+      return;
+    }
     router.replace(resolveAppRootRedirect({ tenants, activeTenantId }));
-  }, [activeTenantId, isHydrated, router, tenants]);
+  }, [activeTenantId, isHydrated, router, tenants, user]);
 
   return null;
 }

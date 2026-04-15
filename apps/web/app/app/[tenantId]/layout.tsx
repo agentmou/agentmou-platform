@@ -16,6 +16,7 @@ export default function TenantLayout({ children }: { children: React.ReactNode }
   const pathname = usePathname();
   const router = useRouter();
   const tenantId = params.tenantId as string;
+  const authUser = useAuthStore((state) => state.user);
   const authTenants = useAuthStore((state) => state.tenants);
   const provider = React.useMemo(() => getTenantDataProvider(tenantId), [tenantId]);
   const experience = useResolvedTenantExperience(tenantId, provider);
@@ -41,8 +42,9 @@ export default function TenantLayout({ children }: { children: React.ReactNode }
       return;
     }
 
-    router.replace('/app');
+    router.replace(authUser ? '/app' : '/login');
   }, [
+    authUser,
     experience.fallbackTenantId,
     experience.hasTenantAccess,
     experience.isLoading,

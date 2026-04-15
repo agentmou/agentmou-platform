@@ -123,8 +123,8 @@ export function ClinicTopbar({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => {
-                logout();
+              onClick={async () => {
+                await logout();
                 router.push('/login');
               }}
             >

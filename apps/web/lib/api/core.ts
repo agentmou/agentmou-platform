@@ -1,8 +1,7 @@
 import { z, type ZodTypeAny } from 'zod';
+import { getApiUrl } from '@/lib/runtime/public-origins';
 
-import { getTokenCookie } from '@/lib/auth/cookies';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = getApiUrl().replace(/\/$/, '');
 
 export class ApiError extends Error {
   constructor(
@@ -23,11 +22,6 @@ export class ApiContractError extends Error {
     super(formatContractError(path, issues));
     this.name = 'ApiContractError';
   }
-}
-
-function authHeaders(): Record<string, string> {
-  const token = getTokenCookie();
-  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 async function parseErrorBody(response: Response) {
@@ -53,9 +47,9 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
   const url = `${API_URL}${path}`;
   const response = await fetch(url, {
     ...options,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...authHeaders(),
       ...options?.headers,
     },
   });

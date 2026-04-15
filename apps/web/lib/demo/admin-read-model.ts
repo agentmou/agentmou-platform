@@ -289,8 +289,6 @@ export function startAdminImpersonation(
 
   return {
     sessionId: `demo-session-${tenantId}-${user.userId}`,
-    impersonationToken: `demo-impersonation-token-${user.userId}`,
-    restoreToken: `demo-restore-token-${user.userId}`,
     expiresAt: new Date(Date.parse(nowIso()) + 1000 * 60 * 30).toISOString(),
   };
 }
@@ -299,8 +297,7 @@ export function stopAdminImpersonation(
   _body: AdminStopImpersonationInput
 ): AdminStopImpersonationResponse {
   return {
-    sessionId: 'demo-session-stopped',
-    token: 'demo-restored-token',
+    sessionId: 'demo-restored-session',
     endedAt: nowIso(),
   };
 }

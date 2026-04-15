@@ -207,7 +207,6 @@ Required or important environment variables:
 
 | Variable | Purpose |
 | --- | --- |
-| `NEXT_PUBLIC_API_URL` | Base URL for `services/api`; defaults to `http://localhost:3001` |
 | `MARKETING_PUBLIC_BASE_URL` | Canonical marketing origin used by metadata and cross-surface public links |
 | `APP_PUBLIC_BASE_URL` | Canonical app/auth origin used by login and demo deep links |
 | `API_PUBLIC_BASE_URL` | Canonical public API origin exposed to the client bundle |
@@ -215,8 +214,10 @@ Required or important environment variables:
 | `CONTACT_SALES_WEBHOOK_TOKEN` | Optional bearer token sent to the contact-sales webhook |
 | API `AUTH_WEB_ORIGIN_ALLOWLIST` | Comma-separated origins allowed for OAuth `return_url` (e.g. `http://localhost:3000`). Must include the web app origin or OAuth redirects are rejected. |
 
-The app also expects the auth flow to set the `agentmou-token` cookie used by
-`proxy.ts` and the typed API client.
+The app expects the auth flow to set the `agentmou-session` cookie. `proxy.ts`
+uses that cookie as a cheap gate, and authenticated browser requests rely on
+`credentials: 'include'` instead of constructing an `Authorization` header in
+client-side JavaScript.
 
 ## Development
 

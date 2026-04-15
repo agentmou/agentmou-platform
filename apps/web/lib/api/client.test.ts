@@ -3,19 +3,25 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 describe('api client runtime parsing', () => {
   const originalFetch = globalThis.fetch;
   const originalNodeEnv = process.env.NODE_ENV;
-  const originalApiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const originalMarketingBaseUrl = process.env.MARKETING_PUBLIC_BASE_URL;
+  const originalAppBaseUrl = process.env.APP_PUBLIC_BASE_URL;
+  const originalApiBaseUrl = process.env.API_PUBLIC_BASE_URL;
   const env = process.env as Record<string, string | undefined>;
 
   beforeEach(() => {
     vi.resetModules();
     env.NODE_ENV = 'development';
-    env.NEXT_PUBLIC_API_URL = 'http://localhost:3001';
+    env.MARKETING_PUBLIC_BASE_URL = 'http://localhost:3000';
+    env.APP_PUBLIC_BASE_URL = 'http://localhost:3000';
+    env.API_PUBLIC_BASE_URL = 'http://localhost:3001';
   });
 
   afterEach(() => {
     globalThis.fetch = originalFetch;
     env.NODE_ENV = originalNodeEnv;
-    env.NEXT_PUBLIC_API_URL = originalApiUrl;
+    env.MARKETING_PUBLIC_BASE_URL = originalMarketingBaseUrl;
+    env.APP_PUBLIC_BASE_URL = originalAppBaseUrl;
+    env.API_PUBLIC_BASE_URL = originalApiBaseUrl;
     vi.restoreAllMocks();
   });
 

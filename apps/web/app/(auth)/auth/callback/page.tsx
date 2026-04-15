@@ -35,7 +35,7 @@ function OAuthCallbackInner() {
       try {
         const res = await exchangeOAuthLoginCode(code);
         if (cancelled) return;
-        const tenantId = applyOAuthExchange(res, false);
+        const tenantId = applyOAuthExchange(res);
         const redirect = searchParams.get('redirect');
         router.replace(redirect || `/app/${tenantId}/dashboard`);
       } catch (e) {

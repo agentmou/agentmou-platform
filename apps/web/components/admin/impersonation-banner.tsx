@@ -20,8 +20,7 @@ export function ImpersonationBanner() {
   const experience = useTenantExperience();
   const user = useAuthStore((state) => state.user);
   const session = useAuthStore((state) => state.session);
-  const restoreToken = useAuthStore((state) => state.impersonationRestoreToken);
-  const replaceSessionToken = useAuthStore((state) => state.replaceSessionToken);
+  const refreshSession = useAuthStore((state) => state.refreshSession);
   const [isStopping, setIsStopping] = React.useState(false);
 
   if (!session?.isImpersonation) {
@@ -29,22 +28,14 @@ export function ImpersonationBanner() {
   }
 
   const handleStop = async () => {
-    if (!restoreToken) {
-      toast.error('No encontramos el restore token de impersonation en esta sesion.');
-      return;
-    }
-
     setIsStopping(true);
     try {
-      const response = await provider.stopAdminImpersonation({
-        restoreToken,
-      });
+      await provider.stopAdminImpersonation({});
       const actorTenantId = session.actorTenantId ?? experience.tenantId;
       const targetTenantId = session.targetTenantId ?? experience.tenantId;
 
-      await replaceSessionToken(response.token, {
+      await refreshSession({
         preferredTenantId: actorTenantId,
-        impersonationRestoreToken: null,
       });
 
       router.replace(`/app/${actorTenantId}/admin/tenants/${targetTenantId}`);
@@ -69,7 +60,7 @@ export function ImpersonationBanner() {
         size="sm"
         variant="outline"
         onClick={handleStop}
-        disabled={isStopping || !restoreToken}
+        disabled={isStopping}
         className="h-8 shrink-0 border-amber-500/30 bg-background/80 text-amber-950 hover:bg-background dark:text-amber-100"
       >
         <ArrowLeftRight className="h-4 w-4" />
