@@ -11,11 +11,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "env": [
-        "MARKETING_PUBLIC_BASE_URL",
-        "APP_PUBLIC_BASE_URL",
-        "API_PUBLIC_BASE_URL"
-      ],
+      "env": ["MARKETING_PUBLIC_BASE_URL", "APP_PUBLIC_BASE_URL", "API_PUBLIC_BASE_URL"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "dev": {
