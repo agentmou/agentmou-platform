@@ -13,8 +13,8 @@ It is intentionally grounded in the route modules wired in `src/app.ts`.
 `services/api/src/app.ts` registers routes in four layers:
 
 1. public routes with no auth middleware
-2. authenticated routes guarded by JWT
-3. tenant-scoped routes guarded by JWT plus tenant membership checks
+2. authenticated routes resolved by `requireAuth`
+3. tenant-scoped routes resolved by `requireAuth` plus tenant membership checks
 4. tenant-scoped internal-platform routes guarded by
    `requireInternalPlatformAccess`
 
@@ -26,7 +26,7 @@ This is why some routes live directly under `/api/v1/*` while others live under
 | Area | Routes |
 | --- | --- |
 | Health | `GET /health` |
-| Auth | `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `GET /api/v1/auth/me`, `POST /api/v1/auth/forgot-password`, `POST /api/v1/auth/reset-password` |
+| Auth | `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, `GET /api/v1/auth/me`, `POST /api/v1/auth/forgot-password`, `POST /api/v1/auth/reset-password` |
 | B2C OAuth | `GET /api/v1/auth/oauth/providers`, `GET /api/v1/auth/oauth/:provider/authorize`, `GET /api/v1/auth/oauth/:provider/callback`, `POST /api/v1/auth/oauth/exchange` |
 | Catalog | `GET /api/v1/catalog/agents`, `GET /api/v1/catalog/agents/:id`, `GET /api/v1/catalog/packs`, `GET /api/v1/catalog/workflows`, `GET /api/v1/catalog/categories`, `GET /api/v1/catalog/search` |
 | Connector callback | `GET /api/v1/oauth/callback` |
@@ -36,12 +36,13 @@ This is why some routes live directly under `/api/v1/*` while others live under
 
 Notes:
 
-- `/api/v1/auth/me` expects an auth header in practice, even though it is
-  registered inside the public auth module.
+- `/api/v1/auth/me` is registered inside the public auth module, but it only
+  returns a user snapshot when `requireAuth` can resolve either the canonical
+  `agentmou-session` cookie or the bearer-token compatibility fallback.
 - `GET /api/v1/oauth/callback` is public because Google redirects back to the
-  API without a JWT.
+  API without a browser session cookie.
 - Twilio clinic webhook routes are also public because provider callbacks do
-  not carry tenant JWTs; they resolve tenant/channel from the addressed phone
+  not carry a user session; they resolve tenant/channel from the addressed phone
   number, validate the Twilio signature, persist `webhook_events`, and enqueue
   worker fan-out only after idempotency checks.
 
@@ -49,7 +50,10 @@ Notes:
 
 ### Tenant routes
 
-These routes require a valid JWT:
+These routes require an authenticated session:
+
+- browser flows use the `agentmou-session` HttpOnly cookie
+- non-browser and compatibility flows may still use `Authorization: Bearer ...`
 
 - `GET /api/v1/tenants`
 - `POST /api/v1/tenants`
@@ -61,7 +65,8 @@ These routes require a valid JWT:
 
 ### Tenant-scoped routes
 
-These routes require a valid JWT plus access to the tenant in the path:
+These routes require the same authenticated session plus access to the tenant
+in the path:
 
 | Module | Example routes |
 | --- | --- |
@@ -88,7 +93,7 @@ These routes require a valid JWT plus access to the tenant in the path:
 ### Clinic route rules
 
 - All clinic routes live under `/api/v1/tenants/:tenantId/*` and are registered
-  inside the existing JWT + tenant-membership scope.
+  inside the existing auth + tenant-membership scope.
 - `GET /api/v1/tenants/:tenantId/experience` is the canonical payload for
   shell mode, permissions, flags, allowed navigation, settings sections, and
   enriched module entitlements. `GET /clinic/experience` remains as the clinic

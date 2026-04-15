@@ -68,8 +68,10 @@ authenticated, and tenant-scoped route modules that split into:
 
 - public routes for auth, catalog, public chat, connector callback, and Stripe
   webhooks
-- authenticated routes guarded by JWT
-- tenant-scoped routes guarded by JWT plus membership checks
+- authenticated routes resolved by the canonical `agentmou-session` cookie,
+  with bearer fallback still accepted for non-browser compatibility
+- tenant-scoped routes that build on the same auth layer plus membership
+  checks
 
 It persists state through `@agentmou/db`, loads operational manifests through
 `@agentmou/catalog-sdk`, and enqueues long-running work via `@agentmou/queue`.
@@ -166,9 +168,10 @@ clients.
 
 1. The browser hits `apps/web`.
 2. Auth routes call `services/api` under `/api/v1/auth`.
-3. The API issues or validates the auth token.
-4. `proxy.ts` in the web app protects tenant routes and preserves access to the
-   `demo-workspace`.
+3. The API issues or validates the opaque `agentmou-session` cookie, with
+   bearer auth kept only as a non-browser compatibility fallback.
+4. `proxy.ts` in the web app enforces canonical marketing/app hosts, protects
+   tenant routes, and preserves access to the `demo-workspace`.
 
 ### 2. Catalog browsing and installation
 

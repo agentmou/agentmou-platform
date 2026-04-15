@@ -39,8 +39,9 @@ app/(marketing)/
 
 These routes use the marketing layout and default to demo-backed read models.
 The homepage, pricing, security, and contact-sales pages are clinic-first.
-`/platform` is the public technical narrative, and `/docs` now redirects there
-to preserve old links.
+`/docs/engine` is the public technical secondary page, while `/docs` and
+`/platform` redirect back to `/` so the technical narrative no longer leads the
+main funnel.
 
 ### Auth routes
 
@@ -108,9 +109,11 @@ app/app/
     └── settings/page.tsx
 ```
 
-The `proxy.ts` file protects `/app/*` traffic, keeps authenticated users away
-from the login and register pages, and preserves public access to the
-`demo-workspace` tenant.
+The `proxy.ts` file also enforces host canonicity: marketing routes stay on
+`agentmou.io`, while `/login`, `/register`, `/reset-password`, `/auth/callback`,
+and `/app/*` stay on `app.agentmou.io`. After that host check, it protects
+`/app/*` traffic, keeps authenticated users away from the login and register
+pages, and preserves public access to the `demo-workspace` tenant.
 
 `app/app/[tenantId]/layout.tsx` is the experience switch. It resolves the shell
 from `GET /api/v1/tenants/:tenantId/experience`, using `activeVertical`,
@@ -187,7 +190,7 @@ Instead:
   and flow sections.
 - `lib/marketing/site-config.ts` drives nav/footer structure.
 - `lib/marketing/featured-from-demo.ts` and `/api/public-catalog` are reserved
-  for the secondary `/platform` story and technical catalog snippets.
+  for the secondary `/docs/engine` story and technical catalog snippets.
 
 ## Important Supporting Modules
 

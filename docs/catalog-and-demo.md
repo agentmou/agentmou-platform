@@ -130,7 +130,7 @@ The clinic-first homepage, pricing, security, and contact-sales surfaces use:
 - `apps/web/lib/marketing/site-config.ts`
 - `apps/web/components/marketing/*`
 
-The secondary technical `/platform` story uses:
+The secondary technical `/docs/engine` story uses:
 
 - `apps/web/lib/demo-catalog/marketing-featured.ts`
 - `apps/web/lib/marketing/featured-from-demo.ts`
@@ -138,8 +138,9 @@ The secondary technical `/platform` story uses:
 
 This keeps the public clinic narrative independent from the horizontal catalog
 while still checking that the technical supporting blocks correspond to
-operational assets where required. `/docs` is now just an alias to `/platform`
-so existing links still work.
+operational assets where required. `/docs` and `/platform` now redirect back to
+the marketing home so the technical narrative does not compete with the buyer
+funnel, while `/docs/engine` remains accessible as a noindex secondary page.
 
 ## Authoring Rules
 

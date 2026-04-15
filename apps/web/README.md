@@ -6,8 +6,8 @@ Next.js application for the Agentmou public site and tenant control-center UI.
 
 `apps/web` is the user-facing surface of the monorepo. It serves two jobs:
 - Public marketing pages that sell Agentmou as a multichannel AI receptionist
-  for clinics, with `/platform` as the secondary technical narrative and
-  `/docs` preserved as an alias.
+  for clinics, while keeping `/docs/engine` as a secondary technical page and
+  redirecting `/docs` and `/platform` back to the marketing home.
 - Authenticated tenant pages that resolve `internal`, `clinic`, or `fisio`
   from `TenantExperience`, with the Admin console only for admin-capable
   internal tenants.
@@ -18,8 +18,8 @@ or workflows itself.
 ## Responsibilities
 
 - Render the clinic-first marketing experience under `app/(marketing)`, with
-  public pages for `/`, `/pricing`, `/security`, `/platform`, and
-  `/contact-sales`.
+  public pages for `/`, `/pricing`, `/security`, `/contact-sales`,
+  `/privacy`, `/terms`, and the secondary `/docs/engine` page.
 - Handle login and registration under `app/(auth)` using `components/auth`
   (`AuthForm`, password strength UI). **B2C OAuth** (Google, Microsoft) uses
   `GET /api/v1/auth/oauth/:provider/authorize` with `return_url` pointing to
@@ -30,7 +30,8 @@ or workflows itself.
   default in dev on the API). **Enterprise SAML/OIDC** per tenant is planned
   via an external provider (see `docs/adr/011-enterprise-auth-strategy.md`);
   the UI shows a disabled SSO row with tooltip.
-- Protect tenant routes with Next.js proxy and a JWT cookie.
+- Enforce canonical marketing/app hosts in `proxy.ts`, then use the
+  `agentmou-session` cookie as a cheap gate for protected tenant routes.
 - Consume the control-plane API through typed client helpers in `lib/api/`.
 - Resolve the tenant shell in `app/app/[tenantId]/layout.tsx` from
   `GET /api/v1/tenants/:tenantId/experience`, using `activeVertical`,
@@ -42,7 +43,7 @@ or workflows itself.
 - Keep the primary marketing narrative in `lib/marketing/clinic-site.ts` and
   `components/marketing/*`, instead of driving the homepage hero from the
   public catalog payload.
-- Serve the secondary technical `/platform` page from `/api/public-catalog`,
+- Serve the secondary technical `/docs/engine` page from `/api/public-catalog`,
   built from the **curated demo featured list**
   (`lib/demo-catalog/marketing-featured.ts`) plus `demoTotals`,
   `operationalFeaturedCounts`, and `gaInventoryCounts` (see
@@ -100,7 +101,7 @@ pnpm --filter @agentmou/web start
 
 | Route group | Purpose |
 | --- | --- |
-| `app/(marketing)` | Public clinic marketing pages, `/platform`, `/contact-sales`, and the `/docs` alias |
+| `app/(marketing)` | Public clinic marketing pages, `/contact-sales`, legal pages, `/docs/engine`, and redirects from `/docs` + `/platform` back to `/` |
 | `app/(auth)` | Login and registration flows |
 | `app/auth/callback`, `app/reset-password` | OAuth return handling and password reset deep links |
 | `app/app` | Authenticated app shell and tenant redirects |
@@ -117,9 +118,10 @@ pnpm --filter @agentmou/web start
 ### Important Modules
 
 - `app/layout.tsx` mounts theme support, toaster notifications, and analytics.
-- `proxy.ts` redirects unauthenticated traffic away from `/app/*` except
-  the public `demo-workspace`, and keeps authenticated users out of `/login`
-  and `/register`.
+- `proxy.ts` keeps marketing on `agentmou.io`, auth/app on
+  `app.agentmou.io`, redirects unauthenticated traffic away from `/app/*`
+  except the public `demo-workspace`, and keeps authenticated users out of
+  `/login` and `/register`.
 - `lib/api/core.ts` contains shared request, error, and query-string helpers
   for the web API clients.
 - `lib/api/client.ts` contains typed fetchers for tenants, catalog, runs,
@@ -147,7 +149,8 @@ pnpm --filter @agentmou/web start
   generated operational ID index.
 - `lib/honest-ui/audit.ts` is the authoritative audit map for placeholder,
   preview, and demo tenant surfaces.
-- `lib/marketing/featured-from-demo.ts` builds the homepage catalog payload.
+- `lib/marketing/featured-from-demo.ts` builds the secondary technical payload
+  used by `/docs/engine`.
 - `lib/marketing/site-config.ts` defines the clinic marketing nav/footer
   structure.
 - `lib/marketing/clinic-site.ts` contains the clinic marketing read model used
@@ -157,7 +160,7 @@ pnpm --filter @agentmou/web start
 - `app/api/contact-sales/route.ts` validates and relays public sales leads to a
   webhook with a controlled non-production fallback when no webhook is set.
 - `components/marketing/` contains the dedicated clinic marketing sections,
-  technical `/platform` grid, and `ContactSalesForm`.
+  the secondary technical engine grid, and `ContactSalesForm`.
 - `lib/auth/store.ts` owns login, registration, cookie hydration, and active-tenant selection.
 - `lib/tenant-experience.tsx` exposes `useResolvedTenantExperience`, which
   prefers `GET /tenants/:tenantId/experience` and only falls back to
@@ -215,9 +218,9 @@ Required or important environment variables:
 | API `AUTH_WEB_ORIGIN_ALLOWLIST` | Comma-separated origins allowed for OAuth `return_url` (e.g. `http://localhost:3000`). Must include the web app origin or OAuth redirects are rejected. |
 
 The app expects the auth flow to set the `agentmou-session` cookie. `proxy.ts`
-uses that cookie as a cheap gate, and authenticated browser requests rely on
-`credentials: 'include'` instead of constructing an `Authorization` header in
-client-side JavaScript.
+applies canonical host redirects first, then uses that cookie as a cheap gate,
+and authenticated browser requests rely on `credentials: 'include'` instead of
+constructing an `Authorization` header in client-side JavaScript.
 
 ## Development
 

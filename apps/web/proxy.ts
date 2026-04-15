@@ -1,9 +1,30 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 import { AUTH_SESSION_COOKIE_NAME } from '@/lib/auth/constants';
+import {
+  buildCanonicalSurfaceUrl,
+  getCanonicalSurfaceOrigin,
+  isCanonicalBypassPath,
+  resolveCanonicalSurface,
+} from '@/lib/runtime/canonical-hosts';
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (isCanonicalBypassPath(pathname)) {
+    return NextResponse.next();
+  }
+
+  const canonicalSurface = resolveCanonicalSurface(pathname);
+  if (canonicalSurface) {
+    const canonicalOrigin = getCanonicalSurfaceOrigin(canonicalSurface);
+    if (request.nextUrl.origin !== canonicalOrigin) {
+      return NextResponse.redirect(
+        buildCanonicalSurfaceUrl(canonicalSurface, pathname, request.nextUrl.search)
+      );
+    }
+  }
+
   const token = request.cookies.get(AUTH_SESSION_COOKIE_NAME)?.value;
   const isPublicDemoPath =
     pathname === '/app/demo-workspace' || pathname.startsWith('/app/demo-workspace/');
@@ -27,5 +48,21 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/login', '/register'],
+  matcher: [
+    '/',
+    '/pricing',
+    '/security',
+    '/contact-sales',
+    '/privacy',
+    '/terms',
+    '/docs',
+    '/docs/:path*',
+    '/platform',
+    '/login',
+    '/register',
+    '/reset-password',
+    '/auth/callback',
+    '/app',
+    '/app/:path*',
+  ],
 };

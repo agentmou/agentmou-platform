@@ -249,14 +249,19 @@ Credentials (OAuth tokens, API keys) are encrypted at rest using **AES-256-GCM**
 Encrypted values are stored in `secret_envelopes` table with metadata (algorithm, IV, auth tag).
 
 ### Authentication
-Agentmou uses **JWT (JSON Web Tokens)** for API authentication. Process:
+Agentmou uses **opaque server-side sessions** as the canonical browser auth
+model. Process:
 1. User logs in with email/password or OAuth
-2. API issues a JWT signed with `JWT_SECRET`
-3. Client includes JWT in `Authorization: Bearer <token>` header
-4. API verifies JWT and extracts user claims
-5. Middleware enforces tenant access control
+2. API creates an `auth_sessions` row and issues the `agentmou-session`
+   HttpOnly cookie
+3. Browser requests include that cookie automatically to `app` and `api`
+4. API resolves the session, hydrates user claims, and enforces tenant access
+   control
+5. Logout revokes the server-side session and clears the cookie
 
-JWTs expire after 24 hours (configurable).
+The API still accepts `Authorization: Bearer <token>` as a compatibility
+fallback for non-browser integrations and tests, but browser flows no longer
+store or mount a token from JavaScript.
 
 ### Authorization
 Access control enforced after authentication. Agentmou has:
@@ -361,7 +366,7 @@ See [Deployment Guide](./runbooks/deployment.md) for detailed instructions.
 | GCM | Galois/Counter Mode (encryption) |
 | HITL | Human-in-the-Loop |
 | HTTP | HyperText Transfer Protocol |
-| JWT | JSON Web Token |
+| JWT | JSON Web Token (bearer fallback for non-browser compatibility) |
 | LLM | Large Language Model |
 | ORM | Object-Relational Mapping |
 | OAuth | Open Authorization (3rd party auth) |

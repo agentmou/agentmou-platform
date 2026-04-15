@@ -2,6 +2,16 @@
 
 This runbook covers deploying Agentmou to production on a VPS, verifying health, and rolling back if necessary.
 
+Canonical production split:
+
+- `agentmou.io` serves marketing outside the VPS
+- `app.agentmou.io` serves auth + tenant app outside the VPS by default
+- `api.agentmou.io` is served from the VPS stack in this repo
+
+The optional Docker `web` profile exists only when you deliberately want to
+serve `app.agentmou.io` from the VPS stack. It is not the default deployment
+story.
+
 ## Prerequisites
 
 ### VPS Requirements
@@ -188,6 +198,37 @@ OK: Public smoke test passed
 ==> Deployment successful
 ```
 
+### External Production Checklist
+
+Before or immediately after a production deploy, verify these repo-external
+settings explicitly:
+
+1. DNS:
+   - `agentmou.io` points to the marketing host
+   - `app.agentmou.io` points to the app host
+   - `api.agentmou.io` points to the VPS/Traefik edge
+2. TLS:
+   - `api.agentmou.io` presents a valid certificate
+   - the marketing and app hosts also terminate TLS correctly on their own
+3. Canonical redirects:
+   - marketing routes stay on `agentmou.io`
+   - `/login`, `/register`, `/reset-password`, `/auth/callback`, and `/app/*`
+     end up on `app.agentmou.io`
+4. OAuth provider config:
+   - Google/Microsoft B2C callback URIs use
+     `https://api.agentmou.io/api/v1/auth/oauth/.../callback`
+   - connector OAuth callbacks use `https://api.agentmou.io/api/v1/oauth/callback`
+5. Browser/app policy:
+   - `CORS_ORIGIN` equals `https://app.agentmou.io`
+   - `AUTH_WEB_ORIGIN_ALLOWLIST` includes `https://app.agentmou.io`
+   - browser auth uses the shared `agentmou-session` cookie between app/api
+6. Deep links:
+   - direct links to `/app/<tenantId>/...` resolve on the app host
+   - reset-password links land on `app.agentmou.io/reset-password`
+7. Indexing:
+   - marketing stays indexable
+   - auth/app routes and `/docs/engine` remain `noindex`
+
 ### Build-Only Deployment (No Restart)
 
 If you want to build images without restarting services:
@@ -279,6 +320,9 @@ Run the automated smoke test:
 bash infra/scripts/smoke-test.sh
 ```
 
+This smoke test is intentionally API/VPS-focused. It does not assert the
+external marketing/app hosts. Use the checklist above for those validations.
+
 This tests:
 - API health through the public domain
 - Public catalog response shape
@@ -290,7 +334,10 @@ This tests:
 
 ### Rotating JWT Secret
 
-⚠️ **Caution**: Rotating JWT invalidates all active sessions.
+⚠️ **Caution**: Browser auth now uses opaque `auth_sessions`, so rotating
+`JWT_SECRET` mainly affects bearer fallback flows, legacy/test tokens, and any
+non-browser integrations that still rely on JWTs. It does **not** revoke the
+primary browser session cookie by itself.
 
 1. Generate a new secret:
    ```bash
@@ -308,7 +355,8 @@ This tests:
    docker compose -f infra/compose/docker-compose.prod.yml restart api worker
    ```
 
-4. Notify users that sessions have expired (they will see login page)
+4. Re-test any non-browser bearer clients or legacy tooling that still depend
+   on JWT validation
 
 ### Rotating Connector Encryption Key
 
