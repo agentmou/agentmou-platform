@@ -1,6 +1,12 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [".env", "infra/compose/.env.example", ".github/workflows/ci.yml"],
+  "globalDependencies": [
+    ".env",
+    "infra/compose/.env.example",
+    ".github/workflows/ci.yml",
+    "eslint.config.js",
+    "tsconfig.base.json"
+  ],
   "globalEnv": ["NODE_ENV", "DATABASE_URL", "REDIS_URL", "NEXT_PUBLIC_API_URL"],
   "tasks": {
     "build": {

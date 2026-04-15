@@ -22,7 +22,7 @@ Understand how Agentmou is structured and why:
 - **[Agent Engine](./architecture/agent-engine.md)** — Planner, PolicyEngine, Toolkit, execution flow, HITL approvals.
 - **[Catalog System](./architecture/catalog-system.md)** — Catalog layers, availability tiers, manifest structure, templates, promotion flow.
 - **[Catalog, Demo, and Marketing](./catalog-and-demo.md)** — Operational manifests vs demo inventory vs curated marketing surfaces.
-- **[Conventions](./architecture/conventions.md)** — Naming, imports, data modeling, error handling, typing guardrails.
+- **[Conventions](./architecture/conventions.md)** — Naming, imports, data modeling, error handling, typing guardrails, and [static hygiene / quality gates](./architecture/conventions.md#static-hygiene-and-tooling) (ESLint vs Biome, core-path errors).
 
 ## Development
 
