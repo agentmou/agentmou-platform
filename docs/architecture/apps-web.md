@@ -126,9 +126,10 @@ Shared-care tenants render:
 
 Internal tenants keep `AgentmouShell`, use top-level internal routes such as
 `/runs`, `/marketplace`, `/settings`, and `/admin/tenants`, and still accept
-`/platform/*` only as a compatibility alias. `clinicDentalMode` and the old
-boolean settings still travel for compatibility, but the web app no longer uses
-them as the primary routing signal.
+`/platform/*` only as a compatibility alias for old deep links. New
+navigation should point to canonical routes directly. `clinicDentalMode` and
+the old boolean settings still travel for compatibility, but the web app no
+longer uses them as the primary routing signal.
 
 Once the tenant is inside the app, `useResolvedTenantExperience` prefers
 `GET /tenants/:tenantId/experience` as the canonical source for:
@@ -156,8 +157,8 @@ app/api/
 - `chat` is the frontend-owned route for the public chat experience.
 - `contact-sales` validates the commercial lead form and relays it to a
   configurable webhook.
-- `public-catalog` returns the curated catalog payload used by the secondary
-  `/platform` page and technical supporting blocks.
+- `public-catalog` returns the curated catalog payload used by `/docs/engine`
+  and related technical supporting blocks.
 
 ## Data Access Model
 

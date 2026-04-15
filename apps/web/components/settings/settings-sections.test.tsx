@@ -202,8 +202,8 @@ describe('PlanSettingsSection', () => {
     expect(html).toContain('Voz outbound');
     expect(html).toContain('Rollout');
     expect(html).toContain('Bloqueado por rollout');
-    expect(html).toContain('Compatibilidad legacy');
-    expect(html).toContain('verticalClinicUi (legacy)');
+    expect(html).toContain('Compatibilidad heredada');
+    expect(html).toContain('booleans heredados');
     expect(html).toContain('activeVertical');
   });
 });

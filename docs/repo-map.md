@@ -108,11 +108,12 @@ Notes:
   tenant-scoped clinic backend.
 - `app/app/[tenantId]/layout.tsx` and `lib/tenant-experience.tsx` are the key
   boundaries for understanding resolved experience mode, capability flags,
-  `/platform/*` guards, and clinic navigation gating in vertical tenants.
+  legacy `/platform/*` compatibility redirects, and clinic navigation gating in
+  vertical tenants.
 - `lib/data/` now carries the shared `DataProvider` contract for both platform
   and clinic surfaces.
 - `components/clinic/` is the new domain UI boundary for the vertical control
-  center, while `components/control-plane/` still owns the original platform
+  center, while `components/control-plane/` still owns the original internal
   shell.
 - `lib/search-index.ts` splits search and command palette behavior into
   shared-care and internal modes from the resolved tenant experience payload.
@@ -174,8 +175,8 @@ families are layered on top of the original control plane. `modules/clinic-share
 is the key support package for role checks, entitlement resolution,
 module/channel gating, route errors, mappers, fixtures, and read-model joins.
 `middleware/internal-platform-access.ts` adds the extra guard layer for the
-platform-only route families that sit behind `/app/[tenantId]/platform/*` in
-the web app.
+platform-only route families that can still be reached through
+`/app/[tenantId]/platform/*` compatibility aliases in the web app.
 
 ### services/worker
 

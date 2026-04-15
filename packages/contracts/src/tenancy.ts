@@ -26,9 +26,9 @@ export const TenantSettingsSchema = z.object({
   activeVertical: VerticalKeySchema.default('internal'),
   isPlatformAdminTenant: z.boolean().default(false),
   settingsVersion: z.number().default(2),
-  // Legacy compatibility flags kept only while older tenant/bootstrap paths
-  // still need to parse pre-activeVertical data. New decision logic should use
-  // activeVertical plus resolved tenant experience instead.
+  // Legacy compatibility flags are read-only migration fallbacks for older
+  // tenant/bootstrap payloads. New behavior must be driven by activeVertical
+  // plus resolved tenant experience, not by these booleans.
   verticalClinicUi: z.boolean().default(false),
   clinicDentalMode: z.boolean().default(false),
   internalPlatformVisible: z.boolean().default(false),

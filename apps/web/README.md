@@ -37,7 +37,8 @@ or workflows itself.
   `GET /api/v1/tenants/:tenantId/experience`, using `activeVertical`,
   `shellKey`, `allowedNavigation`, and resolved flags as the primary signals.
 - Keep top-level internal routes canonical while preserving
-  `/app/[tenantId]/platform/*` as a legacy alias for old links.
+  `/app/[tenantId]/platform/*` only as a compatibility alias for old deep
+  links. New navigation should always emit canonical routes.
 - Export typed clinic backend fetchers in `lib/api/clinic.ts` and consume them
   through the same `DataProvider` abstraction used by the rest of the tenant UI.
 - Keep the primary marketing narrative in `lib/marketing/clinic-site.ts` and
@@ -76,9 +77,9 @@ or workflows itself.
   executed elsewhere in the stack.
 - Resolves a tenant-aware shell that keeps clinic UX at the tenant root and the
   canonical internal surfaces at `/app/[tenantId]/*`, while treating
-  `/app/[tenantId]/platform/*` as a compatibility alias. `TenantExperience` is
-  the canonical source of mode, permissions, navigation, settings sections,
-  and flags.
+  `/app/[tenantId]/platform/*` as a temporary compatibility alias only.
+  `TenantExperience` is the canonical source of mode, permissions, navigation,
+  settings sections, and flags.
 
 ## Local Usage
 
@@ -105,7 +106,7 @@ pnpm --filter @agentmou/web start
 | `app/(auth)` | Login and registration flows |
 | `app/auth/callback`, `app/reset-password` | OAuth return handling and password reset deep links |
 | `app/app` | Authenticated app shell and tenant redirects |
-| `app/app/[tenantId]` | Tenant-scoped control center with vertical-aware routing, admin pages, and legacy `/platform/*` aliases |
+| `app/app/[tenantId]` | Tenant-scoped control center with vertical-aware routing, admin pages, and compatibility `/platform/*` aliases for old links |
 
 ### Data providers
 
@@ -188,8 +189,8 @@ Clinical tenants now use:
 - `reactivacion`, `rendimiento`, `configuracion`
 
 The original platform pages remain available under
-`/app/[tenantId]/platform/*` as legacy aliases. Internal tenants use the same
-destinations through canonical top-level routes such as `/runs`, `/marketplace`,
+`/app/[tenantId]/platform/*` only as compatibility aliases. Internal tenants
+should use canonical top-level routes such as `/runs`, `/marketplace`,
 `/security`, `/settings`, and `/admin/tenants`.
 
 For clinic and fisio tenants, manual entry to internal or `/platform/*` routes

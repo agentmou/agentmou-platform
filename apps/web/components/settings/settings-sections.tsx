@@ -454,24 +454,6 @@ export function PlanSettingsSection({ context }: { context: SettingsRegistryCont
     tenantId: context.experience.tenantId,
   });
   const featureDecisions = context.experience.resolvedExperience?.featureDecisions;
-  const legacyRows = [
-    {
-      label: 'Fuente de verdad actual',
-      value: context.experience.activeVertical,
-    },
-    {
-      label: 'verticalClinicUi (legacy)',
-      value: context.tenant.settings.verticalClinicUi ? 'true' : 'false',
-    },
-    {
-      label: 'clinicDentalMode (legacy)',
-      value: context.tenant.settings.clinicDentalMode ? 'true' : 'false',
-    },
-    {
-      label: 'internalPlatformVisible (legacy)',
-      value: context.tenant.settings.internalPlatformVisible ? 'true' : 'false',
-    },
-  ];
 
   return (
     <div className="space-y-6">
@@ -643,14 +625,12 @@ export function PlanSettingsSection({ context }: { context: SettingsRegistryCont
             </div>
 
             <div className="rounded-2xl border border-border/60 bg-muted/30 p-4">
-              <p className="text-sm font-medium">Compatibilidad legacy</p>
+              <p className="text-sm font-medium">Compatibilidad heredada</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                `activeVertical` es la fuente de verdad. Los booleans legacy se mantienen solo para
-                compatibilidad de lectura y no deberían gobernar decisiones nuevas.
+                `activeVertical` es la fuente de verdad. Los booleans heredados siguen presentes
+                solo para lectura y migración de payloads antiguos; esta pantalla ya no los expone
+                como knobs operativos del tenant.
               </p>
-              <div className="mt-4">
-                <KeyValueGrid rows={legacyRows} />
-              </div>
             </div>
           </CardContent>
         </Card>
