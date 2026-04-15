@@ -10,9 +10,14 @@ describe('clinic search index', () => {
 
     expect(items.some((item) => item.label === 'Resumen')).toBe(true);
     expect(items.some((item) => item.label === 'Bandeja')).toBe(true);
+    expect(items.some((item) => item.label === 'Reactivación')).toBe(true);
+    expect(items.some((item) => item.label === 'Configuración')).toBe(true);
     expect(items.some((item) => item.label === 'Marketplace')).toBe(false);
     expect(items.some((item) => item.label === 'Ana Garcia')).toBe(true);
     expect(items.some((item) => item.label.includes('higiene'))).toBe(true);
+    expect(items.find((item) => item.label === 'Rendimiento')?.description).toBe(
+      'Métricas operativas del centro'
+    );
   });
 
   it('keeps platform search entries in platform_internal mode', async () => {

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Activity, CalendarDays, MessageCircleMore, Search } from 'lucide-react';
+import { Activity, CalendarDays, MessageCircleMore, RefreshCw, Search, Users } from 'lucide-react';
 import type { ConversationThreadDetail } from '@agentmou/contracts';
 
 import {
@@ -18,10 +18,16 @@ import {
   PatientStatusBadge,
   ReactivationCampaignCard,
 } from '@/components/clinic';
+import { EmptyState } from '@/components/control-plane/empty-state';
 import { TenantSettingsPage } from '@/components/settings/tenant-settings-page';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  formatClinicDate,
+  formatClinicDateTime,
+  resolveClinicTimezone,
+} from '@/lib/clinic-formatting';
 import { useProviderQuery } from '@/lib/data/use-provider-query';
 import { hasClinicNavigationAccess, useTenantExperience } from '@/lib/tenant-experience';
 
@@ -52,6 +58,10 @@ const emptyDashboard = {
 
 export function ClinicOverviewPage() {
   const experience = useTenantExperience();
+  const clinicTimezone = resolveClinicTimezone({
+    profileTimezone: experience.profile?.timezone,
+    tenantTimezone: experience.tenant?.settings.timezone,
+  });
   const { data: dashboard } = useProviderQuery(
     (provider) => provider.getClinicDashboard(experience.tenantId),
     emptyDashboard,
@@ -82,25 +92,25 @@ export function ClinicOverviewPage() {
     <div className="space-y-8 p-6 lg:p-8">
       <div className="flex flex-col gap-2">
         <p className="text-sm uppercase tracking-[0.12em] text-muted-foreground">
-          Centro de recepcion
+          Centro de recepción
         </p>
         <h1 className="text-3xl font-semibold tracking-tight">Resumen</h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Seguimiento operativo del dia: bandeja, agenda, confirmaciones y oportunidades de
-          recuperacion.
+          Estado operativo del día: conversaciones abiertas, agenda activa, confirmaciones y huecos
+          que necesitan atención.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <ClinicKpiCard
-          label="Contactos atendidos hoy"
+          label="Conversaciones abiertas"
           value={dashboard.kpis.openThreads}
-          helper="Conversaciones con actividad reciente"
+          helper="Hilos con actividad o resolución pendiente"
         />
         <ClinicKpiCard
-          label="Citas agendadas hoy"
+          label="Citas de hoy"
           value={dashboard.kpis.todaysAppointments}
-          helper="Agenda confirmada y pendiente"
+          helper="Citas activas en la agenda del centro"
           tone="success"
         />
         <ClinicKpiCard
@@ -110,15 +120,15 @@ export function ClinicOverviewPage() {
           tone="warning"
         />
         <ClinicKpiCard
-          label="Huecos por cubrir"
+          label="Huecos activos"
           value={dashboard.kpis.activeGaps}
-          helper="Cancelaciones y reacomodos abiertos"
+          helper="Cancelaciones y recolocaciones abiertas"
           tone="warning"
         />
         <ClinicKpiCard
-          label="Pacientes a reactivar"
+          label="Campañas activas"
           value={dashboard.kpis.activeCampaigns}
-          helper="Campanas activas en curso"
+          helper="Reactivaciones en curso o programadas"
         />
       </div>
 
@@ -132,17 +142,29 @@ export function ClinicOverviewPage() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <AppointmentBoard appointments={dashboard.agenda} title="Agenda del dia" />
+        <AppointmentBoard
+          appointments={dashboard.agenda}
+          title="Agenda del día"
+          timezone={clinicTimezone}
+        />
         <Card className="border-border/60">
           <CardHeader>
-            <CardTitle className="text-base">Seguimiento rapido</CardTitle>
+            <CardTitle className="text-base">Seguimiento rápido</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {dashboard.pendingForms.map((submission) => (
-              <FormProgressCard key={submission.id} submission={submission} />
+              <FormProgressCard
+                key={submission.id}
+                submission={submission}
+                timezone={clinicTimezone}
+              />
             ))}
             {dashboard.pendingForms.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No hay formularios pendientes.</p>
+              <EmptyState
+                icon={MessageCircleMore}
+                title="No hay formularios pendientes"
+                description="Cuando un paciente necesite completar su admisión, verás aquí el estado del envío y su vencimiento."
+              />
             ) : null}
           </CardContent>
         </Card>
@@ -154,7 +176,10 @@ export function ClinicOverviewPage() {
             <CardTitle className="text-base">Confirmaciones pendientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <ConfirmationQueueTable confirmations={dashboard.pendingConfirmations} />
+            <ConfirmationQueueTable
+              confirmations={dashboard.pendingConfirmations}
+              timezone={clinicTimezone}
+            />
           </CardContent>
         </Card>
         <Card className="border-border/60 xl:col-span-1">
@@ -163,18 +188,36 @@ export function ClinicOverviewPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {dashboard.activeGaps.map((gap) => (
-              <GapOpportunityCard key={gap.id} gap={gap} />
+              <GapOpportunityCard key={gap.id} gap={gap} timezone={clinicTimezone} />
             ))}
+            {dashboard.activeGaps.length === 0 ? (
+              <EmptyState
+                icon={CalendarDays}
+                title="No hay huecos activos"
+                description="Las cancelaciones y huecos recuperables aparecerán aquí cuando requieran acción."
+              />
+            ) : null}
           </CardContent>
         </Card>
         <Card className="border-border/60 xl:col-span-1">
           <CardHeader>
-            <CardTitle className="text-base">Campanas con movimiento</CardTitle>
+            <CardTitle className="text-base">Campañas con movimiento</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {dashboard.activeCampaigns.map((campaign) => (
-              <ReactivationCampaignCard key={campaign.id} campaign={campaign} />
+              <ReactivationCampaignCard
+                key={campaign.id}
+                campaign={campaign}
+                timezone={clinicTimezone}
+              />
             ))}
+            {dashboard.activeCampaigns.length === 0 ? (
+              <EmptyState
+                icon={RefreshCw}
+                title="No hay campañas activas"
+                description="Cuando una campaña entre en curso o quede programada, la verás aquí con su estado y arranque."
+              />
+            ) : null}
           </CardContent>
         </Card>
       </div>
@@ -237,6 +280,8 @@ export function ClinicInboxPage() {
             threads={conversations.threads}
             selectedThreadId={selectedThreadId}
             onSelect={(thread) => setSelectedThreadId(thread.id)}
+            emptyTitle="No hay conversaciones abiertas"
+            emptyDescription="La bandeja mostrará aquí WhatsApp, llamadas y escalados en cuanto llegue actividad nueva."
           />
           <InboxThreadDetail thread={selectedThread} />
         </TabsContent>
@@ -245,29 +290,41 @@ export function ClinicInboxPage() {
             threads={conversations.threads.filter((thread) => thread.channelType === 'whatsapp')}
             selectedThreadId={selectedThreadId}
             onSelect={(thread) => setSelectedThreadId(thread.id)}
+            emptyTitle="No hay conversaciones de WhatsApp"
+            emptyDescription="Cuando el canal de WhatsApp tenga actividad, verás aquí las conversaciones pendientes."
           />
         </TabsContent>
         <TabsContent value="llamadas" className="space-y-4">
           <ModuleVisibilityGuard
             enabled={experience.capabilities.voiceEnabled}
-            title="Modulo de voz no activo"
-            description="Activa Voz para recibir llamadas y callbacks dentro de la bandeja."
+            title="Módulo de voz no activo"
+            description="Activa Voz para recibir llamadas y callbacks desde esta bandeja operativa."
           >
-            {calls.calls.map((call) => (
-              <CallActivityCard key={call.id} call={call} />
-            ))}
+            {calls.calls.length > 0 ? (
+              calls.calls.map((call) => <CallActivityCard key={call.id} call={call} />)
+            ) : (
+              <EmptyState
+                icon={Activity}
+                title="No hay llamadas recientes"
+                description="Cuando entren llamadas o callbacks, verás aquí su estado, resumen y duración."
+              />
+            )}
           </ModuleVisibilityGuard>
         </TabsContent>
         <TabsContent value="pendientes">
           <InboxThreadList
             threads={pendingThreads}
             onSelect={(thread) => setSelectedThreadId(thread.id)}
+            emptyTitle="No hay pendientes en formulario"
+            emptyDescription="Cuando una conversación quede bloqueada por admisión o documentación, aparecerá aquí."
           />
         </TabsContent>
         <TabsContent value="escalados">
           <InboxThreadList
             threads={escalatedThreads}
             onSelect={(thread) => setSelectedThreadId(thread.id)}
+            emptyTitle="No hay escalados activos"
+            emptyDescription="Los casos que requieran intervención humana aparecerán aquí para revisión prioritaria."
           />
         </TabsContent>
       </Tabs>
@@ -277,6 +334,10 @@ export function ClinicInboxPage() {
 
 export function ClinicAgendaPage() {
   const experience = useTenantExperience();
+  const clinicTimezone = resolveClinicTimezone({
+    profileTimezone: experience.profile?.timezone,
+    tenantTimezone: experience.tenant?.settings.timezone,
+  });
   const { data: appointments } = useProviderQuery(
     (provider) => provider.listClinicAppointments(experience.tenantId),
     { appointments: [], total: 0 },
@@ -303,13 +364,16 @@ export function ClinicAgendaPage() {
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Agenda</h1>
         <p className="text-sm text-muted-foreground">
-          Citas del dia y de la semana, cambios recientes, cancelaciones y oportunidades de
-          reubicacion.
+          Citas del día, cancelaciones recientes y huecos que pueden recuperarse.
         </p>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr,0.8fr]">
-        <AppointmentBoard appointments={activeAppointments} title="Citas programadas" />
+        <AppointmentBoard
+          appointments={activeAppointments}
+          title="Citas programadas"
+          timezone={clinicTimezone}
+        />
         <Card className="border-border/60">
           <CardHeader>
             <CardTitle className="text-base">Cambios recientes</CardTitle>
@@ -324,7 +388,11 @@ export function ClinicAgendaPage() {
               </div>
             ))}
             {cancelledAppointments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No hubo cancelaciones recientes.</p>
+              <EmptyState
+                icon={CalendarDays}
+                title="No hubo cancelaciones recientes"
+                description="Cuando una cita se cancele o necesite recolocación, verás aquí el motivo y el contexto."
+              />
             ) : null}
           </CardContent>
         </Card>
@@ -333,12 +401,21 @@ export function ClinicAgendaPage() {
       <ModuleVisibilityGuard
         enabled={experience.capabilities.gapsEnabled}
         title="Huecos no disponibles"
-        description="Activa Growth para gestionar huecos visibles y propuestas de relleno."
+        description="Activa Growth para gestionar huecos visibles y propuestas de relleno desde la agenda."
       >
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {gaps.map((gap) => (
-            <GapOpportunityCard key={gap.id} gap={gap} />
+            <GapOpportunityCard key={gap.id} gap={gap} timezone={clinicTimezone} />
           ))}
+          {gaps.length === 0 ? (
+            <div className="md:col-span-2 xl:col-span-3">
+              <EmptyState
+                icon={CalendarDays}
+                title="No hay huecos que recuperar"
+                description="Cuando se libere una franja con opción real de recolocación, aparecerá aquí."
+              />
+            </div>
+          ) : null}
         </div>
       </ModuleVisibilityGuard>
     </div>
@@ -347,6 +424,10 @@ export function ClinicAgendaPage() {
 
 export function ClinicPatientsPage() {
   const experience = useTenantExperience();
+  const clinicTimezone = resolveClinicTimezone({
+    profileTimezone: experience.profile?.timezone,
+    tenantTimezone: experience.tenant?.settings.timezone,
+  });
   const [search, setSearch] = React.useState('');
   const { data: patients } = useProviderQuery(
     (provider) => provider.listClinicPatients(experience.tenantId, { search, limit: 50 }),
@@ -373,8 +454,8 @@ export function ClinicPatientsPage() {
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Pacientes</h1>
           <p className="text-sm text-muted-foreground">
-            Nuevos y existentes, con proxima cita, formularios, ultima interaccion y oportunidades
-            de reactivacion.
+            Nuevos y existentes, con próxima cita, formularios, última interacción y opción de
+            reactivación.
           </p>
         </div>
         <div className="relative w-full md:max-w-sm">
@@ -382,11 +463,19 @@ export function ClinicPatientsPage() {
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar paciente, telefono o email"
+            placeholder="Buscar paciente, teléfono o email"
             className="pl-9"
           />
         </div>
       </div>
+
+      {patients.patients.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="No hay pacientes visibles"
+          description="Cuando el centro registre actividad o búsquedas con resultado, verás aquí el listado y su contexto clínico."
+        />
+      ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr,0.95fr]">
         <Card className="border-border/60">
@@ -413,7 +502,7 @@ export function ClinicPatientsPage() {
                       ) : null}
                       {patient.isReactivationCandidate ? (
                         <span className="rounded-full bg-sky-100 px-2 py-1 text-xs text-sky-700">
-                          Reactivacion
+                          Reactivación
                         </span>
                       ) : null}
                     </div>
@@ -422,7 +511,7 @@ export function ClinicPatientsPage() {
                     <p>{patient.upcomingAppointmentCount ?? 0} cita(s)</p>
                     <p>
                       {patient.lastInteractionAt
-                        ? new Date(patient.lastInteractionAt).toLocaleDateString()
+                        ? formatClinicDate(patient.lastInteractionAt, clinicTimezone)
                         : 'Sin actividad'}
                     </p>
                   </div>
@@ -457,17 +546,17 @@ export function ClinicPatientsPage() {
                 </div>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p>Email: {selectedPatient.patient.email ?? 'Sin email'}</p>
-                  <p>Telefono: {selectedPatient.patient.phone ?? 'Sin telefono'}</p>
+                  <p>Teléfono: {selectedPatient.patient.phone ?? 'Sin teléfono'}</p>
                   <p>Notas: {selectedPatient.patient.notes ?? 'Sin notas'}</p>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">Proximas citas</p>
+                  <p className="text-sm font-medium">Próximas citas</p>
                   {selectedPatient.upcomingAppointments.map((appointment) => (
                     <div
                       key={appointment.id}
                       className="rounded-xl border border-border/60 p-3 text-sm"
                     >
-                      {new Date(appointment.startsAt).toLocaleString()} ·{' '}
+                      {formatClinicDateTime(appointment.startsAt, clinicTimezone)} ·{' '}
                       {appointment.service?.name ?? 'Cita'}
                     </div>
                   ))}
@@ -478,7 +567,7 @@ export function ClinicPatientsPage() {
               </>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Selecciona un paciente para ver su contexto y proxima actividad.
+                Selecciona un paciente para ver su contexto y próxima actividad.
               </p>
             )}
           </CardContent>
@@ -505,7 +594,7 @@ export function ClinicFollowUpPage() {
             href="seguimiento/formularios"
             icon={MessageCircleMore}
             title="Formularios"
-            description="Revisa envios pendientes y desbloqueos de reserva."
+            description="Revisa envíos pendientes y desbloqueos de reserva."
           />
         ) : null}
         {hasClinicNavigationAccess(experience, 'confirmations') ? (
@@ -521,7 +610,7 @@ export function ClinicFollowUpPage() {
             href="seguimiento/huecos"
             icon={Activity}
             title="Huecos"
-            description="Cancelaciones y oportunidades para recuperar agenda."
+            description="Cancelaciones y oportunidades reales para recuperar agenda."
           />
         ) : null}
       </div>
@@ -531,6 +620,10 @@ export function ClinicFollowUpPage() {
 
 export function ClinicFormsPage() {
   const experience = useTenantExperience();
+  const clinicTimezone = resolveClinicTimezone({
+    profileTimezone: experience.profile?.timezone,
+    tenantTimezone: experience.tenant?.settings.timezone,
+  });
   const { data: submissions } = useProviderQuery(
     (provider) =>
       experience.capabilities.formsEnabled
@@ -545,19 +638,31 @@ export function ClinicFormsPage() {
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Formularios</h1>
         <p className="text-sm text-muted-foreground">
-          Formularios enviados, expiraciones y casos que necesitan intervencion manual.
+          Formularios enviados, vencimientos y casos que necesitan intervención manual.
         </p>
       </div>
       <ModuleVisibilityGuard
         enabled={experience.capabilities.formsEnabled}
         title="Formularios no activos"
-        description="La clinica no tiene activado el flujo de formularios de nuevo paciente."
+        description="La clínica no tiene activado el flujo de formularios de nuevo paciente."
       >
-        <div className="space-y-3">
-          {submissions.map((submission) => (
-            <FormProgressCard key={submission.id} submission={submission} />
-          ))}
-        </div>
+        {submissions.length > 0 ? (
+          <div className="space-y-3">
+            {submissions.map((submission) => (
+              <FormProgressCard
+                key={submission.id}
+                submission={submission}
+                timezone={clinicTimezone}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            icon={MessageCircleMore}
+            title="No hay formularios pendientes"
+            description="Cuando un formulario requiera seguimiento o bloqueo de reserva, aparecerá aquí con su vencimiento."
+          />
+        )}
       </ModuleVisibilityGuard>
     </div>
   );
@@ -565,6 +670,10 @@ export function ClinicFormsPage() {
 
 export function ClinicConfirmationsPage() {
   const experience = useTenantExperience();
+  const clinicTimezone = resolveClinicTimezone({
+    profileTimezone: experience.profile?.timezone,
+    tenantTimezone: experience.tenant?.settings.timezone,
+  });
   const { data: confirmations } = useProviderQuery(
     (provider) =>
       experience.capabilities.confirmationsEnabled
@@ -579,15 +688,15 @@ export function ClinicConfirmationsPage() {
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Confirmaciones</h1>
         <p className="text-sm text-muted-foreground">
-          Citas pendientes de respuesta, ultimo intento y vencimientos activos.
+          Citas pendientes de respuesta, último intento y vencimientos activos.
         </p>
       </div>
       <ModuleVisibilityGuard
         enabled={experience.capabilities.confirmationsEnabled}
         title="Confirmaciones no activas"
-        description="La politica actual no tiene confirmaciones automaticas activas."
+        description="La política actual no tiene confirmaciones automáticas activas."
       >
-        <ConfirmationQueueTable confirmations={confirmations} />
+        <ConfirmationQueueTable confirmations={confirmations} timezone={clinicTimezone} />
       </ModuleVisibilityGuard>
     </div>
   );
@@ -595,6 +704,10 @@ export function ClinicConfirmationsPage() {
 
 export function ClinicGapsPage() {
   const experience = useTenantExperience();
+  const clinicTimezone = resolveClinicTimezone({
+    profileTimezone: experience.profile?.timezone,
+    tenantTimezone: experience.tenant?.settings.timezone,
+  });
   const { data: gaps } = useProviderQuery(
     (provider) =>
       experience.capabilities.gapsEnabled
@@ -617,11 +730,19 @@ export function ClinicGapsPage() {
         title="Growth no activo"
         description="Activa Growth para gestionar huecos y waitlist desde esta pantalla."
       >
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {gaps.map((gap) => (
-            <GapOpportunityCard key={gap.id} gap={gap} />
-          ))}
-        </div>
+        {gaps.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {gaps.map((gap) => (
+              <GapOpportunityCard key={gap.id} gap={gap} timezone={clinicTimezone} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            icon={CalendarDays}
+            title="No hay huecos activos"
+            description="Cuando se abra un hueco con outreach pendiente, aparecerá aquí con su estado y origen."
+          />
+        )}
       </ModuleVisibilityGuard>
     </div>
   );
@@ -629,6 +750,10 @@ export function ClinicGapsPage() {
 
 export function ClinicReactivationPage() {
   const experience = useTenantExperience();
+  const clinicTimezone = resolveClinicTimezone({
+    profileTimezone: experience.profile?.timezone,
+    tenantTimezone: experience.tenant?.settings.timezone,
+  });
   const { data: campaigns } = useProviderQuery(
     (provider) =>
       experience.capabilities.reactivationEnabled
@@ -649,21 +774,34 @@ export function ClinicReactivationPage() {
   return (
     <div className="space-y-6 p-6 lg:p-8">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Reactivacion</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Reactivación</h1>
         <p className="text-sm text-muted-foreground">
-          Campanas activas, cohortes, respuestas y pacientes ya recuperados.
+          Campañas activas, cohortes, respuestas y pacientes ya recuperados.
         </p>
       </div>
       <ModuleVisibilityGuard
         enabled={experience.capabilities.reactivationEnabled}
-        title="Reactivacion no disponible"
-        description="Activa Growth para lanzar campanas y medir pacientes recuperados."
+        title="Reactivación no disponible"
+        description="Activa Growth para lanzar campañas y seguir pacientes recuperados."
       >
         <div className="grid gap-6 xl:grid-cols-[1fr,0.9fr]">
           <div className="grid gap-4 md:grid-cols-2">
             {campaigns.campaigns.map((campaign) => (
-              <ReactivationCampaignCard key={campaign.id} campaign={campaign} />
+              <ReactivationCampaignCard
+                key={campaign.id}
+                campaign={campaign}
+                timezone={clinicTimezone}
+              />
             ))}
+            {campaigns.campaigns.length === 0 ? (
+              <div className="md:col-span-2">
+                <EmptyState
+                  icon={RefreshCw}
+                  title="No hay campañas activas"
+                  description="Cuando una campaña entre en curso o quede programada, aparecerá aquí con su estado."
+                />
+              </div>
+            ) : null}
           </div>
           <Card className="border-border/60">
             <CardHeader>
@@ -678,6 +816,13 @@ export function ClinicReactivationPage() {
                   </p>
                 </div>
               ))}
+              {recipients.length === 0 ? (
+                <EmptyState
+                  icon={RefreshCw}
+                  title="Sin respuestas recientes"
+                  description="Las respuestas y reenganches recientes aparecerán aquí cuando una campaña tenga actividad."
+                />
+              ) : null}
             </CardContent>
           </Card>
         </div>
@@ -702,22 +847,21 @@ export function ClinicPerformancePage() {
     [experience.capabilities.voiceEnabled, experience.tenantId]
   );
 
-  const recoveredRevenueEstimate = dashboard.activeCampaigns.length * 180;
-
   return (
     <div className="space-y-6 p-6 lg:p-8">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Rendimiento</h1>
         <p className="text-sm text-muted-foreground">
-          Metricas operativas por canal, conversiones y recuperacion estimada de agenda.
+          Métricas operativas del centro: conversaciones, llamadas, confirmaciones y formularios
+          pendientes.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <ClinicKpiCard
-          label="Atencion por canal"
+          label="Conversaciones abiertas"
           value={dashboard.kpis.openThreads}
-          helper="Interacciones gestionadas"
+          helper="Hilos que siguen abiertos o en seguimiento"
         />
         <ClinicKpiCard
           label="Llamadas gestionadas"
@@ -725,14 +869,14 @@ export function ClinicPerformancePage() {
           helper="Callbacks y llamadas entrantes"
         />
         <ClinicKpiCard
-          label="No-shows evitados"
+          label="Confirmaciones pendientes"
           value={dashboard.kpis.pendingConfirmations}
-          helper="Confirmaciones en curso"
+          helper="Citas que todavía requieren respuesta"
         />
         <ClinicKpiCard
-          label="Ingresos recuperados"
-          value={`${recoveredRevenueEstimate} €`}
-          helper="Estimacion a partir de reactivaciones activas"
+          label="Formularios pendientes"
+          value={dashboard.kpis.pendingForms}
+          helper="Admisiones o reservas a la espera de completar datos"
           tone="success"
         />
       </div>

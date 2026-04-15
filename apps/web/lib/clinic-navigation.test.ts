@@ -43,10 +43,10 @@ describe('clinic navigation', () => {
     });
 
     expect(navigation.sections.map((section) => section.label)).toEqual([
-      'Overview',
-      'Operacion',
+      'Inicio',
+      'Operación',
       'Seguimiento',
-      'Analitica',
+      'Análisis',
     ]);
     expect(navigation.sections[0]?.items.map((item) => item.label)).toEqual(['Resumen']);
     expect(navigation.sections[1]?.items.map((item) => item.label)).toEqual([
@@ -56,10 +56,10 @@ describe('clinic navigation', () => {
     ]);
     expect(navigation.sections[2]?.items.map((item) => item.label)).toEqual([
       'Seguimiento',
-      'Reactivacion',
+      'Reactivación',
     ]);
     expect(navigation.sections[3]?.items.map((item) => item.label)).toEqual(['Rendimiento']);
-    expect(navigation.footerItem?.label).toBe('Configuracion');
+    expect(navigation.footerItem?.label).toBe('Configuración');
   });
 
   it('drops empty sections when only dashboard and configuration are available', () => {
@@ -69,9 +69,9 @@ describe('clinic navigation', () => {
     });
 
     expect(navigation.sections).toHaveLength(1);
-    expect(navigation.sections[0]?.label).toBe('Overview');
+    expect(navigation.sections[0]?.label).toBe('Inicio');
     expect(navigation.sections[0]?.items.map((item) => item.label)).toEqual(['Resumen']);
-    expect(navigation.footerItem?.label).toBe('Configuracion');
+    expect(navigation.footerItem?.label).toBe('Configuración');
   });
 
   it('falls back to capability-driven visibility when allowed navigation is empty', () => {
@@ -83,8 +83,8 @@ describe('clinic navigation', () => {
       }),
     });
 
-    expect(navigation.sections.map((section) => section.label)).toEqual(['Overview']);
+    expect(navigation.sections.map((section) => section.label)).toEqual(['Inicio']);
     expect(navigation.sections[0]?.items.map((item) => item.label)).toEqual(['Resumen']);
-    expect(navigation.footerItem?.label).toBe('Configuracion');
+    expect(navigation.footerItem?.label).toBe('Configuración');
   });
 });

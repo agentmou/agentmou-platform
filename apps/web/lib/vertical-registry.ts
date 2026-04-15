@@ -73,7 +73,7 @@ const VERTICAL_REGISTRY: Record<VerticalKey, VerticalRegistryEntry> = {
     ],
     searchMode: 'clinic',
     copyTokens: {
-      workspaceLabel: 'Clinica',
+      workspaceLabel: 'Clínica',
     },
   },
   fisio: {

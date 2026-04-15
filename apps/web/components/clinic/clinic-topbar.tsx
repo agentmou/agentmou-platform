@@ -38,11 +38,6 @@ export function ClinicTopbar({
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const experience = useTenantExperience();
 
-  const pendingCount =
-    (experience.capabilities.formsEnabled ? 1 : 0) +
-    (experience.capabilities.confirmationsEnabled ? 1 : 0) +
-    (experience.capabilities.gapsEnabled ? 1 : 0);
-
   return (
     <>
       <header
@@ -64,12 +59,12 @@ export function ClinicTopbar({
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 text-sm">
               <Building2 className="h-4 w-4" />
-              <span className="font-medium">{experience.tenant?.name ?? 'Clinica'}</span>
+              <span className="font-medium">{experience.tenant?.name ?? 'Clínica'}</span>
               <ChevronDown className="h-3 w-3 text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuLabel>Cambiar clinica</DropdownMenuLabel>
+            <DropdownMenuLabel>Cambiar centro</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {tenants.map((tenant) => (
               <DropdownMenuItem key={tenant.id} asChild>
@@ -99,11 +94,6 @@ export function ClinicTopbar({
 
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-4 w-4" />
-          {pendingCount > 0 ? (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] text-accent-foreground">
-              {pendingCount}
-            </span>
-          ) : null}
         </Button>
 
         <DropdownMenu>
@@ -128,7 +118,7 @@ export function ClinicTopbar({
                 router.push('/login');
               }}
             >
-              Cerrar sesion
+              Cerrar sesión
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -140,7 +130,7 @@ export function ClinicTopbar({
           className="flex h-[100dvh] w-72 max-w-[85vw] flex-col border-r border-border/60 bg-sidebar p-0"
         >
           <SheetHeader className="sr-only">
-            <SheetTitle>Navegacion clinica</SheetTitle>
+            <SheetTitle>Navegación clínica</SheetTitle>
           </SheetHeader>
           <ClinicSidebar
             tenantId={experience.tenantId}

@@ -48,7 +48,7 @@ export function SettingsShell({
     <div className="space-y-6 p-6 lg:p-8">
       <div className="space-y-2">
         <p className="text-sm uppercase tracking-[0.12em] text-muted-foreground">
-          {activeVertical === 'internal' ? 'Workspace settings' : 'Configuracion'}
+          {activeVertical === 'internal' ? 'Workspace settings' : 'Configuración'}
         </p>
         <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
         <p className="max-w-3xl text-sm text-muted-foreground">{description}</p>
@@ -60,7 +60,7 @@ export function SettingsShell({
           onValueChange={(value) => onSelect(value as TenantSettingsSection)}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecciona una seccion" />
+            <SelectValue placeholder="Selecciona una sección" />
           </SelectTrigger>
           <SelectContent>
             {groupedSections.map((group) => (
@@ -121,7 +121,7 @@ export function SettingsShell({
           ) : (
             <Card className="border-dashed border-border/60">
               <CardContent className="p-6 text-sm text-muted-foreground">
-                No hay secciones visibles para este tenant todavia.
+                No hay secciones visibles para este tenant todavía.
               </CardContent>
             </Card>
           )}

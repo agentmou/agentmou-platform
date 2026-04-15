@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { LockKeyhole } from 'lucide-react';
 
 import { EmptyState } from '@/components/control-plane/empty-state';
+import { useTenantExperience } from '@/lib/tenant-experience';
 
 export function ModuleVisibilityGuard({
   enabled,
@@ -14,6 +15,8 @@ export function ModuleVisibilityGuard({
   description: string;
   children: ReactNode;
 }) {
+  const experience = useTenantExperience();
+
   if (enabled) {
     return <>{children}</>;
   }
@@ -23,8 +26,8 @@ export function ModuleVisibilityGuard({
       icon={LockKeyhole}
       title={title}
       description={description}
-      actionLabel="Ver modulos activos"
-      actionHref="#configuracion-modulos"
+      actionLabel="Ir a Configuración"
+      actionHref={`/app/${experience.tenantId}/configuracion?section=plan`}
     />
   );
 }

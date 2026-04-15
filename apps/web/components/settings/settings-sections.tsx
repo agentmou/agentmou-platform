@@ -72,7 +72,7 @@ function formatRoleLabel(value: string) {
 function describeModuleVisibility(reason: string) {
   if (reason === 'active') return 'Activo';
   if (reason === 'not_in_plan') return 'Fuera del plan';
-  if (reason === 'requires_configuration') return 'Pendiente de configuracion';
+  if (reason === 'requires_configuration') return 'Pendiente de configuración';
   if (reason === 'hidden_internal_only') return 'Solo interno';
   if (reason === 'disabled_by_tenant') return 'Desactivado';
   return formatStatusLabel(reason);
@@ -196,7 +196,7 @@ export function GeneralSettingsSection({ context }: { context: SettingsRegistryC
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Esta preferencia es local del navegador y no cambia la configuracion del tenant.
+                Esta preferencia es local del navegador y no cambia la configuración del tenant.
               </p>
             </div>
           </div>
@@ -264,7 +264,7 @@ export function TeamSettingsSection({ context }: { context: SettingsRegistryCont
             </div>
           ))}
           {context.members.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No hay miembros cargados todavia.</p>
+            <p className="text-sm text-muted-foreground">No hay miembros cargados todavía.</p>
           ) : null}
         </CardContent>
       </Card>
@@ -328,23 +328,21 @@ export function IntegrationsSettingsSection({ context }: { context: SettingsRegi
                   <div>
                     <p className="font-medium">{formatChannelLabel(channel.channelType)}</p>
                     <p className="text-sm text-muted-foreground">
-                      {channel.phoneNumber ?? 'Sin numero asignado'}
+                      {channel.phoneNumber ?? 'Sin número asignado'}
                     </p>
                   </div>
                   <Badge variant="secondary">{formatStatusLabel(channel.status)}</Badge>
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  {channel.directionPolicy.inboundEnabled ? 'Inbound activo' : 'Inbound inactivo'}
+                  {channel.directionPolicy.inboundEnabled ? 'Entrada activa' : 'Entrada inactiva'}
                   {' · '}
-                  {channel.directionPolicy.outboundEnabled
-                    ? 'Outbound activo'
-                    : 'Outbound inactivo'}
+                  {channel.directionPolicy.outboundEnabled ? 'Salida activa' : 'Salida inactiva'}
                 </p>
               </div>
             ))}
             {context.experience.channels.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No hay canales expuestos para esta vertical todavia.
+                No hay canales expuestos para esta vertical todavía.
               </p>
             ) : null}
           </CardContent>
@@ -469,7 +467,7 @@ export function PlanSettingsSection({ context }: { context: SettingsRegistryCont
               ))}
               {context.invoices.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No hay facturas visibles para este tenant todavia.
+                  No hay facturas visibles para este tenant todavía.
                 </p>
               ) : null}
             </div>
@@ -478,8 +476,8 @@ export function PlanSettingsSection({ context }: { context: SettingsRegistryCont
 
         <Card className="border-border/60">
           <CardHeader>
-            <CardTitle className="text-base">Modulos activos</CardTitle>
-            <CardDescription>Visibilidad, estado y dependencias de configuracion.</CardDescription>
+            <CardTitle className="text-base">Módulos activos</CardTitle>
+            <CardDescription>Visibilidad, estado y dependencias de configuración.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {context.experience.modules.map((module) => (
@@ -502,14 +500,14 @@ export function PlanSettingsSection({ context }: { context: SettingsRegistryCont
                     {module.visibleToClient ? 'Visible al cliente' : 'Solo interno'}
                   </Badge>
                   {module.requiresConfig ? (
-                    <Badge variant="outline">Requiere configuracion</Badge>
+                    <Badge variant="outline">Requiere configuración</Badge>
                   ) : null}
                 </div>
               </div>
             ))}
             {context.experience.modules.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Esta vertical todavia no expone modulos configurables desde la UI.
+                Esta vertical todavía no expone módulos configurables desde la UI.
               </p>
             ) : null}
           </CardContent>
@@ -532,7 +530,7 @@ export function SecuritySettingsSection({ context }: { context: SettingsRegistry
           <CardContent className="space-y-2 p-5">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Shield className="h-4 w-4" />
-              <span className="text-sm">Findings</span>
+              <span className="text-sm">Hallazgos</span>
             </div>
             <p className="text-3xl font-semibold">{context.securityFindings.length}</p>
           </CardContent>
@@ -541,7 +539,7 @@ export function SecuritySettingsSection({ context }: { context: SettingsRegistry
           <CardContent className="space-y-2 p-5">
             <div className="flex items-center gap-2 text-muted-foreground">
               <CheckCircle2 className="h-4 w-4" />
-              <span className="text-sm">Policies</span>
+              <span className="text-sm">Políticas</span>
             </div>
             <p className="text-3xl font-semibold">{context.securityPolicies.length}</p>
           </CardContent>
@@ -550,7 +548,7 @@ export function SecuritySettingsSection({ context }: { context: SettingsRegistry
           <CardContent className="space-y-2 p-5">
             <div className="flex items-center gap-2 text-muted-foreground">
               <ClipboardList className="h-4 w-4" />
-              <span className="text-sm">Audit entries</span>
+              <span className="text-sm">Eventos auditados</span>
             </div>
             <p className="text-3xl font-semibold">{context.auditEvents.length}</p>
           </CardContent>
@@ -562,7 +560,7 @@ export function SecuritySettingsSection({ context }: { context: SettingsRegistry
           <CardHeader>
             <CardTitle className="text-base">Hallazgos recientes</CardTitle>
             <CardDescription>
-              Visibles para diagnostico; las acciones siguen fuera de esta surface.
+              Visibles para diagnóstico; las acciones siguen fuera de esta surface.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -588,7 +586,7 @@ export function SecuritySettingsSection({ context }: { context: SettingsRegistry
 
         <Card className="border-border/60">
           <CardHeader>
-            <CardTitle className="text-base">Politicas y auditoria</CardTitle>
+            <CardTitle className="text-base">Políticas y auditoría</CardTitle>
             <CardDescription>
               Resumen de guardrails y actividad reciente del tenant.
             </CardDescription>
@@ -605,12 +603,12 @@ export function SecuritySettingsSection({ context }: { context: SettingsRegistry
                     <p className="text-sm text-muted-foreground">{policy.description}</p>
                   </div>
                   <Badge variant={policy.enabled ? 'secondary' : 'outline'}>
-                    {policy.enabled ? 'Enabled' : 'Disabled'}
+                    {policy.enabled ? 'Activa' : 'Desactivada'}
                   </Badge>
                 </div>
               ))}
               {context.securityPolicies.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sin politicas expuestas todavia.</p>
+                <p className="text-sm text-muted-foreground">Sin políticas expuestas todavía.</p>
               ) : null}
             </div>
 
@@ -634,12 +632,12 @@ export function SecuritySettingsSection({ context }: { context: SettingsRegistry
               <div className="rounded-2xl border border-dashed border-border/60 p-4">
                 <div className="mb-3 flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-                  <p className="font-medium">Danger zone</p>
+                  <p className="font-medium">Zona sensible</p>
                   <HonestSurfaceBadge state={dangerState} />
                 </div>
                 <HonestSurfaceNotice state={dangerState} />
                 <Button disabled variant="destructive" className="mt-4">
-                  Delete workspace
+                  Eliminar workspace
                 </Button>
               </div>
             ) : null}
@@ -657,7 +655,7 @@ export function CareProfileSettingsSection({ context }: { context: SettingsRegis
     return (
       <EmptyStateCard
         title="Perfil pendiente"
-        description="La vertical compartida ya soporta esta seccion, pero este tenant todavia no expone un perfil operativo completo."
+        description="La vertical compartida ya soporta esta sección, pero este tenant todavía no expone un perfil operativo completo."
       />
     );
   }
@@ -666,14 +664,14 @@ export function CareProfileSettingsSection({ context }: { context: SettingsRegis
     <Card className="border-border/60">
       <CardHeader>
         <CardTitle className="text-base">Perfil operativo</CardTitle>
-        <CardDescription>Datos base visibles para el centro y su recepcion.</CardDescription>
+        <CardDescription>Datos base visibles para el centro y su recepción.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <KeyValueGrid
           rows={[
             { label: 'Nombre visible', value: profile.displayName },
             { label: 'Especialidad', value: profile.specialty ?? 'Sin especificar' },
-            { label: 'Timezone', value: profile.timezone },
+            { label: 'Zona horaria', value: profile.timezone },
             {
               label: 'Canal principal',
               value: profile.defaultInboundChannel
@@ -681,10 +679,10 @@ export function CareProfileSettingsSection({ context }: { context: SettingsRegis
                 : 'Sin definir',
             },
             {
-              label: 'Formulario paciente nuevo',
+              label: 'Formulario de paciente nuevo',
               value: profile.requiresNewPatientForm ? 'Requerido' : 'Opcional',
             },
-            { label: 'Vertical domain', value: profile.vertical },
+            { label: 'Vertical', value: profile.vertical },
           ]}
         />
       </CardContent>
@@ -699,7 +697,7 @@ export function CareScheduleSettingsSection({ context }: { context: SettingsRegi
     return (
       <EmptyStateCard
         title="Agenda pendiente"
-        description="Todavia no hay perfil suficiente para mostrar horarios y reglas del centro."
+        description="Todavía no hay perfil suficiente para mostrar horarios y reglas del centro."
       />
     );
   }
@@ -710,8 +708,8 @@ export function CareScheduleSettingsSection({ context }: { context: SettingsRegi
     <div className="grid gap-6 xl:grid-cols-[1fr,1fr]">
       <Card className="border-border/60">
         <CardHeader>
-          <CardTitle className="text-base">Business hours</CardTitle>
-          <CardDescription>Rangos actualmente publicados en el perfil del centro.</CardDescription>
+          <CardTitle className="text-base">Horario publicado</CardTitle>
+          <CardDescription>Rangos actualmente visibles en el perfil del centro.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {rows.map((row) => (
@@ -721,14 +719,14 @@ export function CareScheduleSettingsSection({ context }: { context: SettingsRegi
             </div>
           ))}
           {rows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No hay franjas publicadas todavia.</p>
+            <p className="text-sm text-muted-foreground">No hay franjas publicadas todavía.</p>
           ) : null}
         </CardContent>
       </Card>
 
       <Card className="border-border/60">
         <CardHeader>
-          <CardTitle className="text-base">Reglas y politicas</CardTitle>
+          <CardTitle className="text-base">Reglas y políticas</CardTitle>
           <CardDescription>
             Resumen operativo derivado del perfil clinic compartido.
           </CardDescription>
@@ -741,23 +739,23 @@ export function CareScheduleSettingsSection({ context }: { context: SettingsRegi
                 value: profile.confirmationPolicy.enabled === false ? 'Desactivadas' : 'Activas',
               },
               {
-                label: 'Lead hours',
+                label: 'Horas de antelación',
                 value: String(profile.confirmationPolicy.leadHours ?? 24),
               },
               {
-                label: 'Gap recovery',
+                label: 'Recuperación de huecos',
                 value: profile.gapRecoveryPolicy.enabled === false ? 'Desactivado' : 'Activo',
               },
               {
-                label: 'Max offers',
+                label: 'Máximo de ofertas',
                 value: String(profile.gapRecoveryPolicy.maxOffersPerGap ?? 0),
               },
               {
-                label: 'Reactivacion',
+                label: 'Reactivación',
                 value: profile.reactivationPolicy.enabled === false ? 'Desactivada' : 'Activa',
               },
               {
-                label: 'Campaign type',
+                label: 'Tipo de campaña',
                 value: profile.reactivationPolicy.defaultCampaignType ?? 'Sin definir',
               },
             ]}
@@ -776,15 +774,15 @@ export function CareServicesSettingsSection({ context }: { context: SettingsRegi
     <div className="grid gap-6 xl:grid-cols-3">
       <EmptyStateCard
         title="Servicios"
-        description="La base comun ya reserva esta seccion para catalogo, duraciones y packaging operativo."
+        description="La base común ya reserva esta sección para catálogo, duraciones y packaging operativo."
       />
       <EmptyStateCard
         title={practitionerLabel}
-        description="La vista dedicada para agenda fina y responsables se publicara sobre el dominio compartido existente."
+        description="La vista dedicada para agenda fina y responsables se publicará sobre el dominio compartido existente."
       />
       <EmptyStateCard
         title="Capacidad y sedes"
-        description="Mientras tanto, la planificacion visible sigue viniendo del perfil operativo y de la agenda."
+        description="Mientras tanto, la planificación visible sigue viniendo del perfil operativo y de la agenda."
       />
     </div>
   );
@@ -813,8 +811,8 @@ export function CareFormsSettingsSection({ context }: { context: SettingsRegistr
         <CardContent className="space-y-4">
           <KeyValueGrid
             rows={[
-              { label: 'Templates', value: formatNumber(templates.length) },
-              { label: 'Submissions', value: formatNumber(submissions.length) },
+              { label: 'Plantillas', value: formatNumber(templates.length) },
+              { label: 'Envíos', value: formatNumber(submissions.length) },
               { label: 'Pendientes', value: formatNumber(pending) },
             ]}
           />
@@ -824,7 +822,7 @@ export function CareFormsSettingsSection({ context }: { context: SettingsRegistr
       <Card className="border-border/60">
         <CardHeader>
           <CardTitle className="text-base">Actividad reciente</CardTitle>
-          <CardDescription>Ultimos envios y estado de completado.</CardDescription>
+          <CardDescription>Últimos envíos y estado de completado.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {submissions.slice(0, 5).map((submission) => (
@@ -841,7 +839,7 @@ export function CareFormsSettingsSection({ context }: { context: SettingsRegistr
           ))}
           {submissions.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No hay envios de formularios visibles todavia.
+              No hay envíos de formularios visibles todavía.
             </p>
           ) : null}
         </CardContent>
@@ -868,14 +866,14 @@ export function CareConfirmationsSettingsSection({
       <Card className="border-border/60">
         <CardHeader>
           <CardTitle className="text-base">Estado de confirmaciones</CardTitle>
-          <CardDescription>Cola actual y presion operativa del tenant.</CardDescription>
+          <CardDescription>Cola actual y presión operativa del tenant.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <KeyValueGrid
             rows={[
               { label: 'Total', value: formatNumber(confirmations.length) },
-              { label: 'Pending', value: formatNumber(pending) },
-              { label: 'Escalated', value: formatNumber(escalated) },
+              { label: 'Pendientes', value: formatNumber(pending) },
+              { label: 'Escaladas', value: formatNumber(escalated) },
             ]}
           />
         </CardContent>
@@ -926,7 +924,7 @@ export function CareGapRecoverySettingsSection({ context }: { context: SettingsR
     <div className="grid gap-6 xl:grid-cols-[0.85fr,1.15fr]">
       <Card className="border-border/60">
         <CardHeader>
-          <CardTitle className="text-base">Gap recovery</CardTitle>
+          <CardTitle className="text-base">Recuperación de huecos</CardTitle>
           <CardDescription>Huecos abiertos y outreach acumulado.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -980,17 +978,17 @@ export function CareReactivationSettingsSection({ context }: { context: Settings
     <div className="grid gap-6 xl:grid-cols-[0.85fr,1.15fr]">
       <Card className="border-border/60">
         <CardHeader>
-          <CardTitle className="text-base">Cobertura de reactivacion</CardTitle>
-          <CardDescription>Campanas activas y volumen total visible.</CardDescription>
+          <CardTitle className="text-base">Cobertura de reactivación</CardTitle>
+          <CardDescription>Campañas activas y volumen total visible.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <KeyValueGrid
             rows={[
               {
-                label: 'Campanas',
+                label: 'Campañas',
                 value: formatNumber(campaigns.total ?? campaigns.campaigns.length),
               },
-              { label: 'Running', value: formatNumber(running) },
+              { label: 'En curso', value: formatNumber(running) },
             ]}
           />
         </CardContent>
@@ -998,7 +996,7 @@ export function CareReactivationSettingsSection({ context }: { context: Settings
 
       <Card className="border-border/60">
         <CardHeader>
-          <CardTitle className="text-base">Campanas recientes</CardTitle>
+          <CardTitle className="text-base">Campañas recientes</CardTitle>
           <CardDescription>Estado y foco de los recorridos en curso.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -1016,7 +1014,7 @@ export function CareReactivationSettingsSection({ context }: { context: Settings
           ))}
           {campaigns.campaigns.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No hay campanas de reactivacion visibles todavia.
+              No hay campañas de reactivación visibles todavía.
             </p>
           ) : null}
         </CardContent>
@@ -1144,7 +1142,7 @@ export function InternalApprovalsSettingsSection({
         <CardHeader>
           <CardTitle className="text-base">Backlog visible</CardTitle>
           <CardDescription>
-            Solo resumen; la operacion completa sigue en su surface dedicada.
+            Solo resumen; la operación completa sigue en su surface dedicada.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">

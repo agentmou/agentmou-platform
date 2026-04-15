@@ -2,6 +2,7 @@
 
 import { normalizeCategory } from '@/lib/control-plane/category-config';
 import { resolveCatalogAvailability } from '@/lib/catalog/availability';
+import { formatClinicDateTime, resolveClinicTimezone } from '@/lib/clinic-formatting';
 import type { DataProvider } from '@/lib/data/provider';
 import { resolveHonestSurfaceState } from '@/lib/honest-ui';
 import { resolveInternalNavigation } from '@/lib/internal-navigation';
@@ -69,9 +70,9 @@ const clinicNavigationItems: Omit<SearchItem, 'href'>[] = [
     type: 'navigate',
     id: 'nav-dashboard',
     label: 'Resumen',
-    keywords: ['home', 'resumen', 'kpis', 'operacion'],
+    keywords: ['home', 'resumen', 'kpis', 'operación'],
     icon: 'layout-dashboard',
-    description: 'Vista operativa del centro de recepcion',
+    description: 'Vista operativa del centro de recepción',
   },
   {
     type: 'navigate',
@@ -87,13 +88,13 @@ const clinicNavigationItems: Omit<SearchItem, 'href'>[] = [
     label: 'Agenda',
     keywords: ['citas', 'calendar', 'agenda'],
     icon: 'calendar-days',
-    description: 'Citas del dia y cambios recientes',
+    description: 'Citas del día y cambios recientes',
   },
   {
     type: 'navigate',
     id: 'nav-pacientes',
     label: 'Pacientes',
-    keywords: ['pacientes', 'nuevos', 'existentes', 'reactivacion'],
+    keywords: ['pacientes', 'nuevos', 'existentes', 'reactivación'],
     icon: 'users',
     description: 'Listado y contexto del paciente',
   },
@@ -108,26 +109,26 @@ const clinicNavigationItems: Omit<SearchItem, 'href'>[] = [
   {
     type: 'navigate',
     id: 'nav-reactivacion',
-    label: 'Reactivacion',
-    keywords: ['campanas', 'recall', 'reactivacion'],
+    label: 'Reactivación',
+    keywords: ['campañas', 'recall', 'reactivación'],
     icon: 'refresh-cw',
-    description: 'Campanas y pacientes por recuperar',
+    description: 'Campañas y pacientes por recuperar',
   },
   {
     type: 'navigate',
     id: 'nav-rendimiento',
     label: 'Rendimiento',
-    keywords: ['kpis', 'conversion', 'ingresos', 'rendimiento'],
+    keywords: ['kpis', 'conversaciones', 'confirmaciones', 'rendimiento'],
     icon: 'chart-column',
-    description: 'Metricas de negocio y recuperacion',
+    description: 'Métricas operativas del centro',
   },
   {
     type: 'navigate',
     id: 'nav-configuracion',
-    label: 'Configuracion',
-    keywords: ['modulos', 'canales', 'reglas', 'configuracion'],
+    label: 'Configuración',
+    keywords: ['módulos', 'canales', 'reglas', 'configuración'],
     icon: 'settings',
-    description: 'Configuracion del centro de recepcion',
+    description: 'Configuración del centro de recepción',
   },
 ];
 
@@ -173,12 +174,19 @@ export async function buildSearchIndex(
       });
     }
 
-    const [patients, conversations, appointments, campaigns] = await Promise.all([
-      provider.listClinicPatients(tenantId, { limit: 8 }).catch(() => ({ patients: [] })),
-      provider.listClinicConversations(tenantId).catch(() => ({ threads: [] })),
-      provider.listClinicAppointments(tenantId, { limit: 8 }).catch(() => ({ appointments: [] })),
-      provider.listClinicReactivationCampaigns(tenantId).catch(() => ({ campaigns: [] })),
-    ]);
+    const [tenant, clinicProfile, patients, conversations, appointments, campaigns] =
+      await Promise.all([
+        provider.getTenant(tenantId).catch(() => null),
+        provider.getClinicProfile(tenantId).catch(() => null),
+        provider.listClinicPatients(tenantId, { limit: 8 }).catch(() => ({ patients: [] })),
+        provider.listClinicConversations(tenantId).catch(() => ({ threads: [] })),
+        provider.listClinicAppointments(tenantId, { limit: 8 }).catch(() => ({ appointments: [] })),
+        provider.listClinicReactivationCampaigns(tenantId).catch(() => ({ campaigns: [] })),
+      ]);
+    const clinicTimezone = resolveClinicTimezone({
+      profileTimezone: clinicProfile?.timezone,
+      tenantTimezone: tenant?.settings.timezone,
+    });
 
     items.push(
       ...(allowedNavigation.size === 0 || allowedNavigation.has('patients')
@@ -222,7 +230,7 @@ export async function buildSearchIndex(
             ].filter(Boolean),
             href: `/app/${tenantId}/agenda`,
             icon: 'calendar-days',
-            description: `Cita ${new Date(appointment.startsAt).toLocaleString()}`,
+            description: `Cita ${formatClinicDateTime(appointment.startsAt, clinicTimezone)}`,
             category: 'Agenda',
           }))
         : []),
@@ -234,8 +242,8 @@ export async function buildSearchIndex(
             keywords: [campaign.campaignType, campaign.status],
             href: `/app/${tenantId}/reactivacion`,
             icon: 'refresh-cw',
-            description: `Campana ${campaign.status}`,
-            category: 'Reactivacion',
+            description: `Campaña ${campaign.status}`,
+            category: 'Reactivación',
           }))
         : []),
       ...(allowedNavigation.size === 0 || allowedNavigation.has('forms')
