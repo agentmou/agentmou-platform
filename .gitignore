@@ -63,3 +63,4 @@ traefik/letsencrypt/
 
 # Backup output
 backups/out/
+.vercel
