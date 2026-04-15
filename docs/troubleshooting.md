@@ -224,9 +224,10 @@ Solutions to common problems you may encounter while developing on or running Ag
 
 ## Authentication & Authorization Issues
 
-### JWT Validation Fails
+### Session Cookie Validation Fails
 
-**Symptom:** API returns `401 Unauthorized` or `invalid token`.
+**Symptom:** API returns `401 Unauthorized`, `/app/*` bounces back to `/login`,
+or the browser does not stay signed in after refresh.
 
 **Solution:**
 
@@ -235,17 +236,19 @@ Solutions to common problems you may encounter while developing on or running Ag
    echo $JWT_SECRET
    ```
 
-2. Check JWT in localStorage (browser console):
-   ```javascript
-   localStorage.getItem('token')
-   ```
+2. Check that the browser received `agentmou-session`:
+   - DevTools -> Application/Storage -> Cookies
+   - confirm the cookie is present on the app/api host pair
 
-3. Decode JWT to see expiration:
+3. Verify the canonical host/env contract:
    ```bash
-   node -e "console.log(require('jsonwebtoken').decode('YOUR_JWT_HERE'))"
+   echo $APP_PUBLIC_BASE_URL
+   echo $CORS_ORIGIN
+   echo $AUTH_WEB_ORIGIN_ALLOWLIST
    ```
 
-4. Regenerate JWT secret and restart API:
+4. Regenerate JWT secret only if bearer fallback or legacy tokens are failing,
+   then restart API:
    ```bash
    # Set new secret
    export JWT_SECRET=$(openssl rand -hex 32)
@@ -299,14 +302,15 @@ Solutions to common problems you may encounter while developing on or running Ag
    pnpm db:studio  # Look in users table
    ```
 
-3. Check JWT is being set in response:
+3. Check the session cookie is being set in response:
    ```bash
    curl -i -X POST http://localhost:3001/api/v1/auth/login \
      -H "Content-Type: application/json" \
      -d '{"email":"user@example.com","password":"password"}'
    ```
 
-4. Verify browser is accepting cookies (check privacy settings)
+4. Verify browser is accepting cookies and that `/login` is being served from
+   the canonical app host, not the marketing host.
 
 ### Tenant Access Denied
 
@@ -319,18 +323,12 @@ Solutions to common problems you may encounter while developing on or running Ag
    pnpm db:studio  # Check memberships table
    ```
 
-2. Check JWT contains correct tenant_id:
-   ```javascript
-   // Browser console
-   const token = localStorage.getItem('token');
-   console.log(require('jsonwebtoken').decode(token));
-   ```
-
-3. Verify tenant_id in URL matches:
+2. Verify tenant_id in URL matches:
    - URL: `/app/[tenantId]/...`
-   - Token: Should have `tenantId` claim
+   - Session bootstrap from `/api/v1/auth/me` should include that tenant in the
+     resolved membership list
 
-4. Add user to tenant:
+3. Add user to tenant:
    ```bash
    # Use db:studio or manual SQL
    INSERT INTO memberships (user_id, tenant_id, role) VALUES (...);

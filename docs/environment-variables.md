@@ -81,7 +81,7 @@ cp infra/compose/.env.example infra/compose/.env
 
 | Variable | Example | Required | Purpose |
 | -------- | ------- | -------- | ------- |
-| `AUTH_WEB_ORIGIN_ALLOWLIST` | `http://localhost:3000` | Yes | Comma-separated list of app origins allowed for ?return_url on /auth/callback (open redirect guard) |
+| `AUTH_WEB_ORIGIN_ALLOWLIST` | `http://localhost:3000` | Yes | Comma-separated list of app origins allowed for ?return_url on /auth/callback (open redirect guard). In production it must include the `APP_PUBLIC_BASE_URL` origin |
 | `GOOGLE_OAUTH_CLIENT_ID` | (from Google Console) | Optional | OAuth client ID for Google login |
 | `GOOGLE_OAUTH_CLIENT_SECRET` | (from Google Console) | Optional | OAuth client secret for Google login |
 | `GOOGLE_OAUTH_REDIRECT_URI` | `http://localhost:3001/api/v1/auth/oauth/google/callback` | Optional | Redirect URI registered in Google Console |
@@ -224,6 +224,17 @@ TWILIO_VOICE_FROM=+34910000000
 # Traefik Basic Auth
 BASIC_AUTH_USERS=$(htpasswd -nB admin | sed 's/$/$$/')
 ```
+
+Production contract:
+
+- `MARKETING_PUBLIC_BASE_URL` is the public marketing host (`agentmou.io`)
+- `APP_PUBLIC_BASE_URL` is the canonical auth and tenant-app host (`app.agentmou.io`)
+- `API_PUBLIC_BASE_URL` is the public API host (`api.agentmou.io`)
+- `CORS_ORIGIN` must match the app origin
+- `AUTH_WEB_ORIGIN_ALLOWLIST` must include the app origin
+- OAuth callback URLs registered with providers must hang off `API_PUBLIC_BASE_URL`
+- When using the optional Docker `web` profile on the VPS, it serves the app
+  host variant only; marketing still stays on the external marketing host
 
 ## Security Best Practices
 

@@ -16,7 +16,7 @@ and the internal engine that powers it.
 Understand how Agentmou is structured and why:
 
 - **[Architecture Overview](./architecture/overview.md)** — System topology, control plane vs data plane, communication patterns, auth model.
-- **[apps/web Architecture](./architecture/apps-web.md)** — Clinic-first public marketing routes, `/platform` as the technical public surface, vertical-aware tenant routing, `TenantExperience`, settings/admin surfaces, provider modes, auth callback flow, and tenant UI boundaries.
+- **[apps/web Architecture](./architecture/apps-web.md)** — Clinic-first public marketing routes, `/docs/engine` as the technical secondary page, canonical marketing/app host policy, vertical-aware tenant routing, `TenantExperience`, settings/admin surfaces, provider modes, auth callback flow, and tenant UI boundaries.
 - **[Repository Map](./repo-map.md)** — Every app, service, package, and config file explained.
 - **[Data Model](./architecture/data-model.md)** — Database schema, entity relationships, migrations, encryption at rest.
 - **[Agent Engine](./architecture/agent-engine.md)** — Planner, PolicyEngine, Toolkit, execution flow, HITL approvals.

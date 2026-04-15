@@ -51,6 +51,7 @@ Traefik routes traffic based on domain:
 | Subdomain | Service |
 | ----------- | ------- |
 | `agentmou.io` | Frontend on Vercel or another external host (not served by this VPS) |
+| `app.agentmou.io` | Auth + tenant app on an external host by default; optional VPS-served variant only when the Docker `web` profile is enabled |
 | `api.agentmou.io` | Control plane API (Fastify) |
 | `n8n.agentmou.io` | n8n workflow editor (if exposed) |
 | `hooks.agentmou.io` | n8n webhook ingress |

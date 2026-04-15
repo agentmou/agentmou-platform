@@ -21,7 +21,7 @@ Canonical public origins:
 
 | Workspace | Description |
 | --------- | ----------- |
-| `services/api` | Fastify 5 REST API. Serves the control plane plus tenant-scoped route families for experience, dashboard, profile, modules, channels, patients, inbox, calls, appointments, forms, follow-up, and reactivation. Resolves `TenantExperience` and feature gating server-side from plan/module baseline, operational prerequisites, and Reflag overrides with fail-open fallback; exposes admin-only tenant-management APIs; and uses JWT authentication with role-based access control and Zod validation on inputs. |
+| `services/api` | Fastify 5 REST API. Serves the control plane plus tenant-scoped route families for experience, dashboard, profile, modules, channels, patients, inbox, calls, appointments, forms, follow-up, and reactivation. Resolves `TenantExperience` and feature gating server-side from plan/module baseline, operational prerequisites, and Reflag overrides with fail-open fallback; exposes admin-only tenant-management APIs; and uses opaque browser sessions via `agentmou-session` with bearer fallback for non-browser compatibility plus Zod validation on inputs. |
 | `services/worker` | BullMQ background job processor. 5 queues: INSTALL_PACK, RUN_AGENT, RUN_WORKFLOW, SCHEDULE_TRIGGER, APPROVAL_TIMEOUT. Redis-backed with exponential backoff retry logic. |
 | `services/agents` | Python FastAPI sidecar for specialized AI tasks. Provides `/analyze-email` endpoint using GPT-4o-mini. X-API-Key authentication. |
 

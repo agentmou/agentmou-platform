@@ -15,7 +15,8 @@ BullMQ.
 
 - Expose public authentication and catalog endpoints.
 - Expose a public chat endpoint for the marketing experience.
-- Protect authenticated and tenant-scoped routes with JWT and membership checks.
+- Protect authenticated and tenant-scoped routes with opaque browser sessions,
+  bearer fallback for non-browser compatibility, and membership checks.
 - Validate selected request bodies with Zod-based validators.
 - Persist tenants, memberships, connectors, secrets, installations, runs, and
   approvals through `@agentmou/db`.
@@ -168,14 +169,14 @@ dependencies:
 | `PORT` | HTTP port; defaults to `3001` |
 | `HOST` | Bind host; defaults to `0.0.0.0` |
 | `LOG_LEVEL` | Fastify logger level |
-| `CORS_ORIGIN` | Allowed browser origin for the tenant app; should match the app origin |
+| `CORS_ORIGIN` | Allowed browser origin for the tenant app; must match `APP_PUBLIC_BASE_URL` origin in production |
 | `JWT_SECRET` | Signing secret used by `@agentmou/auth` |
 | `DATABASE_URL` | PostgreSQL connection string via `@agentmou/db` |
 | `REDIS_URL` | Redis connection for BullMQ queues via `@agentmou/queue` |
 | `GOOGLE_CLIENT_ID` | Gmail OAuth client ID |
 | `GOOGLE_CLIENT_SECRET` | Gmail OAuth client secret |
 | `GOOGLE_REDIRECT_URI` | Public OAuth callback URL |
-| `AUTH_WEB_ORIGIN_ALLOWLIST` | Comma-separated browser origins allowed for OAuth `return_url` validation |
+| `AUTH_WEB_ORIGIN_ALLOWLIST` | Comma-separated browser origins allowed for OAuth `return_url` validation; must include the app origin in production |
 | `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` | B2C Google login (separate from Gmail connector client when you split them) |
 | `GOOGLE_OAUTH_REDIRECT_URI` | API callback URL for B2C Google login |
 | `MICROSOFT_OAUTH_CLIENT_ID` / `MICROSOFT_OAUTH_CLIENT_SECRET` | B2C Microsoft login |
