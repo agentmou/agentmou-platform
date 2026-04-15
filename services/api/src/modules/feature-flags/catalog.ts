@@ -1,15 +1,13 @@
 import type { ModuleKey, VerticalKey } from '@agentmou/contracts';
 
 export const FEATURE_FLAG_KEYS = {
-  clinicVoiceEnabled: 'clinic.voice.enabled',
-  clinicVoiceOutboundEnabled: 'clinic.voice.outbound.enabled',
-  clinicFormsEnabled: 'clinic.forms.enabled',
-  clinicConfirmationsEnabled: 'clinic.confirmations.enabled',
-  clinicGapsEnabled: 'clinic.gaps.enabled',
-  clinicReactivationEnabled: 'clinic.reactivation.enabled',
-  clinicAdvancedSettingsEnabled: 'clinic.advanced_settings.enabled',
-  internalPlatformVisible: 'internal.platform.visible',
-  adminConsoleEnabled: 'admin.console.enabled',
+  clinicVoiceInboundRollout: 'rollout.clinic.voice.inbound',
+  clinicVoiceOutboundRollout: 'rollout.clinic.voice.outbound',
+  clinicFormsRollout: 'rollout.clinic.forms',
+  clinicConfirmationsRollout: 'rollout.clinic.confirmations',
+  clinicGapRecoveryRollout: 'rollout.clinic.gap_recovery',
+  clinicReactivationRollout: 'rollout.clinic.reactivation',
+  clinicAdvancedSettingsRollout: 'rollout.clinic.advanced_settings',
 } as const;
 
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[keyof typeof FEATURE_FLAG_KEYS];
@@ -23,57 +21,46 @@ export interface FeatureFlagCatalogEntry {
 
 export const FEATURE_FLAG_CATALOG: readonly FeatureFlagCatalogEntry[] = [
   {
-    key: FEATURE_FLAG_KEYS.clinicVoiceEnabled,
+    key: FEATURE_FLAG_KEYS.clinicVoiceInboundRollout,
     moduleKey: 'voice',
     prerequisite: 'active voice inbound channel',
     supportedVerticals: ['clinic'],
   },
   {
-    key: FEATURE_FLAG_KEYS.clinicVoiceOutboundEnabled,
+    key: FEATURE_FLAG_KEYS.clinicVoiceOutboundRollout,
     moduleKey: 'voice',
     prerequisite: 'voice inbound available plus active voice outbound channel',
     supportedVerticals: ['clinic'],
   },
   {
-    key: FEATURE_FLAG_KEYS.clinicFormsEnabled,
+    key: FEATURE_FLAG_KEYS.clinicFormsRollout,
     moduleKey: 'core_reception',
     prerequisite: 'new patient form policy/config enabled',
     supportedVerticals: ['clinic'],
   },
   {
-    key: FEATURE_FLAG_KEYS.clinicConfirmationsEnabled,
+    key: FEATURE_FLAG_KEYS.clinicConfirmationsRollout,
     moduleKey: 'core_reception',
     prerequisite: 'appointment confirmation policy enabled',
     supportedVerticals: ['clinic'],
   },
   {
-    key: FEATURE_FLAG_KEYS.clinicGapsEnabled,
+    key: FEATURE_FLAG_KEYS.clinicGapRecoveryRollout,
     moduleKey: 'growth',
     prerequisite: 'gap recovery policy enabled',
     supportedVerticals: ['clinic'],
   },
   {
-    key: FEATURE_FLAG_KEYS.clinicReactivationEnabled,
+    key: FEATURE_FLAG_KEYS.clinicReactivationRollout,
     moduleKey: 'growth',
     prerequisite: 'reactivation policy enabled',
     supportedVerticals: ['clinic'],
   },
   {
-    key: FEATURE_FLAG_KEYS.clinicAdvancedSettingsEnabled,
+    key: FEATURE_FLAG_KEYS.clinicAdvancedSettingsRollout,
     moduleKey: 'advanced_mode',
     prerequisite: 'advanced mode module enabled',
     supportedVerticals: ['clinic'],
-  },
-  {
-    key: FEATURE_FLAG_KEYS.internalPlatformVisible,
-    moduleKey: 'internal_platform',
-    prerequisite: 'tenant vertical is internal',
-    supportedVerticals: ['internal'],
-  },
-  {
-    key: FEATURE_FLAG_KEYS.adminConsoleEnabled,
-    prerequisite: 'tenant marked as platform admin',
-    supportedVerticals: ['internal'],
   },
 ] as const;
 

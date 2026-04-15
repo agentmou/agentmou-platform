@@ -9,6 +9,8 @@ import type {
   ModuleKey,
   ModuleStatus,
   TenantExperience,
+  TenantFeatureDecision,
+  TenantFeatureDecisions,
   TenantNavigationKey,
   TenantPermission,
   TenantModule,
@@ -18,7 +20,7 @@ import type {
 import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
 import {
   FeatureFlagService,
-  type ResolvedTenantFeatureDecisions,
+  type ResolvedProductFeatureDecisions,
 } from '../feature-flags/feature-flag.service.js';
 
 const ACTIVE_MODULE_STATUSES = new Set<ModuleStatus>(['enabled', 'beta']);
@@ -337,7 +339,92 @@ function buildBaseFlags(settings: TenantSettings): TenantExperience['flags'] {
     smartGapFillEnabled: false,
     reactivationEnabled: false,
     advancedClinicModeEnabled: false,
-    internalPlatformVisible: Boolean(settings.internalPlatformVisible),
+    internalPlatformVisible: false,
+  };
+}
+
+function buildInternalAccessDecision(params: {
+  enabled: boolean;
+  reason?: TenantFeatureDecision['reason'];
+  moduleKey?: ModuleKey;
+  detail?: string;
+}): TenantFeatureDecision {
+  return {
+    enabled: params.enabled,
+    source: 'internal_access',
+    reason: params.reason,
+    moduleKey: params.moduleKey,
+    detail: params.detail,
+  };
+}
+
+function buildInternalAccessDecisions(params: {
+  activeVertical: TenantExperience['activeVertical'];
+  isPlatformAdminTenant: boolean;
+  tenantRole?: string;
+}): Pick<TenantFeatureDecisions, 'internalPlatformVisible' | 'adminConsoleEnabled'> {
+  if (params.activeVertical !== 'internal') {
+    return {
+      internalPlatformVisible: buildInternalAccessDecision({
+        enabled: false,
+        reason: 'hidden_internal_only',
+        moduleKey: 'internal_platform',
+        detail: 'Solo visible en workspaces internos.',
+      }),
+      adminConsoleEnabled: buildInternalAccessDecision({
+        enabled: false,
+        reason: 'hidden_internal_only',
+        detail: 'La consola de admin solo existe en workspaces internos.',
+      }),
+    };
+  }
+
+  if (!canRoleAccessInternalPlatform(params.tenantRole)) {
+    return {
+      internalPlatformVisible: buildInternalAccessDecision({
+        enabled: false,
+        reason: 'insufficient_role',
+        moduleKey: 'internal_platform',
+        detail: 'Hace falta un rol owner o admin para ver la plataforma interna.',
+      }),
+      adminConsoleEnabled: buildInternalAccessDecision({
+        enabled: false,
+        reason: 'insufficient_role',
+        detail: 'Hace falta un rol owner o admin para abrir la consola de admin.',
+      }),
+    };
+  }
+
+  return {
+    internalPlatformVisible: buildInternalAccessDecision({
+      enabled: true,
+      moduleKey: 'internal_platform',
+      detail: 'Acceso resuelto por workspace interno y rol operativo.',
+    }),
+    adminConsoleEnabled: params.isPlatformAdminTenant
+      ? buildInternalAccessDecision({
+          enabled: true,
+          detail: 'Acceso resuelto por workspace admin interno y rol operativo.',
+        })
+      : buildInternalAccessDecision({
+          enabled: false,
+          reason: 'not_admin_tenant',
+          detail: 'Este workspace interno no tiene visibilidad de consola global.',
+        }),
+  };
+}
+
+function combineFeatureDecisions(params: {
+  productDecisions: ResolvedProductFeatureDecisions;
+  internalDecisions: Pick<
+    TenantFeatureDecisions,
+    'internalPlatformVisible' | 'adminConsoleEnabled'
+  >;
+}): TenantFeatureDecisions {
+  return {
+    ...params.productDecisions,
+    internalPlatformVisible: params.internalDecisions.internalPlatformVisible,
+    adminConsoleEnabled: params.internalDecisions.adminConsoleEnabled,
   };
 }
 
@@ -441,7 +528,7 @@ export async function resolveTenantExperienceWithDecisions(
   context: ClinicEntitlementContext
 ): Promise<{
   experience: TenantExperience;
-  decisions: ResolvedTenantFeatureDecisions;
+  decisions: TenantFeatureDecisions;
 }> {
   const normalizedRole = normalizeTenantMembershipRole(context.tenantRole);
 
@@ -455,11 +542,17 @@ export async function resolveTenantExperienceWithDecisions(
       channels: [],
       profile: null,
     });
-    const canAccessInternalPlatform =
-      flagResolution.flags.internalPlatformVisible &&
-      canRoleAccessInternalPlatform(context.tenantRole);
-    const canAccessAdminConsole =
-      flagResolution.flags.adminConsoleEnabled && canRoleAccessInternalPlatform(context.tenantRole);
+    const internalDecisions = buildInternalAccessDecisions({
+      activeVertical: 'internal',
+      isPlatformAdminTenant: Boolean(context.settings.isPlatformAdminTenant),
+      tenantRole: context.tenantRole,
+    });
+    const decisions = combineFeatureDecisions({
+      productDecisions: flagResolution.decisions,
+      internalDecisions,
+    });
+    const canAccessInternalPlatform = decisions.internalPlatformVisible.enabled;
+    const canAccessAdminConsole = decisions.adminConsoleEnabled.enabled;
     const permissions: TenantPermission[] = [];
     const allowedNavigation: TenantNavigationKey[] = [];
 
@@ -486,12 +579,15 @@ export async function resolveTenantExperienceWithDecisions(
         flags: {
           ...buildBaseFlags(context.settings),
           ...flagResolution.flags,
+          internalPlatformVisible: decisions.internalPlatformVisible.enabled,
+          adminConsoleEnabled: decisions.adminConsoleEnabled.enabled,
         },
+        featureDecisions: decisions,
         settingsSections: buildInternalSettingsSections(canAccessAdminConsole),
         canAccessInternalPlatform,
         canAccessAdminConsole,
       },
-      decisions: flagResolution.decisions,
+      decisions,
     };
   }
 
@@ -504,6 +600,15 @@ export async function resolveTenantExperienceWithDecisions(
       modules: [],
       channels: context.channels,
       profile: context.profile,
+    });
+    const internalDecisions = buildInternalAccessDecisions({
+      activeVertical: 'fisio',
+      isPlatformAdminTenant: Boolean(context.settings.isPlatformAdminTenant),
+      tenantRole: context.tenantRole,
+    });
+    const decisions = combineFeatureDecisions({
+      productDecisions: flagResolution.decisions,
+      internalDecisions,
     });
 
     return {
@@ -520,12 +625,15 @@ export async function resolveTenantExperienceWithDecisions(
         flags: {
           ...buildBaseFlags(context.settings),
           ...flagResolution.flags,
+          internalPlatformVisible: decisions.internalPlatformVisible.enabled,
+          adminConsoleEnabled: decisions.adminConsoleEnabled.enabled,
         },
+        featureDecisions: decisions,
         settingsSections: buildFisioSettingsSections(),
-        canAccessInternalPlatform: false,
-        canAccessAdminConsole: false,
+        canAccessInternalPlatform: decisions.internalPlatformVisible.enabled,
+        canAccessAdminConsole: decisions.adminConsoleEnabled.enabled,
       },
-      decisions: flagResolution.decisions,
+      decisions,
     };
   }
 
@@ -542,12 +650,22 @@ export async function resolveTenantExperienceWithDecisions(
     channels: context.channels,
     profile: context.profile,
   });
-  const canAccessInternalPlatform = false;
-  const canAccessAdminConsole =
-    flagResolution.flags.adminConsoleEnabled && canRoleAccessInternalPlatform(context.tenantRole);
+  const internalDecisions = buildInternalAccessDecisions({
+    activeVertical: 'clinic',
+    isPlatformAdminTenant: Boolean(context.settings.isPlatformAdminTenant),
+    tenantRole: context.tenantRole,
+  });
+  const decisions = combineFeatureDecisions({
+    productDecisions: flagResolution.decisions,
+    internalDecisions,
+  });
+  const canAccessInternalPlatform = decisions.internalPlatformVisible.enabled;
+  const canAccessAdminConsole = decisions.adminConsoleEnabled.enabled;
   const flags = {
     ...buildBaseFlags(context.settings),
     ...flagResolution.flags,
+    internalPlatformVisible: decisions.internalPlatformVisible.enabled,
+    adminConsoleEnabled: decisions.adminConsoleEnabled.enabled,
   } satisfies TenantExperience['flags'];
 
   const permissions = resolveClinicPermissions({
@@ -610,11 +728,12 @@ export async function resolveTenantExperienceWithDecisions(
       allowedNavigation,
       modules,
       flags,
+      featureDecisions: decisions,
       settingsSections: buildClinicSettingsSections(flags),
       canAccessInternalPlatform,
       canAccessAdminConsole,
     },
-    decisions: flagResolution.decisions,
+    decisions,
   };
 }
 

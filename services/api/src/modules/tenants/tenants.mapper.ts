@@ -32,6 +32,8 @@ function resolveActiveVertical(
   settings: Record<string, unknown>,
   defaultActiveVertical: VerticalKey
 ): VerticalKey {
+  // activeVertical is the canonical source of truth. Legacy booleans stay as
+  // a read fallback while older payloads are still being normalized.
   if (
     settings.activeVertical === 'internal' ||
     settings.activeVertical === 'clinic' ||
@@ -89,6 +91,9 @@ export function normalizeTenantSettings(
       typeof settings.settingsVersion === 'number'
         ? settings.settingsVersion
         : DEFAULT_TENANT_SETTINGS.settingsVersion,
+    // Legacy compatibility flags remain persisted so older reads keep parsing,
+    // but downstream experience resolution should prefer activeVertical and
+    // resolved capability decisions instead of these booleans.
     verticalClinicUi:
       typeof settings.verticalClinicUi === 'boolean'
         ? settings.verticalClinicUi

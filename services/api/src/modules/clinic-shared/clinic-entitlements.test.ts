@@ -5,6 +5,7 @@ import {
   resolveClinicModuleEntitlements,
   resolveClinicPermissions,
   resolveTenantExperience,
+  resolveTenantExperienceWithDecisions,
 } from './clinic-entitlements.js';
 
 const baseContext = {
@@ -99,6 +100,25 @@ describe('clinic entitlements', () => {
     expect(experience.flags.internalPlatformVisible).toBe(false);
   });
 
+  it('keeps legacy internal visibility flags as compatibility-only when activeVertical is clinic', async () => {
+    const { experience, decisions } = await resolveTenantExperienceWithDecisions({
+      ...baseContext,
+      tenantRole: 'admin',
+    });
+
+    expect(baseContext.settings.internalPlatformVisible).toBe(true);
+    expect(experience.flags.internalPlatformVisible).toBe(false);
+    expect(decisions.internalPlatformVisible).toMatchObject({
+      enabled: false,
+      source: 'internal_access',
+      reason: 'hidden_internal_only',
+      moduleKey: 'internal_platform',
+    });
+    expect(experience.featureDecisions?.internalPlatformVisible.reason).toBe(
+      'hidden_internal_only'
+    );
+  });
+
   it('keeps operators out of the internal platform permission set', () => {
     const permissions = resolveClinicPermissions({
       tenantRole: 'operator',
@@ -131,6 +151,8 @@ describe('clinic entitlements', () => {
     expect(experience.permissions).toContain('view_admin_console');
     expect(experience.canAccessAdminConsole).toBe(true);
     expect(experience.flags.adminConsoleEnabled).toBe(true);
+    expect(experience.featureDecisions?.internalPlatformVisible.source).toBe('internal_access');
+    expect(experience.featureDecisions?.adminConsoleEnabled.source).toBe('internal_access');
     expect(experience.settingsSections).toContain('internal_defaults');
     expect(experience.settingsSections).toContain('internal_approvals');
   });
@@ -157,6 +179,8 @@ describe('clinic entitlements', () => {
     expect(experience.permissions).not.toContain('view_internal_platform');
     expect(experience.permissions).not.toContain('view_admin_console');
     expect(experience.canAccessAdminConsole).toBe(false);
+    expect(experience.featureDecisions?.internalPlatformVisible.reason).toBe('insufficient_role');
+    expect(experience.featureDecisions?.adminConsoleEnabled.reason).toBe('insufficient_role');
     expect(experience.settingsSections).toEqual([
       'general',
       'team',
@@ -188,6 +212,7 @@ describe('clinic entitlements', () => {
     expect(experience.allowedNavigation).toEqual(['dashboard', 'configuration']);
     expect(experience.flags.verticalClinicUi).toBe(false);
     expect(experience.flags.adminConsoleEnabled).toBe(false);
+    expect(experience.featureDecisions?.reactivationEnabled.reason).toBe('not_in_plan');
     expect(experience.settingsSections).toEqual([
       'general',
       'team',
