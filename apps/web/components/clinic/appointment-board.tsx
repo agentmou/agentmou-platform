@@ -1,14 +1,19 @@
 import type { AppointmentSummary } from '@agentmou/contracts';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { EmptyState } from '@/components/control-plane/empty-state';
+import { CalendarDays } from 'lucide-react';
+import { formatClinicLabel, formatClinicTime } from '@/lib/clinic-formatting';
 import { PatientStatusBadge } from './patient-status-badge';
 
 export function AppointmentBoard({
   appointments,
   title = 'Agenda',
+  timezone,
 }: {
   appointments: AppointmentSummary[];
   title?: string;
+  timezone: string;
 }) {
   return (
     <Card className="border-border/60">
@@ -16,6 +21,13 @@ export function AppointmentBoard({
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {appointments.length === 0 ? (
+          <EmptyState
+            icon={CalendarDays}
+            title="No hay citas programadas"
+            description="Cuando entren reservas o cambios para hoy, la agenda priorizada aparecerá aquí."
+          />
+        ) : null}
         {appointments.map((appointment) => (
           <div
             key={appointment.id}
@@ -27,10 +39,7 @@ export function AppointmentBoard({
                   {appointment.patient?.fullName ?? 'Paciente sin asignar'}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {new Date(appointment.startsAt).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {formatClinicTime(appointment.startsAt, timezone)}
                   {' · '}
                   {appointment.service?.name ?? 'Cita general'}
                 </p>
@@ -52,7 +61,7 @@ export function AppointmentBoard({
                 <span className="rounded-full bg-muted px-2 py-1">{appointment.location.name}</span>
               ) : null}
               <span className="rounded-full bg-muted px-2 py-1">
-                {appointment.confirmationStatus}
+                {formatClinicLabel(appointment.confirmationStatus)}
               </span>
             </div>
           </div>

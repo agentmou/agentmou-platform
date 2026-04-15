@@ -1,8 +1,10 @@
 import type { ConversationThreadListItem } from '@agentmou/contracts';
-import { MessageCircleMore, Phone, TriangleAlert, UserRound } from 'lucide-react';
+import { Inbox, MessageCircleMore, Phone, TriangleAlert, UserRound } from 'lucide-react';
 
+import { EmptyState } from '@/components/control-plane/empty-state';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatClinicLabel } from '@/lib/clinic-formatting';
 import { cn } from '@/lib/utils';
 
 import { PatientStatusBadge } from './patient-status-badge';
@@ -15,10 +17,14 @@ export function InboxThreadList({
   threads,
   selectedThreadId,
   onSelect,
+  emptyTitle = 'No hay conversaciones en esta cola',
+  emptyDescription = 'Cuando entren mensajes o llamadas nuevas, aparecerán aquí con su contexto y prioridad.',
 }: {
   threads: ConversationThreadListItem[];
   selectedThreadId?: string;
   onSelect?: (thread: ConversationThreadListItem) => void;
+  emptyTitle?: string;
+  emptyDescription?: string;
 }) {
   return (
     <Card className="border-border/60">
@@ -26,6 +32,11 @@ export function InboxThreadList({
         <CardTitle className="text-base">Bandeja priorizada</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
+        {threads.length === 0 ? (
+          <div className="p-6">
+            <EmptyState icon={Inbox} title={emptyTitle} description={emptyDescription} />
+          </div>
+        ) : null}
         <ScrollArea className="h-[420px]">
           <div className="divide-y divide-border/50">
             {threads.map((thread) => {
@@ -83,10 +94,10 @@ export function InboxThreadList({
                       </span>
                     )}
                     <span className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
-                      {thread.priority}
+                      {formatClinicLabel(thread.priority)}
                     </span>
                     <span className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
-                      {thread.status}
+                      {formatClinicLabel(thread.status)}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">

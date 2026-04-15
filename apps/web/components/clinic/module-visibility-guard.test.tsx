@@ -1,5 +1,15 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+const { useTenantExperienceMock } = vi.hoisted(() => ({
+  useTenantExperienceMock: vi.fn(() => ({
+    tenantId: 'demo-workspace',
+  })),
+}));
+
+vi.mock('@/lib/tenant-experience', () => ({
+  useTenantExperience: useTenantExperienceMock,
+}));
 
 import { ModuleVisibilityGuard } from './module-visibility-guard';
 
@@ -19,14 +29,15 @@ describe('ModuleVisibilityGuard', () => {
       <ModuleVisibilityGuard
         enabled={false}
         title="Voice"
-        description="Activa el modulo para gestionar llamadas."
+        description="Activa el módulo para gestionar llamadas."
       >
         <div>Contenido habilitado</div>
       </ModuleVisibilityGuard>
     );
 
     expect(html).toContain('Voice');
-    expect(html).toContain('Activa el modulo para gestionar llamadas.');
-    expect(html).toContain('Ver modulos activos');
+    expect(html).toContain('Activa el módulo para gestionar llamadas.');
+    expect(html).toContain('Ir a Configuración');
+    expect(html).toContain('/app/demo-workspace/configuracion?section=plan');
   });
 });
