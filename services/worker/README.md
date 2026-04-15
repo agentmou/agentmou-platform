@@ -95,7 +95,8 @@ Important environment variables:
 | `GOOGLE_CLIENT_ID` | Needed when loading Gmail connectors |
 | `GOOGLE_CLIENT_SECRET` | Needed when loading Gmail connectors |
 | `CONNECTOR_ENCRYPTION_KEY` | Decrypts stored connector tokens |
-| `WEB_APP_BASE_URL` | Fallback base URL for outbound clinic callback links |
+| `MARKETING_PUBLIC_BASE_URL` | Canonical marketing origin required by the shared public-origin contract |
+| `APP_PUBLIC_BASE_URL` | Canonical app origin required by the shared public-origin contract |
 | `API_PUBLIC_BASE_URL` | Preferred public API base URL for Twilio status callbacks |
 | `TWILIO_ACCOUNT_SID` | Twilio account SID used by clinic channel adapters |
 | `TWILIO_AUTH_TOKEN` | Twilio auth token used for outbound calls/messages |

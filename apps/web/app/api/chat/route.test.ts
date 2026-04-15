@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
+import { PUBLIC_DEMO_CLINIC_HREF } from '@/lib/marketing/public-links';
 
 const mockGenerateResponse = vi.fn();
 
@@ -44,12 +45,12 @@ describe('POST /api/chat', () => {
             {
               id: 'pricing-1',
               title: 'Pricing',
-              href: '/pricing',
+              href: 'http://localhost:3000/pricing',
               excerpt: 'Starter is $29/month.',
               sourcePath: 'apps/web/app/(marketing)/pricing/page.tsx',
             },
           ],
-          actions: [{ label: 'View Pricing', href: '/pricing' }],
+          actions: [{ label: 'View Pricing', href: 'http://localhost:3000/pricing' }],
           provider: 'retrieval',
           fallback: false,
         }),
@@ -77,7 +78,7 @@ describe('POST /api/chat', () => {
       message: {
         role: 'assistant',
         content: 'Pricing starts at Starter.',
-        actions: [{ label: 'View Pricing', href: '/pricing' }],
+        actions: [{ label: 'View Pricing', href: 'http://localhost:3000/pricing' }],
         citations: [
           {
             id: 'pricing-1',
@@ -93,7 +94,7 @@ describe('POST /api/chat', () => {
     globalThis.fetch = vi.fn().mockRejectedValue(new Error('connect ECONNREFUSED')) as typeof fetch;
     mockGenerateResponse.mockReturnValue({
       content: 'Local public fallback answer.',
-      actions: [{ label: 'Open Demo Workspace', href: '/app/demo-workspace/dashboard' }],
+      actions: [{ label: 'Open Demo Workspace', href: PUBLIC_DEMO_CLINIC_HREF }],
     });
 
     const { POST } = await import('./route');
@@ -116,7 +117,7 @@ describe('POST /api/chat', () => {
       message: {
         role: 'assistant',
         content: 'Local public fallback answer.',
-        actions: [{ label: 'Open Demo Workspace', href: '/app/demo-workspace/dashboard' }],
+        actions: [{ label: 'Open Demo Workspace', href: PUBLIC_DEMO_CLINIC_HREF }],
       },
     });
     expect(mockGenerateResponse).toHaveBeenCalledWith({

@@ -2,6 +2,12 @@ import type { PublicChatAction, PublicChatRequest, PublicChatResponse } from '@a
 
 import { N8nService } from '../n8n/n8n.service.js';
 import { PublicKnowledgeService, type KnowledgeMatch } from './public-knowledge.service.js';
+import {
+  getPublicDemoWorkspaceUrl,
+  getPublicDocsUrl,
+  getPublicPricingUrl,
+  getPublicSecurityUrl,
+} from './public-links.js';
 
 const publicKnowledgeService = new PublicKnowledgeService();
 const n8nService = new N8nService();
@@ -156,15 +162,15 @@ function actionsForQuestion(question: string): PublicChatAction[] {
 
   if (/\b(price|pricing|plan|billing|cost)\b/.test(value)) {
     return [
-      { label: 'View Pricing', href: '/pricing' },
-      { label: 'Open Demo Workspace', href: '/app/demo-workspace/dashboard' },
+      { label: 'View Pricing', href: getPublicPricingUrl() },
+      { label: 'Open Demo Workspace', href: getPublicDemoWorkspaceUrl() },
     ];
   }
 
   if (/\b(security|privacy|data)\b/.test(value)) {
     return [
-      { label: 'Security Details', href: '/security' },
-      { label: 'Open Demo Workspace', href: '/app/demo-workspace/dashboard' },
+      { label: 'Security Details', href: getPublicSecurityUrl() },
+      { label: 'Open Demo Workspace', href: getPublicDemoWorkspaceUrl() },
     ];
   }
 
@@ -173,8 +179,8 @@ function actionsForQuestion(question: string): PublicChatAction[] {
 
 function defaultActions(): PublicChatAction[] {
   return [
-    { label: 'Open Demo Workspace', href: '/app/demo-workspace/dashboard' },
-    { label: 'View Docs', href: '/docs' },
+    { label: 'Open Demo Workspace', href: getPublicDemoWorkspaceUrl() },
+    { label: 'View Docs', href: getPublicDocsUrl() },
   ];
 }
 

@@ -20,8 +20,8 @@ export async function issuePasswordResetToken(userId: string): Promise<IssuedPas
     expiresAt,
   });
 
-  const { webAppBaseUrl } = getApiConfig();
-  const link = `${webAppBaseUrl.replace(/\/$/, '')}/reset-password?token=${token}`;
+  const { appPublicBaseUrl } = getApiConfig();
+  const link = `${appPublicBaseUrl.replace(/\/$/, '')}/reset-password?token=${token}`;
 
   return {
     token,

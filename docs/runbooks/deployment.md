@@ -25,7 +25,7 @@ Before deploying:
    - Connector encryption key (generated: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
    - OAuth credentials (Google, Microsoft) from respective consoles
    - Frontend-facing auth URLs point at the real web origin hosted outside the
-     VPS (`WEB_APP_BASE_URL`, `CORS_ORIGIN`, `AUTH_WEB_ORIGIN_ALLOWLIST`)
+     VPS (`APP_PUBLIC_BASE_URL`, `CORS_ORIGIN`, `AUTH_WEB_ORIGIN_ALLOWLIST`)
    - API keys (n8n, OpenAI)
 4. **GitHub credentials** (SSH key or personal access token) for pulling the repository
 5. **Backup strategy** reviewed and tested (see [VPS Operations](./vps-operations.md))

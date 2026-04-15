@@ -57,9 +57,37 @@ function toRecord(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function normalizePublicBaseUrl(
+  value: string | undefined,
+  fallback: string,
+  envName: string,
+  isProduction: boolean
+) {
+  const normalized = value?.trim();
+  if (normalized) {
+    try {
+      const url = new URL(normalized);
+      const normalizedPathname = url.pathname.replace(/\/+$/, '');
+      return `${url.origin}${normalizedPathname === '/' ? '' : normalizedPathname}`;
+    } catch {
+      throw new Error(`${envName} must be a valid absolute URL`);
+    }
+  }
+
+  if (isProduction) {
+    throw new Error(`${envName} must be set in production`);
+  }
+
+  return fallback;
+}
+
 function getApiPublicBaseUrl() {
-  const value = process.env.API_PUBLIC_BASE_URL ?? process.env.WEB_APP_BASE_URL;
-  return value ? value.replace(/\/$/, '') : null;
+  return normalizePublicBaseUrl(
+    process.env.API_PUBLIC_BASE_URL,
+    'http://localhost:3001',
+    'API_PUBLIC_BASE_URL',
+    process.env.NODE_ENV === 'production'
+  );
 }
 
 function getStatusCallbackUrl(channelType: ChannelType) {

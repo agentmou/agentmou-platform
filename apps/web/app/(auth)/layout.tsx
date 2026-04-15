@@ -1,7 +1,18 @@
+import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { Logo } from '@/components/brand';
+import { getAppUrl } from '@/lib/runtime/public-origins';
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export const metadata: Metadata = {
+  metadataBase: new URL(getAppUrl()),
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
+export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex h-14 items-center px-6">

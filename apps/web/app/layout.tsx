@@ -2,9 +2,11 @@ import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
+import { getMarketingUrl } from '@/lib/runtime/public-origins';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getMarketingUrl()),
   title: 'Agentmou Clinics - Recepcion IA multicanal',
   description:
     'Recepcion IA multicanal para clinicas dentales. WhatsApp, llamadas, agenda, confirmaciones y recuperacion de pacientes con un engine interno potente.',

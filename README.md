@@ -2,6 +2,11 @@
 
 Agentmou is a **multi-tenant platform whose visible product is a multichannel AI receptionist for clinics**, powered by an internal AI agent engine with human-in-the-loop approvals. It combines a React/Next.js web surface, a Fastify REST API, background job processing via BullMQ, and workflow orchestration through n8n.
 
+Canonical public origins:
+- `https://agentmou.io` for marketing
+- `https://app.agentmou.io` for auth and the tenant app
+- `https://api.agentmou.io` for the API
+
 **Start here:** Read the [Documentation Hub](./docs/README.md) for comprehensive guides on setup, architecture, testing, and operations.
 
 ## Workspace Map

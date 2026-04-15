@@ -289,9 +289,9 @@ Solutions to common problems you may encounter while developing on or running Ag
 
 **Solution:**
 
-1. Check `WEB_APP_BASE_URL` matches your domain:
+1. Check `APP_PUBLIC_BASE_URL` matches your app domain:
    ```bash
-   echo $WEB_APP_BASE_URL
+   echo $APP_PUBLIC_BASE_URL
    ```
 
 2. Verify user exists in database:
