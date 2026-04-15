@@ -51,17 +51,25 @@ requests to `main`. Treat these jobs as the primary merge gates:
 | `check` | Install deps, lint, typecheck, tests, `make validate-content` |
 | `clinic-demo-validation` | DB migrate + seed + clinic demo smoke script |
 | `agents` | Python compile + unit tests for `services/agents` |
-| `dependency-audit` | Runs `pnpm audit` for visibility; **does not block** merge (see below) |
-| `deploy-prod` | Only on `main` pushes, after the three gates above succeed |
+| `dependency-audit` | Runs `pnpm audit` for visibility; always exits green, publishes results to Step Summary |
+| `deploy-prod` | Only on `main` pushes when repo variable `DEPLOY_PROD_ENABLED` is `true` |
 
 ### Dependency audit policy
 
 `pnpm audit` can fail for reasons outside a given PR (registry/API changes,
-transitive advisories, or org-wide security tooling limits). It still provides
-useful signal, so CI runs it in a dedicated **`dependency-audit`** job with
-`continue-on-error: true`. **Review the job output on every PR**; treat
+transitive advisories, or org-wide security tooling limits). The
+**`dependency-audit`** job always exits green and publishes its findings to the
+GitHub Step Summary tab. **Review the summary on every PR**; treat
 high-severity items as follow-up work unless explicitly waived with a recorded
 reason.
+
+### Production deploy
+
+The `deploy-prod` job is gated behind the repository variable
+`DEPLOY_PROD_ENABLED`. Set it to `true` in *Settings → Variables → Actions*
+once the VPS secrets (`PROD_VPS_SSH_KEY`, `PROD_VPS_SSH_HOST`,
+`PROD_VPS_SSH_USER`, `PROD_VPS_REPO_PATH`) are configured. Until then, the job
+is automatically skipped on every push to `main`.
 
 Configure **required status checks** in GitHub branch protection for at least:
 `check`, `clinic-demo-validation`, and `agents`. Do **not** require
