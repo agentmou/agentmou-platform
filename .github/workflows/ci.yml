@@ -16,7 +16,9 @@ env:
   NEXT_PUBLIC_API_URL: http://127.0.0.1:3001
   CORS_ORIGIN: http://localhost:3000
   JWT_SECRET: test-jwt-secret
-  WEB_APP_BASE_URL: http://localhost:3000
+  MARKETING_PUBLIC_BASE_URL: http://localhost:3000
+  APP_PUBLIC_BASE_URL: http://localhost:3000
+  API_PUBLIC_BASE_URL: http://localhost:3001
   LOG_LEVEL: silent
   NODE_ENV: test
   TURBO_TELEMETRY_DISABLED: '1'
@@ -100,7 +102,9 @@ jobs:
       DATABASE_URL: postgresql://agentmou:changeme@127.0.0.1:5432/agentmou
       CORS_ORIGIN: http://localhost:3000
       JWT_SECRET: test-jwt-secret
-      WEB_APP_BASE_URL: http://localhost:3000
+      MARKETING_PUBLIC_BASE_URL: http://localhost:3000
+      APP_PUBLIC_BASE_URL: http://localhost:3000
+      API_PUBLIC_BASE_URL: http://localhost:3001
       NEXT_PUBLIC_API_URL: http://127.0.0.1:3001
       LOG_LEVEL: silent
       NODE_ENV: test
