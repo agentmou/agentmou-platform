@@ -36,7 +36,7 @@
 - [ ] `pnpm test`
 - [ ] `make validate-content` (when docs/YAML under validation paths change)
 - [ ] No secrets, tokens, or production URLs committed
-- [ ] PR title follows Conventional Commits (see [Contributing](docs/contributing.md))
+- [ ] PR title follows Conventional Commits (see [Contributing](https://github.com/agentmou/agentmou-platform/blob/main/docs/contributing.md))
 
 ## Notes for reviewers
 
