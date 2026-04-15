@@ -70,6 +70,71 @@ is_local_value() {
   return 1
 }
 
+extract_origin() {
+  printf '%s' "${1:-}" | sed -E 's#^([a-z]+://[^/]+).*$#\1#; s#/$##'
+}
+
+allowlist_includes_origin() {
+  local allowlist="${1:-}"
+  local expected_origin="${2:-}"
+  local entry=""
+  local normalized_entry=""
+
+  IFS=',' read -r -a entries <<< "$allowlist"
+  for entry in "${entries[@]}"; do
+    entry="$(printf '%s' "$entry" | xargs)"
+    [ -z "$entry" ] && continue
+    case "$entry" in
+      *://*) normalized_entry="$(extract_origin "$entry")" ;;
+      *) normalized_entry="$(extract_origin "https://$entry")" ;;
+    esac
+
+    if [ "$normalized_entry" = "$expected_origin" ]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+validate_domain_runtime_contract() {
+  local app_origin=""
+  local api_origin=""
+  local cors_origin=""
+  local redirect_value=""
+  local failed=0
+
+  app_origin="$(extract_origin "${APP_PUBLIC_BASE_URL:-}")"
+  api_origin="$(extract_origin "${API_PUBLIC_BASE_URL:-}")"
+  cors_origin="$(extract_origin "${CORS_ORIGIN:-}")"
+
+  if [ "$cors_origin" != "$app_origin" ]; then
+    warn "CORS_ORIGIN must match APP_PUBLIC_BASE_URL origin (got ${CORS_ORIGIN:-unset} vs ${APP_PUBLIC_BASE_URL:-unset})"
+    failed=1
+  fi
+
+  if ! allowlist_includes_origin "${AUTH_WEB_ORIGIN_ALLOWLIST:-}" "$app_origin"; then
+    warn "AUTH_WEB_ORIGIN_ALLOWLIST must include the APP_PUBLIC_BASE_URL origin ($app_origin)"
+    failed=1
+  fi
+
+  for redirect_var in GOOGLE_OAUTH_REDIRECT_URI MICROSOFT_OAUTH_REDIRECT_URI GOOGLE_REDIRECT_URI; do
+    redirect_value="${!redirect_var:-}"
+    if [ -z "$redirect_value" ]; then
+      continue
+    fi
+
+    if [ "$(extract_origin "$redirect_value")" != "$api_origin" ]; then
+      warn "$redirect_var must use the API_PUBLIC_BASE_URL origin ($api_origin)"
+      failed=1
+    fi
+  done
+
+  if [ "$failed" -ne 0 ]; then
+    fail "Domain/runtime contract validation failed. Fix the public origins and OAuth URLs in $ENV_FILE"
+  fi
+}
+
 wait_for_postgres() {
   local retries=30
   local delay_seconds=2
@@ -296,6 +361,8 @@ if ! check_optional_oauth_config \
   "MICROSOFT_OAUTH_REDIRECT_URI"; then
   missing_required=1
 fi
+
+validate_domain_runtime_contract
 
 if [ "$missing_required" -ne 0 ]; then
   fail "Populate the missing required production env vars in $ENV_FILE and rerun the deploy"
