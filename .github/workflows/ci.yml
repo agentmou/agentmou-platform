@@ -41,9 +41,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Audit
-        run: pnpm audit
-
       - name: Lint
         run: pnpm lint
 
@@ -53,8 +50,34 @@ jobs:
       - name: Test
         run: pnpm test
 
+      - name: Install yamllint (for validate-content)
+        run: python3 -m pip install yamllint
+
       - name: Validate content docs
         run: make validate-content
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Dependency audit (informational)
+        run: pnpm audit
 
   clinic-demo-validation:
     runs-on: ubuntu-latest

@@ -28,6 +28,7 @@ Understand how Agentmou is structured and why:
 
 Guidelines for contributing:
 
+- **[Contributing](./contributing.md)** — Branch/commit conventions, local validation, CI jobs, and when a PR is merge-ready.
 - **[Testing Guide](./testing.md)** — Vitest patterns, test categories, AAA pattern, mocking, coverage expectations.
 - **[API Routes](./api-routes.md)** — REST API endpoint reference for the platform control plane, tenant route families, admin APIs, and resolved feature gating.
 - **[Environment Variables](./environment-variables.md)** — Complete configuration reference.
