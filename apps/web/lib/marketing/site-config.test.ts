@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { publicMarketingFooterColumns, publicMarketingNavLinks } from './site-config';
-import { PUBLIC_DEMO_CLINIC_HREF } from './public-links';
+import { PUBLIC_APP_LOGIN_HREF, PUBLIC_DEMO_CLINIC_HREF } from './public-links';
 
 describe('publicMarketingNavLinks', () => {
   it('keeps the clinic marketing navigation focused on product, trust, and demo capture', () => {
@@ -29,7 +29,7 @@ describe('publicMarketingFooterColumns', () => {
     expect(accessColumn?.links).toEqual([
       { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
       { label: 'Solicitar demo', href: '/contact-sales' },
-      { label: 'Iniciar sesion', href: '/login' },
+      { label: 'Iniciar sesion', href: PUBLIC_APP_LOGIN_HREF },
     ]);
   });
 

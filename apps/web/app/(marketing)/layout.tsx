@@ -8,6 +8,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { MinimalButton } from '@/components/ui/minimal-button';
 import { DataProviderContext } from '@/lib/providers/context';
 import { mockProvider } from '@/lib/providers/demo';
+import { PUBLIC_APP_LOGIN_HREF } from '@/lib/marketing/public-links';
 import { publicMarketingFooterColumns, publicMarketingNavLinks } from '@/lib/marketing/site-config';
 
 const primaryNavLinks = publicMarketingNavLinks.slice(0, -1);
@@ -43,7 +44,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
 
             <div className="flex items-center gap-3">
               <ThemeToggle variant="icon" className="size-8" />
-              <Link href="/login">
+              <Link href={PUBLIC_APP_LOGIN_HREF}>
                 <MinimalButton variant="text" size="sm" className="text-editorial-tiny">
                   Sign in
                 </MinimalButton>
