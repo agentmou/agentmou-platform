@@ -10,9 +10,12 @@ import { clinicSecurityPillars } from '@/lib/marketing/clinic-site';
 import { Eye, KeyRound, Lock, Shield, ShieldCheck, Stethoscope, Workflow } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Security - Agentmou Clinics',
+  title: 'Seguridad | Agentmou Clinics',
   description:
-    'Privacidad por clinica, permisos, trazabilidad, revision humana y canales protegidos para una recepcion IA multicanal.',
+    'Privacidad por clínica, permisos, trazabilidad, revisión humana y canales protegidos para una recepción IA multicanal.',
+  alternates: {
+    canonical: '/security',
+  },
 };
 
 const capabilityCards = [
@@ -20,25 +23,25 @@ const capabilityCards = [
     icon: Shield,
     title: 'Seguridad y privacidad',
     description:
-      'Cada tenant opera con aislamiento por clinica, canales propios y control de acceso acotado al contexto real de trabajo.',
+      'Cada tenant opera con aislamiento por clínica, canales propios y control de acceso acotado al contexto real de trabajo.',
   },
   {
     icon: Eye,
-    title: 'Tu clinica, tus reglas',
+    title: 'Tu clínica, tus reglas',
     description:
-      'Permisos, visibilidad, handoff y reglas operativas se adaptan al modo en que tu recepcion trabaja hoy.',
+      'Permisos, visibilidad, handoff y reglas operativas se adaptan al modo en que tu recepción trabaja hoy.',
   },
   {
     icon: Workflow,
-    title: 'Derivacion a humano',
+    title: 'Derivación a humano',
     description:
-      'La recepcion IA no fuerza automatizacion ciega. Los casos sensibles, callbacks y excepciones pueden pasar a humano con contexto.',
+      'La recepción IA no fuerza automatización ciega. Los casos sensibles, callbacks y excepciones pueden pasar a humano con contexto.',
   },
   {
     icon: KeyRound,
-    title: 'Disenado para dental',
+    title: 'Diseñado para dental',
     description:
-      'No hablamos de seguridad en abstracto: hablamos de primeras visitas, confirmaciones, recalls, huecos y operacion dental real.',
+      'No hablamos de seguridad en abstracto: hablamos de primeras visitas, confirmaciones, recalls, huecos y operación dental real.',
   },
 ];
 
@@ -47,24 +50,24 @@ const operatingPractices = [
     title: 'Control operativo visible',
     items: [
       'Permisos por rol y visibilidad por tenant',
-      'Modo interno separado de la experiencia clinica',
-      'Fallback visible cuando una automatizacion no puede cerrar sola',
+      'Modo interno separado de la experiencia clínica',
+      'Fallback visible cuando una automatización no puede cerrar sola',
     ],
   },
   {
     title: 'Proteccion de canales',
     items: [
       'Canales de WhatsApp y voz con estado y trazabilidad',
-      'Webhooks con validacion de provider e idempotencia',
+      'Webhooks con validación de provider e idempotencia',
       'Eventos inbound y outbound auditables',
     ],
   },
   {
-    title: 'Configuracion y reglas',
+    title: 'Configuración y reglas',
     items: [
       'Handoff humano para casos delicados o callbacks',
       'Reglas configurables para agenda, seguimiento y escalado',
-      'Ajuste al flujo dental sin exponer complejidad tecnica al equipo',
+      'Ajuste al flujo dental sin exponer complejidad técnica al equipo',
     ],
   },
 ];
@@ -77,14 +80,14 @@ export default function SecurityPage() {
           <FadeContent>
             <div className="mx-auto max-w-3xl text-center">
               <Badge variant="secondary" className="mb-6">
-                Seguridad para recepcion clinica
+                Seguridad para recepción clínica
               </Badge>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                Seguridad, reglas y control para una recepcion dental real
+                Seguridad, reglas y control para una recepción dental real
               </h1>
               <p className="mt-6 text-lg text-muted-foreground">
-                Agentmou Clinics protege la operacion de recepcion con privacidad por clinica,
-                reglas configurables, derivacion a humano y trazabilidad sin convertir la pagina en
+                Agentmou Clinics protege la operación de recepción con privacidad por clínica,
+                reglas configurables, derivación a humano y trazabilidad sin convertir la página en
                 un pitch de buyer DevOps.
               </p>
             </div>
@@ -97,7 +100,7 @@ export default function SecurityPage() {
           <FadeContent>
             <div id="aislamiento" className="mt-24">
               <h2 className="text-center text-2xl font-bold">
-                Lo que ve la clinica y lo que necesita confiar antes de comprar
+                Lo que ve la clínica y lo que necesita confiar antes de comprar
               </h2>
               <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {capabilityCards.map((capability, index) => {
@@ -139,7 +142,7 @@ export default function SecurityPage() {
                   <div className="rounded-full bg-muted p-3">
                     <Stethoscope className="h-5 w-5" />
                   </div>
-                  <h2 className="text-2xl font-bold">Pilares de seguridad clinica</h2>
+                  <h2 className="text-2xl font-bold">Pilares de seguridad clínica</h2>
                 </div>
                 <div className="mt-8 grid gap-4">
                   {clinicSecurityPillars.map((pillar) => (
@@ -183,11 +186,13 @@ export default function SecurityPage() {
                     <div className="rounded-full bg-card p-2">
                       <Lock className="h-4 w-4" />
                     </div>
-                    <h3 className="text-lg font-semibold">Necesitas revisar algo con el equipo?</h3>
+                    <h3 className="text-lg font-semibold">
+                      ¿Necesitas revisar algo con el equipo?
+                    </h3>
                   </div>
                   <p className="mt-4 text-sm leading-6 text-muted-foreground">
                     Podemos revisar privacidad, handoff humano, reglas y despliegue durante la demo
-                    comercial con el contexto real de tu clinica.
+                    comercial con el contexto real de tu clínica.
                   </p>
                 </div>
               </div>

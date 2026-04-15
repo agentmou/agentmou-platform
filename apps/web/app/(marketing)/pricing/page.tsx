@@ -14,9 +14,12 @@ import { TiltedCard } from '@/components/reactbits/tilted-card';
 import { clinicPricingPlans } from '@/lib/marketing/clinic-site';
 
 export const metadata: Metadata = {
-  title: 'Pricing - Agentmou Clinics',
+  title: 'Pricing | Agentmou Clinics',
   description:
-    'Packaging clinico por modulos para recepcion, voz, growth y despliegues enterprise.',
+    'Packaging clínico por módulos para recepción, voz, growth y despliegues enterprise.',
+  alternates: {
+    canonical: '/pricing',
+  },
 };
 
 const comparisonRows = [
@@ -39,43 +42,43 @@ const comparisonRows = [
   {
     label: 'Cobertura operativa',
     values: [
-      'Recepcion y agenda',
-      'Recepcion + llamadas',
-      'Recepcion + recuperacion',
+      'Recepción y agenda',
+      'Recepción + llamadas',
+      'Recepción + recuperación',
       'Sedes y flujos complejos',
     ],
   },
   {
     label: 'Despliegue',
-    values: ['Guiado', 'Guiado', 'Guiado', 'Acompanamiento dedicado'],
+    values: ['Guiado', 'Guiado', 'Guiado', 'Acompañamiento dedicado'],
   },
 ];
 
 const faqs = [
   {
-    question: 'Como elijo entre Reception, Voice y Growth?',
+    question: '¿Cómo elijo entre Reception, Voice y Growth?',
     answer:
-      'Reception suele ser el punto de entrada para ordenar WhatsApp, agenda, formularios y confirmaciones. Voice entra cuando el telefono sigue cargando primeras visitas y callbacks. Growth entra cuando la clinica ya atiende bien y quiere recuperar huecos, recalls y pacientes inactivos.',
+      'Reception suele ser el punto de entrada para ordenar WhatsApp, agenda, formularios y confirmaciones. Voice entra cuando el teléfono sigue cargando primeras visitas y callbacks. Growth entra cuando la clínica ya atiende bien y quiere recuperar huecos, recalls y pacientes inactivos.',
   },
   {
-    question: 'Puedo empezar por una base y ampliar despues?',
+    question: '¿Puedo empezar por una base y ampliar después?',
     answer:
-      'Si. La activacion esta pensada para avanzar por fases. Puedes empezar con Reception y sumar Voice o Growth cuando el equipo ya tenga visibilidad y criterio sobre el siguiente cuello de botella.',
+      'Sí. La activación está pensada para avanzar por fases. Puedes empezar con Reception y sumar Voice o Growth cuando el equipo ya tenga visibilidad y criterio sobre el siguiente cuello de botella.',
   },
   {
-    question: 'Que parte requiere configuracion guiada?',
+    question: '¿Qué parte requiere configuración guiada?',
     answer:
-      'Siempre acompanamos el arranque para ajustar canales, handoff humano, reglas de agenda y el modulo que mas valor puede capturar primero. La idea no es venderte un builder tecnico, sino una operacion que empiece bien.',
+      'Siempre acompañamos el arranque para ajustar canales, handoff humano, reglas de agenda y el módulo que más valor puede capturar primero. La idea no es venderte un builder técnico, sino una operación que empiece bien.',
   },
   {
-    question: 'Voice y Growth son obligatorios?',
+    question: '¿Voice y Growth son obligatorios?',
     answer:
-      'No. Son modulos opcionales. Voice suma llamadas y callbacks. Growth suma huecos liberados, lista de espera y reactivacion.',
+      'No. Son módulos opcionales. Voice suma llamadas y callbacks. Growth suma huecos liberados, lista de espera y reactivación.',
   },
   {
-    question: 'Que incluye Enterprise?',
+    question: '¿Qué incluye Enterprise?',
     answer:
-      'Permisos ampliados, despliegues con varias sedes, configuracion avanzada y acompanamiento para operaciones mas complejas.',
+      'Permisos ampliados, despliegues con varias sedes, configuración avanzada y acompañamiento para operaciones más complejas.',
   },
 ];
 
@@ -88,11 +91,11 @@ export default function PricingPage() {
             <div className="text-center">
               <p className="mb-4 text-editorial-tiny">Pricing</p>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                Packaging claro para recepcion, voz y crecimiento
+                Packaging claro para recepción, voz y crecimiento
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-muted-foreground">
-                La clinica compra modulos utiles para operacion real: recepcion multicanal,
-                llamadas, seguimiento, huecos y reactivacion. Sin runs visibles ni FAQs tecnicas
+                La clínica compra módulos útiles para operación real: recepción multicanal,
+                llamadas, seguimiento, huecos y reactivación. Sin runs visibles ni FAQs técnicas
                 sobre el motor interno.
               </p>
             </div>
@@ -114,7 +117,7 @@ export default function PricingPage() {
                     {plan.highlight ? (
                       <div className="absolute -top-3 left-6">
                         <span className="bg-foreground px-3 py-1 text-[10px] font-medium uppercase tracking-wide text-background">
-                          Mas habitual
+                          Más habitual
                         </span>
                       </div>
                     ) : null}
@@ -173,7 +176,7 @@ export default function PricingPage() {
         <FadeContent>
           <div className="mt-32">
             <h2 className="mb-12 text-center text-2xl font-bold tracking-tight">
-              Comparativa rapida
+              Comparativa rápida
             </h2>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px]">
@@ -235,10 +238,10 @@ export default function PricingPage() {
         <FadeContent>
           <div className="mt-32 text-center">
             <h2 className="mb-4 text-3xl font-bold tracking-tight">
-              Quieres ver el packaging aplicado a tu clinica?
+              ¿Quieres ver el packaging aplicado a tu clínica?
             </h2>
             <p className="mb-8 text-muted-foreground">
-              Te ensenamos que combinacion de modulos encaja con tus canales, agenda, volumen
+              Te enseñamos qué combinación de módulos encaja con tus canales, agenda, volumen
               operativo y momento de madurez.
             </p>
             <Link href="/contact-sales">

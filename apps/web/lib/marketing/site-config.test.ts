@@ -6,8 +6,8 @@ describe('publicMarketingNavLinks', () => {
   it('keeps the clinic marketing navigation focused on product, trust, and demo capture', () => {
     expect(publicMarketingNavLinks).toEqual([
       { label: 'Producto', href: '/#producto' },
-      { label: 'Como funciona', href: '/#como-funciona' },
-      { label: 'Modulos', href: '/#modulos' },
+      { label: 'Cómo funciona', href: '/#como-funciona' },
+      { label: 'Módulos', href: '/#modulos' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'Seguridad', href: '/security' },
       { label: 'Solicitar demo', href: '/contact-sales' },
@@ -29,16 +29,21 @@ describe('publicMarketingFooterColumns', () => {
     expect(accessColumn?.links).toEqual([
       { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
       { label: 'Solicitar demo', href: '/contact-sales' },
-      { label: 'Iniciar sesion', href: PUBLIC_APP_LOGIN_HREF },
+      { label: 'Iniciar sesión', href: PUBLIC_APP_LOGIN_HREF },
     ]);
   });
 
-  it('keeps footer links aligned with the clinic positioning', () => {
+  it('keeps footer links aligned with the clinic positioning and legal pages', () => {
     const serialized = JSON.stringify(publicMarketingFooterColumns);
+    const legalColumn = publicMarketingFooterColumns.find((column) => column.title === 'Legal');
 
-    expect(serialized).toContain('Recepcion IA');
+    expect(serialized).toContain('Recepción IA');
     expect(serialized).toContain('WhatsApp');
     expect(serialized).not.toContain('/platform');
     expect(serialized).not.toContain('Marketplace');
+    expect(legalColumn?.links).toEqual([
+      { label: 'Privacidad', href: '/privacy' },
+      { label: 'Términos', href: '/terms' },
+    ]);
   });
 });

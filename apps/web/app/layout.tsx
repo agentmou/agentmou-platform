@@ -7,9 +7,9 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(getMarketingUrl()),
-  title: 'Agentmou Clinics - Recepcion IA multicanal',
+  title: 'Agentmou Clinics | Recepción IA multicanal',
   description:
-    'Recepcion IA multicanal para clinicas dentales. WhatsApp, llamadas, agenda, confirmaciones y recuperacion de pacientes con un engine interno potente.',
+    'Recepción IA multicanal para clínicas dentales. WhatsApp, llamadas, agenda, confirmaciones y recuperación de pacientes.',
   icons: {
     icon: [
       { url: '/isotipo_agentmou_32x32.png', media: '(prefers-color-scheme: light)' },
