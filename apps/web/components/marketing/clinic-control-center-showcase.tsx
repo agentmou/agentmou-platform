@@ -12,7 +12,7 @@ export function ClinicControlCenterShowcase() {
             La promesa comercial ya se ve como producto real
           </h2>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-            Conversaciones, llamadas, agenda, confirmaciones, huecos y reactivacion conviven como
+            Conversaciones, llamadas, agenda, confirmaciones, huecos y reactivación conviven como
             decisiones operativas visibles, no como una lista de features abstractas.
           </p>
         </FadeContent>
@@ -39,8 +39,8 @@ export function ClinicControlCenterShowcase() {
                     <Send className="mt-1 h-5 w-5 text-accent-foreground" />
                   </div>
                   <p className="mt-4 text-sm text-muted-foreground">
-                    La recepcion IA detecta un hueco antes de la cita original, propone el cambio y
-                    deja lista la confirmacion.
+                    La recepción IA detecta un hueco antes de la cita original, propone el cambio y
+                    deja lista la confirmación.
                   </p>
                 </div>
 
@@ -62,7 +62,7 @@ export function ClinicControlCenterShowcase() {
                     </div>
                     <p className="mt-3 text-sm font-medium">3 pendientes antes de las 14:00</p>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      1 paciente ya respondio, 1 necesita follow-up, 1 pasa a humano.
+                      1 paciente ya respondió, 1 necesita follow-up y 1 pasa a humano.
                     </p>
                   </div>
                 </div>

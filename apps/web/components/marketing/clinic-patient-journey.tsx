@@ -43,9 +43,9 @@ export function ClinicPatientJourney() {
 
           <FadeContent delay={0.08}>
             <div className="rounded-[28px] border border-border/60 bg-card p-8 shadow-sm">
-              <p className="text-editorial-tiny">Que ve la clinica?</p>
+              <p className="text-editorial-tiny">¿Qué ve la clínica?</p>
               <h3 className="mt-4 text-2xl font-semibold tracking-tight">
-                Automatizacion con resultado operativo visible
+                Automatización con resultado operativo visible
               </h3>
               <div className="mt-8 grid gap-4">
                 {clinicPatientJourney.outcomes.map((outcome) => (

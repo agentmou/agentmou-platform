@@ -130,7 +130,7 @@ export function ContactSalesForm() {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Telefono</FormLabel>
+                  <FormLabel>Teléfono</FormLabel>
                   <FormControl>
                     <Input placeholder="+34 600 000 000" {...field} />
                   </FormControl>
@@ -145,7 +145,7 @@ export function ContactSalesForm() {
             name="interestedModules"
             render={() => (
               <FormItem>
-                <FormLabel>Modulos de interes</FormLabel>
+                <FormLabel>Módulos de interés</FormLabel>
                 <FormDescription>
                   Selecciona lo que quieres ver en la demo comercial.
                 </FormDescription>
@@ -196,10 +196,10 @@ export function ContactSalesForm() {
             name="message"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Que te gustaria resolver?</FormLabel>
+                <FormLabel>¿Qué te gustaría resolver?</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Cuentanos si buscas mejorar recepcion, bajar no-shows, recuperar huecos o desplegar varios canales."
+                    placeholder="Cuéntanos si buscas mejorar recepción, bajar no-shows, recuperar huecos o desplegar varios canales."
                     className="min-h-32"
                     {...field}
                   />

@@ -10,13 +10,13 @@ export function ClinicModulesGrid() {
     <section id="modulos" className="border-t border-border/50 bg-[var(--marketing-bg-base)] py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <FadeContent>
-          <p className="text-editorial-tiny">Modulos</p>
+          <p className="text-editorial-tiny">Módulos</p>
           <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
-            Packaging claro para operacion real
+            Packaging claro para operación real
           </h2>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-            La clinica entiende que compra: recepcion base, voz, crecimiento y necesidades
-            enterprise. Nada de runs, packs ni complejidad tecnica.
+            La clínica entiende qué compra: recepción base, voz, crecimiento y necesidades
+            enterprise. Nada de runs, packs ni complejidad técnica.
           </p>
         </FadeContent>
 
@@ -58,11 +58,11 @@ export function ClinicModulesGrid() {
           <div className="mt-12 flex flex-col gap-4 rounded-[24px] border border-border/60 bg-[var(--marketing-bg-alt)] p-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-lg font-semibold">
-                Quieres ver que combinacion encaja con tu clinica?
+                ¿Quieres ver qué combinación encaja con tu clínica?
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Te ayudamos a definir si el punto de partida es Reception, Voice, Growth o una
-                configuracion enterprise.
+                configuración enterprise.
               </p>
             </div>
             <Link href="/contact-sales">

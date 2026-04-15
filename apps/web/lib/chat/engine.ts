@@ -1,7 +1,7 @@
 // Mock Chat Engine for Agentmou Assistant
 // This file is designed to be easily replaced with OpenAI integration
 
-import { PUBLIC_DEMO_CLINIC_HREF, TECHNICAL_ENGINE_HREF } from '@/lib/marketing/public-links';
+import { PUBLIC_DEMO_CLINIC_HREF } from '@/lib/marketing/public-links';
 import type { ActionSuggestion, ChatMode, WorkspaceContextSnapshot } from './types';
 
 interface EngineInput {
@@ -61,13 +61,13 @@ function generatePublicResponse(userMessage: string): EngineOutput {
     case 'nextSteps':
     case 'howItWorks':
       return {
-        content: `**Asi funciona Agentmou Clinics hoy:**
+        content: `**Así funciona Agentmou Clinics hoy:**
 
 - Hace visible el dolor operativo: llamadas perdidas, WhatsApps sin responder y huecos que se pierden
-- Reordena la recepcion en torno a una sola operacion visible para la clinica
+- Reordena la recepción en torno a una sola operación visible para la clínica
 - Ordena la propuesta en atender, agendar y recuperar agenda
-- Explica el flujo por canales, journey de paciente y resultado visible para la clinica
-- Ensena prueba de producto real con bandeja, agenda, KPIs, confirmaciones y growth
+- Explica el flujo por canales, journey de paciente y resultado visible para la clínica
+- Enseña prueba de producto real con bandeja, agenda, KPIs, confirmaciones y growth
 
 Si quieres, puedo llevarte a pricing, seguridad o la demo clinic directamente.`,
         actions: [
@@ -79,14 +79,14 @@ Si quieres, puedo llevarte a pricing, seguridad o la demo clinic directamente.`,
 
     case 'pricing':
       return {
-        content: `**Packaging clinico actual:**
+        content: `**Packaging clínico actual:**
 
-- **Reception**: para clinicas que quieren ordenar WhatsApp, agenda, formularios y confirmaciones
-- **Reception + Voice**: para equipos donde el telefono sigue generando primeras visitas y callbacks
-- **Reception + Growth**: para proteger ingresos con huecos, reactivacion y lista de espera
-- **Enterprise**: para grupos, varias sedes y operaciones mas complejas
+- **Reception**: para clínicas que quieren ordenar WhatsApp, agenda, formularios y confirmaciones
+- **Reception + Voice**: para equipos donde el teléfono sigue generando primeras visitas y callbacks
+- **Reception + Growth**: para proteger ingresos con huecos, reactivación y lista de espera
+- **Enterprise**: para grupos, varias sedes y operaciones más complejas
 
-La narrativa publica no vende runs ni agentes sueltos. Se organiza por modulos y operacion real de clinica.`,
+La narrativa pública no vende runs ni agentes sueltos. Se organiza por módulos y operación real de clínica.`,
         actions: [
           { label: 'Comparar pricing', href: '/pricing' },
           { label: 'Solicitar demo', href: '/contact-sales' },
@@ -97,30 +97,30 @@ La narrativa publica no vende runs ni agentes sueltos. Se organiza por modulos y
       return {
         content: `**La entrada comercial ya no son agentes sueltos.**
 
-Para una clinica dental solemos ordenar la conversacion asi:
+Para una clínica dental solemos ordenar la conversación así:
 
 - **Core Reception** para WhatsApp, agenda, nuevo vs existente y seguimiento
-- **Voice** si el telefono sigue cargando trabajo real de recepcion
+- **Voice** si el teléfono sigue cargando trabajo real de recepción
 - **Growth** si quieres recuperar huecos, lista de espera y pacientes inactivos
 - **Enterprise** si hay varias sedes, permisos avanzados o despliegue complejo
 
-Si alguien necesita la narrativa tecnica del motor, queda fuera del funnel comercial en ${TECHNICAL_ENGINE_HREF}.`,
+Si después necesitas detalle técnico, lo revisamos como conversación secundaria y sin sacarte del recorrido comercial principal.`,
         actions: [
-          { label: 'Ver modulos', href: '/#modulos' },
+          { label: 'Ver módulos', href: '/#modulos' },
           { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
         ],
       };
 
     case 'integrations':
       return {
-        content: `**Integraciones que sostienen la recepcion IA:**
+        content: `**Integraciones que sostienen la recepción IA:**
 
 - **WhatsApp Business** para inbound, outbound y formularios
 - **Twilio voz** para llamadas entrantes y callbacks
 - **Agenda y PMS** como capa de disponibilidad y contexto
 - **Google Calendar y email operativo** cuando el despliegue lo necesita
 
-La pagina publica se centra en estos jobs clinicos y lleva primero a demo, pricing y seguridad.`,
+La página pública se centra en estos jobs clínicos y lleva primero a demo, pricing y seguridad.`,
         actions: [
           { label: 'Ver seguridad', href: '/security' },
           { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
@@ -129,14 +129,14 @@ La pagina publica se centra en estos jobs clinicos y lleva primero a demo, prici
 
     case 'security':
       return {
-        content: `**Seguridad y control para clinicas:**
+        content: `**Seguridad y control para clínicas:**
 
-- **Aislamiento por clinica** para datos, canales y operaciones
-- **Tu clinica, tus reglas** para permisos, visibilidad y handoff humano
-- **Revision humana** para callbacks, excepciones y casos sensibles
-- **Disenado para dental** con lenguaje operativo y fallback visible
+- **Aislamiento por clínica** para datos, canales y operaciones
+- **Tu clínica, tus reglas** para permisos, visibilidad y handoff humano
+- **Revisión humana** para callbacks, excepciones y casos sensibles
+- **Diseñado para dental** con lenguaje operativo y fallback visible
 
-Puedo llevarte a la pagina de seguridad o a la demo clinic si quieres revisar el framing con mas detalle.`,
+Puedo llevarte a la página de seguridad o a la demo clinic si quieres revisar el framing con más detalle.`,
         actions: [
           { label: 'Ver seguridad', href: '/security' },
           { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
@@ -147,7 +147,7 @@ Puedo llevarte a la pagina de seguridad o a la demo clinic si quieres revisar el
       return {
         content: `**Este asistente no activa despliegues desde chat.**
 
-Si quieres avanzar, lo util es pedir una demo comercial, revisar pricing y decidir si el punto de entrada es Reception, Voice o Growth.`,
+Si quieres avanzar, lo útil es pedir una demo comercial, revisar pricing y decidir si el punto de entrada es Reception, Voice o Growth.`,
         actions: [
           { label: 'Solicitar demo', href: '/contact-sales' },
           { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
@@ -156,14 +156,14 @@ Si quieres avanzar, lo util es pedir una demo comercial, revisar pricing y decid
 
     default:
       return {
-        content: `Puedo ayudarte a entender Agentmou Clinics sin mezclar la narrativa publica con la plataforma interna.
+        content: `Puedo ayudarte a entender Agentmou Clinics sin mezclar la narrativa pública con la plataforma interna.
 
-Te orientare mejor si quieres saber:
+Te orientaré mejor si quieres saber:
 
-- Como funciona la recepcion IA para clinicas
-- Que incluye pricing y como se organizan los modulos
-- Que cubre seguridad, permisos y trazabilidad
-- Donde encaja la demo clinic dentro del recorrido comercial
+- Cómo funciona la recepción IA para clínicas
+- Qué incluye pricing y cómo se organizan los módulos
+- Qué cubre seguridad, permisos y trazabilidad
+- Dónde encaja la demo clinic dentro del recorrido comercial
 
 Si prefieres, puedes solicitar una demo comercial o abrir la demo clinic.`,
         actions: [

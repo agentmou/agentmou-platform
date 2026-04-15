@@ -19,11 +19,11 @@ export function ClinicCtaBand() {
             <FadeContent>
               <p className="text-editorial-tiny">CTA final</p>
               <h2 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-                Una salida clara: demo, configuracion y recepcion IA activa
+                Una salida clara: demo, configuración y recepción IA activa
               </h2>
               <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-                El cierre comercial no tiene que ser ambiguo. Te ensenamos el flujo, definimos la
-                configuracion y dejamos claro como arrancar con control operativo real.
+                El cierre comercial no tiene que ser ambiguo. Te enseñamos el flujo, definimos la
+                configuración y dejamos claro cómo arrancar con control operativo real.
               </p>
               <div className="mt-10 grid gap-4 lg:grid-cols-3">
                 {clinicOnboardingSteps.map((step, index) => (
