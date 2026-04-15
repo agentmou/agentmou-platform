@@ -180,6 +180,34 @@ export const passwordResetTokens = pgTable('password_reset_tokens', {
   consumedAt: timestamp('consumed_at'),
 });
 
+export const authSessions = pgTable(
+  'auth_sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    sessionTokenHash: text('session_token_hash').notNull(),
+    sessionType: text('session_type').notNull().default('standard'),
+    adminImpersonationSessionId: uuid('admin_impersonation_session_id').references(
+      () => adminImpersonationSessions.id,
+      {
+        onDelete: 'set null',
+      }
+    ),
+    expiresAt: timestamp('expires_at').notNull(),
+    revokedAt: timestamp('revoked_at'),
+    lastSeenAt: timestamp('last_seen_at').defaultNow().notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('auth_sessions_session_token_hash_uidx').on(table.sessionTokenHash),
+    index('auth_sessions_user_idx').on(table.userId),
+    index('auth_sessions_expires_idx').on(table.expiresAt),
+    index('auth_sessions_impersonation_idx').on(table.adminImpersonationSessionId),
+  ]
+);
+
 /**
  * Tenant-level SSO configuration (SAML/OIDC via WorkOS, Auth0, or custom).
  * Schema placeholder; connection flows are documented in ADR.
