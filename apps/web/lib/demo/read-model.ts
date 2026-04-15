@@ -154,6 +154,68 @@ export function getTenantExperience(tenantId: string): TenantExperience | null {
         advancedClinicModeEnabled: false,
         internalPlatformVisible: false,
       },
+      featureDecisions: {
+        voiceInboundEnabled: {
+          enabled: false,
+          source: 'entitlement',
+          reason: 'not_in_plan',
+          moduleKey: 'voice',
+        },
+        voiceOutboundEnabled: {
+          enabled: false,
+          source: 'entitlement',
+          reason: 'not_in_plan',
+          moduleKey: 'voice',
+        },
+        whatsappOutboundEnabled: {
+          enabled: false,
+          source: 'readiness',
+          reason: 'channel_missing',
+          moduleKey: 'core_reception',
+          channelType: 'whatsapp',
+        },
+        intakeFormsEnabled: {
+          enabled: false,
+          source: 'entitlement',
+          reason: 'not_in_plan',
+          moduleKey: 'core_reception',
+        },
+        appointmentConfirmationsEnabled: {
+          enabled: false,
+          source: 'entitlement',
+          reason: 'not_in_plan',
+          moduleKey: 'core_reception',
+        },
+        smartGapFillEnabled: {
+          enabled: false,
+          source: 'entitlement',
+          reason: 'not_in_plan',
+          moduleKey: 'growth',
+        },
+        reactivationEnabled: {
+          enabled: false,
+          source: 'entitlement',
+          reason: 'not_in_plan',
+          moduleKey: 'growth',
+        },
+        advancedClinicModeEnabled: {
+          enabled: false,
+          source: 'entitlement',
+          reason: 'not_in_plan',
+          moduleKey: 'advanced_mode',
+        },
+        internalPlatformVisible: {
+          enabled: false,
+          source: 'internal_access',
+          reason: 'hidden_internal_only',
+          moduleKey: 'internal_platform',
+        },
+        adminConsoleEnabled: {
+          enabled: false,
+          source: 'internal_access',
+          reason: 'hidden_internal_only',
+        },
+      },
       settingsSections: [
         'general',
         'team',
@@ -192,6 +254,72 @@ export function getTenantExperience(tenantId: string): TenantExperience | null {
       reactivationEnabled: false,
       advancedClinicModeEnabled: false,
       internalPlatformVisible: true,
+    },
+    featureDecisions: {
+      voiceInboundEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'voice',
+      },
+      voiceOutboundEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'voice',
+      },
+      whatsappOutboundEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'core_reception',
+        channelType: 'whatsapp',
+      },
+      intakeFormsEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'core_reception',
+      },
+      appointmentConfirmationsEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'core_reception',
+      },
+      smartGapFillEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'growth',
+      },
+      reactivationEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'growth',
+      },
+      advancedClinicModeEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'advanced_mode',
+      },
+      internalPlatformVisible: {
+        enabled: true,
+        source: 'internal_access',
+        moduleKey: 'internal_platform',
+      },
+      adminConsoleEnabled: tenant.settings.isPlatformAdminTenant
+        ? {
+            enabled: true,
+            source: 'internal_access',
+          }
+        : {
+            enabled: false,
+            source: 'internal_access',
+            reason: 'not_admin_tenant',
+          },
     },
     settingsSections: tenant.settings.isPlatformAdminTenant
       ? [

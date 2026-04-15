@@ -25,6 +25,9 @@ describe('tenant experience helpers', () => {
 
   it('normalizes clinic ui settings flags', () => {
     expect(resolveActiveVertical({ activeVertical: 'clinic' })).toBe('clinic');
+    expect(resolveActiveVertical({ activeVertical: 'fisio', verticalClinicUi: true })).toBe(
+      'fisio'
+    );
     expect(resolveActiveVertical({ verticalClinicUi: true })).toBe('clinic');
     expect(resolveActiveVertical({ verticalClinicUi: false })).toBe('internal');
     expect(isClinicUiEnabled({ activeVertical: 'clinic' })).toBe(true);

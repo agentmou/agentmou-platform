@@ -26,6 +26,10 @@ describe('buildClinicDemoDataset', () => {
     });
     expect(dataset.summary.journeys.reactivation.generatedAppointmentId).toBe('appointment-carmen');
     expect(dataset.experience.flags.internalPlatformVisible).toBe(false);
+    expect(dataset.tenantExperience.featureDecisions?.reactivationEnabled.source).toBe('readiness');
+    expect(dataset.tenantExperience.featureDecisions?.internalPlatformVisible.reason).toBe(
+      'hidden_internal_only'
+    );
   });
 
   it('keeps the key clinic journeys readable through statuses and relations', () => {

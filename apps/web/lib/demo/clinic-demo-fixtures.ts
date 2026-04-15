@@ -1963,6 +1963,63 @@ export function buildClinicDemoDataset(
       advancedClinicModeEnabled: false,
       internalPlatformVisible: false,
     },
+    featureDecisions: {
+      voiceInboundEnabled: {
+        enabled: true,
+        source: 'readiness',
+        moduleKey: 'voice',
+        channelType: 'voice',
+      },
+      voiceOutboundEnabled: {
+        enabled: true,
+        source: 'readiness',
+        moduleKey: 'voice',
+        channelType: 'voice',
+      },
+      whatsappOutboundEnabled: {
+        enabled: true,
+        source: 'readiness',
+        moduleKey: 'core_reception',
+        channelType: 'whatsapp',
+      },
+      intakeFormsEnabled: {
+        enabled: true,
+        source: 'readiness',
+        moduleKey: 'core_reception',
+      },
+      appointmentConfirmationsEnabled: {
+        enabled: true,
+        source: 'readiness',
+        moduleKey: 'core_reception',
+      },
+      smartGapFillEnabled: {
+        enabled: true,
+        source: 'readiness',
+        moduleKey: 'growth',
+      },
+      reactivationEnabled: {
+        enabled: true,
+        source: 'readiness',
+        moduleKey: 'growth',
+      },
+      advancedClinicModeEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'advanced_mode',
+      },
+      internalPlatformVisible: {
+        enabled: false,
+        source: 'internal_access',
+        reason: 'hidden_internal_only',
+        moduleKey: 'internal_platform',
+      },
+      adminConsoleEnabled: {
+        enabled: false,
+        source: 'internal_access',
+        reason: 'hidden_internal_only',
+      },
+    },
     settingsSections: [
       'general',
       'team',

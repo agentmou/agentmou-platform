@@ -78,6 +78,56 @@ function describeModuleVisibility(reason: string) {
   return formatStatusLabel(reason);
 }
 
+function describeDecisionSource(source: string) {
+  if (source === 'entitlement') return 'Entitlement';
+  if (source === 'readiness') return 'Readiness';
+  if (source === 'rollout') return 'Rollout';
+  if (source === 'internal_access') return 'Acceso interno';
+  if (source === 'legacy_fallback') return 'Legacy';
+  return formatStatusLabel(source);
+}
+
+function describeDecisionReason(reason: string | null | undefined) {
+  if (!reason) return 'Activo';
+  if (reason === 'not_in_plan') return 'Fuera del plan activo';
+  if (reason === 'disabled_by_tenant') return 'Desactivado para este tenant';
+  if (reason === 'disabled_by_feature_flag') return 'Bloqueado por rollout';
+  if (reason === 'requires_configuration') return 'Falta configuración operativa';
+  if (reason === 'channel_missing') return 'Falta un canal configurado';
+  if (reason === 'channel_inactive') return 'El canal existe pero no está operativo';
+  if (reason === 'hidden_internal_only') return 'Solo disponible en workspaces internos';
+  if (reason === 'insufficient_role') return 'Hace falta un rol admin u owner';
+  if (reason === 'not_admin_tenant') return 'El tenant no es un admin workspace';
+  if (reason === 'legacy_compatibility') return 'Se mantiene por compatibilidad legacy';
+  return formatStatusLabel(reason);
+}
+
+const CAPABILITY_ORDER = [
+  'voiceInboundEnabled',
+  'voiceOutboundEnabled',
+  'whatsappOutboundEnabled',
+  'intakeFormsEnabled',
+  'appointmentConfirmationsEnabled',
+  'smartGapFillEnabled',
+  'reactivationEnabled',
+  'advancedClinicModeEnabled',
+  'internalPlatformVisible',
+  'adminConsoleEnabled',
+] as const;
+
+const CAPABILITY_LABELS: Record<(typeof CAPABILITY_ORDER)[number], string> = {
+  voiceInboundEnabled: 'Voz inbound',
+  voiceOutboundEnabled: 'Voz outbound',
+  whatsappOutboundEnabled: 'WhatsApp outbound',
+  intakeFormsEnabled: 'Formularios',
+  appointmentConfirmationsEnabled: 'Confirmaciones',
+  smartGapFillEnabled: 'Recuperación de huecos',
+  reactivationEnabled: 'Reactivación',
+  advancedClinicModeEnabled: 'Configuración avanzada',
+  internalPlatformVisible: 'Plataforma interna',
+  adminConsoleEnabled: 'Consola admin',
+};
+
 function toBusinessHoursRows(hours: Record<string, unknown> | undefined) {
   if (!hours) {
     return [];
@@ -403,6 +453,25 @@ export function PlanSettingsSection({ context }: { context: SettingsRegistryCont
     providerMode: context.providerMode,
     tenantId: context.experience.tenantId,
   });
+  const featureDecisions = context.experience.resolvedExperience?.featureDecisions;
+  const legacyRows = [
+    {
+      label: 'Fuente de verdad actual',
+      value: context.experience.activeVertical,
+    },
+    {
+      label: 'verticalClinicUi (legacy)',
+      value: context.tenant.settings.verticalClinicUi ? 'true' : 'false',
+    },
+    {
+      label: 'clinicDentalMode (legacy)',
+      value: context.tenant.settings.clinicDentalMode ? 'true' : 'false',
+    },
+    {
+      label: 'internalPlatformVisible (legacy)',
+      value: context.tenant.settings.internalPlatformVisible ? 'true' : 'false',
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -476,40 +545,113 @@ export function PlanSettingsSection({ context }: { context: SettingsRegistryCont
 
         <Card className="border-border/60">
           <CardHeader>
-            <CardTitle className="text-base">Módulos activos</CardTitle>
-            <CardDescription>Visibilidad, estado y dependencias de configuración.</CardDescription>
+            <CardTitle className="text-base">Entitlements y capabilities</CardTitle>
+            <CardDescription>
+              Separación entre plan, readiness operativa, rollout y compatibilidad legacy.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {context.experience.modules.map((module) => (
-              <div
-                key={module.id}
-                className="rounded-2xl border border-border/60 bg-background/70 p-4"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="font-medium">{module.displayName}</p>
-                    <p className="text-sm text-muted-foreground">{module.description}</p>
-                  </div>
-                  <Badge variant={module.enabled ? 'secondary' : 'outline'}>{module.status}</Badge>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  <Badge variant="outline">
-                    {describeModuleVisibility(module.visibilityReason)}
-                  </Badge>
-                  <Badge variant="outline">
-                    {module.visibleToClient ? 'Visible al cliente' : 'Solo interno'}
-                  </Badge>
-                  {module.requiresConfig ? (
-                    <Badge variant="outline">Requiere configuración</Badge>
-                  ) : null}
-                </div>
+          <CardContent className="space-y-6">
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-medium">Entitlements del plan</p>
+                <p className="text-sm text-muted-foreground">
+                  Módulos activos, visibilidad comercial y dependencias de configuración.
+                </p>
               </div>
-            ))}
-            {context.experience.modules.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Esta vertical todavía no expone módulos configurables desde la UI.
+              {context.experience.modules.map((module) => (
+                <div
+                  key={module.id}
+                  className="rounded-2xl border border-border/60 bg-background/70 p-4"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-medium">{module.displayName}</p>
+                      <p className="text-sm text-muted-foreground">{module.description}</p>
+                    </div>
+                    <Badge variant={module.enabled ? 'secondary' : 'outline'}>
+                      {module.status}
+                    </Badge>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    <Badge variant="outline">
+                      {describeModuleVisibility(module.visibilityReason)}
+                    </Badge>
+                    <Badge variant="outline">
+                      {module.visibleToClient ? 'Visible al cliente' : 'Solo interno'}
+                    </Badge>
+                    {module.requiresConfig ? (
+                      <Badge variant="outline">Requiere configuración</Badge>
+                    ) : null}
+                  </div>
+                </div>
+              ))}
+              {context.experience.modules.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Esta vertical todavía no expone módulos configurables desde la UI.
+                </p>
+              ) : null}
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-medium">Estado operativo por capability</p>
+                <p className="text-sm text-muted-foreground">
+                  Cada fila explica si una capacidad depende del plan, de la configuración real o
+                  del rollout remoto.
+                </p>
+              </div>
+              {featureDecisions ? (
+                CAPABILITY_ORDER.map((key) => {
+                  const decision = featureDecisions[key];
+                  return (
+                    <div
+                      key={key}
+                      className="rounded-2xl border border-border/60 bg-background/70 p-4"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <p className="font-medium">{CAPABILITY_LABELS[key]}</p>
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant={decision.enabled ? 'secondary' : 'outline'}>
+                              {decision.enabled ? 'Activo' : 'Bloqueado'}
+                            </Badge>
+                            <Badge variant="outline">
+                              {describeDecisionSource(decision.source)}
+                            </Badge>
+                            {decision.moduleKey ? (
+                              <Badge variant="outline">{decision.moduleKey}</Badge>
+                            ) : null}
+                            {decision.channelType ? (
+                              <Badge variant="outline">
+                                {formatChannelLabel(decision.channelType)}
+                              </Badge>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        {decision.detail ?? describeDecisionReason(decision.reason)}
+                      </p>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Esta experiencia todavía no expone decision trace estructurado.
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-2xl border border-border/60 bg-muted/30 p-4">
+              <p className="text-sm font-medium">Compatibilidad legacy</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                `activeVertical` es la fuente de verdad. Los booleans legacy se mantienen solo para
+                compatibilidad de lectura y no deberían gobernar decisiones nuevas.
               </p>
-            ) : null}
+              <div className="mt-4">
+                <KeyValueGrid rows={legacyRows} />
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
