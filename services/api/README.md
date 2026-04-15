@@ -29,13 +29,13 @@ BullMQ.
 - Resolve clinic experience, permissions, navigation, and module visibility
   from tenant plan, `tenant_modules`, `clinic_channels`, `clinic_profiles`,
   and tenant settings.
-- Resolve server-side feature flags from plan/module baseline, operational
-  prerequisites, and Reflag overrides with local fail-open fallback.
+- Resolve product rollout from plan/module entitlements, operational
+  readiness, and Reflag overrides with local fail-open fallback.
 - Enforce clinic role checks, tenant-module gating, channel activation checks,
   and structured `409 clinic_feature_unavailable` responses for inactive
   features.
-- Gate internal platform API surfaces behind the resolved `internal_platform`
-  entitlement plus `tenant.settings.internalPlatformVisible`.
+- Gate internal platform API surfaces behind resolved tenant experience and
+  internal-access decisions instead of legacy tenant setting booleans.
 - Build clinic read models for the web control-center clients instead of
   exposing raw table rows.
 - Queue long-running work such as pack installation and run execution.
@@ -203,27 +203,32 @@ current local and VPS-oriented example values.
 
 ## Feature Flag Matrix
 
-`services/api` resolves feature visibility in this order:
+`services/api` resolves tenant capabilities in this order:
 
-1. Plan + `tenant_modules` baseline
-2. Operational prerequisites
-3. Reflag override
-4. Role-derived permissions
-5. UI visibility in the web shell
+1. `activeVertical` from tenant settings
+2. Plan + `tenant_modules` entitlements
+3. Operational readiness (`clinic_channels`, `clinic_profile`, prerequisites)
+4. Reflag rollout for product-facing clinic features
+5. Internal/admin access derived outside rollout from tenant type + role
 
-Initial matrix:
+Current rollout matrix:
 
-| Resolved feature | Baseline module | Stable flag key | Operational prerequisite |
+| Resolved feature | Entitlement module | Rollout key | Operational prerequisite |
 | --- | --- | --- | --- |
-| `voiceInboundEnabled` | `voice` | `clinic.voice.enabled` | Active voice inbound channel |
-| `voiceOutboundEnabled` | `voice` | `clinic.voice.outbound.enabled` | Voice inbound available plus active voice outbound channel |
-| `intakeFormsEnabled` | `core_reception` | `clinic.forms.enabled` | New-patient form policy/config enabled |
-| `appointmentConfirmationsEnabled` | `core_reception` | `clinic.confirmations.enabled` | Confirmation policy enabled |
-| `smartGapFillEnabled` | `growth` | `clinic.gaps.enabled` | Gap-recovery policy enabled |
-| `reactivationEnabled` | `growth` | `clinic.reactivation.enabled` | Reactivation policy enabled |
-| `advancedClinicModeEnabled` | `advanced_mode` | `clinic.advanced_settings.enabled` | Advanced mode module enabled |
-| `internalPlatformVisible` | `internal_platform` | `internal.platform.visible` | Tenant vertical is `internal` |
-| `adminConsoleEnabled` | N/A | `admin.console.enabled` | Tenant is a platform-admin tenant |
+| `voiceInboundEnabled` | `voice` | `rollout.clinic.voice.inbound` | Active voice inbound channel |
+| `voiceOutboundEnabled` | `voice` | `rollout.clinic.voice.outbound` | Voice inbound available plus active voice outbound channel |
+| `intakeFormsEnabled` | `core_reception` | `rollout.clinic.forms` | New-patient form policy/config enabled |
+| `appointmentConfirmationsEnabled` | `core_reception` | `rollout.clinic.confirmations` | Confirmation policy enabled |
+| `smartGapFillEnabled` | `growth` | `rollout.clinic.gap_recovery` | Gap-recovery policy enabled |
+| `reactivationEnabled` | `growth` | `rollout.clinic.reactivation` | Reactivation policy enabled |
+| `advancedClinicModeEnabled` | `advanced_mode` | `rollout.clinic.advanced_settings` | Advanced mode module enabled |
+
+`whatsappOutboundEnabled` is intentionally not part of the remote rollout
+catalog: it is derived from `core_reception` entitlement plus an active
+WhatsApp outbound channel. `internalPlatformVisible` and
+`adminConsoleEnabled` also stay outside Reflag; they are resolved as internal
+access decisions and still flow out as compatibility booleans in
+`TenantResolvedFlags`.
 
 If Reflag credentials are missing or evaluation fails, the API falls back to
 the baseline DB/package state and logs a warning in non-test environments.
