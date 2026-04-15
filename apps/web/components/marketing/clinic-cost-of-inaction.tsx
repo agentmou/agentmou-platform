@@ -12,8 +12,8 @@ export function ClinicCostOfInaction() {
               Lo que hoy se pierde ya es suficientemente visible como para medirlo
             </h2>
             <p className="mt-5 text-lg text-muted-foreground">
-              La oportunidad no solo esta en automatizar. Esta en dejar de perder llamadas, citas y
-              huecos que la clinica ya habia conseguido.
+              La oportunidad no solo está en automatizar. Está en dejar de perder llamadas, citas y
+              huecos que la clínica ya había conseguido.
             </p>
           </div>
         </FadeContent>
@@ -27,11 +27,6 @@ export function ClinicCostOfInaction() {
                   {metric.label}
                 </p>
                 <p className="mt-5 text-sm leading-6 text-muted-foreground">{metric.explanation}</p>
-                {metric.note ? (
-                  <p className="mt-6 border-t border-border/50 pt-4 text-xs leading-5 text-muted-foreground">
-                    {metric.note}
-                  </p>
-                ) : null}
               </article>
             </FadeContent>
           ))}

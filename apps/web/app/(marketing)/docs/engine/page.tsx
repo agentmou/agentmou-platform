@@ -9,9 +9,16 @@ import { buildMarketingFeaturedCatalog } from '@/lib/marketing/featured-from-dem
 import { PUBLIC_DEMO_CLINIC_HREF } from '@/lib/marketing/public-links';
 
 export const metadata: Metadata = {
-  title: 'Docs Engine - Agentmou Clinics',
+  title: 'Agentmou Engine | Narrativa técnica secundaria',
   description:
-    'Narrativa tecnica secundaria del engine de Agentmou: orchestration, approvals, observability, control plane, catalogo y n8n.',
+    'Narrativa técnica secundaria del engine de Agentmou: orchestration, approvals, observability, control plane, catálogo y n8n.',
+  alternates: {
+    canonical: '/docs/engine',
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function EngineDocsPage() {
@@ -25,12 +32,12 @@ export default function EngineDocsPage() {
             <div className="max-w-3xl">
               <p className="mb-4 text-editorial-tiny">Docs Engine</p>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                El engine sigue siendo potente, solo que ya no lidera la portada
+                El engine sigue siendo potente, pero ya no lidera la portada
               </h1>
               <p className="mt-6 text-lg text-muted-foreground">
-                La propuesta visible es una recepcion IA para clinicas. Detras de esa experiencia
-                siguen vivos el control plane, approvals, observability, catalogo operativo y n8n
-                como capa de orquestacion.
+                La propuesta visible es una recepción IA para clínicas. Detrás de esa experiencia
+                siguen vivos el control plane, approvals, observability, catálogo operativo y n8n
+                como capa de orquestación.
               </p>
               <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                 <Link href="/contact-sales">

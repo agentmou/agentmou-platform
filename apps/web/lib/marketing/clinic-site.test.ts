@@ -28,9 +28,7 @@ describe('clinic marketing content', () => {
   it('models the pain and cost-of-inaction blocks as configurable content', () => {
     expect(clinicPainPoints).toHaveLength(3);
     expect(clinicCostOfInactionMetrics).toHaveLength(3);
-    expect(clinicCostOfInactionMetrics.every((metric) => typeof metric.note === 'string')).toBe(
-      true
-    );
+    expect(clinicCostOfInactionMetrics.every((metric) => 'note' in metric)).toBe(false);
   });
 
   it('describes how the clinic experience works across four operational surfaces', () => {
@@ -38,7 +36,7 @@ describe('clinic marketing content', () => {
       'WhatsApp entrante',
       'Llamadas entrantes',
       'Mensajes salientes',
-      'Centro de recepcion',
+      'Centro de recepción',
     ]);
   });
 
@@ -64,7 +62,7 @@ describe('clinic marketing content', () => {
       'Agenda',
       'Seguimiento',
       'Growth',
-      'Reactivacion',
+      'Reactivación',
     ]);
     expect(clinicProofPanels).toHaveLength(2);
     expect(clinicRecoveryCapabilities).toHaveLength(4);
@@ -93,8 +91,8 @@ describe('clinic marketing content', () => {
     expect(JSON.stringify(clinicSecurityPillars)).toContain('tenant');
     expect(clinicOnboardingSteps.map((step) => step.title)).toEqual([
       'Demo personalizada',
-      'Configuracion guiada',
-      'Tu recepcion IA activa',
+      'Configuración guiada',
+      'Tu recepción IA activa',
     ]);
   });
 });

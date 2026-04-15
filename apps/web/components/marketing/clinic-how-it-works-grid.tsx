@@ -12,13 +12,13 @@ export function ClinicHowItWorksGrid() {
     >
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <FadeContent>
-          <p className="text-editorial-tiny">Como funciona</p>
+          <p className="text-editorial-tiny">Cómo funciona</p>
           <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
-            Cuatro piezas simples para entender la recepcion completa
+            Cuatro piezas simples para entender la recepción completa
           </h2>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
             Lo que entra por WhatsApp o llamadas, lo que sale de forma proactiva y la superficie
-            donde la clinica controla todo sin perder contexto.
+            donde la clínica controla todo sin perder contexto.
           </p>
         </FadeContent>
 
@@ -30,7 +30,7 @@ export function ClinicHowItWorksGrid() {
               <FadeContent key={card.title} delay={index * 0.05}>
                 <article className="h-full rounded-[24px] border border-border/60 bg-card p-6 shadow-sm">
                   <div className="flex items-center justify-between gap-4">
-                    <p className="text-editorial-tiny">Operacion</p>
+                    <p className="text-editorial-tiny">Operación</p>
                     <div className="rounded-full bg-muted p-2">
                       <Icon className="h-4 w-4" />
                     </div>

@@ -6,13 +6,13 @@ export function ClinicRevenueRecoverySection() {
     <section className="border-t border-border/50 bg-[var(--marketing-bg-base)] py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <FadeContent>
-          <p className="text-editorial-tiny">Agenda mas llena</p>
+          <p className="text-editorial-tiny">Agenda más llena</p>
           <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
-            Menos ingresos perdidos, mas agenda sana
+            Menos ingresos perdidos, más agenda sana
           </h2>
           <p className="mt-5 max-w-3xl text-lg text-muted-foreground">
-            Confirmaciones, huecos, reactivacion y formularios no se presentan como features
-            sueltas. Funcionan como una capa de recuperacion continua sobre la agenda real.
+            Confirmaciones, huecos, reactivación y formularios no se presentan como features
+            sueltas. Funcionan como una capa de recuperación continua sobre la agenda real.
           </p>
         </FadeContent>
 
@@ -20,7 +20,7 @@ export function ClinicRevenueRecoverySection() {
           {clinicRecoveryCapabilities.map((capability, index) => (
             <FadeContent key={capability.title} delay={index * 0.05}>
               <article className="rounded-[24px] border border-border/60 bg-card p-6 shadow-sm">
-                <p className="text-editorial-tiny">Recuperacion</p>
+                <p className="text-editorial-tiny">Recuperación</p>
                 <h3 className="mt-3 text-2xl font-semibold tracking-tight">{capability.title}</h3>
                 <p className="mt-4 text-sm leading-6 text-muted-foreground">
                   {capability.description}

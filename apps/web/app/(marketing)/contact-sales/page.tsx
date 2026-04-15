@@ -11,24 +11,27 @@ import { PUBLIC_DEMO_CLINIC_HREF } from '@/lib/marketing/public-links';
 export const metadata: Metadata = {
   title: 'Solicitar demo - Agentmou Clinics',
   description:
-    'Solicita una demo comercial de Agentmou Clinics para ver recepcion IA, agenda, voz, growth y control operativo.',
+    'Solicita una demo comercial de Agentmou Clinics para ver recepción IA, agenda, voz, growth y control operativo.',
+  alternates: {
+    canonical: '/contact-sales',
+  },
 };
 
 const contactSalesHighlights = [
   {
     icon: MessageSquareMore,
-    title: 'Recepcion por WhatsApp',
-    body: 'Ensena a tu equipo como atender conversaciones, identificar pacientes y cerrar cambios de cita sin friccion.',
+    title: 'Recepción por WhatsApp',
+    body: 'Enseña a tu equipo cómo atender conversaciones, identificar pacientes y cerrar cambios de cita sin fricción.',
   },
   {
     icon: PhoneCall,
     title: 'Voz y callbacks',
-    body: 'Revisa como llamadas y devoluciones pendientes conviven con la misma bandeja y trazabilidad.',
+    body: 'Revisa cómo llamadas y devoluciones pendientes conviven con la misma bandeja y trazabilidad.',
   },
   {
     icon: CalendarDays,
     title: 'Agenda y growth',
-    body: 'Mira confirmaciones, huecos recuperables, lista de espera y reactivacion en una demo aplicada a operacion dental.',
+    body: 'Mira confirmaciones, huecos recuperables, lista de espera y reactivación en una demo aplicada a operación dental.',
   },
 ];
 
@@ -42,11 +45,11 @@ export default function ContactSalesPage() {
               <div className="max-w-2xl">
                 <p className="mb-4 text-editorial-tiny">Solicitar demo</p>
                 <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                  Ensenanos tu agenda y te mostramos el flujo real
+                  Enséñanos tu agenda y te mostramos el flujo real
                 </h1>
                 <p className="mt-6 text-lg text-muted-foreground">
-                  Cuentanos como trabajais hoy y preparamos una demo comercial con recepcion,
-                  agenda, voz o growth segun el punto donde mas valor podeis capturar.
+                  Cuéntanos cómo trabajáis hoy y preparamos una demo comercial con recepción,
+                  agenda, voz o growth según el punto donde más valor podéis capturar.
                 </p>
 
                 <div className="mt-10 grid gap-4">
@@ -72,7 +75,9 @@ export default function ContactSalesPage() {
                 </div>
 
                 <div className="mt-8 rounded-[24px] border border-border/60 bg-[var(--marketing-bg-alt)] p-6">
-                  <p className="text-sm font-semibold">Que pasa despues de enviar el formulario?</p>
+                  <p className="text-sm font-semibold">
+                    ¿Qué pasa después de enviar el formulario?
+                  </p>
                   <ol className="mt-4 space-y-3 text-sm text-muted-foreground">
                     {clinicOnboardingSteps.map((step, index) => (
                       <li key={step.title} className="flex gap-3">
@@ -101,7 +106,7 @@ export default function ContactSalesPage() {
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="max-w-2xl">
             <p className="text-lg font-semibold">
-              Prefieres revisar primero pricing, seguridad o la demo clinic?
+              ¿Prefieres revisar primero pricing, seguridad o la demo clinic?
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
               Puedes volver a la home, revisar seguridad o abrir la demo clinic sin salir del

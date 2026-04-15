@@ -46,7 +46,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               <ThemeToggle variant="icon" className="size-8" />
               <Link href={PUBLIC_APP_LOGIN_HREF}>
                 <MinimalButton variant="text" size="sm" className="text-editorial-tiny">
-                  Sign in
+                  Iniciar sesión
                 </MinimalButton>
               </Link>
               <Link href={demoNavLink.href}>
@@ -70,8 +70,8 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
                   <Logo variant="footer" />
                 </Link>
                 <p className="mt-4 max-w-xs text-xs leading-relaxed text-muted-foreground">
-                  Recepcion IA multicanal para clinicas dentales. WhatsApp, llamadas, agenda y
-                  recuperacion de pacientes desde una misma superficie.
+                  Recepción IA multicanal para clínicas dentales. WhatsApp, llamadas, agenda y
+                  recuperación de pacientes desde una misma superficie.
                 </p>
               </div>
 
@@ -96,16 +96,11 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
 
             <div className="mt-16 border-t border-border/30 pt-8">
               <p className="text-[11px] text-muted-foreground">
-                &copy; {new Date().getFullYear()} Agentmou. Recepcion, agenda y recuperacion de
-                ingresos para clinicas.
+                &copy; {new Date().getFullYear()} Agentmou. Recepción, agenda y recuperación de
+                ingresos para clínicas.
               </p>
             </div>
           </div>
-        </footer>
-
-        <footer className="footer bg-[var(--marketing-bg-base)]">
-          <div className="footer-brand">Agentmou</div>
-          <div className="footer-gradient" aria-hidden />
         </footer>
 
         <ChatWidget mode="public" />

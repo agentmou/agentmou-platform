@@ -61,10 +61,10 @@ export interface ChatResponse {
 // Quick prompts by mode
 export const QUICK_PROMPTS: Record<ChatMode, string[]> = {
   public: [
-    'Como funciona la recepcion IA para clinicas?',
-    'Que incluye Pricing y que modulos existen?',
-    'Como tratamos seguridad y privacidad?',
-    'Quiero ver la parte tecnica o solicitar una demo',
+    '¿Cómo funciona la recepción IA para clínicas?',
+    '¿Qué incluye Pricing y qué módulos existen?',
+    '¿Cómo tratamos seguridad y privacidad?',
+    'Quiero solicitar una demo o ver el producto',
   ],
   copilot: [
     "What's next for this workspace?",

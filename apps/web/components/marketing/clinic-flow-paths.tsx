@@ -14,11 +14,11 @@ export function ClinicFlowPaths() {
         <FadeContent>
           <p className="text-editorial-tiny">Nuevo vs existente</p>
           <h2 id="flujo-clinico" className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
-            Una recepcion que entiende a quien tiene delante
+            Una recepción que entiende a quién tiene delante
           </h2>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-            La experiencia cambia segun si la clinica ya conoce al paciente o si hace falta abrir
-            ficha, pedir datos y asegurar que no falta informacion.
+            La experiencia cambia según si la clínica ya conoce al paciente o si hace falta abrir
+            ficha, pedir datos y asegurar que no falta información.
           </p>
         </FadeContent>
 

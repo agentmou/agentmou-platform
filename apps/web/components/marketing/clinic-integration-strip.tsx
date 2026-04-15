@@ -13,7 +13,7 @@ export function ClinicIntegrationStrip() {
             <div>
               <p className="text-editorial-tiny">Integraciones</p>
               <h2 className="mt-3 text-3xl font-semibold tracking-tight">
-                Canales e integraciones que aterrizan en la operacion diaria
+                Canales e integraciones que aterrizan en la operación diaria
               </h2>
             </div>
             <div className="flex flex-wrap gap-3">

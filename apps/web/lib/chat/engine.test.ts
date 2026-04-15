@@ -38,7 +38,7 @@ describe('generateResponse', () => {
       userMessage: 'How does this work for clinics?',
     });
 
-    expect(response.content).toContain('recepcion');
+    expect(response.content).toContain('recepción');
     expect(response.content).toContain('llamadas perdidas');
     expect(response.content).toContain('journey de paciente');
     expect(response.actions).toEqual(
@@ -57,7 +57,7 @@ describe('generateResponse', () => {
     });
 
     expect(response.content).toContain('Reception + Voice');
-    expect(response.content).toContain('telefono');
+    expect(response.content).toContain('teléfono');
     expect(response.content.toLowerCase()).not.toContain('1,000 runs');
     expect(response.actions?.some((action) => action.href === '/contact-sales')).toBe(true);
     expect(response.actions?.some((action) => action.href === '/platform')).toBe(false);
@@ -69,8 +69,8 @@ describe('generateResponse', () => {
       userMessage: 'Tell me about your security posture',
     });
 
-    expect(response.content).toContain('Aislamiento por clinica');
-    expect(response.content).toContain('Tu clinica, tus reglas');
+    expect(response.content).toContain('Aislamiento por clínica');
+    expect(response.content).toContain('Tu clínica, tus reglas');
     expect(response.content).not.toContain('SOC 2 Type II');
     expect(response.content).not.toContain('End-to-end encryption');
     expect(response.content).not.toContain('automatic rotation');
@@ -85,11 +85,12 @@ describe('generateResponse', () => {
 
     expect(response.actions).toEqual(
       expect.arrayContaining([
-        { label: 'Ver modulos', href: '/#modulos' },
+        { label: 'Ver módulos', href: '/#modulos' },
         { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
       ])
     );
     expect(response.actions?.some((action) => action.href === '/platform')).toBe(false);
+    expect(response.content).not.toContain('/docs/engine');
   });
 
   it('treats go-live requests as preview-only in copilot mode', () => {

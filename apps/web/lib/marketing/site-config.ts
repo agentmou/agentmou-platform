@@ -12,8 +12,8 @@ export interface MarketingFooterColumn {
 
 export const publicMarketingNavLinks: readonly MarketingNavItem[] = [
   { label: 'Producto', href: '/#producto' },
-  { label: 'Como funciona', href: '/#como-funciona' },
-  { label: 'Modulos', href: '/#modulos' },
+  { label: 'Cómo funciona', href: '/#como-funciona' },
+  { label: 'Módulos', href: '/#modulos' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Seguridad', href: '/security' },
   { label: 'Solicitar demo', href: '/contact-sales' },
@@ -23,13 +23,13 @@ export const publicMarketingFooterColumns: readonly MarketingFooterColumn[] = [
   {
     title: 'Producto',
     links: [
-      { label: 'Recepcion IA', href: '/#producto' },
-      { label: 'Como funciona', href: '/#como-funciona' },
+      { label: 'Recepción IA', href: '/#producto' },
+      { label: 'Cómo funciona', href: '/#como-funciona' },
       { label: 'Pricing', href: '/pricing' },
     ],
   },
   {
-    title: 'Modulos',
+    title: 'Módulos',
     links: [
       { label: 'Core Reception', href: '/#modulos' },
       { label: 'Voice', href: '/#modulos' },
@@ -40,7 +40,7 @@ export const publicMarketingFooterColumns: readonly MarketingFooterColumn[] = [
     title: 'Integraciones',
     links: [
       { label: 'WhatsApp', href: '/#integraciones' },
-      { label: 'Telefonia cloud', href: '/#integraciones' },
+      { label: 'Telefonía cloud', href: '/#integraciones' },
       { label: 'Agenda y PMS', href: '/#integraciones' },
     ],
   },
@@ -48,8 +48,8 @@ export const publicMarketingFooterColumns: readonly MarketingFooterColumn[] = [
     title: 'Seguridad',
     links: [
       { label: 'Seguridad', href: '/security' },
-      { label: 'Privacidad por clinica', href: '/security#aislamiento' },
-      { label: 'Revision humana', href: '/security#control' },
+      { label: 'Privacidad por clínica', href: '/security#aislamiento' },
+      { label: 'Revisión humana', href: '/security#control' },
     ],
   },
   {
@@ -57,14 +57,14 @@ export const publicMarketingFooterColumns: readonly MarketingFooterColumn[] = [
     links: [
       { label: 'Ver demo clinic', href: PUBLIC_DEMO_CLINIC_HREF },
       { label: 'Solicitar demo', href: '/contact-sales' },
-      { label: 'Iniciar sesion', href: PUBLIC_APP_LOGIN_HREF },
+      { label: 'Iniciar sesión', href: PUBLIC_APP_LOGIN_HREF },
     ],
   },
   {
     title: 'Legal',
     links: [
-      { label: 'Privacidad', href: '/security' },
-      { label: 'Terminos', href: '/security' },
+      { label: 'Privacidad', href: '/privacy' },
+      { label: 'Términos', href: '/terms' },
     ],
   },
 ] as const;

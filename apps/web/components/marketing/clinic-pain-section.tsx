@@ -11,11 +11,11 @@ export function ClinicPainSection() {
         <FadeContent>
           <p className="text-editorial-tiny">Dolor operativo</p>
           <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
-            La recepcion pierde ingresos antes de que la agenda llegue a moverse
+            La recepción pierde ingresos antes de que la agenda llegue a moverse
           </h2>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-            No es un problema de software abstracto. Es demanda real que se enfria mientras el
-            equipo atiende mostrador, silla, telefono y WhatsApp al mismo tiempo.
+            No es un problema de software abstracto. Es demanda real que se enfría mientras el
+            equipo atiende mostrador, silla, teléfono y WhatsApp al mismo tiempo.
           </p>
         </FadeContent>
 

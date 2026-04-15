@@ -39,10 +39,12 @@ export function ClinicTrustSection() {
         <FadeContent delay={0.1}>
           <div className="mt-12 flex flex-col gap-4 rounded-[24px] border border-border/60 bg-[var(--marketing-bg-alt)] p-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-lg font-semibold">Quieres ver el centro de recepcion en accion?</p>
+              <p className="text-lg font-semibold">
+                ¿Quieres ver el centro de recepción en acción?
+              </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                La forma mas util de evaluarlo es abrir la demo clinic y recorrer bandeja, agenda,
-                formularios y recuperacion desde la vista real de la clinica.
+                La forma más útil de evaluarlo es abrir la demo clinic y recorrer bandeja, agenda,
+                formularios y recuperación desde la vista real de la clínica.
               </p>
             </div>
             <Link href={PUBLIC_DEMO_CLINIC_HREF}>

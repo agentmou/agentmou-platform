@@ -10,13 +10,13 @@ export function ClinicValueGrid() {
     <section id="producto" className="border-t border-border/50 bg-[var(--marketing-bg-alt)] py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <FadeContent>
-          <p className="text-editorial-tiny">Tres jobs, una sola recepcion</p>
+          <p className="text-editorial-tiny">Tres jobs, una sola recepción</p>
           <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
             Atender, agendar y recuperar agenda
           </h2>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-            La propuesta no es un bot generico. Es una capa operativa pensada para recepcion dental,
-            con lenguaje de negocio y visibilidad real del dia a dia.
+            La propuesta no es un bot genérico. Es una capa operativa pensada para recepción dental,
+            con lenguaje de negocio y visibilidad real del día a día.
           </p>
         </FadeContent>
 
