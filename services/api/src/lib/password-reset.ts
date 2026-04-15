@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { db, passwordResetTokens } from '@agentmou/db';
+import { and, eq, isNull } from 'drizzle-orm';
 
 import { getApiConfig } from '../config.js';
 
@@ -14,10 +15,17 @@ export async function issuePasswordResetToken(userId: string): Promise<IssuedPas
   const tokenHash = createHash('sha256').update(token, 'utf8').digest('hex');
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
-  await db.insert(passwordResetTokens).values({
-    userId,
-    tokenHash,
-    expiresAt,
+  await db.transaction(async (tx) => {
+    await tx
+      .update(passwordResetTokens)
+      .set({ consumedAt: new Date() })
+      .where(and(eq(passwordResetTokens.userId, userId), isNull(passwordResetTokens.consumedAt)));
+
+    await tx.insert(passwordResetTokens).values({
+      userId,
+      tokenHash,
+      expiresAt,
+    });
   });
 
   const { appPublicBaseUrl } = getApiConfig();

@@ -12,6 +12,8 @@ describe('getApiConfig', () => {
   const originalGoogleOauthRedirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URI;
   const originalMicrosoftOauthRedirectUri = process.env.MICROSOFT_OAUTH_REDIRECT_URI;
   const originalGoogleRedirectUri = process.env.GOOGLE_REDIRECT_URI;
+  const originalPasswordResetWebhookUrl = process.env.PASSWORD_RESET_WEBHOOK_URL;
+  const originalPasswordResetWebhookToken = process.env.PASSWORD_RESET_WEBHOOK_TOKEN;
 
   afterEach(() => {
     process.env.NODE_ENV = originalNodeEnv;
@@ -23,6 +25,8 @@ describe('getApiConfig', () => {
     process.env.GOOGLE_OAUTH_REDIRECT_URI = originalGoogleOauthRedirectUri;
     process.env.MICROSOFT_OAUTH_REDIRECT_URI = originalMicrosoftOauthRedirectUri;
     process.env.GOOGLE_REDIRECT_URI = originalGoogleRedirectUri;
+    process.env.PASSWORD_RESET_WEBHOOK_URL = originalPasswordResetWebhookUrl;
+    process.env.PASSWORD_RESET_WEBHOOK_TOKEN = originalPasswordResetWebhookToken;
   });
 
   it('exposes the renamed public origin fields', () => {
@@ -37,12 +41,16 @@ describe('getApiConfig', () => {
     process.env.MICROSOFT_OAUTH_REDIRECT_URI =
       'https://api.agentmou.io/api/v1/auth/oauth/microsoft/callback';
     process.env.GOOGLE_REDIRECT_URI = 'https://api.agentmou.io/api/v1/oauth/callback';
+    process.env.PASSWORD_RESET_WEBHOOK_URL = 'https://hooks.agentmou.io/password-reset';
+    process.env.PASSWORD_RESET_WEBHOOK_TOKEN = 'reset-webhook-secret';
 
     expect(getApiConfig()).toMatchObject({
       corsOrigin: 'https://app.agentmou.io',
       marketingPublicBaseUrl: 'https://agentmou.io',
       appPublicBaseUrl: 'https://app.agentmou.io',
       apiPublicBaseUrl: 'https://api.agentmou.io',
+      passwordResetWebhookUrl: 'https://hooks.agentmou.io/password-reset',
+      passwordResetWebhookToken: 'reset-webhook-secret',
     });
   });
 
@@ -85,5 +93,22 @@ describe('getApiConfig', () => {
     expect(() => getApiConfig()).toThrow(
       'GOOGLE_OAUTH_REDIRECT_URI must use API_PUBLIC_BASE_URL origin in production'
     );
+  });
+
+  it('rejects a production config when password reset delivery is not configured', () => {
+    process.env.NODE_ENV = 'production';
+    process.env.CORS_ORIGIN = 'https://app.agentmou.io';
+    process.env.MARKETING_PUBLIC_BASE_URL = 'https://agentmou.io';
+    process.env.APP_PUBLIC_BASE_URL = 'https://app.agentmou.io';
+    process.env.API_PUBLIC_BASE_URL = 'https://api.agentmou.io';
+    process.env.AUTH_WEB_ORIGIN_ALLOWLIST = 'https://app.agentmou.io';
+    process.env.GOOGLE_OAUTH_REDIRECT_URI =
+      'https://api.agentmou.io/api/v1/auth/oauth/google/callback';
+    process.env.MICROSOFT_OAUTH_REDIRECT_URI =
+      'https://api.agentmou.io/api/v1/auth/oauth/microsoft/callback';
+    process.env.GOOGLE_REDIRECT_URI = 'https://api.agentmou.io/api/v1/oauth/callback';
+    process.env.PASSWORD_RESET_WEBHOOK_URL = '';
+
+    expect(() => getApiConfig()).toThrow('PASSWORD_RESET_WEBHOOK_URL must be set in production');
   });
 });
