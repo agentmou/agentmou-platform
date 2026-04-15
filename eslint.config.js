@@ -1,6 +1,16 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
+/** Stricter static hygiene for product-critical paths (see docs/architecture/conventions.md). */
+const coreStaticHygieneRules = {
+  '@typescript-eslint/no-unused-vars': [
+    'error',
+    { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+  ],
+  '@typescript-eslint/no-explicit-any': 'error',
+  'no-console': ['error', { allow: ['warn', 'error'] }],
+};
+
 export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
@@ -25,6 +35,16 @@ export default tseslint.config(
       '@typescript-eslint/no-require-imports': 'off',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
+  },
+  {
+    files: [
+      'apps/web/lib/**/*.{ts,tsx}',
+      'packages/contracts/**/*.{ts,tsx}',
+      'packages/db/**/*.{ts,tsx}',
+      'services/api/src/**/*.{ts,tsx}',
+      'services/worker/src/**/*.{ts,tsx}',
+    ],
+    rules: coreStaticHygieneRules,
   },
   {
     files: ['apps/web/app/app/**/*.{ts,tsx}'],

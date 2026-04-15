@@ -425,7 +425,8 @@ async function safeExecute(options: ExecuteOptions): Promise<AgentExecutionResul
 
 ### Strict Mode Enabled
 
-All TypeScript configs have strict mode enabled:
+The shared base config enables strict mode plus unused checks:
+
 ```json
 {
   "compilerOptions": {
@@ -437,6 +438,14 @@ All TypeScript configs have strict mode enabled:
   }
 }
 ```
+
+**Exception:** `apps/web/tsconfig.json` extends the base but sets `noUnusedLocals` and
+`noUnusedParameters` to `false` (Next.js App Router ergonomics). Treat unused imports and
+locals as defects anyway; ESLint enforces unused symbols as **error** under `apps/web/lib/`
+and as **warning** elsewhere in the web app. Prefer removing dead code over broad disables.
+
+Workspace TypeScript uses `allowJs: false` in `tsconfig.base.json`; config files at the repo
+root that remain plain JS (for example `eslint.config.js`) are not part of that graph.
 
 ### No `any` Type
 
@@ -470,6 +479,52 @@ const user = { name: 'Alice', age: 30 };
 const name = getValue(user, 'name');  // ✓ Valid
 // getValue(user, 'invalid');  // ✗ Compile error
 ```
+
+---
+
+## Static hygiene and tooling
+
+### ESLint vs Biome
+
+- **Biome** (`biome.json`): formatting and structural checks only. The Biome **linter is
+  intentionally disabled** so we do not duplicate semantic rules already covered by ESLint.
+  `pnpm format` writes formatting; `pnpm lint` runs `biome check .` for format consistency.
+- **ESLint** (`eslint.config.js` at repo root): semantic lint for TypeScript/JavaScript
+  workspaces. Default severity for `@typescript-eslint/no-unused-vars`,
+  `@typescript-eslint/no-explicit-any`, and `no-console` is **warning** outside the paths
+  below.
+
+### Stricter core paths (errors)
+
+For these globs, the same three rules are **error** (still allowing `_`-prefixed unused
+names and `console.warn` / `console.error`):
+
+- `apps/web/lib/**/*.{ts,tsx}`
+- `packages/contracts/**/*.{ts,tsx}`
+- `packages/db/**/*.{ts,tsx}`
+- `services/api/src/**/*.{ts,tsx}`
+- `services/worker/src/**/*.{ts,tsx}`
+
+Do not widen these with blanket `eslint-disable` comments. If you must suppress a rule,
+keep it on the smallest possible line range and explain **why** in the comment.
+
+### `any` and `unknown`
+
+Prefer `unknown` plus narrowing or Zod parsing. Reserve `any` for exceptional interop only,
+and expect **error** in core paths above.
+
+### `console.*`
+
+- In core paths: only `console.warn` and `console.error` are allowed by default.
+- CLI scripts under `scripts/` are not in the stricter ESLint overlay; `console.log` there is
+  acceptable for operator output. Product code should use structured logging (Pino) instead
+  of ad-hoc `console.info` / `console.debug`.
+
+### Warnings policy
+
+Warnings are for transitional debt, not permanent state. If a change introduces new
+warnings in an area you touched, fix them or track them with a time-bounded follow-up—do not
+leave structural warnings to rot.
 
 ---
 
@@ -617,9 +672,9 @@ pnpm lint               # Check for issues
 
 **Key rules**:
 - 2-space indentation
-- Single quotes for strings
-- Trailing commas in multiline objects/arrays
-- No semicolons (implicit ASI)
+- Single quotes for strings (JS/TS); double quotes for JSX attributes
+- Trailing commas in multiline objects/arrays (ES5 style where configured)
+- Semicolons **required** (see `javascript.formatter.semicolons` in root `biome.json`)
 
 ### Comments
 

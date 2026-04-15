@@ -86,6 +86,10 @@ pnpm dev
 | `pnpm demo-catalog:generate` | Regenerate `operational-ids.gen.json` after catalog changes |
 | `pnpm demo-catalog:check` | Fail CI if the operational ID snapshot is out of date |
 
+**Static hygiene:** ESLint/Biome split, stricter core paths, and policies for `any` /
+`console.*` are documented in [Conventions — Static hygiene and
+tooling](./docs/architecture/conventions.md#static-hygiene-and-tooling).
+
 ## Local Endpoints
 
 | Service | URL |
