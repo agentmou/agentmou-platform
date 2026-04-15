@@ -740,6 +740,18 @@ async function runDatabaseSmoke(
   }
 }
 
+function extractSessionCookie(response: {
+  headers: Record<string, string | string[] | undefined>;
+}): string | null {
+  const raw = response.headers['set-cookie'];
+  const values = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  for (const value of values) {
+    const match = value.match(/agentmou-session=([^;]+)/);
+    if (match) return match[1];
+  }
+  return null;
+}
+
 async function runApiSmoke(summary: UnknownRecord) {
   step('8. API in-process smoke');
 
@@ -761,6 +773,7 @@ async function runApiSmoke(summary: UnknownRecord) {
         statusCode: number;
         json: () => unknown;
         body: string;
+        headers: Record<string, string | string[] | undefined>;
       }>;
     };
   }>(await import('../services/api/src/app.ts'));
@@ -785,8 +798,11 @@ async function runApiSmoke(summary: UnknownRecord) {
       loginResponse.statusCode === 200,
       `Expected seeded login to succeed, received ${loginResponse.statusCode}: ${loginResponse.body}`
     );
+
+    const sessionToken = extractSessionCookie(loginResponse);
+    assert(sessionToken, 'Expected login to set agentmou-session cookie');
+
     const loginBody = readRecord(loginResponse.json(), 'login response');
-    const token = readString(loginBody.token, 'login token');
     const tenants = readArray(loginBody.tenants, 'login tenants');
     const clinicTenant = tenants.find((tenant) => {
       const record = readRecord(tenant, 'login tenant');
@@ -814,7 +830,7 @@ async function runApiSmoke(summary: UnknownRecord) {
     const fisioTenantId = readString(readRecord(fisioTenant, 'fisio tenant').id, 'fisio tenant id');
 
     const authHeaders = {
-      authorization: `Bearer ${token}`,
+      cookie: `agentmou-session=${sessionToken}`,
     };
 
     const experienceResponse = await app.inject({
