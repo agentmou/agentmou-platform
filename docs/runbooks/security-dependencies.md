@@ -217,7 +217,8 @@ pnpm outdated --json
 
 Before merging any PR, check:
 
-- [ ] **No new vulnerabilities**: `pnpm audit` shows no high/critical issues
+- [ ] **Dependency audit reviewed**: CI `dependency-audit` job log reviewed; no
+  unaddressed high/critical issues without a documented waiver
 - [ ] **Dependency changes are intentional**: Review `pnpm-lock.yaml` diff
 - [ ] **All tests pass**: `pnpm test` and `pnpm typecheck`
 - [ ] **No hardcoded secrets**: Review code for API keys, passwords, tokens
@@ -238,7 +239,7 @@ Add to PR description:
 
 ```markdown
 ## Security Checklist
-- [ ] No new vulnerabilities (pnpm audit passed)
+- [ ] CI dependency-audit job reviewed (no silent ignores)
 - [ ] No hardcoded secrets
 - [ ] Input validation on external data
 - [ ] Authentication/authorization enforced
@@ -338,64 +339,26 @@ function getSecret(key: string) {
 
 ## Dependency Monitoring in CI/CD
 
-### GitHub Actions Workflow
+### GitHub Actions (current repository)
 
-Add to `.github/workflows/security.yml`:
+The canonical workflow is [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml).
 
-```yaml
-name: Security Audit
+- **`check` job:** installs dependencies with `pnpm install --frozen-lockfile`, then runs
+  `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `make validate-content` (Markdown +
+  YAML validation). This job is intended to be a **required** merge gate.
+- **`dependency-audit` job:** runs `pnpm audit` in isolation. It uses
+  `continue-on-error: true` so that audit noise or registry-side failures do not
+  block the primary quality gates. **Review the job log on every PR** and treat
+  actionable findings as follow-up work (or document an explicit waiver).
+- **Other jobs:** `clinic-demo-validation` and `agents` are also primary gates; see
+  [Contributing](../contributing.md) for how they fit together.
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+Optional hardening (not enabled by default):
 
-jobs:
-  audit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - run: pnpm install
-      - run: pnpm audit --fail-on high
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - run: pnpm install
-      - run: pnpm lint
-
-  typecheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - run: pnpm install
-      - run: pnpm typecheck
-```
-
-This ensures:
-- All PRs are audited for vulnerabilities
-- No high/critical vulnerabilities can be merged
-- Code passes lint and type checks before merge
+- Add `pnpm audit --audit-level high` (or similar) locally or in a separate workflow
+  once the team agrees it should be blocking.
+- Enable GitHub Dependabot via `.github/dependabot.yml` if you want automated
+  dependency PRs (see the section above in this runbook).
 
 ---
 

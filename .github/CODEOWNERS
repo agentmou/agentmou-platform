@@ -1,0 +1,11 @@
+# Code ownership — Agentmou Platform
+#
+# Default reviewers for pull requests touching these paths.
+# Keep this file small; expand only when ownership splits for real.
+
+/apps/web/ @TBL369
+/services/api/ @TBL369
+/services/worker/ @TBL369
+/packages/ @TBL369
+/infra/ @TBL369
+/.github/ @TBL369

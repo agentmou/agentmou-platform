@@ -9,6 +9,8 @@ Canonical public origins:
 
 **Start here:** Read the [Documentation Hub](./docs/README.md) for comprehensive guides on setup, architecture, testing, and operations.
 
+**Contributing:** See [Contributing](./docs/contributing.md) for branch conventions, local gates, and how CI jobs map to a merge-ready PR.
+
 ## Workspace Map
 
 ### Applications
