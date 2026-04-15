@@ -1,8 +1,8 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { db, users, tenants, memberships, userOauthStates, oauthLoginCodes } from '@agentmou/db';
-import { createToken } from '@agentmou/auth';
 import { eq, and, lt } from 'drizzle-orm';
 import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
+import { createAuthSession } from '../../lib/auth-sessions.js';
 import { findOrCreateUserFromOAuthProfile, type OAuthProfile } from './identity.service.js';
 import { isAllowedAuthCallbackUrl, parseWebOriginAllowlist } from './oauth-allowlist.js';
 import { normalizeTenantSettings } from '../tenants/tenants.mapper.js';
@@ -256,7 +256,6 @@ export async function completeB2cOAuthCallback(
 }
 
 export async function exchangeOAuthLoginCode(plainCode: string): Promise<{
-  token: string;
   user: { id: string; email: string; name: string | null };
   tenants: {
     id: string;
@@ -265,6 +264,11 @@ export async function exchangeOAuthLoginCode(plainCode: string): Promise<{
     role?: string;
     settings?: unknown;
   }[];
+  session: null;
+  cookieSession: {
+    token: string;
+    expiresAt: Date;
+  };
 }> {
   const codeHash = sha256Hex(plainCode);
   const [row] = await db
@@ -310,10 +314,12 @@ export async function exchangeOAuthLoginCode(plainCode: string): Promise<{
     .innerJoin(tenants, eq(memberships.tenantId, tenants.id))
     .where(eq(memberships.userId, user.id));
 
-  const token = await createToken({ userId: user.id, email: user.email });
+  const { session, token } = await createAuthSession({
+    userId: user.id,
+    sessionType: 'standard',
+  });
 
   return {
-    token,
     user: {
       id: user.id,
       email: user.email,
@@ -324,5 +330,10 @@ export async function exchangeOAuthLoginCode(plainCode: string): Promise<{
       role: normalizeTenantMembershipRole(tenant.role),
       settings: normalizeTenantSettings(tenant.settings),
     })),
+    session: null,
+    cookieSession: {
+      token,
+      expiresAt: session.expiresAt,
+    },
   };
 }

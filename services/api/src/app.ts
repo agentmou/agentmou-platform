@@ -52,6 +52,7 @@ export function buildApp() {
 
   app.register(cors, {
     origin: config.corsOrigin,
+    credentials: true,
   });
 
   app.get('/health', async () => {

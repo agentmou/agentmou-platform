@@ -11,6 +11,7 @@ import {
   type ResetPasswordInput,
 } from './auth.schema.js';
 import { registerB2cOAuthRoutes } from './oauth.routes.js';
+import { clearAuthSessionCookie, setAuthSessionCookie } from '../../lib/auth-sessions.js';
 
 export async function authRoutes(fastify: FastifyInstance) {
   const service = new AuthService();
@@ -27,7 +28,9 @@ export async function authRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       const body = request.body as RegisterInput;
       const result = await service.register(body);
-      return reply.status(201).send(result);
+      await setAuthSessionCookie(reply, result.cookieSession);
+      const { cookieSession: _cookieSession, ...response } = result;
+      return reply.status(201).send(response);
     }
   );
 
@@ -41,12 +44,25 @@ export async function authRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       const body = request.body as LoginInput;
       const result = await service.login(body);
-      return reply.send(result);
+      await setAuthSessionCookie(reply, result.cookieSession);
+      const { cookieSession: _cookieSession, ...response } = result;
+      return reply.send(response);
     }
   );
 
   fastify.get('/me', async (request: FastifyRequest, reply: FastifyReply) => {
-    const result = await service.getCurrentUser(request.headers.authorization);
+    const result = await service.getCurrentUser({
+      cookieHeader: request.headers.cookie,
+      authorization: request.headers.authorization,
+    });
+    return reply.send(result);
+  });
+
+  fastify.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
+    const result = await service.logout({
+      cookieHeader: request.headers.cookie,
+    });
+    await clearAuthSessionCookie(reply);
     return reply.send(result);
   });
 

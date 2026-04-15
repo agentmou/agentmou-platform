@@ -96,8 +96,6 @@ describe('admin contracts', () => {
 
     const impersonation = AdminStartImpersonationResponseSchema.parse({
       sessionId: 'session-1',
-      impersonationToken: 'impersonation-token',
-      restoreToken: 'restore-token',
       expiresAt: '2026-01-02T00:00:00.000Z',
     });
 

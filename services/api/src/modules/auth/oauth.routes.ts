@@ -8,6 +8,7 @@ import {
 } from './oauth.service.js';
 import { checkOAuthRateLimit, clientIp } from './oauth-rate-limit.js';
 import { oauthExchangeSchema, type OauthExchangeInput } from './auth.schema.js';
+import { setAuthSessionCookie } from '../../lib/auth-sessions.js';
 
 export function registerB2cOAuthRoutes(fastify: FastifyInstance) {
   fastify.get('/oauth/providers', async () => ({
@@ -82,7 +83,9 @@ export function registerB2cOAuthRoutes(fastify: FastifyInstance) {
       }
       try {
         const result = await exchangeOAuthLoginCode(request.body.code);
-        return reply.send(result);
+        await setAuthSessionCookie(reply, result.cookieSession);
+        const { cookieSession: _cookieSession, ...response } = result;
+        return reply.send(response);
       } catch (e: unknown) {
         const err = e as { statusCode?: number; message?: string };
         return reply

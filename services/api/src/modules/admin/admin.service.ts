@@ -1,10 +1,3 @@
-import {
-  createImpersonationRestoreToken,
-  createImpersonationToken,
-  createToken,
-  type TokenPayload,
-  verifyToken,
-} from '@agentmou/auth';
 import type {
   AdminCreateTenantUserInput,
   AdminStartImpersonationInput,
@@ -18,6 +11,11 @@ import type {
   VerticalKey,
 } from '@agentmou/contracts';
 
+import {
+  createAuthSession,
+  revokeAuthSessionById,
+  type AuthenticatedRequestContext,
+} from '../../lib/auth-sessions.js';
 import { recordAdminAuditEvent } from '../../lib/audit.js';
 import { issuePasswordResetToken } from '../../lib/password-reset.js';
 import { AdminRepository, type AdminTenantCursor } from './admin.repository.js';
@@ -56,20 +54,16 @@ function decodeTenantCursor(cursor?: string): AdminTenantCursor | undefined {
 interface AdminServiceDependencies {
   issuePasswordResetToken: typeof issuePasswordResetToken;
   recordAdminAuditEvent: typeof recordAdminAuditEvent;
-  createImpersonationToken: typeof createImpersonationToken;
-  createImpersonationRestoreToken: typeof createImpersonationRestoreToken;
-  createToken: typeof createToken;
-  verifyToken: typeof verifyToken;
+  createAuthSession: typeof createAuthSession;
+  revokeAuthSessionById: typeof revokeAuthSessionById;
   now: () => Date;
 }
 
 const DEFAULT_DEPENDENCIES: AdminServiceDependencies = {
   issuePasswordResetToken,
   recordAdminAuditEvent,
-  createImpersonationToken,
-  createImpersonationRestoreToken,
-  createToken,
-  verifyToken,
+  createAuthSession,
+  revokeAuthSessionById,
   now: () => new Date(),
 };
 
@@ -370,23 +364,11 @@ export class AdminService {
       },
     });
 
-    const impersonationToken = await this.dependencies.createImpersonationToken({
-      email: targetUser.email,
-      impersonationSessionId: session.id,
-      actorUserId: params.actorUserId,
-      actorTenantId: params.actorTenantId,
-      targetUserId: targetUser.id,
-      targetTenantId: params.tenantId,
-    });
-
-    const restoreToken = await this.dependencies.createImpersonationRestoreToken({
-      userId: actorUser.id,
-      email: actorUser.email,
-      impersonationSessionId: session.id,
-      actorUserId: params.actorUserId,
-      actorTenantId: params.actorTenantId,
-      targetUserId: targetUser.id,
-      targetTenantId: params.tenantId,
+    const authSession = await this.dependencies.createAuthSession({
+      userId: targetUser.id,
+      sessionType: 'impersonation',
+      adminImpersonationSessionId: session.id,
+      expiresAt: session.expiresAt,
     });
 
     await this.dependencies.recordAdminAuditEvent({
@@ -403,40 +385,28 @@ export class AdminService {
 
     return {
       sessionId: session.id,
-      impersonationToken,
-      restoreToken,
       expiresAt: session.expiresAt.toISOString(),
+      cookieSession: {
+        token: authSession.token,
+        expiresAt: authSession.session.expiresAt,
+      },
     };
   }
 
   async stopImpersonation(params: {
     body: AdminStopImpersonationInput;
-    authContext?: TokenPayload;
+    authContext?: AuthenticatedRequestContext;
+    authSessionId?: string;
   }) {
-    if (!params.authContext?.isImpersonation || !params.authContext.impersonationSessionId) {
+    if (
+      !params.authContext?.isImpersonation ||
+      !params.authContext.impersonationSessionId ||
+      !params.authContext.actorUserId ||
+      !params.authContext.actorTenantId ||
+      !params.authContext.targetTenantId ||
+      !params.authSessionId
+    ) {
       throw createHttpError('Impersonation session not active', 403);
-    }
-
-    const restorePayload = await this.dependencies.verifyToken(params.body.restoreToken);
-    if (
-      !restorePayload?.isImpersonationRestore ||
-      !restorePayload.impersonationSessionId ||
-      !restorePayload.actorUserId ||
-      !restorePayload.actorTenantId ||
-      !restorePayload.targetUserId ||
-      !restorePayload.targetTenantId
-    ) {
-      throw createHttpError('Invalid restore token', 401);
-    }
-
-    if (
-      restorePayload.impersonationSessionId !== params.authContext.impersonationSessionId ||
-      restorePayload.actorUserId !== params.authContext.actorUserId ||
-      restorePayload.actorTenantId !== params.authContext.actorTenantId ||
-      restorePayload.targetUserId !== params.authContext.targetUserId ||
-      restorePayload.targetTenantId !== params.authContext.targetTenantId
-    ) {
-      throw createHttpError('Restore token does not match the active impersonation session', 401);
     }
 
     const session = await this.repository.getImpersonationSession(
@@ -456,31 +426,37 @@ export class AdminService {
       throw createHttpError('Impersonation session has expired', 409);
     }
 
-    const actorUser = await this.repository.getUserById(restorePayload.actorUserId);
+    const actorUser = await this.repository.getUserById(params.authContext.actorUserId);
     if (!actorUser) {
       throw createHttpError('Actor user not found', 404);
     }
 
     await this.repository.endImpersonationSession(session.id, now);
+    await this.dependencies.revokeAuthSessionById(params.authSessionId, now);
+
+    const restoredSession = await this.dependencies.createAuthSession({
+      userId: actorUser.id,
+      sessionType: 'standard',
+    });
 
     await this.dependencies.recordAdminAuditEvent({
-      actorId: restorePayload.actorUserId,
-      actorTenantId: restorePayload.actorTenantId,
-      targetTenantId: restorePayload.targetTenantId,
+      actorId: params.authContext.actorUserId,
+      actorTenantId: params.authContext.actorTenantId,
+      targetTenantId: params.authContext.targetTenantId,
       action: 'admin.impersonation.stopped',
       details: {
-        targetUserId: restorePayload.targetUserId,
+        targetUserId: params.authContext.targetUserId,
         impersonationSessionId: session.id,
       },
     });
 
     return {
-      sessionId: session.id,
-      token: await this.dependencies.createToken({
-        userId: actorUser.id,
-        email: actorUser.email,
-      }),
+      sessionId: restoredSession.session.id,
       endedAt: now.toISOString(),
+      cookieSession: {
+        token: restoredSession.token,
+        expiresAt: restoredSession.session.expiresAt,
+      },
     };
   }
 }

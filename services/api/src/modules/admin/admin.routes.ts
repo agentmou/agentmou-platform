@@ -20,6 +20,7 @@ import {
   adminUpdateTenantUserSchema,
 } from './admin.schema.js';
 import { AdminService } from './admin.service.js';
+import { setAuthSessionCookie } from '../../lib/auth-sessions.js';
 
 function handleAdminRouteError(reply: FastifyReply, error: unknown) {
   if (typeof error === 'object' && error !== null && 'statusCode' in error) {
@@ -215,7 +216,9 @@ export async function adminRoutes(fastify: FastifyInstance) {
           actorTenantId: request.adminTenantId!,
         });
 
-        return reply.status(201).send(AdminStartImpersonationResponseSchema.parse(response));
+        await setAuthSessionCookie(reply, response.cookieSession);
+        const { cookieSession: _cookieSession, ...payload } = response;
+        return reply.status(201).send(AdminStartImpersonationResponseSchema.parse(payload));
       } catch (error) {
         return handleAdminRouteError(reply, error);
       }
@@ -238,9 +241,12 @@ export async function adminImpersonationSessionRoutes(fastify: FastifyInstance) 
         const response = await service.stopImpersonation({
           body: request.body as never,
           authContext: request.authContext,
+          authSessionId: request.authSession?.id,
         });
 
-        return reply.send(AdminStopImpersonationResponseSchema.parse(response));
+        await setAuthSessionCookie(reply, response.cookieSession);
+        const { cookieSession: _cookieSession, ...payload } = response;
+        return reply.send(AdminStopImpersonationResponseSchema.parse(payload));
       } catch (error) {
         return handleAdminRouteError(reply, error);
       }

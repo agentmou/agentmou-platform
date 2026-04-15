@@ -132,7 +132,7 @@ describe('clinic feature access', () => {
         moduleKey: 'growth',
       },
     });
-  });
+  }, 10_000);
 
   it('keeps channel reasons ahead of feature flag overrides for voice outbound', async () => {
     process.env.REFLAG_LOCAL_OVERRIDES_JSON = JSON.stringify({

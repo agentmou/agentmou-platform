@@ -124,20 +124,15 @@ export type AdminStartImpersonationInput = z.infer<typeof AdminStartImpersonatio
 
 export const AdminStartImpersonationResponseSchema = z.object({
   sessionId: z.string(),
-  impersonationToken: z.string(),
-  restoreToken: z.string(),
   expiresAt: z.string(),
 });
 export type AdminStartImpersonationResponse = z.infer<typeof AdminStartImpersonationResponseSchema>;
 
-export const AdminStopImpersonationSchema = z.object({
-  restoreToken: z.string().min(1),
-});
+export const AdminStopImpersonationSchema = z.object({});
 export type AdminStopImpersonationInput = z.infer<typeof AdminStopImpersonationSchema>;
 
 export const AdminStopImpersonationResponseSchema = z.object({
   sessionId: z.string(),
-  token: z.string(),
   endedAt: z.string(),
 });
 export type AdminStopImpersonationResponse = z.infer<typeof AdminStopImpersonationResponseSchema>;
