@@ -13,8 +13,10 @@ const DEMO_TENANT_ID = 'demo-workspace';
 process.env.NODE_ENV ??= 'test';
 process.env.CORS_ORIGIN ??= 'http://localhost:3000';
 process.env.JWT_SECRET ??= 'test-jwt-secret';
-process.env.WEB_APP_BASE_URL ??= 'http://localhost:3000';
 process.env.NEXT_PUBLIC_API_URL ??= 'http://127.0.0.1:3001';
+process.env.MARKETING_PUBLIC_BASE_URL ??= 'http://localhost:3000';
+process.env.APP_PUBLIC_BASE_URL ??= 'http://localhost:3000';
+process.env.API_PUBLIC_BASE_URL ??= 'http://localhost:3001';
 process.env.LOG_LEVEL ??= 'silent';
 
 type UnknownRecord = Record<string, unknown>;

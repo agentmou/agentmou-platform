@@ -49,12 +49,12 @@ describe('publicChatRoutes', () => {
         {
           id: 'citation-1',
           title: 'Pricing',
-          href: '/pricing',
+          href: 'https://agentmou.io/pricing',
           excerpt: 'Starter is $29/month.',
           sourcePath: 'apps/web/app/(marketing)/pricing/page.tsx',
         },
       ],
-      actions: [{ label: 'View Pricing', href: '/pricing' }],
+      actions: [{ label: 'View Pricing', href: 'https://agentmou.io/pricing' }],
       provider: 'retrieval',
       fallback: false,
     });

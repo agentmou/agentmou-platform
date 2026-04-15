@@ -85,7 +85,7 @@ export async function connectorRoutes(fastify: FastifyInstance) {
  */
 export async function oauthCallbackRoutes(fastify: FastifyInstance) {
   const oauthService = new OAuthService();
-  const { webAppBaseUrl: WEB_BASE_URL } = getApiConfig();
+  const { appPublicBaseUrl: APP_BASE_URL } = getApiConfig();
 
   fastify.get('/oauth/callback', async (request: FastifyRequest, reply: FastifyReply) => {
     const { code, state, error } = request.query as {
@@ -95,7 +95,7 @@ export async function oauthCallbackRoutes(fastify: FastifyInstance) {
     };
 
     if (error) {
-      return reply.redirect(`${WEB_BASE_URL}/auth/error?reason=oauth_denied&provider=gmail`);
+      return reply.redirect(`${APP_BASE_URL}/auth/error?reason=oauth_denied&provider=gmail`);
     }
 
     if (!code || !state) {
@@ -106,7 +106,7 @@ export async function oauthCallbackRoutes(fastify: FastifyInstance) {
       const result = await oauthService.handleCallback(code, state);
 
       const redirectTarget =
-        result.redirectUrl || `${WEB_BASE_URL}/app/${result.tenantId}/settings`;
+        result.redirectUrl || `${APP_BASE_URL}/app/${result.tenantId}/settings`;
 
       const separator = redirectTarget.includes('?') ? '&' : '?';
       return reply.redirect(
@@ -116,10 +116,10 @@ export async function oauthCallbackRoutes(fastify: FastifyInstance) {
       fastify.log.error(err, 'OAuth callback failed');
 
       if (err instanceof OAuthError) {
-        return reply.redirect(`${WEB_BASE_URL}/auth/error?reason=${err.code}&provider=gmail`);
+        return reply.redirect(`${APP_BASE_URL}/auth/error?reason=${err.code}&provider=gmail`);
       }
 
-      return reply.redirect(`${WEB_BASE_URL}/auth/error?reason=unknown&provider=gmail`);
+      return reply.redirect(`${APP_BASE_URL}/auth/error?reason=unknown&provider=gmail`);
     }
   });
 }

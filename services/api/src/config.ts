@@ -1,9 +1,13 @@
+import { resolvePublicOrigins } from '@agentmou/contracts';
+
 export interface ApiConfig {
   host: string;
   port: number;
   logLevel: string;
   corsOrigin: string;
-  webAppBaseUrl: string;
+  marketingPublicBaseUrl: string;
+  appPublicBaseUrl: string;
+  apiPublicBaseUrl: string;
   reflagSdkKey?: string;
   reflagEnvironment: string;
   reflagBaseUrl?: string;
@@ -31,25 +35,26 @@ function requireCorsOrigin() {
   throw new Error('CORS_ORIGIN must be set');
 }
 
-function requireWebAppBaseUrl() {
-  if (process.env.WEB_APP_BASE_URL) {
-    return process.env.WEB_APP_BASE_URL;
-  }
-
-  if (process.env.NODE_ENV === 'test') {
-    return 'http://localhost:3000';
-  }
-
-  throw new Error('WEB_APP_BASE_URL must be set');
-}
-
 export function getApiConfig(): ApiConfig {
+  const publicOrigins = resolvePublicOrigins(
+    {
+      marketingPublicBaseUrl: process.env.MARKETING_PUBLIC_BASE_URL,
+      appPublicBaseUrl: process.env.APP_PUBLIC_BASE_URL,
+      apiPublicBaseUrl: process.env.API_PUBLIC_BASE_URL,
+    },
+    {
+      nodeEnv: process.env.NODE_ENV,
+    }
+  );
+
   return {
     host: process.env.HOST ?? '0.0.0.0',
     port: parsePort(process.env.PORT, 3001),
     logLevel: process.env.LOG_LEVEL ?? 'info',
     corsOrigin: requireCorsOrigin(),
-    webAppBaseUrl: requireWebAppBaseUrl(),
+    marketingPublicBaseUrl: publicOrigins.marketingPublicBaseUrl,
+    appPublicBaseUrl: publicOrigins.appPublicBaseUrl,
+    apiPublicBaseUrl: publicOrigins.apiPublicBaseUrl,
     reflagSdkKey: process.env.REFLAG_SDK_KEY,
     reflagEnvironment: process.env.REFLAG_ENVIRONMENT ?? process.env.NODE_ENV ?? 'development',
     reflagBaseUrl: process.env.REFLAG_BASE_URL,

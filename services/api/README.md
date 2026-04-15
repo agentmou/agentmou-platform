@@ -168,7 +168,7 @@ dependencies:
 | `PORT` | HTTP port; defaults to `3001` |
 | `HOST` | Bind host; defaults to `0.0.0.0` |
 | `LOG_LEVEL` | Fastify logger level |
-| `CORS_ORIGIN` | Allowed browser origin and OAuth redirect base |
+| `CORS_ORIGIN` | Allowed browser origin for the tenant app; should match the app origin |
 | `JWT_SECRET` | Signing secret used by `@agentmou/auth` |
 | `DATABASE_URL` | PostgreSQL connection string via `@agentmou/db` |
 | `REDIS_URL` | Redis connection for BullMQ queues via `@agentmou/queue` |
@@ -181,6 +181,8 @@ dependencies:
 | `MICROSOFT_OAUTH_CLIENT_ID` / `MICROSOFT_OAUTH_CLIENT_SECRET` | B2C Microsoft login |
 | `MICROSOFT_OAUTH_REDIRECT_URI` | API callback URL for B2C Microsoft login |
 | `LOG_PASSWORD_RESET_LINK` | When `1`, log reset links (intended for non-production debugging) |
+| `MARKETING_PUBLIC_BASE_URL` | Canonical marketing origin for public links emitted by the API |
+| `APP_PUBLIC_BASE_URL` | Canonical app/auth origin for reset links and tenant deep links |
 | `CONNECTOR_ENCRYPTION_KEY` | AES-256-GCM key for stored connector tokens |
 | `N8N_API_URL` | n8n API base URL for workflow provisioning |
 | `N8N_API_KEY` | n8n API key |

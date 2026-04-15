@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { CatalogService } from '../catalog/catalog.service.js';
 import { db, publicKnowledgeChunks, publicKnowledgeDocuments } from '@agentmou/db';
 import { eq } from 'drizzle-orm';
+import { getPublicCatalogHref } from './public-links.js';
 
 interface KnowledgeDocumentInput {
   slug: string;
@@ -273,19 +274,7 @@ function chunkDocument(content: string) {
 }
 
 function hrefForDocument(slug: string) {
-  if (slug === 'public-pricing') return '/pricing';
-  if (slug === 'public-security') return '/security';
-  if (slug === 'public-product-overview') return '/docs';
-  if (slug.startsWith('agent-')) {
-    return `/app/demo-workspace/marketplace/agents/${slug.replace('agent-', '')}`;
-  }
-  if (slug.startsWith('workflow-')) {
-    return `/app/demo-workspace/marketplace/workflows/${slug.replace('workflow-', '')}`;
-  }
-  if (slug.startsWith('pack-')) {
-    return `/app/demo-workspace/marketplace/packs/${slug.replace('pack-', '')}`;
-  }
-  return '/docs';
+  return getPublicCatalogHref(slug);
 }
 
 function scoreMatch(tokens: string[], title: string, content: string, keywords: string[]) {

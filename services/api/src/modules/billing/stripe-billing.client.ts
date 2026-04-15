@@ -157,13 +157,13 @@ export class StripeBillingClient {
   }
 
   async createCustomerPortalSession(customerId: string, returnUrl?: string) {
-    const { webAppBaseUrl } = getApiConfig();
+    const { appPublicBaseUrl } = getApiConfig();
 
     return stripeRequest<{ url: string }>('/billing_portal/sessions', {
       method: 'POST',
       body: encodeForm({
         customer: customerId,
-        return_url: returnUrl ?? webAppBaseUrl,
+        return_url: returnUrl ?? appPublicBaseUrl,
       }),
     });
   }

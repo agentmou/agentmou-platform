@@ -227,7 +227,7 @@ fi
 source "$ENV_FILE"
 
 API_DOMAIN="${DOMAIN:-agentmou.io}"
-WEB_ORIGIN="${WEB_APP_BASE_URL:-${CORS_ORIGIN:-https://agentmou.io}}"
+APP_ORIGIN="${APP_PUBLIC_BASE_URL:-${CORS_ORIGIN:-https://app.agentmou.io}}"
 
 required_env_vars=(
   DOMAIN
@@ -256,8 +256,10 @@ optional_env_vars=(
 public_env_vars=(
   N8N_EDITOR_BASE_URL
   WEBHOOK_URL
+  MARKETING_PUBLIC_BASE_URL
+  APP_PUBLIC_BASE_URL
+  API_PUBLIC_BASE_URL
   CORS_ORIGIN
-  WEB_APP_BASE_URL
   AUTH_WEB_ORIGIN_ALLOWLIST
   GOOGLE_REDIRECT_URI
 )
@@ -354,5 +356,5 @@ echo -e "${GREEN}===============================================${NC}"
 echo
 echo "Suggested next checks:"
 echo "  1. Review docker compose ps output above"
-echo "  2. Verify OAuth flow from ${WEB_ORIGIN}"
+echo "  2. Verify OAuth flow from ${APP_ORIGIN}"
 echo "  3. Run API_URL=https://${API_HOST} tsx scripts/test-e2e-triage.ts for a full E2E pass"

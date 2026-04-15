@@ -70,8 +70,10 @@ cp infra/compose/.env.example infra/compose/.env
 | Variable | Example | Required | Purpose |
 | -------- | ------- | -------- | ------- |
 | `JWT_SECRET` | `changeme-32-hex-chars` | Yes | Secret for signing/verifying JWTs (min 32 chars) |
-| `CORS_ORIGIN` | `https://agentmou.io` | For production | CORS allowed origin |
-| `API_PUBLIC_BASE_URL` | `https://api.agentmou.io` | For clinic callbacks | Public API base used by clinic automation status callbacks; falls back to `WEB_APP_BASE_URL` if omitted |
+| `CORS_ORIGIN` | `https://app.agentmou.io` | For production | CORS allowed browser origin for the tenant app |
+| `MARKETING_PUBLIC_BASE_URL` | `https://agentmou.io` | Yes | Canonical marketing origin for metadata and public cross-surface links |
+| `APP_PUBLIC_BASE_URL` | `https://app.agentmou.io` | Yes | Canonical app/auth origin for reset links and tenant deep links |
+| `API_PUBLIC_BASE_URL` | `https://api.agentmou.io` | Yes | Canonical public API origin for callbacks and public API links |
 
 **Generate JWT_SECRET:** `openssl rand -hex 32`
 
@@ -79,14 +81,13 @@ cp infra/compose/.env.example infra/compose/.env
 
 | Variable | Example | Required | Purpose |
 | -------- | ------- | -------- | ------- |
-| `AUTH_WEB_ORIGIN_ALLOWLIST` | `http://localhost:3000` | Yes | Comma-separated list of origins allowed for ?return_url on /auth/callback (open redirect guard) |
+| `AUTH_WEB_ORIGIN_ALLOWLIST` | `http://localhost:3000` | Yes | Comma-separated list of app origins allowed for ?return_url on /auth/callback (open redirect guard) |
 | `GOOGLE_OAUTH_CLIENT_ID` | (from Google Console) | Optional | OAuth client ID for Google login |
 | `GOOGLE_OAUTH_CLIENT_SECRET` | (from Google Console) | Optional | OAuth client secret for Google login |
 | `GOOGLE_OAUTH_REDIRECT_URI` | `http://localhost:3001/api/v1/auth/oauth/google/callback` | Optional | Redirect URI registered in Google Console |
 | `MICROSOFT_OAUTH_CLIENT_ID` | (from Microsoft Console) | Optional | OAuth client ID for Microsoft login |
 | `MICROSOFT_OAUTH_CLIENT_SECRET` | (from Microsoft Console) | Optional | OAuth client secret for Microsoft login |
 | `MICROSOFT_OAUTH_REDIRECT_URI` | `http://localhost:3001/api/v1/auth/oauth/microsoft/callback` | Optional | Redirect URI registered in Microsoft Console |
-| `WEB_APP_BASE_URL` | `http://localhost:3000` | Yes | Base URL for password reset links |
 | `LOG_PASSWORD_RESET_LINK` | `1` | Optional | Set to 1 to log password reset links (dev only, remove in prod) |
 
 **Note:** OAuth is optional for local development. Leave blank to use email/password only.
@@ -157,7 +158,8 @@ N8N_EDITOR_BASE_URL=http://localhost:5678
 WEBHOOK_URL=http://localhost:5678
 N8N_API_URL=http://n8n:5678/api/v1
 N8N_PROXY_HOPS=1
-WEB_APP_BASE_URL=http://localhost:3000
+MARKETING_PUBLIC_BASE_URL=http://localhost:3000
+APP_PUBLIC_BASE_URL=http://localhost:3000
 API_PUBLIC_BASE_URL=http://localhost:3001
 AUTH_WEB_ORIGIN_ALLOWLIST=http://localhost:3000
 CORS_ORIGIN=http://localhost:3000
@@ -189,10 +191,11 @@ POSTGRES_PASSWORD=$(openssl rand -hex 24)
 # Production URLs
 N8N_EDITOR_BASE_URL=https://n8n.agentmou.io
 WEBHOOK_URL=https://hooks.agentmou.io
-WEB_APP_BASE_URL=https://agentmou.io
+MARKETING_PUBLIC_BASE_URL=https://agentmou.io
+APP_PUBLIC_BASE_URL=https://app.agentmou.io
 API_PUBLIC_BASE_URL=https://api.agentmou.io
-CORS_ORIGIN=https://agentmou.io
-AUTH_WEB_ORIGIN_ALLOWLIST=https://agentmou.io,https://www.agentmou.io
+CORS_ORIGIN=https://app.agentmou.io
+AUTH_WEB_ORIGIN_ALLOWLIST=https://app.agentmou.io
 
 # OAuth (if using)
 GOOGLE_OAUTH_CLIENT_ID=(your-client-id)

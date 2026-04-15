@@ -208,6 +208,9 @@ Required or important environment variables:
 | Variable | Purpose |
 | --- | --- |
 | `NEXT_PUBLIC_API_URL` | Base URL for `services/api`; defaults to `http://localhost:3001` |
+| `MARKETING_PUBLIC_BASE_URL` | Canonical marketing origin used by metadata and cross-surface public links |
+| `APP_PUBLIC_BASE_URL` | Canonical app/auth origin used by login and demo deep links |
+| `API_PUBLIC_BASE_URL` | Canonical public API origin exposed to the client bundle |
 | `CONTACT_SALES_WEBHOOK_URL` | Optional webhook URL for `POST /api/contact-sales`; when omitted outside production, the route accepts and logs leads locally |
 | `CONTACT_SALES_WEBHOOK_TOKEN` | Optional bearer token sent to the contact-sales webhook |
 | API `AUTH_WEB_ORIGIN_ALLOWLIST` | Comma-separated origins allowed for OAuth `return_url` (e.g. `http://localhost:3000`). Must include the web app origin or OAuth redirects are rejected. |
