@@ -13,7 +13,7 @@ interface PlatformEngineGridProps {
 export function PlatformEngineGrid({ featuredCatalog }: PlatformEngineGridProps) {
   const stats = [
     `${featuredCatalog.gaInventoryCounts.agents} agentes GA`,
-    `${featuredCatalog.gaInventoryCounts.workflows} workflows publicos`,
+    `${featuredCatalog.gaInventoryCounts.workflows} workflows públicos`,
     `${featuredCatalog.gaInventoryCounts.packs} packs operativos`,
   ];
 
@@ -21,14 +21,14 @@ export function PlatformEngineGrid({ featuredCatalog }: PlatformEngineGridProps)
     <section className="border-t border-border/50 bg-[var(--marketing-bg-alt)] py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <FadeContent>
-          <p className="text-editorial-tiny">Narrativa tecnica secundaria</p>
+          <p className="text-editorial-tiny">Narrativa técnica secundaria</p>
           <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
-            El engine sigue aqui, solo que ya no ocupa la portada
+            El engine sigue aquí, solo que ya no ocupa la portada
           </h2>
           <p className="mt-5 max-w-3xl text-lg text-muted-foreground">
-            Agentmou sigue siendo el motor interno de automatizacion: control plane, approvals,
-            observabilidad, n8n y catalogo siguen operativos, pero viven en una capa secundaria
-            respecto a la propuesta visible para clinicas.
+            Agentmou sigue siendo el motor interno de automatización: control plane, approvals,
+            observabilidad, n8n y catálogo siguen operativos, pero viven en una capa secundaria
+            respecto a la propuesta visible para clínicas.
           </p>
         </FadeContent>
 
