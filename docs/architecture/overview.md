@@ -80,8 +80,8 @@ It now also centralizes tenant experience resolution across vertical,
 plan/module baseline, clinic profile/channel configuration, admin eligibility,
 and product rollout with Reflag fail-open fallback so the web shell and tenant
 APIs consume one coherent access model. Legacy booleans such as
-`verticalClinicUi` and `internalPlatformVisible` remain compatibility inputs,
-not the primary source of truth.
+`verticalClinicUi` and `internalPlatformVisible` remain read-only migration
+inputs, not the primary source of truth.
 
 ### services/worker
 

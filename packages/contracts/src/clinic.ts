@@ -976,7 +976,10 @@ export const ClinicDashboardSchema = z.object({
 });
 export type ClinicDashboard = z.infer<typeof ClinicDashboardSchema>;
 
-/** Resolved clinic feature flags surfaced to the client shell. */
+/** Resolved clinic feature flags surfaced to the client shell. Legacy booleans
+ * remain for compatibility reads only; new behavior should rely on the
+ * resolved capability decisions that accompany this payload.
+ */
 export const ClinicResolvedFlagsSchema = z.object({
   verticalClinicUi: z.boolean(),
   clinicDentalMode: z.boolean(),
@@ -1017,7 +1020,9 @@ export const TenantFeatureDecisionReasonSchema = z.enum([
 ]);
 export type TenantFeatureDecisionReason = z.infer<typeof TenantFeatureDecisionReasonSchema>;
 
-/** Decision trace for a single resolved tenant capability. */
+/** Decision trace for a single resolved tenant capability. `legacyField` exists
+ * only to explain compatibility fallbacks while old payloads are still parsed.
+ */
 export const TenantFeatureDecisionSchema = z.object({
   enabled: z.boolean(),
   source: TenantFeatureDecisionSourceSchema,

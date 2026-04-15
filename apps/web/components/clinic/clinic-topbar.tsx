@@ -86,10 +86,7 @@ export function ClinicTopbar({
         </button>
 
         {experience.canAccessInternalPlatform ? (
-          <InternalModeSwitch
-            href={`/app/${experience.tenantId}/platform/dashboard`}
-            label="Modo interno"
-          />
+          <InternalModeSwitch href={`/app/${experience.tenantId}/dashboard`} label="Modo interno" />
         ) : null}
 
         <Button variant="ghost" size="icon" className="relative">

@@ -18,7 +18,7 @@ describe('marketing route redirects', () => {
     redirectMock.mockClear();
   });
 
-  it('redirects /platform to the clinic demo', () => {
+  it('redirects /platform back to the marketing home', () => {
     expect(() => PlatformPage()).toThrow('redirect:/');
     expect(redirectMock).toHaveBeenCalledWith('/');
   });

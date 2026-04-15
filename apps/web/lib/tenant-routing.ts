@@ -84,6 +84,9 @@ export function matchTenantRoute(pathname: string, tenantId: string): RoutePatte
   }
 
   if (relativePath === '/platform' || matchesRoutePrefix(relativePath, '/platform')) {
+    // Keep the legacy `/platform/*` namespace only as a compatibility layer for
+    // old deep links. New navigation should target the canonical top-level
+    // internal routes directly.
     const canonicalPath =
       relativePath === '/platform'
         ? '/dashboard'

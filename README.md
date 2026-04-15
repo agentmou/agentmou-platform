@@ -17,7 +17,7 @@ Canonical public origins:
 
 | Workspace | Description |
 | --------- | ----------- |
-| `apps/web` | Next.js 16 + React 19 frontend. Clinic-first public marketing site, auth flows, web-owned API routes, and authenticated tenant control center under `/app/[tenantId]/`. Resolves `internal`, `clinic`, and `fisio` experiences from `TenantExperience`, keeps top-level internal routes canonical while preserving `/app/[tenantId]/platform/*` as a legacy alias, exposes the Admin console only for admin-capable tenants, keeps `demo-workspace` as the public clinic demo, and uses provider modes to switch between real tenant data and demo overlays. |
+| `apps/web` | Next.js 16 + React 19 frontend. Clinic-first public marketing site, auth flows, web-owned API routes, and authenticated tenant control center under `/app/[tenantId]/`. Resolves `internal`, `clinic`, and `fisio` experiences from `TenantExperience`, keeps top-level internal routes canonical, and only preserves `/app/[tenantId]/platform/*` as compatibility redirects for old deep links. It exposes the Admin console only for admin-capable tenants, keeps `demo-workspace` as the public clinic demo, and uses provider modes to switch between real tenant data and demo overlays. |
 
 ### Services
 
