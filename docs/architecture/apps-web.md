@@ -135,7 +135,7 @@ Once the tenant is inside the app, `useResolvedTenantExperience` prefers
 
 - `internal`, `clinic`, or `fisio`
 - normalized role and permissions
-- resolved feature flags
+- resolved feature flags and optional capability decision trace
 - allowed navigation
 - settings sections
 - enriched module entitlements

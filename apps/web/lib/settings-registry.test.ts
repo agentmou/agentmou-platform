@@ -174,6 +174,9 @@ describe('settings registry', () => {
       'care_gap_recovery',
       'care_reactivation',
     ]);
+    expect(sections.find((section) => section.key === 'plan')?.description).toBe(
+      'Entitlements del plan, readiness operativa, rollout y compatibilidad legacy.'
+    );
   });
 
   it('keeps fisio limited to the shared base plus the prepared care subset', () => {

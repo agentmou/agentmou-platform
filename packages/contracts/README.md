@@ -52,8 +52,12 @@ operations, filter schemas, request bodies, resolved experience payloads for
 shell/navigation gating, and the structured feature unavailable error used by
 the backend and typed web clients.
 
-The tenancy module now also carries the persisted experience flag
-`internalPlatformVisible` alongside `verticalClinicUi` and `clinicDentalMode`.
+The tenancy module still carries the persisted compatibility flags
+`verticalClinicUi`, `clinicDentalMode`, and `internalPlatformVisible`, but
+they are now explicitly legacy read-model inputs. New decision logic should
+prefer `activeVertical` plus resolved tenant experience, including optional
+`featureDecisions` traces for capability rollout, readiness, and internal
+access.
 
 ## Development
 

@@ -130,8 +130,8 @@ const SETTINGS_SECTION_DEFINITIONS: SettingsSectionDefinition[] = [
       context.experience.activeVertical === 'internal' ? 'Plan and modules' : 'Plan y módulos',
     description: (context) =>
       context.experience.activeVertical === 'internal'
-        ? 'Commercial plan, billing posture, and enabled capabilities.'
-        : 'Plan activo, módulos visibles y estado de configuración.',
+        ? 'Commercial entitlements, internal access, rollout posture, and capability state.'
+        : 'Entitlements del plan, readiness operativa, rollout y compatibilidad legacy.',
     render: (context) => <PlanSettingsSection context={context} />,
   },
   {

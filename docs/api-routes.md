@@ -125,9 +125,10 @@ in the path:
 
 - `installations`, `approvals`, `runs`, and `usage` now sit behind the extra
   `requireInternalPlatformAccess` tenant-scoped guard.
-- Internal access is derived from normalized role (`owner|admin`), the
-  resolved `internal_platform` module entitlement, and
-  `tenant.settings.internalPlatformVisible`.
+- Internal access is derived from normalized role (`owner|admin`) plus the
+  resolved tenant-experience internal-access decisions; legacy
+  `tenant.settings.internalPlatformVisible` remains compatibility-only input,
+  not the primary guard.
 - Shared tenant and clinic configuration routes stay outside that internal-only
   layer because the clinic shell still needs them.
 

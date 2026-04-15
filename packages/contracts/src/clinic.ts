@@ -992,6 +992,61 @@ export const ClinicResolvedFlagsSchema = z.object({
 });
 export type ClinicResolvedFlags = z.infer<typeof ClinicResolvedFlagsSchema>;
 
+/** Source of truth layer that decided a resolved tenant capability. */
+export const TenantFeatureDecisionSourceSchema = z.enum([
+  'entitlement',
+  'readiness',
+  'rollout',
+  'internal_access',
+  'legacy_fallback',
+]);
+export type TenantFeatureDecisionSource = z.infer<typeof TenantFeatureDecisionSourceSchema>;
+
+/** Reasons surfaced when a resolved tenant capability is disabled or degraded. */
+export const TenantFeatureDecisionReasonSchema = z.enum([
+  'not_in_plan',
+  'hidden_internal_only',
+  'disabled_by_tenant',
+  'disabled_by_feature_flag',
+  'requires_configuration',
+  'channel_inactive',
+  'channel_missing',
+  'insufficient_role',
+  'not_admin_tenant',
+  'legacy_compatibility',
+]);
+export type TenantFeatureDecisionReason = z.infer<typeof TenantFeatureDecisionReasonSchema>;
+
+/** Decision trace for a single resolved tenant capability. */
+export const TenantFeatureDecisionSchema = z.object({
+  enabled: z.boolean(),
+  source: TenantFeatureDecisionSourceSchema,
+  reason: TenantFeatureDecisionReasonSchema.optional(),
+  moduleKey: ModuleKeySchema.optional(),
+  channelType: ChannelTypeSchema.optional(),
+  rolloutKey: z.string().optional(),
+  legacyField: z
+    .enum(['verticalClinicUi', 'clinicDentalMode', 'internalPlatformVisible'])
+    .optional(),
+  detail: z.string().optional(),
+});
+export type TenantFeatureDecision = z.infer<typeof TenantFeatureDecisionSchema>;
+
+/** Structured trace for resolved tenant capabilities shown in product UI. */
+export const TenantFeatureDecisionsSchema = z.object({
+  voiceInboundEnabled: TenantFeatureDecisionSchema,
+  voiceOutboundEnabled: TenantFeatureDecisionSchema,
+  whatsappOutboundEnabled: TenantFeatureDecisionSchema,
+  intakeFormsEnabled: TenantFeatureDecisionSchema,
+  appointmentConfirmationsEnabled: TenantFeatureDecisionSchema,
+  smartGapFillEnabled: TenantFeatureDecisionSchema,
+  reactivationEnabled: TenantFeatureDecisionSchema,
+  advancedClinicModeEnabled: TenantFeatureDecisionSchema,
+  internalPlatformVisible: TenantFeatureDecisionSchema,
+  adminConsoleEnabled: TenantFeatureDecisionSchema,
+});
+export type TenantFeatureDecisions = z.infer<typeof TenantFeatureDecisionsSchema>;
+
 /** Permissions shared by tenant experience resolvers across verticals. */
 export const TenantPermissionSchema = z.enum([
   'view_dashboard',
@@ -1090,6 +1145,7 @@ export const TenantExperienceSchema = z.object({
   allowedNavigation: z.array(TenantNavigationKeySchema),
   modules: z.array(ClinicModuleEntitlementSchema),
   flags: TenantResolvedFlagsSchema,
+  featureDecisions: TenantFeatureDecisionsSchema.optional(),
   settingsSections: z.array(TenantSettingsSectionSchema),
   canAccessInternalPlatform: z.boolean(),
   canAccessAdminConsole: z.boolean(),

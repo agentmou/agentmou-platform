@@ -118,14 +118,14 @@ describe('FeatureFlagService', () => {
     expect(result.flags.voiceOutboundEnabled).toBe(true);
     expect(result.flags.intakeFormsEnabled).toBe(true);
     expect(result.flags.reactivationEnabled).toBe(true);
-    expect(result.flags.adminConsoleEnabled).toBe(false);
+    expect(result.flags.whatsappOutboundEnabled).toBe(true);
   });
 
   it('disables reactivation with a reflag override while keeping baseline modules intact', async () => {
     const service = createService({
       reflagResult: {
         overrides: {
-          [FEATURE_FLAG_KEYS.clinicReactivationEnabled]: false,
+          [FEATURE_FLAG_KEYS.clinicReactivationRollout]: false,
         },
       },
     });
@@ -135,10 +135,10 @@ describe('FeatureFlagService', () => {
     expect(result.flags.reactivationEnabled).toBe(false);
     expect(result.decisions.reactivationEnabled).toMatchObject({
       enabled: false,
-      source: 'reflag',
+      source: 'rollout',
       reason: 'disabled_by_feature_flag',
       moduleKey: 'growth',
-      featureKey: FEATURE_FLAG_KEYS.clinicReactivationEnabled,
+      rolloutKey: FEATURE_FLAG_KEYS.clinicReactivationRollout,
     });
   });
 
@@ -146,7 +146,7 @@ describe('FeatureFlagService', () => {
     const service = createService({
       reflagResult: {
         overrides: {
-          [FEATURE_FLAG_KEYS.clinicVoiceOutboundEnabled]: false,
+          [FEATURE_FLAG_KEYS.clinicVoiceOutboundRollout]: false,
         },
       },
     });
@@ -156,6 +156,38 @@ describe('FeatureFlagService', () => {
     expect(result.flags.voiceInboundEnabled).toBe(true);
     expect(result.flags.voiceOutboundEnabled).toBe(false);
     expect(result.decisions.voiceOutboundEnabled.reason).toBe('disabled_by_feature_flag');
+  });
+
+  it('keeps whatsapp outbound tied to entitlement and readiness even if a rollout key is sent', async () => {
+    const service = createService({
+      reflagResult: {
+        overrides: {
+          [FEATURE_FLAG_KEYS.clinicVoiceInboundRollout]: true,
+          [FEATURE_FLAG_KEYS.clinicFormsRollout]: true,
+        },
+      },
+    });
+
+    const result = await service.resolve(
+      buildContext({
+        channels: [
+          buildChannel('voice'),
+          buildChannel('whatsapp', {
+            status: 'inactive',
+            directionPolicy: { inboundEnabled: false, outboundEnabled: false },
+          }),
+        ],
+      })
+    );
+
+    expect(result.flags.whatsappOutboundEnabled).toBe(false);
+    expect(result.decisions.whatsappOutboundEnabled).toMatchObject({
+      enabled: false,
+      source: 'readiness',
+      reason: 'channel_inactive',
+      moduleKey: 'core_reception',
+      channelType: 'whatsapp',
+    });
   });
 
   it('falls back to the DB baseline when the reflag provider fails', async () => {
@@ -175,8 +207,8 @@ describe('FeatureFlagService', () => {
   it('keeps unsupported fisio features off even when local overrides try to enable them', async () => {
     const service = createService({
       localOverrides: JSON.stringify({
-        [FEATURE_FLAG_KEYS.clinicReactivationEnabled]: true,
-        [FEATURE_FLAG_KEYS.clinicGapsEnabled]: true,
+        [FEATURE_FLAG_KEYS.clinicReactivationRollout]: true,
+        [FEATURE_FLAG_KEYS.clinicGapRecoveryRollout]: true,
       }),
     });
 
@@ -189,29 +221,5 @@ describe('FeatureFlagService', () => {
 
     expect(result.flags.reactivationEnabled).toBe(false);
     expect(result.flags.smartGapFillEnabled).toBe(false);
-  });
-
-  it('disables the admin console for internal tenants when the admin flag is off', async () => {
-    const service = createService({
-      reflagResult: {
-        overrides: {
-          [FEATURE_FLAG_KEYS.adminConsoleEnabled]: false,
-        },
-      },
-    });
-
-    const result = await service.resolve(
-      buildContext({
-        activeVertical: 'internal',
-        isPlatformAdminTenant: true,
-        modules: [],
-        channels: [],
-        profile: null,
-      })
-    );
-
-    expect(result.flags.internalPlatformVisible).toBe(true);
-    expect(result.flags.adminConsoleEnabled).toBe(false);
-    expect(result.decisions.adminConsoleEnabled.reason).toBe('disabled_by_feature_flag');
   });
 });

@@ -1,5 +1,6 @@
 import {
   type ChannelType,
+  type ClinicFeatureUnavailableReason,
   type ClinicModuleEntitlement,
   type ClinicPermission,
   type ModuleKey,
@@ -66,6 +67,21 @@ function getFeatureUnavailableReason(reason?: ClinicModuleEntitlement['visibilit
   return !reason || reason === 'active' ? 'not_in_plan' : reason;
 }
 
+function toClinicFeatureUnavailableReason(reason?: string): ClinicFeatureUnavailableReason {
+  if (
+    reason === 'disabled_by_tenant' ||
+    reason === 'disabled_by_feature_flag' ||
+    reason === 'requires_configuration' ||
+    reason === 'channel_inactive' ||
+    reason === 'channel_missing' ||
+    reason === 'hidden_internal_only'
+  ) {
+    return reason;
+  }
+
+  return 'not_in_plan';
+}
+
 export async function assertClinicModuleAvailable(tenantId: string, moduleKey: ModuleKey) {
   const repository = new ClinicExperienceRepository();
   const context = await repository.loadContext(tenantId);
@@ -118,7 +134,7 @@ export async function assertClinicFeatureAvailable(
 
   if (!decision.enabled) {
     throw new ClinicFeatureUnavailableRouteError({
-      reason: decision.reason ?? 'not_in_plan',
+      reason: toClinicFeatureUnavailableReason(decision.reason),
       moduleKey: decision.moduleKey,
       channelType: decision.channelType,
       detail: `Feature "${featureKey}" is not available for this tenant.`,

@@ -1,10 +1,10 @@
 import type {
   ChannelType,
   ClinicChannel,
-  ClinicFeatureUnavailableReason,
   ClinicModuleEntitlement,
   ClinicProfile,
   ModuleKey,
+  TenantFeatureDecisionReason,
   TenantPlan,
   TenantResolvedFlags,
   VerticalKey,
@@ -16,18 +16,19 @@ import { FEATURE_FLAG_KEYS, FEATURE_FLAG_KEYS_IN_ORDER, type FeatureFlagKey } fr
 import { LocalFallbackProvider } from './local-fallback-provider.js';
 import { ReflagProvider } from './reflag-provider.js';
 
-export type FeatureFlagDecisionSource = 'baseline' | 'prerequisite' | 'reflag';
+export type FeatureFlagDecisionSource = 'entitlement' | 'readiness' | 'rollout';
 
 export interface ResolvedFeatureDecision {
   enabled: boolean;
   source: FeatureFlagDecisionSource;
-  reason?: ClinicFeatureUnavailableReason;
+  reason?: TenantFeatureDecisionReason;
   moduleKey?: ModuleKey;
   channelType?: ChannelType;
-  featureKey?: FeatureFlagKey;
+  rolloutKey?: FeatureFlagKey;
+  detail?: string;
 }
 
-export interface ResolvedTenantFeatureDecisions {
+export interface ResolvedProductFeatureDecisions {
   voiceInboundEnabled: ResolvedFeatureDecision;
   voiceOutboundEnabled: ResolvedFeatureDecision;
   whatsappOutboundEnabled: ResolvedFeatureDecision;
@@ -36,8 +37,6 @@ export interface ResolvedTenantFeatureDecisions {
   smartGapFillEnabled: ResolvedFeatureDecision;
   reactivationEnabled: ResolvedFeatureDecision;
   advancedClinicModeEnabled: ResolvedFeatureDecision;
-  internalPlatformVisible: ResolvedFeatureDecision;
-  adminConsoleEnabled: ResolvedFeatureDecision;
 }
 
 export interface FeatureFlagResolution {
@@ -51,10 +50,8 @@ export interface FeatureFlagResolution {
     | 'smartGapFillEnabled'
     | 'reactivationEnabled'
     | 'advancedClinicModeEnabled'
-    | 'internalPlatformVisible'
-    | 'adminConsoleEnabled'
   >;
-  decisions: ResolvedTenantFeatureDecisions;
+  decisions: ResolvedProductFeatureDecisions;
 }
 
 export interface FeatureFlagContext {
@@ -69,7 +66,7 @@ export interface FeatureFlagContext {
 
 function toModuleReason(
   reason?: ClinicModuleEntitlement['visibilityReason']
-): ClinicFeatureUnavailableReason {
+): TenantFeatureDecisionReason {
   return !reason || reason === 'active' ? 'not_in_plan' : reason;
 }
 
@@ -94,10 +91,11 @@ function hasEnabledDirection(
 
 function createDisabledDecision(params: {
   source: FeatureFlagDecisionSource;
-  reason: ClinicFeatureUnavailableReason;
+  reason: TenantFeatureDecisionReason;
   moduleKey?: ModuleKey;
   channelType?: ChannelType;
-  featureKey?: FeatureFlagKey;
+  rolloutKey?: FeatureFlagKey;
+  detail?: string;
 }): ResolvedFeatureDecision {
   return {
     enabled: false,
@@ -105,7 +103,8 @@ function createDisabledDecision(params: {
     reason: params.reason,
     moduleKey: params.moduleKey,
     channelType: params.channelType,
-    featureKey: params.featureKey,
+    rolloutKey: params.rolloutKey,
+    detail: params.detail,
   };
 }
 
@@ -113,14 +112,16 @@ function createEnabledDecision(params: {
   source: FeatureFlagDecisionSource;
   moduleKey?: ModuleKey;
   channelType?: ChannelType;
-  featureKey?: FeatureFlagKey;
+  rolloutKey?: FeatureFlagKey;
+  detail?: string;
 }): ResolvedFeatureDecision {
   return {
     enabled: true,
     source: params.source,
     moduleKey: params.moduleKey,
     channelType: params.channelType,
-    featureKey: params.featureKey,
+    rolloutKey: params.rolloutKey,
+    detail: params.detail,
   };
 }
 
@@ -193,7 +194,7 @@ export class FeatureFlagService {
       const module = moduleByKey[moduleKey];
       if (!module || !module.enabled || module.visibilityReason !== 'active') {
         return createDisabledDecision({
-          source: 'baseline',
+          source: 'entitlement',
           reason: toModuleReason(module?.visibilityReason),
           moduleKey,
         });
@@ -212,20 +213,20 @@ export class FeatureFlagService {
 
       if (flagOverrides[featureKey] === false) {
         return createDisabledDecision({
-          source: 'reflag',
+          source: 'rollout',
           reason: 'disabled_by_feature_flag',
           moduleKey: decision.moduleKey,
           channelType: decision.channelType,
-          featureKey,
+          rolloutKey: featureKey,
         });
       }
 
       if (flagOverrides[featureKey] === true) {
         return createEnabledDecision({
-          source: 'reflag',
+          source: 'rollout',
           moduleKey: decision.moduleKey,
           channelType: decision.channelType,
-          featureKey,
+          rolloutKey: featureKey,
         });
       }
 
@@ -242,35 +243,35 @@ export class FeatureFlagService {
         (hasConfiguredChannel(context.channels, 'voice')
           ? hasEnabledDirection(context.channels, 'voice', 'inbound')
             ? createEnabledDecision({
-                source: 'prerequisite',
+                source: 'readiness',
                 moduleKey: 'voice',
                 channelType: 'voice',
               })
             : createDisabledDecision({
-                source: 'prerequisite',
+                source: 'readiness',
                 reason: 'channel_inactive',
                 moduleKey: 'voice',
                 channelType: 'voice',
               })
           : createDisabledDecision({
-              source: 'prerequisite',
+              source: 'readiness',
               reason: 'channel_missing',
               moduleKey: 'voice',
               channelType: 'voice',
             })),
-      FEATURE_FLAG_KEYS.clinicVoiceEnabled
+      FEATURE_FLAG_KEYS.clinicVoiceInboundRollout
     );
 
     const voiceOutboundPrerequisite =
       voiceInbound.enabled && hasEnabledDirection(context.channels, 'voice', 'outbound')
         ? createEnabledDecision({
-            source: 'prerequisite',
+            source: 'readiness',
             moduleKey: 'voice',
             channelType: 'voice',
           })
         : voiceInbound.enabled
           ? createDisabledDecision({
-              source: 'prerequisite',
+              source: 'readiness',
               reason: hasConfiguredChannel(context.channels, 'voice')
                 ? 'channel_inactive'
                 : 'channel_missing',
@@ -282,24 +283,24 @@ export class FeatureFlagService {
               reason: voiceInbound.reason ?? 'not_in_plan',
               moduleKey: 'voice',
               channelType: 'voice',
-              featureKey: voiceInbound.featureKey,
+              rolloutKey: voiceInbound.rolloutKey,
             });
 
     const voiceOutbound = applyOverride(
       voiceOutboundPrerequisite,
-      FEATURE_FLAG_KEYS.clinicVoiceOutboundEnabled
+      FEATURE_FLAG_KEYS.clinicVoiceOutboundRollout
     );
 
     const whatsappOutbound =
       coreBaseline ??
       (hasEnabledDirection(context.channels, 'whatsapp', 'outbound')
         ? createEnabledDecision({
-            source: 'prerequisite',
+            source: 'readiness',
             moduleKey: 'core_reception',
             channelType: 'whatsapp',
           })
         : createDisabledDecision({
-            source: 'prerequisite',
+            source: 'readiness',
             reason: hasConfiguredChannel(context.channels, 'whatsapp')
               ? 'channel_inactive'
               : 'channel_missing',
@@ -311,30 +312,30 @@ export class FeatureFlagService {
       coreBaseline ??
         (context.profile?.requiresNewPatientForm
           ? createEnabledDecision({
-              source: 'prerequisite',
+              source: 'readiness',
               moduleKey: 'core_reception',
             })
           : createDisabledDecision({
-              source: 'prerequisite',
+              source: 'readiness',
               reason: 'requires_configuration',
               moduleKey: 'core_reception',
             })),
-      FEATURE_FLAG_KEYS.clinicFormsEnabled
+      FEATURE_FLAG_KEYS.clinicFormsRollout
     );
 
     const appointmentConfirmations = applyOverride(
       coreBaseline ??
         (context.profile?.confirmationPolicy.enabled !== false
           ? createEnabledDecision({
-              source: 'prerequisite',
+              source: 'readiness',
               moduleKey: 'core_reception',
             })
           : createDisabledDecision({
-              source: 'prerequisite',
+              source: 'readiness',
               reason: 'requires_configuration',
               moduleKey: 'core_reception',
             })),
-      FEATURE_FLAG_KEYS.clinicConfirmationsEnabled
+      FEATURE_FLAG_KEYS.clinicConfirmationsRollout
     );
 
     const smartGapFill =
@@ -343,18 +344,18 @@ export class FeatureFlagService {
             growthBaseline ??
               (context.profile?.gapRecoveryPolicy.enabled !== false
                 ? createEnabledDecision({
-                    source: 'prerequisite',
+                    source: 'readiness',
                     moduleKey: 'growth',
                   })
                 : createDisabledDecision({
-                    source: 'prerequisite',
+                    source: 'readiness',
                     reason: 'requires_configuration',
                     moduleKey: 'growth',
                   })),
-            FEATURE_FLAG_KEYS.clinicGapsEnabled
+            FEATURE_FLAG_KEYS.clinicGapRecoveryRollout
           )
         : createDisabledDecision({
-            source: 'baseline',
+            source: 'entitlement',
             reason: 'not_in_plan',
             moduleKey: 'growth',
           });
@@ -365,18 +366,18 @@ export class FeatureFlagService {
             growthBaseline ??
               (context.profile?.reactivationPolicy.enabled !== false
                 ? createEnabledDecision({
-                    source: 'prerequisite',
+                    source: 'readiness',
                     moduleKey: 'growth',
                   })
                 : createDisabledDecision({
-                    source: 'prerequisite',
+                    source: 'readiness',
                     reason: 'requires_configuration',
                     moduleKey: 'growth',
                   })),
-            FEATURE_FLAG_KEYS.clinicReactivationEnabled
+            FEATURE_FLAG_KEYS.clinicReactivationRollout
           )
         : createDisabledDecision({
-            source: 'baseline',
+            source: 'entitlement',
             reason: 'not_in_plan',
             moduleKey: 'growth',
           });
@@ -386,48 +387,18 @@ export class FeatureFlagService {
         ? applyOverride(
             advancedBaseline ??
               createEnabledDecision({
-                source: 'baseline',
+                source: 'entitlement',
                 moduleKey: 'advanced_mode',
               }),
-            FEATURE_FLAG_KEYS.clinicAdvancedSettingsEnabled
+            FEATURE_FLAG_KEYS.clinicAdvancedSettingsRollout
           )
         : createDisabledDecision({
-            source: 'baseline',
+            source: 'entitlement',
             reason: 'not_in_plan',
             moduleKey: 'advanced_mode',
           });
 
-    const internalPlatformVisible =
-      context.activeVertical === 'internal'
-        ? applyOverride(
-            createEnabledDecision({
-              source: 'baseline',
-              moduleKey: 'internal_platform',
-            }),
-            FEATURE_FLAG_KEYS.internalPlatformVisible
-          )
-        : createDisabledDecision({
-            source: 'baseline',
-            reason: 'hidden_internal_only',
-            moduleKey: 'internal_platform',
-          });
-
-    const adminConsoleEnabled =
-      context.activeVertical === 'internal' && context.isPlatformAdminTenant
-        ? applyOverride(
-            createEnabledDecision({
-              source: 'baseline',
-              featureKey: FEATURE_FLAG_KEYS.adminConsoleEnabled,
-            }),
-            FEATURE_FLAG_KEYS.adminConsoleEnabled
-          )
-        : createDisabledDecision({
-            source: 'baseline',
-            reason: 'not_in_plan',
-            featureKey: FEATURE_FLAG_KEYS.adminConsoleEnabled,
-          });
-
-    const decisions: ResolvedTenantFeatureDecisions = {
+    const decisions: ResolvedProductFeatureDecisions = {
       voiceInboundEnabled: voiceInbound,
       voiceOutboundEnabled: voiceOutbound,
       whatsappOutboundEnabled: whatsappOutbound,
@@ -436,8 +407,6 @@ export class FeatureFlagService {
       smartGapFillEnabled: smartGapFill,
       reactivationEnabled: reactivation,
       advancedClinicModeEnabled: advancedClinicMode,
-      internalPlatformVisible,
-      adminConsoleEnabled,
     };
 
     return {
@@ -450,8 +419,6 @@ export class FeatureFlagService {
         smartGapFillEnabled: decisions.smartGapFillEnabled.enabled,
         reactivationEnabled: decisions.reactivationEnabled.enabled,
         advancedClinicModeEnabled: decisions.advancedClinicModeEnabled.enabled,
-        internalPlatformVisible: decisions.internalPlatformVisible.enabled,
-        adminConsoleEnabled: decisions.adminConsoleEnabled.enabled,
       },
       decisions,
     };

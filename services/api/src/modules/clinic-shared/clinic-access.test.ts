@@ -117,7 +117,7 @@ describe('clinic feature access', () => {
 
   it('returns disabled_by_feature_flag when reactivation is turned off by local overrides', async () => {
     process.env.REFLAG_LOCAL_OVERRIDES_JSON = JSON.stringify({
-      'clinic.reactivation.enabled': false,
+      'rollout.clinic.reactivation': false,
     });
     loadContextMock.mockResolvedValue(buildContext());
 
@@ -136,7 +136,7 @@ describe('clinic feature access', () => {
 
   it('keeps channel reasons ahead of feature flag overrides for voice outbound', async () => {
     process.env.REFLAG_LOCAL_OVERRIDES_JSON = JSON.stringify({
-      'clinic.voice.outbound.enabled': false,
+      'rollout.clinic.voice.outbound': false,
     });
     loadContextMock.mockResolvedValue({
       ...buildContext(),

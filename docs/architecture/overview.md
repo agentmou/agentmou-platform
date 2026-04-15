@@ -59,7 +59,8 @@ It now also resolves the tenant experience itself:
 - top-level internal routes are canonical, while `/app/[tenantId]/platform/*`
   remains as a compatibility alias
 - the resolved `TenantExperience` payload drives permissions, navigation,
-  settings sections, feature flags, admin visibility, and internal access
+  settings sections, feature flags, admin visibility, internal access, and
+  optional `featureDecisions` traces for entitlement/readiness/rollout
 
 ### services/api
 
@@ -77,8 +78,10 @@ It persists state through `@agentmou/db`, loads operational manifests through
 `@agentmou/catalog-sdk`, and enqueues long-running work via `@agentmou/queue`.
 It now also centralizes tenant experience resolution across vertical,
 plan/module baseline, clinic profile/channel configuration, admin eligibility,
-and server-side feature flags with Reflag fail-open fallback so the web shell
-and tenant APIs consume one coherent access model.
+and product rollout with Reflag fail-open fallback so the web shell and tenant
+APIs consume one coherent access model. Legacy booleans such as
+`verticalClinicUi` and `internalPlatformVisible` remain compatibility inputs,
+not the primary source of truth.
 
 ### services/worker
 
@@ -143,9 +146,10 @@ API route families, backend services/read models, typed web API clients, the
 clinic tenant shell, the shared settings framework, the Admin surface, and the
 widened `DataProvider` used by the web app. The resolved `TenantExperience`
 layer is now the canonical source for permissions, flags, navigation, settings
-sections, internal access, and admin visibility. Internal access is not a
-separate staff-user model; it is derived from normalized tenant role plus the
-resolved `internalPlatformVisible` / `adminConsoleEnabled` outputs.
+sections, internal access, admin visibility, and decision trace. Internal
+access is not a separate staff-user model; it is derived outside rollout from
+normalized tenant role, tenant type, and the resolved
+`internalPlatformVisible` / `adminConsoleEnabled` outputs.
 
 ### Redis and `@agentmou/queue`
 

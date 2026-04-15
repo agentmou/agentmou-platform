@@ -148,6 +148,65 @@ describe('Clinic domain schemas', () => {
         advancedClinicModeEnabled: false,
         internalPlatformVisible: true,
       },
+      featureDecisions: {
+        voiceInboundEnabled: {
+          enabled: true,
+          source: 'readiness',
+          moduleKey: 'voice',
+          channelType: 'voice',
+        },
+        voiceOutboundEnabled: {
+          enabled: false,
+          source: 'rollout',
+          reason: 'disabled_by_feature_flag',
+          moduleKey: 'voice',
+          channelType: 'voice',
+          rolloutKey: 'rollout.clinic.voice.outbound',
+        },
+        whatsappOutboundEnabled: {
+          enabled: true,
+          source: 'readiness',
+          moduleKey: 'core_reception',
+          channelType: 'whatsapp',
+        },
+        intakeFormsEnabled: {
+          enabled: true,
+          source: 'readiness',
+          moduleKey: 'core_reception',
+        },
+        appointmentConfirmationsEnabled: {
+          enabled: true,
+          source: 'readiness',
+          moduleKey: 'core_reception',
+        },
+        smartGapFillEnabled: {
+          enabled: true,
+          source: 'readiness',
+          moduleKey: 'growth',
+        },
+        reactivationEnabled: {
+          enabled: true,
+          source: 'readiness',
+          moduleKey: 'growth',
+        },
+        advancedClinicModeEnabled: {
+          enabled: false,
+          source: 'entitlement',
+          reason: 'not_in_plan',
+          moduleKey: 'advanced_mode',
+        },
+        internalPlatformVisible: {
+          enabled: false,
+          source: 'internal_access',
+          reason: 'hidden_internal_only',
+          moduleKey: 'internal_platform',
+        },
+        adminConsoleEnabled: {
+          enabled: false,
+          source: 'internal_access',
+          reason: 'hidden_internal_only',
+        },
+      },
       settingsSections: [
         'general',
         'team',
@@ -168,6 +227,9 @@ describe('Clinic domain schemas', () => {
 
     expect(result.flags.activeVertical).toBe('clinic');
     expect(result.flags.adminConsoleEnabled).toBe(false);
+    expect(result.featureDecisions?.voiceOutboundEnabled.rolloutKey).toBe(
+      'rollout.clinic.voice.outbound'
+    );
     expect(result.settingsSections).toContain('care_forms');
   });
 
