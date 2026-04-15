@@ -18,6 +18,7 @@ import {
 import { PasswordInput } from './password-input';
 import { ForgotPasswordModal } from './forgot-password-modal';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { buildOAuthReturnUrl } from '@/lib/auth/oauth-return-url';
 
 interface AuthFormProps {
   className?: string;
@@ -70,10 +71,10 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
   const showOauth = oauthProviders && (oauthProviders.google || oauthProviders.microsoft);
 
   const startOAuth = (provider: 'google' | 'microsoft') => {
-    const u = new URL(`${window.location.origin}/auth/callback`);
-    const r = searchParams.get('redirect');
-    if (r) u.searchParams.set('redirect', r);
-    window.location.href = getOAuthAuthorizeUrl(provider, u.toString());
+    window.location.href = getOAuthAuthorizeUrl(
+      provider,
+      buildOAuthReturnUrl(searchParams.get('redirect'))
+    );
   };
 
   const validateEmail = (email: string): boolean => {
