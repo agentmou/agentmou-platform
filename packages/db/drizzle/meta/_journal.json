@@ -71,6 +71,13 @@
       "when": 1776116100000,
       "tag": "0009_solid_mimic",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1776207600000,
+      "tag": "0010_mellow_malibu",
+      "breakpoints": true
     }
   ]
 }

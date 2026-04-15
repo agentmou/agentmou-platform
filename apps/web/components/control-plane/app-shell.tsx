@@ -473,8 +473,8 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => {
-                      logout();
+                    onClick={async () => {
+                      await logout();
                       window.location.href = '/login';
                     }}
                   >

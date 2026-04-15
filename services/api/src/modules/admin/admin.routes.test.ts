@@ -27,6 +27,9 @@ async function buildAdminRoutesApp() {
   app.addHook('preHandler', async (request) => {
     request.userId = '0f7d76b0-e149-4bc8-b8ba-7e71938ef6d2';
     request.adminTenantId = '6ad5a85e-1dc1-4ce3-b8df-a6dcf6cc12b1';
+    request.authSession = {
+      id: 'auth-session-1',
+    } as never;
     request.authContext = {
       userId: '0f7d76b0-e149-4bc8-b8ba-7e71938ef6d2',
       email: 'admin@example.com',
@@ -86,7 +89,7 @@ describe('adminRoutes', () => {
     });
 
     await app.close();
-  });
+  }, 10_000);
 
   it('changes a tenant vertical with actor context from the request', async () => {
     mockService.changeTenantVertical.mockResolvedValue({
@@ -187,30 +190,31 @@ describe('adminRoutes', () => {
 
   it('stops impersonation using the authenticated impersonation context', async () => {
     mockService.stopImpersonation.mockResolvedValue({
-      sessionId: 'session-1',
-      token: 'actor-token',
+      sessionId: 'restored-session-1',
       endedAt: '2026-04-13T10:00:00.000Z',
+      cookieSession: {
+        token: 'opaque-cookie-token',
+        expiresAt: new Date('2026-04-20T10:00:00.000Z'),
+      },
     });
 
     const app = await buildAdminRoutesApp();
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/admin/impersonation/stop',
-      payload: {
-        restoreToken: 'restore-token',
-      },
+      payload: {},
     });
 
     expect(response.statusCode).toBe(200);
     expect(mockService.stopImpersonation).toHaveBeenCalledWith({
-      body: {
-        restoreToken: 'restore-token',
-      },
+      body: {},
       authContext: {
         userId: '0f7d76b0-e149-4bc8-b8ba-7e71938ef6d2',
         email: 'admin@example.com',
       },
+      authSessionId: 'auth-session-1',
     });
+    expect(String(response.headers['set-cookie'])).toContain('agentmou-session=');
 
     await app.close();
   });

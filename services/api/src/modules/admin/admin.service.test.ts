@@ -29,10 +29,8 @@ function createDependenciesMock() {
   return {
     issuePasswordResetToken: vi.fn(),
     recordAdminAuditEvent: vi.fn(),
-    createImpersonationToken: vi.fn(),
-    createImpersonationRestoreToken: vi.fn(),
-    createToken: vi.fn(),
-    verifyToken: vi.fn(),
+    createAuthSession: vi.fn(),
+    revokeAuthSessionById: vi.fn(),
     now: vi.fn(),
   };
 }
@@ -354,7 +352,7 @@ describe('AdminService', () => {
     );
   });
 
-  it('starts impersonation with paired tokens and audit trail', async () => {
+  it('starts impersonation with an opaque session cookie and audit trail', async () => {
     const repository = createRepositoryMock();
     const dependencies = createDependenciesMock();
     dependencies.now.mockReturnValue(now);
@@ -379,8 +377,13 @@ describe('AdminService', () => {
       id: 'session-1',
       expiresAt: new Date('2026-04-13T10:30:00.000Z'),
     });
-    dependencies.createImpersonationToken.mockResolvedValue('impersonation-token');
-    dependencies.createImpersonationRestoreToken.mockResolvedValue('restore-token');
+    dependencies.createAuthSession.mockResolvedValue({
+      session: {
+        id: 'auth-session-1',
+        expiresAt: new Date('2026-04-13T10:30:00.000Z'),
+      },
+      token: 'opaque-session-token',
+    });
 
     const service = new AdminService(repository as never, dependencies as never);
     const response = await service.startImpersonation({
@@ -403,9 +406,11 @@ describe('AdminService', () => {
     );
     expect(response).toEqual({
       sessionId: 'session-1',
-      impersonationToken: 'impersonation-token',
-      restoreToken: 'restore-token',
       expiresAt: '2026-04-13T10:30:00.000Z',
+      cookieSession: {
+        token: 'opaque-session-token',
+        expiresAt: new Date('2026-04-13T10:30:00.000Z'),
+      },
     });
     expect(dependencies.recordAdminAuditEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -414,20 +419,10 @@ describe('AdminService', () => {
     );
   });
 
-  it('stops impersonation with a restore token and returns the actor token', async () => {
+  it('stops impersonation by restoring a fresh actor session', async () => {
     const repository = createRepositoryMock();
     const dependencies = createDependenciesMock();
     dependencies.now.mockReturnValue(now);
-    dependencies.verifyToken.mockResolvedValue({
-      userId: 'user-admin',
-      email: 'admin@example.com',
-      isImpersonationRestore: true,
-      impersonationSessionId: 'session-1',
-      actorUserId: 'user-admin',
-      actorTenantId: 'tenant-admin',
-      targetUserId: 'user-target',
-      targetTenantId: 'tenant-1',
-    });
     repository.getImpersonationSession.mockResolvedValue({
       id: 'session-1',
       actorUserId: 'user-admin',
@@ -442,13 +437,18 @@ describe('AdminService', () => {
       email: 'admin@example.com',
       name: 'Admin',
     });
-    dependencies.createToken.mockResolvedValue('actor-token');
+    dependencies.createAuthSession.mockResolvedValue({
+      session: {
+        id: 'restored-session-1',
+        expiresAt: new Date('2026-04-20T10:00:00.000Z'),
+      },
+      token: 'restored-opaque-token',
+    });
 
     const service = new AdminService(repository as never, dependencies as never);
     const response = await service.stopImpersonation({
-      body: {
-        restoreToken: 'restore-token',
-      },
+      body: {},
+      authSessionId: 'auth-session-1',
       authContext: {
         userId: 'user-target',
         email: 'target@example.com',
@@ -462,10 +462,14 @@ describe('AdminService', () => {
     });
 
     expect(repository.endImpersonationSession).toHaveBeenCalledWith('session-1', now);
+    expect(dependencies.revokeAuthSessionById).toHaveBeenCalledWith('auth-session-1', now);
     expect(response).toEqual({
-      sessionId: 'session-1',
-      token: 'actor-token',
+      sessionId: 'restored-session-1',
       endedAt: '2026-04-13T10:00:00.000Z',
+      cookieSession: {
+        token: 'restored-opaque-token',
+        expiresAt: new Date('2026-04-20T10:00:00.000Z'),
+      },
     });
     expect(dependencies.recordAdminAuditEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -478,16 +482,6 @@ describe('AdminService', () => {
     const repository = createRepositoryMock();
     const dependencies = createDependenciesMock();
     dependencies.now.mockReturnValue(new Date('2026-04-13T10:40:00.000Z'));
-    dependencies.verifyToken.mockResolvedValue({
-      userId: 'user-admin',
-      email: 'admin@example.com',
-      isImpersonationRestore: true,
-      impersonationSessionId: 'session-1',
-      actorUserId: 'user-admin',
-      actorTenantId: 'tenant-admin',
-      targetUserId: 'user-target',
-      targetTenantId: 'tenant-1',
-    });
     repository.getImpersonationSession.mockResolvedValue({
       id: 'session-1',
       actorUserId: 'user-admin',
@@ -502,9 +496,8 @@ describe('AdminService', () => {
 
     await expect(
       service.stopImpersonation({
-        body: {
-          restoreToken: 'restore-token',
-        },
+        body: {},
+        authSessionId: 'auth-session-1',
         authContext: {
           userId: 'user-target',
           email: 'target@example.com',

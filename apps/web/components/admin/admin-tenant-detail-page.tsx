@@ -122,7 +122,7 @@ export function AdminTenantDetailPage() {
   const params = useParams();
   const router = useRouter();
   const provider = useDataProvider();
-  const replaceSessionToken = useAuthStore((state) => state.replaceSessionToken);
+  const refreshSession = useAuthStore((state) => state.refreshSession);
   const adminTenantId = params.tenantId as string;
   const managedTenantId = params.managedTenantId as string;
   const [reloadKey, setReloadKey] = React.useState(0);
@@ -289,15 +289,13 @@ export function AdminTenantDetailPage() {
 
     setIsSubmitting('start-impersonation');
     try {
-      const response = await provider.startAdminImpersonation(adminTenantId, managedTenantId, {
+      await provider.startAdminImpersonation(adminTenantId, managedTenantId, {
         targetUserId: impersonationUser.userId,
         reason: impersonationReason.trim() || undefined,
       });
 
-      await replaceSessionToken(response.impersonationToken, {
+      await refreshSession({
         preferredTenantId: managedTenantId,
-        impersonationRestoreToken: response.restoreToken,
-        maxAgeDays: 1 / 48,
       });
 
       router.replace(`/app/${managedTenantId}`);
@@ -312,7 +310,7 @@ export function AdminTenantDetailPage() {
     impersonationUser,
     managedTenantId,
     provider,
-    replaceSessionToken,
+    refreshSession,
     router,
   ]);
 

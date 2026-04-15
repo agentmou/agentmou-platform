@@ -1,17 +1,17 @@
 /**
  * Typed functions for the Agentmou Auth API.
  *
- * Endpoints consumed:
- *   POST /api/v1/auth/register → { user, tenant, token }
- *   POST /api/v1/auth/login    → { user, tenants, token }
- *   GET  /api/v1/auth/me       → { user: { ...user, tenants }, session }
- *   GET  /api/v1/auth/oauth/providers
- *   POST /api/v1/auth/oauth/exchange → { user, tenants, token }
- *   POST /api/v1/auth/forgot-password → { ok: true }
- *   POST /api/v1/auth/reset-password → { ok: true }
+ * Browser auth is cookie-based:
+ *   POST /api/v1/auth/register      -> sets HttpOnly session cookie
+ *   POST /api/v1/auth/login         -> sets HttpOnly session cookie
+ *   POST /api/v1/auth/logout        -> revokes session + clears cookie
+ *   GET  /api/v1/auth/me            -> resolves current user from cookie
+ *   POST /api/v1/auth/oauth/exchange -> sets HttpOnly session cookie
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { getApiUrl } from '@/lib/runtime/public-origins';
+
+const API_URL = getApiUrl().replace(/\/$/, '');
 
 export interface AuthUser {
   id: string;
@@ -50,13 +50,13 @@ export interface AuthSession {
 export interface RegisterResponse {
   user: AuthUser;
   tenant: AuthTenant;
-  token: string;
+  session: AuthSession | null;
 }
 
 export interface LoginResponse {
   user: AuthUser;
   tenants: AuthTenant[];
-  token: string;
+  session: AuthSession | null;
 }
 
 export interface MeResponse {
@@ -86,6 +86,7 @@ async function authRequest<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers,
+    credentials: 'include',
   });
 
   const body = await res.json().catch(() => ({}));
@@ -93,7 +94,9 @@ async function authRequest<T>(path: string, options?: RequestInit): Promise<T> {
   if (!res.ok) {
     throw new AuthApiError(
       res.status,
-      (body as { message?: string }).message || `API ${res.status}: ${res.statusText}`
+      (body as { message?: string; error?: string }).message ||
+        (body as { error?: string }).error ||
+        `API ${res.status}: ${res.statusText}`
     );
   }
 
@@ -111,16 +114,24 @@ export async function registerApi(
   });
 }
 
-export async function loginApi(email: string, password: string): Promise<LoginResponse> {
+export async function loginApi(
+  email: string,
+  password: string,
+  rememberMe = false
+): Promise<LoginResponse> {
   return authRequest<LoginResponse>('/api/v1/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, rememberMe }),
   });
 }
 
-export async function fetchMe(token: string): Promise<MeResponse> {
-  return authRequest<MeResponse>('/api/v1/auth/me', {
-    headers: { Authorization: `Bearer ${token}` },
+export async function fetchMe(): Promise<MeResponse> {
+  return authRequest<MeResponse>('/api/v1/auth/me');
+}
+
+export async function logoutApi(): Promise<{ ok: true }> {
+  return authRequest<{ ok: true }>('/api/v1/auth/logout', {
+    method: 'POST',
   });
 }
 
@@ -135,10 +146,6 @@ export async function fetchOAuthProviders(): Promise<OAuthProvidersResponse> {
   });
 }
 
-/**
- * Build authorize URL for top-level navigation.
- * `returnUrl` must be an absolute URL on an allowlisted origin (e.g. `https://app.example.com/auth/callback?redirect=...`).
- */
 export function getOAuthAuthorizeUrl(provider: 'google' | 'microsoft', returnUrl: string): string {
   const q = new URLSearchParams({ return_url: returnUrl });
   return `${API_URL}/api/v1/auth/oauth/${provider}/authorize?${q.toString()}`;

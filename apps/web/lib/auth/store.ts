@@ -1,48 +1,45 @@
 'use client';
 
 import { create } from 'zustand';
+
 import {
   fetchMe,
   loginApi,
+  logoutApi,
   registerApi,
   type AuthSession,
   type AuthTenant,
   type AuthUser,
   type LoginResponse,
+  type MeResponse,
+  type RegisterResponse,
 } from './api';
-import { getTokenCookie, removeTokenCookie, setTokenCookie } from './cookies';
-import {
-  clearImpersonationRestoreToken,
-  getImpersonationRestoreToken,
-  setImpersonationRestoreToken,
-} from './impersonation-storage';
 
-interface ReplaceSessionTokenOptions {
-  rememberMe?: boolean;
+export type AuthSnapshot = MeResponse | null;
+
+interface SessionRefreshOptions {
   preferredTenantId?: string | null;
-  impersonationRestoreToken?: string | null;
-  maxAgeDays?: number;
 }
 
 interface AuthState {
-  token: string | null;
   user: AuthUser | null;
   tenants: AuthTenant[];
   activeTenantId: string | null;
   session: AuthSession | null;
-  impersonationRestoreToken: string | null;
   isLoading: boolean;
   isHydrated: boolean;
 
   login: (email: string, password: string, rememberMe?: boolean) => Promise<string>;
   register: (email: string, password: string, name: string) => Promise<string>;
-  logout: () => void;
-  hydrate: () => Promise<void>;
+  logout: () => Promise<void>;
+  hydrate: (force?: boolean) => Promise<void>;
+  refreshSession: (options?: SessionRefreshOptions) => Promise<string | null>;
+  bootstrap: (snapshot: AuthSnapshot) => void;
   setActiveTenant: (tenantId: string) => void;
-  replaceSessionToken: (token: string, options?: ReplaceSessionTokenOptions) => Promise<string>;
-  /** After OAuth exchange — same session shape as password login. */
-  applyOAuthExchange: (res: LoginResponse, rememberMe?: boolean) => string;
+  applyOAuthExchange: (res: LoginResponse) => string;
 }
+
+type AuthPayload = LoginResponse | MeResponse | RegisterResponse;
 
 function normalizeAuthTenants(tenants: AuthTenant[]) {
   return tenants.map((tenant) => ({
@@ -67,56 +64,72 @@ function resolveActiveTenantId(
   return tenants[0]?.id ?? null;
 }
 
-function clearStoredSession() {
-  removeTokenCookie();
-  clearImpersonationRestoreToken();
+function clearAuthState() {
+  return {
+    user: null,
+    tenants: [],
+    activeTenantId: null,
+    session: null,
+  };
 }
 
-/**
- * Auth store powered by Zustand.
- *
- * - `login` / `register` call the API, persist the JWT in a cookie,
- *   and return the tenantId to redirect to. Login accepts optional
- *   `rememberMe` (longer cookie lifetime: 30d vs 7d).
- * - `hydrate` is called on app mount to restore state from the cookie.
- * - `logout` clears everything and removes the cookie.
- */
+function derivePayloadState(
+  payload: AuthPayload,
+  options?: {
+    preferredTenantId?: string | null;
+    fallbackTenantId?: string | null;
+  }
+) {
+  const tenants = normalizeAuthTenants(
+    'tenant' in payload
+      ? [payload.tenant]
+      : 'tenants' in payload
+        ? payload.tenants
+        : payload.user.tenants
+  );
+  const preferredTenantId =
+    options?.preferredTenantId ??
+    ('session' in payload ? payload.session?.targetTenantId : null) ??
+    options?.fallbackTenantId ??
+    null;
+
+  return {
+    user: payload.user,
+    tenants,
+    activeTenantId: resolveActiveTenantId(
+      tenants,
+      preferredTenantId,
+      ('session' in payload ? payload.session?.actorTenantId : null) ?? options?.fallbackTenantId
+    ),
+    session: 'session' in payload ? payload.session : null,
+  };
+}
+
 export const useAuthStore = create<AuthState>((set, get) => ({
-  token: null,
-  user: null,
-  tenants: [],
-  activeTenantId: null,
-  session: null,
-  impersonationRestoreToken: null,
+  ...clearAuthState(),
   isLoading: false,
   isHydrated: false,
 
   login: async (email, password, rememberMe = false) => {
     set({ isLoading: true });
     try {
-      const res = await loginApi(email, password);
-      setTokenCookie(res.token, { maxAgeDays: rememberMe ? 30 : 7 });
-      const tenants = normalizeAuthTenants(res.tenants);
-      const tenantId = tenants[0]?.id ?? null;
+      const res = await loginApi(email, password, rememberMe);
+      const nextState = derivePayloadState(res);
+      const tenantId = nextState.activeTenantId;
       if (!tenantId) {
         set({ isLoading: false });
         throw new Error('No workspace found for this account. Contact support.');
       }
 
-      clearImpersonationRestoreToken();
       set({
-        token: res.token,
-        user: res.user,
-        tenants,
-        activeTenantId: tenantId,
-        session: null,
-        impersonationRestoreToken: null,
+        ...nextState,
+        isHydrated: true,
         isLoading: false,
       });
       return tenantId;
-    } catch (err) {
+    } catch (error) {
       set({ isLoading: false });
-      throw err;
+      throw error;
     }
   },
 
@@ -124,148 +137,80 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const res = await registerApi(email, password, name);
-      setTokenCookie(res.token);
-      clearImpersonationRestoreToken();
-      const tenant = { ...res.tenant, role: 'owner' };
+      const nextState = derivePayloadState(res);
+      if (!nextState.activeTenantId) {
+        set({ isLoading: false });
+        throw new Error('No workspace found for this account. Contact support.');
+      }
+
       set({
-        token: res.token,
-        user: res.user,
-        tenants: [tenant],
-        activeTenantId: tenant.id,
-        session: null,
-        impersonationRestoreToken: null,
+        ...nextState,
+        isHydrated: true,
         isLoading: false,
       });
-      return tenant.id;
-    } catch (err) {
+      return nextState.activeTenantId;
+    } catch (error) {
       set({ isLoading: false });
-      throw err;
+      throw error;
     }
   },
 
-  logout: () => {
-    clearStoredSession();
-    set({
-      token: null,
-      user: null,
-      tenants: [],
-      activeTenantId: null,
-      session: null,
-      impersonationRestoreToken: null,
-    });
+  logout: async () => {
+    try {
+      await logoutApi();
+    } finally {
+      set({
+        ...clearAuthState(),
+        isHydrated: true,
+        isLoading: false,
+      });
+    }
   },
 
-  hydrate: async () => {
-    if (get().isHydrated) return;
-    const token = getTokenCookie();
-    if (!token) {
-      clearImpersonationRestoreToken();
-      set({
-        token: null,
-        user: null,
-        tenants: [],
-        activeTenantId: null,
-        session: null,
-        impersonationRestoreToken: null,
-        isHydrated: true,
-      });
+  hydrate: async (force = false) => {
+    if (get().isHydrated && !force) {
       return;
     }
 
+    set({ isLoading: true });
     try {
-      const res = await fetchMe(token);
-      const tenants = normalizeAuthTenants(res.user.tenants);
-      const impersonationRestoreToken = getImpersonationRestoreToken();
-      const preferredTenantId = res.session?.targetTenantId ?? get().activeTenantId;
-
+      const res = await fetchMe();
+      const nextState = derivePayloadState(res, {
+        fallbackTenantId: get().activeTenantId,
+      });
       set({
-        token,
-        user: {
-          id: res.user.id,
-          email: res.user.email,
-          name: res.user.name ?? null,
-        },
-        tenants,
-        activeTenantId: resolveActiveTenantId(
-          tenants,
-          preferredTenantId,
-          res.session?.actorTenantId ?? null
-        ),
-        session: res.session,
-        impersonationRestoreToken,
+        ...nextState,
         isHydrated: true,
+        isLoading: false,
       });
     } catch {
-      clearStoredSession();
       set({
-        token: null,
-        user: null,
-        tenants: [],
-        activeTenantId: null,
-        session: null,
-        impersonationRestoreToken: null,
+        ...clearAuthState(),
         isHydrated: true,
+        isLoading: false,
       });
     }
   },
 
-  setActiveTenant: (tenantId) => {
-    set({ activeTenantId: tenantId });
-  },
-
-  replaceSessionToken: async (token, options = {}) => {
-    const {
-      rememberMe = false,
-      preferredTenantId = null,
-      impersonationRestoreToken = null,
-      maxAgeDays,
-    } = options;
-
+  refreshSession: async (options) => {
     set({ isLoading: true });
-    setTokenCookie(token, {
-      maxAgeDays: maxAgeDays ?? (rememberMe ? 30 : 7),
-    });
-
-    if (impersonationRestoreToken) {
-      setImpersonationRestoreToken(impersonationRestoreToken);
-    } else {
-      clearImpersonationRestoreToken();
-    }
-
     try {
-      const res = await fetchMe(token);
-      const tenants = normalizeAuthTenants(res.user.tenants);
-      const activeTenantId = resolveActiveTenantId(
-        tenants,
-        preferredTenantId,
-        res.session?.targetTenantId ?? res.session?.actorTenantId ?? null
-      );
+      const res = await fetchMe();
+      const nextState = derivePayloadState(res, {
+        preferredTenantId: options?.preferredTenantId ?? null,
+        fallbackTenantId: get().activeTenantId,
+      });
 
       set({
-        token,
-        user: {
-          id: res.user.id,
-          email: res.user.email,
-          name: res.user.name ?? null,
-        },
-        tenants,
-        activeTenantId,
-        session: res.session,
-        impersonationRestoreToken,
+        ...nextState,
         isHydrated: true,
         isLoading: false,
       });
 
-      return activeTenantId ?? '';
+      return nextState.activeTenantId;
     } catch (error) {
-      clearStoredSession();
       set({
-        token: null,
-        user: null,
-        tenants: [],
-        activeTenantId: null,
-        session: null,
-        impersonationRestoreToken: null,
+        ...clearAuthState(),
         isHydrated: true,
         isLoading: false,
       });
@@ -273,29 +218,44 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  applyOAuthExchange: (res, rememberMe = false) => {
-    const tenants = normalizeAuthTenants(res.tenants);
-    const tenantId = tenants[0]?.id ?? null;
-    if (!tenantId) {
+  bootstrap: (snapshot) => {
+    if (!snapshot) {
+      set({
+        ...clearAuthState(),
+        isLoading: false,
+        isHydrated: true,
+      });
+      return;
+    }
+
+    set({
+      ...derivePayloadState(snapshot, {
+        fallbackTenantId: get().activeTenantId,
+      }),
+      isLoading: false,
+      isHydrated: true,
+    });
+  },
+
+  setActiveTenant: (tenantId) => {
+    set({ activeTenantId: tenantId });
+  },
+
+  applyOAuthExchange: (res) => {
+    const nextState = derivePayloadState(res);
+    if (!nextState.activeTenantId) {
       throw new Error('No workspace found for this account. Contact support.');
     }
 
-    setTokenCookie(res.token, { maxAgeDays: rememberMe ? 30 : 7 });
-    clearImpersonationRestoreToken();
     set({
-      token: res.token,
-      user: {
-        id: res.user.id,
-        email: res.user.email,
-        name: res.user.name ?? null,
-      },
-      tenants,
-      activeTenantId: tenantId,
-      session: null,
-      impersonationRestoreToken: null,
+      ...nextState,
       isHydrated: true,
       isLoading: false,
     });
-    return tenantId;
+    return nextState.activeTenantId;
   },
 }));
+
+export function bootstrapAuthStore(snapshot: AuthSnapshot) {
+  useAuthStore.getState().bootstrap(snapshot);
+}
