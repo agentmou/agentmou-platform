@@ -127,11 +127,11 @@ const SETTINGS_SECTION_DEFINITIONS: SettingsSectionDefinition[] = [
     group: 'base',
     verticals: 'all',
     title: (context) =>
-      context.experience.activeVertical === 'internal' ? 'Plan and modules' : 'Plan y modulos',
+      context.experience.activeVertical === 'internal' ? 'Plan and modules' : 'Plan y módulos',
     description: (context) =>
       context.experience.activeVertical === 'internal'
         ? 'Commercial plan, billing posture, and enabled capabilities.'
-        : 'Plan activo, modulos visibles y estado de configuracion.',
+        : 'Plan activo, módulos visibles y estado de configuración.',
     render: (context) => <PlanSettingsSection context={context} />,
   },
   {
@@ -142,11 +142,11 @@ const SETTINGS_SECTION_DEFINITIONS: SettingsSectionDefinition[] = [
     title: (context) =>
       context.experience.activeVertical === 'internal'
         ? 'Security and audit'
-        : 'Seguridad y auditoria',
+        : 'Seguridad y auditoría',
     description: (context) =>
       context.experience.activeVertical === 'internal'
         ? 'Read-only security posture, audit coverage, and guarded actions.'
-        : 'Resumen de hallazgos, politicas y trazabilidad operativa.',
+        : 'Resumen de hallazgos, políticas y trazabilidad operativa.',
     render: (context) => <SecuritySettingsSection context={context} />,
   },
   {
@@ -158,7 +158,7 @@ const SETTINGS_SECTION_DEFINITIONS: SettingsSectionDefinition[] = [
     description: (context) =>
       context.experience.activeVertical === 'fisio'
         ? 'Identidad, especialidad y canal principal del centro.'
-        : 'Identidad operativa y canal principal de la clinica.',
+        : 'Identidad operativa y canal principal de la clínica.',
     render: (context) => <CareProfileSettingsSection context={context} />,
   },
   {
@@ -169,8 +169,8 @@ const SETTINGS_SECTION_DEFINITIONS: SettingsSectionDefinition[] = [
     title: 'Agenda y reglas',
     description: (context) =>
       context.experience.activeVertical === 'fisio'
-        ? 'Horarios, politicas y reglas base de la agenda.'
-        : 'Horarios, reglas de agenda y politicas de seguimiento.',
+        ? 'Horarios, políticas y reglas base de la agenda.'
+        : 'Horarios, reglas de agenda y políticas de seguimiento.',
     render: (context) => <CareScheduleSettingsSection context={context} />,
   },
   {
@@ -209,7 +209,7 @@ const SETTINGS_SECTION_DEFINITIONS: SettingsSectionDefinition[] = [
     order: 110,
     group: 'care',
     verticals: ['clinic', 'fisio'],
-    title: 'Recuperacion de huecos',
+    title: 'Recuperación de huecos',
     description: () => 'Huecos activos, outreach y capacidad de recolocacion.',
     when: (context) => isSharedCareVertical(context) && context.experience.capabilities.gapsEnabled,
     render: (context) => <CareGapRecoverySettingsSection context={context} />,
@@ -219,8 +219,8 @@ const SETTINGS_SECTION_DEFINITIONS: SettingsSectionDefinition[] = [
     order: 120,
     group: 'care',
     verticals: ['clinic', 'fisio'],
-    title: 'Reactivacion',
-    description: () => 'Campanas activas, cobertura y pacientes reenganchados.',
+    title: 'Reactivación',
+    description: () => 'Campañas activas, cobertura y pacientes reenganchados.',
     when: (context) =>
       isSharedCareVertical(context) && context.experience.capabilities.reactivationEnabled,
     render: (context) => <CareReactivationSettingsSection context={context} />,
@@ -285,12 +285,12 @@ export function resolveActiveSettingsSection(
 
 export function getSettingsGroupTitle(group: SettingsSectionGroup, activeVertical: VerticalKey) {
   if (group === 'base') {
-    return activeVertical === 'internal' ? 'Core' : 'Base comun';
+    return activeVertical === 'internal' ? 'Core' : 'Base común';
   }
 
   if (group === 'care') {
-    return 'Operacion asistencial';
+    return 'Operación asistencial';
   }
 
-  return 'Operacion interna';
+  return 'Operación interna';
 }

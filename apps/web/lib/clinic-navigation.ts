@@ -72,7 +72,7 @@ const FOLLOW_UP_ITEM: ClinicSidebarItem = {
 
 const REACTIVATION_ITEM: ClinicSidebarItem = {
   href: '/reactivacion',
-  label: 'Reactivacion',
+  label: 'Reactivación',
   icon: RefreshCw,
   navKey: 'reactivation',
 };
@@ -86,7 +86,7 @@ const REPORTS_ITEM: ClinicSidebarItem = {
 
 const CONFIGURATION_ITEM: ClinicSidebarItem = {
   href: '/configuracion',
-  label: 'Configuracion',
+  label: 'Configuración',
   icon: Settings,
   navKey: 'configuration',
 };
@@ -96,10 +96,10 @@ const CLINIC_NAVIGATION_SECTIONS: Array<{
   label: string;
   items: ClinicSidebarItem[];
 }> = [
-  { key: 'overview', label: 'Overview', items: [DASHBOARD_ITEM] },
+  { key: 'overview', label: 'Inicio', items: [DASHBOARD_ITEM] },
   {
     key: 'operations',
-    label: 'Operacion',
+    label: 'Operación',
     items: [INBOX_ITEM, APPOINTMENTS_ITEM, PATIENTS_ITEM],
   },
   {
@@ -107,7 +107,7 @@ const CLINIC_NAVIGATION_SECTIONS: Array<{
     label: 'Seguimiento',
     items: [FOLLOW_UP_ITEM, REACTIVATION_ITEM],
   },
-  { key: 'analytics', label: 'Analitica', items: [REPORTS_ITEM] },
+  { key: 'analytics', label: 'Análisis', items: [REPORTS_ITEM] },
 ];
 
 export function resolveClinicSidebarNavigation(

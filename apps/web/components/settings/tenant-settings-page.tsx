@@ -56,16 +56,16 @@ function getSettingsPageCopy(
 
   if (activeVertical === 'fisio') {
     return {
-      title: 'Configuracion',
+      title: 'Configuración',
       description:
-        'Base comun de settings para el centro: acceso, integraciones, plan y extensiones asistenciales reutilizables.',
+        'Base común de ajustes para el centro: acceso, integraciones, plan y extensiones asistenciales reutilizables.',
     };
   }
 
   return {
-    title: 'Configuracion',
+    title: 'Configuración',
     description:
-      'Base comun de settings para la clinica: acceso, canales, plan y reglas operativas por vertical.',
+      'Base común de ajustes para la clínica: acceso, canales, plan y reglas operativas por vertical.',
   };
 }
 
@@ -201,7 +201,7 @@ export function TenantSettingsPage() {
       <div className="space-y-6 p-6 lg:p-8">
         <Card className="border-border/60">
           <CardContent className="p-6 text-sm text-muted-foreground">
-            Cargando configuracion del tenant...
+            Cargando configuración del tenant...
           </CardContent>
         </Card>
       </div>

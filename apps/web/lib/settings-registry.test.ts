@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  getSettingsGroupTitle,
   getVisibleSettingsSections,
   resolveActiveSettingsSection,
   type SettingsRegistryContext,
@@ -239,6 +240,25 @@ describe('settings registry', () => {
 
     expect(resolveActiveSettingsSection(sections, 'care_forms')?.key).toBe('general');
     expect(resolveActiveSettingsSection(sections, 'plan')?.key).toBe('plan');
+  });
+
+  it('uses shared-care copy tokens for clinic settings groups', () => {
+    expect(getSettingsGroupTitle('base', 'clinic')).toBe('Base común');
+    expect(getSettingsGroupTitle('care', 'clinic')).toBe('Operación asistencial');
+    expect(getSettingsGroupTitle('internal', 'internal')).toBe('Operación interna');
+
+    const sections = getVisibleSettingsSections(
+      buildContext({
+        activeVertical: 'clinic',
+        settingsSections: ['general', 'care_schedule', 'care_reactivation'],
+      })
+    );
+
+    expect(sections.map((section) => section.title)).toEqual([
+      'General',
+      'Agenda y reglas',
+      'Reactivación',
+    ]);
   });
 
   it('hides capability-gated care sections even when the experience lists them', () => {
