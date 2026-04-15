@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 
 import { useAuthStore } from '@/lib/auth/store';
+import { TenantWorkspaceLoadingShell } from '@/components/clinic/tenant-workspace-loading-shell';
 import { DataProviderContext } from '@/lib/providers/context';
 import { getTenantDataProvider } from '@/lib/providers/tenant';
 import { getShellComponent } from '@/lib/shell-registry';
@@ -18,6 +19,7 @@ export default function TenantLayout({ children }: { children: React.ReactNode }
   const tenantId = params.tenantId as string;
   const authUser = useAuthStore((state) => state.user);
   const authTenants = useAuthStore((state) => state.tenants);
+  const authTenant = authTenants.find((tenant) => tenant.id === tenantId);
   const provider = React.useMemo(() => getTenantDataProvider(tenantId), [tenantId]);
   const experience = useResolvedTenantExperience(tenantId, provider);
   const fallbackTenant = authTenants.find((tenant) => tenant.id === experience.fallbackTenantId);
@@ -61,11 +63,14 @@ export default function TenantLayout({ children }: { children: React.ReactNode }
   }, [experience.hasTenantAccess, experience.isLoading, redirectTarget, router]);
 
   if (experience.isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-sm text-muted-foreground">Loading workspace...</p>
-      </div>
-    );
+    const loadingVariant =
+      authTenant?.settings?.activeVertical === 'clinic' ||
+      authTenant?.settings?.activeVertical === 'fisio' ||
+      authTenant?.settings?.verticalClinicUi
+        ? 'clinic'
+        : 'generic';
+
+    return <TenantWorkspaceLoadingShell variant={loadingVariant} />;
   }
 
   if (!experience.hasTenantAccess) {
