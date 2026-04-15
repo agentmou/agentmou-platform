@@ -8,6 +8,8 @@ export interface ApiConfig {
   marketingPublicBaseUrl: string;
   appPublicBaseUrl: string;
   apiPublicBaseUrl: string;
+  passwordResetWebhookUrl?: string;
+  passwordResetWebhookToken?: string;
   reflagSdkKey?: string;
   reflagEnvironment: string;
   reflagBaseUrl?: string;
@@ -38,6 +40,19 @@ function requireCorsOrigin() {
 function normalizeOrigin(value: string, envName: string) {
   try {
     return new URL(value).origin;
+  } catch {
+    throw new Error(`${envName} must be a valid absolute URL`);
+  }
+}
+
+function readOptionalAbsoluteUrl(value: string | undefined, envName: string) {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  try {
+    return new URL(trimmed).toString();
   } catch {
     throw new Error(`${envName} must be a valid absolute URL`);
   }
@@ -100,6 +115,19 @@ function validateProductionPublicOriginConfig(params: {
   }
 }
 
+function validatePasswordResetDeliveryConfig(params: {
+  nodeEnv: string | undefined;
+  passwordResetWebhookUrl?: string;
+}) {
+  if (params.nodeEnv !== 'production') {
+    return;
+  }
+
+  if (!params.passwordResetWebhookUrl) {
+    throw new Error('PASSWORD_RESET_WEBHOOK_URL must be set in production');
+  }
+}
+
 export function getApiConfig(): ApiConfig {
   const publicOrigins = resolvePublicOrigins(
     {
@@ -119,6 +147,14 @@ export function getApiConfig(): ApiConfig {
     appPublicBaseUrl: publicOrigins.appPublicBaseUrl,
     apiPublicBaseUrl: publicOrigins.apiPublicBaseUrl,
   });
+  const passwordResetWebhookUrl = readOptionalAbsoluteUrl(
+    process.env.PASSWORD_RESET_WEBHOOK_URL,
+    'PASSWORD_RESET_WEBHOOK_URL'
+  );
+  validatePasswordResetDeliveryConfig({
+    nodeEnv: process.env.NODE_ENV,
+    passwordResetWebhookUrl,
+  });
 
   return {
     host: process.env.HOST ?? '0.0.0.0',
@@ -128,6 +164,8 @@ export function getApiConfig(): ApiConfig {
     marketingPublicBaseUrl: publicOrigins.marketingPublicBaseUrl,
     appPublicBaseUrl: publicOrigins.appPublicBaseUrl,
     apiPublicBaseUrl: publicOrigins.apiPublicBaseUrl,
+    passwordResetWebhookUrl,
+    passwordResetWebhookToken: process.env.PASSWORD_RESET_WEBHOOK_TOKEN?.trim() || undefined,
     reflagSdkKey: process.env.REFLAG_SDK_KEY,
     reflagEnvironment: process.env.REFLAG_ENVIRONMENT ?? process.env.NODE_ENV ?? 'development',
     reflagBaseUrl: process.env.REFLAG_BASE_URL,

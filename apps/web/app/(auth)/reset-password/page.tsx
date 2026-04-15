@@ -17,19 +17,27 @@ function ResetPasswordForm() {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
     if (!token) {
-      toast.error('Invalid reset link.');
+      const message = 'This reset link is invalid or expired.';
+      setErrorMessage(message);
+      toast.error(message);
       return;
     }
     if (password.length < 8) {
-      toast.error('Password must be at least 8 characters.');
+      const message = 'Password must be at least 8 characters.';
+      setErrorMessage(message);
+      toast.error(message);
       return;
     }
     if (password !== confirm) {
-      toast.error('Passwords do not match.');
+      const message = 'Passwords do not match.';
+      setErrorMessage(message);
+      toast.error(message);
       return;
     }
     setLoading(true);
@@ -38,8 +46,9 @@ function ResetPasswordForm() {
       toast.success('Password updated. You can sign in.');
       router.replace('/login');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Reset failed. Try again.';
-      toast.error(msg);
+      const message = err instanceof Error ? err.message : 'Reset failed. Try again.';
+      setErrorMessage(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -60,8 +69,18 @@ function ResetPasswordForm() {
     <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Set new password</h1>
-        <p className="text-sm text-muted-foreground">Choose a strong password for your account.</p>
+        <p className="text-sm text-muted-foreground">
+          Choose a strong password for your account. This link can only be used once.
+        </p>
       </div>
+      {errorMessage ? (
+        <div
+          role="alert"
+          className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+        >
+          {errorMessage}
+        </div>
+      ) : null}
       <div className="space-y-2">
         <Label htmlFor="new-password">New password</Label>
         <PasswordInput

@@ -294,6 +294,16 @@ export async function revokeAuthSessionById(sessionId: string, revokedAt = new D
   return session ?? null;
 }
 
+export async function revokeUserAuthSessions(userId: string, revokedAt = new Date()) {
+  return db
+    .update(authSessions)
+    .set({
+      revokedAt,
+    })
+    .where(and(eq(authSessions.userId, userId), isNull(authSessions.revokedAt)))
+    .returning();
+}
+
 export async function resolveBearerAuthContext(authorization?: string) {
   const token = authorization?.startsWith('Bearer ') ? authorization.slice(7) : undefined;
   if (!token) {

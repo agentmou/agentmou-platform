@@ -15,10 +15,12 @@ import {
   getActiveAuthSessionByToken,
   getAuthSessionTokenFromCookie,
   revokeAuthSessionById,
+  revokeUserAuthSessions,
   type AuthenticatedRequestContext,
 } from '../../lib/auth-sessions.js';
 import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
 import { issuePasswordResetToken } from '../../lib/password-reset.js';
+import { sendPasswordResetEmail } from '../../lib/password-reset-email.js';
 import { normalizeTenantSettings } from '../tenants/tenants.mapper.js';
 
 interface AuthBrowserSessionCookie {
@@ -340,22 +342,31 @@ export class AuthService {
 
   /**
    * Creates a password-reset token if the user exists. Always succeeds from the
-   * client perspective (no email enumeration). Email delivery is not wired;
-   * in development the reset URL is logged when LOG_PASSWORD_RESET_LINK=1.
+   * client perspective (no email enumeration). In production the link is
+   * delivered through the configured webhook relay; non-production may log the
+   * link when LOG_PASSWORD_RESET_LINK=1 or no relay is configured.
    */
   async forgotPassword(email: string) {
     const normalized = email.trim().toLowerCase();
     const [user] = await db
-      .select({ id: users.id })
+      .select({ id: users.id, email: users.email })
       .from(users)
       .where(eq(users.email, normalized))
       .limit(1);
 
     if (user) {
-      const issuedToken = await issuePasswordResetToken(user.id);
-
-      if (process.env.LOG_PASSWORD_RESET_LINK === '1' || process.env.NODE_ENV !== 'production') {
-        process.stdout.write(`[auth] password reset link for ${normalized}: ${issuedToken.link}\n`);
+      try {
+        const issuedToken = await issuePasswordResetToken(user.id);
+        await sendPasswordResetEmail({
+          email: user.email,
+          link: issuedToken.link,
+          expiresAt: issuedToken.expiresAt,
+        });
+      } catch (error) {
+        console.error('[auth] password reset delivery failed', {
+          userId: user.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
 
@@ -387,6 +398,7 @@ export class AuthService {
         .set({ consumedAt: new Date() })
         .where(eq(passwordResetTokens.id, row.id));
     });
+    await revokeUserAuthSessions(row.userId, new Date());
 
     return { ok: true as const };
   }

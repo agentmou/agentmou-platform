@@ -47,8 +47,7 @@ export function ForgotPasswordModal({ open, onOpenChange }: ForgotPasswordModalP
         <DialogHeader>
           <DialogTitle>Reset password</DialogTitle>
           <DialogDescription>
-            Enter your email address. If you have an account, we will send a reset link (check
-            server logs in development).
+            Enter your email address. If you have an account, we will email reset instructions.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

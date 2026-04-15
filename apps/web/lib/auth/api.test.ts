@@ -73,4 +73,47 @@ describe('auth api client', () => {
       credentials: 'include',
     });
   });
+
+  it('sends forgot-password requests with credentials included', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    });
+
+    const { forgotPasswordApi } = await import('./api');
+    await forgotPasswordApi('owner@example.com');
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3001/api/v1/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: 'owner@example.com',
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+  });
+
+  it('sends reset-password requests with credentials included', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    });
+
+    const { resetPasswordApi } = await import('./api');
+    await resetPasswordApi('reset-token', 'new-password-123');
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3001/api/v1/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({
+        token: 'reset-token',
+        password: 'new-password-123',
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+  });
 });

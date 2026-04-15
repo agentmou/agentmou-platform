@@ -184,4 +184,43 @@ describe('authRoutes', () => {
 
     await app.close();
   });
+
+  it('accepts forgot-password requests with a generic ok response', async () => {
+    mockService.forgotPassword.mockResolvedValue({ ok: true });
+
+    const app = await buildAuthRoutesApp();
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/forgot-password',
+      payload: {
+        email: 'owner@example.com',
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(mockService.forgotPassword).toHaveBeenCalledWith('owner@example.com');
+    expect(response.json()).toEqual({ ok: true });
+
+    await app.close();
+  });
+
+  it('accepts reset-password requests and forwards token plus password', async () => {
+    mockService.resetPassword.mockResolvedValue({ ok: true });
+
+    const app = await buildAuthRoutesApp();
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/reset-password',
+      payload: {
+        token: 'a'.repeat(32),
+        password: 'new-password-123',
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(mockService.resetPassword).toHaveBeenCalledWith('a'.repeat(32), 'new-password-123');
+    expect(response.json()).toEqual({ ok: true });
+
+    await app.close();
+  });
 });

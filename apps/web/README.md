@@ -25,11 +25,11 @@ or workflows itself.
   `GET /api/v1/auth/oauth/:provider/authorize` with `return_url` pointing to
   `/auth/callback`, then `POST /api/v1/auth/oauth/exchange` for a one-time
   code. **Forgot password** calls `POST /api/v1/auth/forgot-password` and
-  `/reset-password` on the web; email delivery is not integrated yet (reset
-  links are logged in non-production when `LOG_PASSWORD_RESET_LINK=1` or by
-  default in dev on the API). **Enterprise SAML/OIDC** per tenant is planned
-  via an external provider (see `docs/adr/011-enterprise-auth-strategy.md`);
-  the UI shows a disabled SSO row with tooltip.
+  `/reset-password` on the web; the API dispatches real reset emails through a
+  configured webhook relay and only falls back to controlled link logging in
+  non-production. **Enterprise SAML/OIDC** per tenant is planned via an
+  external provider (see `docs/adr/011-enterprise-auth-strategy.md`); the UI
+  shows a disabled SSO row with tooltip.
 - Enforce canonical marketing/app hosts in `proxy.ts`, then use the
   `agentmou-session` cookie as a cheap gate for protected tenant routes.
 - Consume the control-plane API through typed client helpers in `lib/api/`.
