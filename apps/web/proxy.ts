@@ -15,6 +15,12 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // /logout is a server route handler that must run regardless of cookie
+  // presence or canonical host checks so the session can be cleared reliably.
+  if (pathname === '/logout') {
+    return NextResponse.next();
+  }
+
   const canonicalSurface = resolveCanonicalSurface(pathname);
   if (canonicalSurface) {
     const canonicalOrigin = getCanonicalSurfaceOrigin(canonicalSurface);
@@ -59,6 +65,7 @@ export const config = {
     '/docs/:path*',
     '/platform',
     '/login',
+    '/logout',
     '/register',
     '/reset-password',
     '/auth/callback',
