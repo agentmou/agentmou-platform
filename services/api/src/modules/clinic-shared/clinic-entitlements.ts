@@ -1,3 +1,20 @@
+/**
+ * Entitlement & experience composition.
+ *
+ * Responsibilities:
+ *   - Plan baseline per `TenantPlan` → module enablement.
+ *   - Module overrides persisted in `tenant_modules`.
+ *   - Role-based permissions and allowed navigation.
+ *   - Composition of `TenantExperience` by vertical branch.
+ *
+ * What lives elsewhere:
+ *   - Vertical identity (`active` / `enabled`): `./vertical-resolver.ts`.
+ *   - Reflag rollouts: `../feature-flags/*`.
+ *
+ * TODO (follow-up PR): consider renaming this file to `entitlement-resolver.ts`
+ * once the clinic-domain imports are migrated. The `clinic-entitlements` name
+ * is kept for now to minimize the blast radius of this change.
+ */
 import type {
   ChannelType,
   ClinicChannel,
@@ -16,12 +33,14 @@ import type {
   TenantModule,
   TenantPlan,
   TenantSettings,
+  TenantVerticalConfig,
 } from '@agentmou/contracts';
 import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
 import {
   FeatureFlagService,
   type ResolvedProductFeatureDecisions,
 } from '../feature-flags/feature-flag.service.js';
+import { resolveTenantVerticalConfig } from './vertical-resolver.js';
 
 const ACTIVE_MODULE_STATUSES = new Set<ModuleStatus>(['enabled', 'beta']);
 const MANAGE_SETTINGS_ROLES = new Set(['owner', 'admin']);
@@ -531,6 +550,9 @@ export async function resolveTenantExperienceWithDecisions(
   decisions: TenantFeatureDecisions;
 }> {
   const normalizedRole = normalizeTenantMembershipRole(context.tenantRole);
+  const verticalConfig: TenantVerticalConfig = resolveTenantVerticalConfig({
+    settings: context.settings,
+  });
 
   if (context.settings.activeVertical === 'internal') {
     const flagResolution = await featureFlagService.resolve({
@@ -569,6 +591,7 @@ export async function resolveTenantExperienceWithDecisions(
       experience: {
         tenantId: context.tenantId,
         activeVertical: 'internal',
+        verticalConfig,
         shellKey: 'platform_internal',
         defaultRoute: `/app/${context.tenantId}/dashboard`,
         role: context.tenantRole,
@@ -615,6 +638,7 @@ export async function resolveTenantExperienceWithDecisions(
       experience: {
         tenantId: context.tenantId,
         activeVertical: 'fisio',
+        verticalConfig,
         shellKey: 'fisio',
         defaultRoute: `/app/${context.tenantId}/dashboard`,
         role: context.tenantRole,
@@ -720,6 +744,7 @@ export async function resolveTenantExperienceWithDecisions(
     experience: {
       tenantId: context.tenantId,
       activeVertical: 'clinic',
+      verticalConfig,
       shellKey: 'clinic',
       defaultRoute: `/app/${context.tenantId}/dashboard`,
       role: context.tenantRole,
