@@ -4,9 +4,12 @@
  * Browser auth is cookie-based:
  *   POST /api/v1/auth/register      -> sets HttpOnly session cookie
  *   POST /api/v1/auth/login         -> sets HttpOnly session cookie
- *   POST /api/v1/auth/logout        -> revokes session + clears cookie
  *   GET  /api/v1/auth/me            -> resolves current user from cookie
  *   POST /api/v1/auth/oauth/exchange -> sets HttpOnly session cookie
+ *
+ * Logout is NOT exposed here. It lives in `apps/web/app/logout/route.ts`
+ * as a server route handler that forwards the cookie to the API and emits
+ * the Set-Cookie header that clears the browser session deterministically.
  */
 
 import { getApiUrl } from '@/lib/runtime/public-origins';
@@ -127,12 +130,6 @@ export async function loginApi(
 
 export async function fetchMe(): Promise<MeResponse> {
   return authRequest<MeResponse>('/api/v1/auth/me');
-}
-
-export async function logoutApi(): Promise<{ ok: true }> {
-  return authRequest<{ ok: true }>('/api/v1/auth/logout', {
-    method: 'POST',
-  });
 }
 
 export interface OAuthProvidersResponse {

@@ -3,13 +3,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const loginApiMock = vi.fn();
 const registerApiMock = vi.fn();
 const fetchMeMock = vi.fn();
-const logoutApiMock = vi.fn();
 
 vi.mock('./api', () => ({
   loginApi: loginApiMock,
   registerApi: registerApiMock,
   fetchMe: fetchMeMock,
-  logoutApi: logoutApiMock,
 }));
 
 async function loadStore() {
@@ -117,5 +115,30 @@ describe('auth store', () => {
         actorTenantId: 'tenant-admin',
       },
     });
+  });
+
+  it('clearSession wipes local state without calling the API', async () => {
+    const { useAuthStore } = await loadStore();
+    useAuthStore.setState({
+      user: { id: 'user-1', email: 'owner@example.com', name: 'Owner' },
+      tenants: [{ id: 'tenant-1', name: 'Demo', plan: 'enterprise', role: 'admin' }],
+      activeTenantId: 'tenant-1',
+      session: null,
+      isLoading: false,
+      isHydrated: true,
+    });
+
+    useAuthStore.getState().clearSession();
+
+    expect(useAuthStore.getState()).toMatchObject({
+      user: null,
+      tenants: [],
+      activeTenantId: null,
+      session: null,
+      isHydrated: true,
+      isLoading: false,
+    });
+    expect(fetchMeMock).not.toHaveBeenCalled();
+    expect(loginApiMock).not.toHaveBeenCalled();
   });
 });
