@@ -80,7 +80,6 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
   const authTenants = useAuthStore((s) => s.tenants);
   const isHydrated = useAuthStore((s) => s.isHydrated);
   const isImpersonation = useAuthStore((s) => Boolean(s.session?.isImpersonation));
-  const logout = useAuthStore((s) => s.logout);
   const hydrate = useAuthStore((s) => s.hydrate);
 
   React.useEffect(() => {
@@ -472,14 +471,16 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={async () => {
-                      await logout();
-                      window.location.href = '/login';
-                    }}
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign out
+                  <DropdownMenuItem asChild>
+                    <form action="/logout" method="post" className="w-full">
+                      <button
+                        type="submit"
+                        className="flex w-full items-center px-2 py-1.5 text-sm"
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Sign out
+                      </button>
+                    </form>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
