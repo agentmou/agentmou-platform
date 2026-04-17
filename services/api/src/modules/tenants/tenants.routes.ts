@@ -3,7 +3,9 @@ import {
   TenantsResponseSchema,
   TenantResponseSchema,
   TenantSettingsResponseSchema,
+  TenantVerticalsResponseSchema,
 } from '@agentmou/contracts';
+import { resolveTenantVerticalConfig } from '../clinic-shared/vertical-resolver.js';
 import { TenantsService } from './tenants.service.js';
 import {
   createTenantSchema,
@@ -55,6 +57,17 @@ export async function tenantRoutes(fastify: FastifyInstance) {
     const { id } = request.params as { id: string };
     const result = await tenantsService.deleteTenant(id);
     return reply.send(result);
+  });
+
+  fastify.get('/:id/verticals', async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.params as { id: string };
+    const settings = await tenantsService.getTenantSettings(id);
+    if (settings === null) {
+      return reply.status(404).send({ error: 'Tenant not found' });
+    }
+
+    const verticals = resolveTenantVerticalConfig({ settings });
+    return reply.send(TenantVerticalsResponseSchema.parse({ verticals }));
   });
 
   fastify.get('/:id/settings', async (request: FastifyRequest, reply: FastifyReply) => {
