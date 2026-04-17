@@ -102,7 +102,7 @@ ya dice que es "compat layer". Mejor momento que ahora no hay.
 ## Riesgos y mitigaciones
 
 | Riesgo | Mitigación |
-|---|---|
+| --- | --- |
 | Borrar `/platform/*` rompe deeplinks externos | Redirects 301 + deja 2 sprints para monitorizar logs |
 | `/logout` route handler no acepta CSRF | Usa `method=POST` con form + `same-origin`; si viene GET, redirige con warning (soft deprecation) |
 | Proxy endurecido rompe acceso demo | Caso `/app/demo-workspace` ya está excluido en `proxy.ts:30`. Regresión test añadido |

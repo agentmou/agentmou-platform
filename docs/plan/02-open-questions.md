@@ -5,7 +5,7 @@ de cada PR señalados explícitamente.
 
 ---
 
-### Q1: ¿El admin vive en `/admin/*` top-level o sigue en `/app/[tenantId]/admin/*`?
+## Q1: ¿El admin vive en `/admin/*` top-level o sigue en `/app/[tenantId]/admin/*`?
 
 **Contexto:**
 Hoy el admin está en `/app/[tenantId]/admin/tenants/...` dentro del tenant admin.
@@ -32,7 +32,7 @@ admin no expone el tenantId actual).
 
 ---
 
-### Q2: ¿Un tenant puede tener N verticales activas, o solo una?
+## Q2: ¿Un tenant puede tener N verticales activas, o solo una?
 
 **Contexto:**
 Hoy el modelo es 1 vertical por tenant (`tenants.settings.activeVertical`). Tu
@@ -60,7 +60,7 @@ piloto, PR-09 se ejecuta con el contrato ya listo y solo hay que hacer UI.
 
 ---
 
-### Q3: ¿Client-side Reflag SDK? ¿Para qué?
+## Q3: ¿Client-side Reflag SDK? ¿Para qué?
 
 **Contexto:**
 Hoy los flags llegan server-resolved en `TenantExperience.flags`. No hay SDK browser
@@ -90,7 +90,7 @@ plasmo como CLAUDE.md rule si se valida.
 
 ---
 
-### Q4: ¿Quién valida la paleta final de tokens en PR-05?
+## Q4: ¿Quién valida la paleta final de tokens en PR-05?
 
 **Contexto:**
 PR-05 añade tokens semánticos (surface raised/subtle, border subtle/strong, estados
@@ -119,7 +119,7 @@ cambian en `globals.css`.
 
 ---
 
-### Q5: Colores por estado de evento de agenda (PR-07)
+## Q5: Colores por estado de evento de agenda (PR-07)
 
 **Contexto:**
 PR-07 propone:
@@ -143,7 +143,7 @@ se captura de forma fiable, usar warning puede confundir.
 
 ---
 
-### Q6: Multi-vertical — ¿qué se comparte entre verticales del mismo tenant? (bloqueante solo para PR-09)
+## Q6: Multi-vertical — ¿qué se comparte entre verticales del mismo tenant? (bloqueante solo para PR-09)
 
 **Contexto:**
 Un grupo con dental + fisio: ¿canales compartidos? ¿usuarios compartidos? ¿datos de
@@ -165,7 +165,7 @@ piloto. Flag PR-09 como "requiere discovery de 1-2 semanas con el cliente antes"
 
 ---
 
-### Q7: (No me pediste, pero me importa) ¿Queremos un Playwright e2e antes de PR-06/07?
+## Q7: (No me pediste, pero me importa) ¿Queremos un Playwright e2e antes de PR-06/07?
 
 **Contexto:**
 Hoy hay tests unit. PR-06 y PR-07 tocan mucha UI. Sin e2e, el riesgo de regresión
@@ -185,7 +185,7 @@ de triage + fix + hotfix. En 2 sprints el ROI es positivo.
 
 ---
 
-### Q8: ¿Mantener o retirar `/platform/*` en PR-01?
+## Q8: ¿Mantener o retirar `/platform/*` en PR-01?
 
 **Contexto:**
 `apps/web/app/app/[tenantId]/platform/*` tiene copias de las páginas internas.

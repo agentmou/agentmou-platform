@@ -94,7 +94,7 @@ Screenshot comparison (visual regression) lo dejamos para futuro si hay demanda.
 ## Riesgos y mitigaciones
 
 | Riesgo | Mitigación |
-|---|---|
+| --- | --- |
 | Flaky tests por timing | `await expect(...).toBeVisible()` en vez de `waitForTimeout`; retries en CI |
 | Seed admin credentials expuestos | Env vars en CI secrets; `.env.e2e.example` con placeholders |
 | CI tarda mucho más | Job e2e separado, no bloquea merge inicialmente (`if: github.event.pull_request.draft != true`) |

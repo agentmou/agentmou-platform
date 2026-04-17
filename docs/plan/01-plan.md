@@ -232,7 +232,7 @@ sección Admin UI → rediseño.
 ## Cadencia sugerida
 
 | Semana | PRs en vuelo | Observación |
-|---|---|---|
+| --- | --- | --- |
 | S1 | PR-01 | Hotfix logout |
 | S2 | PR-02 | Contratos + refactor server |
 | S3 | PR-03, PR-04 en paralelo | 03 hace backend, 04 hace UI admin + `/admin/*` |

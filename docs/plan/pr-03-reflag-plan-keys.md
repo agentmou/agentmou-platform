@@ -184,7 +184,7 @@ beneficio claro hoy.
 ## Riesgos y mitigaciones
 
 | Riesgo | Mitigación |
-|---|---|
+| --- | --- |
 | Keys Reflag duplicadas entre `rollout.*` y `plan.*` | Linter simple en el catálogo: key única y que empiece por uno de los dos prefijos |
 | SDK browser añade peso al bundle si se deja instanciado innecesariamente | Lazy-load solo en pantallas que lo consuman |
 | Configurar publishable key en prod por error como secret key | Validador en boot del backend + README claro |

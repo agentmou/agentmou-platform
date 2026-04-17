@@ -125,7 +125,7 @@ incluido/no-incluido.
 ## Riesgos y mitigaciones
 
 | Riesgo | Mitigación |
-|---|---|
+| --- | --- |
 | Cambio de `features[]` en plan cards confunde al cliente por cambio de orden | Mantener orden manual por plan en `pricingCapabilities` |
 | Test de snapshot rompe tras edit legítimo | Update snapshot explícito en el PR |
 | Nombres de `label` entre card list y comparison table divergen | Usar la misma propiedad `label` — divergencia imposible por construcción |

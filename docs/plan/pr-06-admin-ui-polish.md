@@ -135,7 +135,7 @@ principales del detalle → botones visibles. Edit/delete de usuarios son secund
 ## Riesgos y mitigaciones
 
 | Riesgo | Mitigación |
-|---|---|
+| --- | --- |
 | PR grande, review difícil | Commits separados por pantalla (list → detail → dialogs) |
 | Dialog de create-user rompe con nuevo padding | Tests manuales tanto alta como edición |
 | Impersonation banner regresa un detalle crítico | No tocar el `impersonation-banner.tsx` en esta PR más allá del tone |

@@ -205,7 +205,7 @@ verificar en el PR). Menos riesgo eliminar limpio que mantener un wrapper zombi.
 ## Riesgos y mitigaciones
 
 | Riesgo | Mitigación |
-|---|---|
+| --- | --- |
 | Cambio de token de `--surface-card` rompe componentes existentes | Mantener `--card` y `--card-foreground` como alias |
 | Radius nuevos rompen alineación ad-hoc en pricing page | Testear la pricing page manualmente; los `rounded-[26px]` ad-hoc siguen vivos |
 | Migración de 5-6 pantallas trae muchas líneas al diff | Partir en PR-05a (tokens + primitives) + PR-05b (migración) si excede 400 líneas |

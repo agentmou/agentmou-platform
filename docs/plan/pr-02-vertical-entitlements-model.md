@@ -104,7 +104,7 @@ features cambian mucho).
 ## Riesgos y mitigaciones
 
 | Riesgo | Mitigación |
-|---|---|
+| --- | --- |
 | Cambios de contrato en `TenantExperience` rompen tests existentes | Mantener retrocompatibilidad — `verticalConfig` opcional, con fallback derivado |
 | Refactor del resolver mueve lógica y introduce bugs sutiles | Tests golden del resolver con payloads grabados de prod |
 | El frontend empieza a leer un campo que el backend aún no envía (durante despliegue) | Opcional en el schema; fallback a `settings.activeVertical` |

@@ -106,7 +106,7 @@ Esta decisión requiere producto (Q6).
 ## Riesgos y mitigaciones
 
 | Riesgo | Mitigación |
-|---|---|
+| --- | --- |
 | UX confusa si el selector de vertical no es evidente | Validar con usuarios del piloto antes de generalizar |
 | Datos de dental filtrados en UI fisio (o viceversa) | Todas las queries scopean por vertical — audit completo de queries clínicas |
 | Permissions crosseados | Role+vertical en `memberships` — si se implementa, añadir scope. Para MVP asumimos same role en todas las verticales |

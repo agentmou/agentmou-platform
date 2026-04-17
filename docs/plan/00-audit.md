@@ -188,7 +188,7 @@ Admin (dentro de tenant admin)                (apps/web/app/app/[tenantId]/admin
 Instrumentación de los dos puntos de logout:
 
 | Componente | Fichero:línea | Handler |
-|---|---|---|
+| --- | --- | --- |
 | Clinic topbar | [`clinic-topbar.tsx:112-117`](apps/web/components/clinic/clinic-topbar.tsx:112) | `await logout(); router.push('/login');` |
 | Control-plane shell | [`app-shell.tsx:475-484`](apps/web/components/control-plane/app-shell.tsx:475) | `await logout(); window.location.href = '/login';` |
 
@@ -379,7 +379,7 @@ cambian fondos + tipografía (`page-title`, `section-title`, `table-header`, etc
 ### Audit de 5 pantallas visibles (puntuación 1-5)
 
 | Pantalla | Jerarquía | Densidad | Consistencia | Polish | Total |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | `/app/[t]/admin/tenants` | 3 | 3 | 3 | 2 | **11/20** — tabla plana, filtros sin `—`, cards informativas redundantes |
 | `/app/[t]/admin/tenants/[id]` | 3 | 3 | 2 | 2 | **10/20** — muchos dialogs, cards de usuarios repetitivas, sin panel lateral |
 | `/app/[t]/dashboard` (clinic) | 3 | 3 | 3 | 3 | **12/20** — mejor jerarquía, pero stats cards uniformes y frías |
@@ -398,7 +398,7 @@ profesional"). La marketing está más cuidada que el área app.
 Cuatro tiers (todos `price: 'Custom'`):
 
 | Tier | Modules | Mejor para |
-|---|---|---|
+| --- | --- | --- |
 | **Reception** | `core_reception` | Clínicas que quieren ordenar recepción |
 | **Reception + Voice** (highlight) | `core_reception`, `voice` | Clínicas donde teléfono y WhatsApp compiten |
 | **Reception + Growth** | `core_reception`, `growth` | Clínicas con agenda tensionada |
@@ -426,7 +426,7 @@ coinciden exactamente con `ModuleKey` en contratos.
 ### Mapping propuesto (detallado en PR-03)
 
 | Pricing tier | `tenant.plan` DB | Modules habilitados | Feature keys Reflag |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Reception | `starter` | `core_reception` | `plan.clinic.core_reception`, `plan.clinic.forms`, `plan.clinic.confirmations` |
 | Reception+Voice | `pro` | `core_reception`, `voice` | + `plan.clinic.voice.inbound`, `plan.clinic.voice.outbound` |
 | Reception+Growth | `scale` | `core_reception`, `growth` | + `plan.clinic.gap_recovery`, `plan.clinic.reactivation`, `plan.clinic.waitlist` |

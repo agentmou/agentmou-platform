@@ -114,7 +114,7 @@ Validar con producto antes de merge (Q5 en `02-open-questions.md`).
 ## Riesgos y mitigaciones
 
 | Riesgo | Mitigación |
-|---|---|
+| --- | --- |
 | Dashboard tiene muchas sub-cards distintas, PR infla | Partir en PR-07a (stats + sidebar) + PR-07b (inbox + agenda) |
 | Semántica de estados poco clara | Validar con producto (Q5) antes de mergear |
 | Demo workspace depende del pill READ-ONLY en cada card | Verificar que el banner superior es suficiente UX-wise |
