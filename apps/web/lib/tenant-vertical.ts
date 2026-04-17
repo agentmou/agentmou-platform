@@ -1,6 +1,11 @@
 'use client';
 
-import type { TenantSettings, VerticalKey } from '@agentmou/contracts';
+import type {
+  TenantExperience,
+  TenantSettings,
+  TenantVerticalConfig,
+  VerticalKey,
+} from '@agentmou/contracts';
 
 export function resolveActiveVertical(settings?: Partial<TenantSettings> | null): VerticalKey {
   if (
@@ -16,6 +21,33 @@ export function resolveActiveVertical(settings?: Partial<TenantSettings> | null)
   }
 
   return 'internal';
+}
+
+/**
+ * Derive the vertical identity (`active` + `enabled`) consumed by the shell.
+ *
+ * Prefers the server-resolved `experience.verticalConfig` when present; falls
+ * back to `[resolveActiveVertical(settings)]` for legacy payloads. Today the
+ * frontend only renders `active`; the `enabled` array is exposed so the shell
+ * can evolve into a multi-vertical selector without another contract change.
+ */
+export function resolveTenantVerticalConfig(source: {
+  experience?: Pick<TenantExperience, 'verticalConfig' | 'activeVertical'> | null;
+  settings?: Partial<TenantSettings> | null;
+}): TenantVerticalConfig {
+  if (source.experience?.verticalConfig) {
+    return source.experience.verticalConfig;
+  }
+
+  const active = source.experience?.activeVertical ?? resolveActiveVertical(source.settings);
+  return { active, enabled: [active] };
+}
+
+export function resolveEnabledVerticals(source: {
+  experience?: Pick<TenantExperience, 'verticalConfig' | 'activeVertical'> | null;
+  settings?: Partial<TenantSettings> | null;
+}): VerticalKey[] {
+  return [...resolveTenantVerticalConfig(source).enabled];
 }
 
 export function isClinicUiEnabled(settings?: Partial<TenantSettings> | null) {

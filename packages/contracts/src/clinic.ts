@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { TenantPlanSchema, UserRoleSchema } from './tenancy';
-import { VerticalKeySchema } from './verticals';
+import { TenantVerticalConfigSchema, VerticalKeySchema } from './verticals';
 
 const DateTimeStringSchema = z.string();
 const JsonRecordSchema = z.record(z.unknown());
@@ -1142,6 +1142,13 @@ export type TenantResolvedFlags = z.infer<typeof TenantResolvedFlagsSchema>;
 export const TenantExperienceSchema = z.object({
   tenantId: z.string(),
   activeVertical: VerticalKeySchema,
+  /**
+   * Identity of the tenant's verticals (active + enabled list). Optional
+   * for backward compatibility with pre-2026-04 payloads that predate the
+   * explicit vertical/entitlement split; consumers should derive it from
+   * `activeVertical` when the field is missing.
+   */
+  verticalConfig: TenantVerticalConfigSchema.optional(),
   shellKey: TenantShellKeySchema,
   defaultRoute: z.string(),
   role: z.string().optional(),
