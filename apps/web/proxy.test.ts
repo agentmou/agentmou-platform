@@ -85,4 +85,26 @@ describe('app proxy auth gate', () => {
     const iconResponse = proxy(iconRequest);
     expect(iconResponse.status).toBe(200);
   });
+
+  it('passes /logout through without touching cookies or canonical host logic', () => {
+    const withCookie = new NextRequest('https://app.agentmou.io/logout', {
+      headers: { cookie: 'agentmou-session=opaque-cookie-token' },
+    });
+    expect(proxy(withCookie).status).toBe(200);
+
+    const withoutCookie = new NextRequest('https://app.agentmou.io/logout');
+    expect(proxy(withoutCookie).status).toBe(200);
+  });
+
+  it('redirects a stale-cookie /app request to /login when the cookie is missing', () => {
+    // Regression guard: after the session cookie is cleared, any subsequent
+    // /app request must land on /login rather than looping through /app.
+    const request = new NextRequest('https://app.agentmou.io/app/tenant-1/dashboard');
+    const response = proxy(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toBe(
+      'https://app.agentmou.io/login?redirect=%2Fapp%2Ftenant-1%2Fdashboard'
+    );
+  });
 });

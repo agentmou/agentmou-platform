@@ -5,7 +5,6 @@ import { create } from 'zustand';
 import {
   fetchMe,
   loginApi,
-  logoutApi,
   registerApi,
   type AuthSession,
   type AuthTenant,
@@ -31,7 +30,13 @@ interface AuthState {
 
   login: (email: string, password: string, rememberMe?: boolean) => Promise<string>;
   register: (email: string, password: string, name: string) => Promise<string>;
-  logout: () => Promise<void>;
+  /**
+   * Clears the auth store state locally. The actual session revocation and
+   * cookie invalidation live in the `POST /logout` route handler so that
+   * server-side Set-Cookie headers are authoritative. Callers should navigate
+   * to `/logout` (via form submit) rather than invoking this directly.
+   */
+  clearSession: () => void;
   hydrate: (force?: boolean) => Promise<void>;
   refreshSession: (options?: SessionRefreshOptions) => Promise<string | null>;
   bootstrap: (snapshot: AuthSnapshot) => void;
@@ -155,16 +160,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  logout: async () => {
-    try {
-      await logoutApi();
-    } finally {
-      set({
-        ...clearAuthState(),
-        isHydrated: true,
-        isLoading: false,
-      });
-    }
+  clearSession: () => {
+    set({
+      ...clearAuthState(),
+      isHydrated: true,
+      isLoading: false,
+    });
   },
 
   hydrate: async (force = false) => {

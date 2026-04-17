@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Bell, Building2, ChevronDown, Command, Menu, Search, User } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Bell, Building2, ChevronDown, Command, LogOut, Menu, Search, User } from 'lucide-react';
 
 import { useAuthStore } from '@/lib/auth/store';
 import { InternalModeSwitch } from '@/components/clinic/internal-mode-switch';
@@ -29,12 +29,10 @@ export function ClinicTopbar({
 }: {
   onCommandOpenChange: (open: boolean) => void;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
   const tenants = useAuthStore((state) => state.tenants);
   const isImpersonation = useAuthStore((state) => Boolean(state.session?.isImpersonation));
-  const logout = useAuthStore((state) => state.logout);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const experience = useTenantExperience();
 
@@ -109,13 +107,16 @@ export function ClinicTopbar({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={async () => {
-                await logout();
-                router.push('/login');
-              }}
-            >
-              Cerrar sesión
+            <DropdownMenuItem asChild>
+              <form action="/logout" method="post" className="w-full">
+                <button
+                  type="submit"
+                  className="flex w-full items-center gap-2 px-2 py-1.5 text-sm"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Cerrar sesión
+                </button>
+              </form>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

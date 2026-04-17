@@ -17,7 +17,6 @@ export default function TenantLayout({ children }: { children: React.ReactNode }
   const pathname = usePathname();
   const router = useRouter();
   const tenantId = params.tenantId as string;
-  const authUser = useAuthStore((state) => state.user);
   const authTenants = useAuthStore((state) => state.tenants);
   const authTenant = authTenants.find((tenant) => tenant.id === tenantId);
   const provider = React.useMemo(() => getTenantDataProvider(tenantId), [tenantId]);
@@ -44,9 +43,11 @@ export default function TenantLayout({ children }: { children: React.ReactNode }
       return;
     }
 
-    router.replace(authUser ? '/app' : '/login');
+    // No tenant access and no fallback: the session is either expired or the
+    // route was reached without a valid membership. Always send to /login —
+    // bouncing to /app would loop back here.
+    router.replace('/login');
   }, [
-    authUser,
     experience.fallbackTenantId,
     experience.hasTenantAccess,
     experience.isLoading,
