@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildPricingComparisonRows,
   clinicBeforeAfter,
   clinicCostOfInactionMetrics,
   clinicFlowPaths,
@@ -14,6 +15,8 @@ import {
   clinicSecurityPillars,
   clinicShowcaseCards,
   clinicModules,
+  pricingCapabilities,
+  pricingComparisonPlanOrder,
 } from './clinic-site';
 
 describe('clinic marketing content', () => {
@@ -84,6 +87,49 @@ describe('clinic marketing content', () => {
     ]);
     expect(JSON.stringify(clinicPricingPlans).toLowerCase()).not.toContain('runs');
     expect(clinicPricingPlans.every((plan) => plan.bestFor.length > 0)).toBe(true);
+  });
+
+  it('derives the comparison table from pricingCapabilities in plan-card order', () => {
+    const rows = buildPricingComparisonRows();
+
+    // Every capability contributes exactly one row.
+    expect(rows).toHaveLength(pricingCapabilities.length);
+
+    // Each row has one value per plan column — no drift possible.
+    for (const row of rows) {
+      expect(row.values).toHaveLength(pricingComparisonPlanOrder.length);
+    }
+
+    // The column order matches the plan-card array so the visual blocks
+    // tell the same story from left to right.
+    expect(pricingComparisonPlanOrder).toEqual(clinicPricingPlans.map((plan) => plan.planKey));
+  });
+
+  it('flag-backed pricing capabilities defer to comparisonValue for per-plan text', () => {
+    const voiceRow = buildPricingComparisonRows().find((row) => row.label === 'Voice');
+    expect(voiceRow).toBeDefined();
+    // Voice is "Opcional" on starter+scale and "Incluido" on pro+enterprise.
+    expect(voiceRow!.values).toEqual(['Opcional', 'Incluido', 'Opcional', 'Incluido']);
+  });
+
+  it('narrative rows (no flagKey) are driven entirely by comparisonValue', () => {
+    const deploymentRow = buildPricingComparisonRows().find((row) => row.label === 'Despliegue');
+    expect(deploymentRow).toBeDefined();
+    expect(deploymentRow!.values).toEqual([
+      'Guiado',
+      'Guiado',
+      'Guiado',
+      'Acompañamiento dedicado',
+    ]);
+  });
+
+  it('every pricing capability references a plan the product actually offers', () => {
+    const validPlans = new Set(pricingComparisonPlanOrder);
+    for (const capability of pricingCapabilities) {
+      for (const plan of capability.includedIn) {
+        expect(validPlans.has(plan)).toBe(true);
+      }
+    }
   });
 
   it('maps each pricing tier to a programmatic plan, module, and flag contract', () => {

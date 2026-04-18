@@ -11,7 +11,7 @@ import { MinimalButton } from '@/components/ui/minimal-button';
 import { HalftoneBackground } from '@/components/brand/halftone-background';
 import { FadeContent } from '@/components/reactbits/fade-content';
 import { TiltedCard } from '@/components/reactbits/tilted-card';
-import { clinicPricingPlans } from '@/lib/marketing/clinic-site';
+import { buildPricingComparisonRows, clinicPricingPlans } from '@/lib/marketing/clinic-site';
 
 export const metadata: Metadata = {
   title: 'Pricing | Agentmou Clinics',
@@ -22,37 +22,11 @@ export const metadata: Metadata = {
   },
 };
 
-const comparisonRows = [
-  {
-    label: 'Core Reception',
-    values: ['Incluido', 'Incluido', 'Incluido', 'Incluido'],
-  },
-  {
-    label: 'Voice',
-    values: ['Opcional', 'Incluido', 'Opcional', 'Incluido'],
-  },
-  {
-    label: 'Growth',
-    values: ['Opcional', 'Opcional', 'Incluido', 'Incluido'],
-  },
-  {
-    label: 'Canales',
-    values: ['WhatsApp', 'WhatsApp + voz', 'WhatsApp + growth', 'Multicanal'],
-  },
-  {
-    label: 'Cobertura operativa',
-    values: [
-      'Recepción y agenda',
-      'Recepción + llamadas',
-      'Recepción + recuperación',
-      'Sedes y flujos complejos',
-    ],
-  },
-  {
-    label: 'Despliegue',
-    values: ['Guiado', 'Guiado', 'Guiado', 'Acompañamiento dedicado'],
-  },
-];
+// The comparison table is derived from `pricingCapabilities` (the single
+// source of truth for plan features). Hard-coded rows used to drift from
+// the live Reflag catalog; the generated shape below breaks the build
+// via TypeScript if a capability references an unknown `PlanFlagKey`.
+const comparisonRows = buildPricingComparisonRows();
 
 const faqs = [
   {
