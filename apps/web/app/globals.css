@@ -68,6 +68,45 @@
   --success-foreground: #111111;
   --warning: #ffb74d;
   --warning-foreground: #111111;
+
+  /* ============================================================
+     Semantic tokens (PR-05) — depth, hierarchy, state, type.
+     Layered on top of the legacy palette above so existing
+     `bg-card`, `bg-muted`, etc. keep working unchanged.
+     ============================================================ */
+
+  /* Surface depth. Use these instead of mixing background/card directly. */
+  --surface-base: var(--background);
+  --surface-subtle: #f8f9fb; /* between background and card */
+  --surface-raised: var(--card); /* same elevation as today's card */
+  --surface-card: var(--card); /* alias kept for parity with .dark */
+  --surface-overlay: #ffffff; /* dialog / popover top layer */
+
+  /* Border weight. `--border` (legacy) stays as the default; the
+     `subtle` and `strong` variants give designers two more steps. */
+  --border-subtle: #e5e7eb;
+  --border-default: var(--border);
+  --border-strong: #9ca3af;
+
+  /* Text role tokens — semantic over numerical greys. */
+  --text-primary: var(--foreground);
+  --text-secondary: #374151;
+  --text-muted: var(--muted-foreground);
+  --text-inverse: var(--primary-foreground);
+
+  /* Explicit radius scale (no longer derived from --radius math).
+     Keep --radius itself as the legacy default. */
+  --radius-pill: 9999px;
+
+  /* Information state — fills the gap between success and warning. */
+  --info: #3b82f6;
+  --info-foreground: #ffffff;
+  --info-subtle: #eff6ff;
+
+  /* Subtle background fills for tonal badges and alerts. */
+  --success-subtle: #ecfdf5;
+  --warning-subtle: #fffbeb;
+  --destructive-subtle: #fef2f2;
 }
 
 .dark {
@@ -108,6 +147,30 @@
   --sidebar-accent-foreground: #f3f4f6;
   --sidebar-border: #2a2f39;
   --sidebar-ring: #4bc870;
+
+  /* Semantic tokens — dark mode parity (PR-05). */
+  --surface-base: var(--background);
+  --surface-subtle: #13161b;
+  --surface-raised: var(--card);
+  --surface-card: var(--card);
+  --surface-overlay: var(--popover);
+
+  --border-subtle: #22262e;
+  --border-default: var(--border);
+  --border-strong: #3a414d;
+
+  --text-primary: var(--foreground);
+  --text-secondary: #d1d5db;
+  --text-muted: var(--muted-foreground);
+  --text-inverse: var(--primary-foreground);
+
+  --info: #60a5fa;
+  --info-foreground: #0f1115;
+  --info-subtle: #1e293b;
+
+  --success-subtle: #064e3b;
+  --warning-subtle: #78350f;
+  --destructive-subtle: #450a0a;
 }
 
 @theme inline {
@@ -144,6 +207,7 @@
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-pill: var(--radius-pill);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -152,6 +216,31 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Semantic colour aliases (PR-05). They generate utilities like
+     `bg-surface-raised`, `border-border-subtle`, `text-text-secondary`,
+     `bg-info-subtle`, `text-info-foreground`. */
+  --color-surface-base: var(--surface-base);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-card: var(--surface-card);
+  --color-surface-overlay: var(--surface-overlay);
+
+  --color-border-subtle: var(--border-subtle);
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-subtle: var(--info-subtle);
+  --color-success-subtle: var(--success-subtle);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-destructive-subtle: var(--destructive-subtle);
 }
 
 @layer base {
