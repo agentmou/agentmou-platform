@@ -53,7 +53,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <Link href="/admin/tenants" className="flex items-center" aria-label="Admin home">
             <Logo variant="header" />
           </Link>
-          <span className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Admin</span>
+          <span className="text-text-muted text-xs uppercase tracking-[0.12em]" aria-hidden>
+            Admin
+          </span>
         </div>
         <div className="flex items-center gap-3 text-sm">
           {actorTenant ? (
@@ -63,9 +65,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               </Link>
             </Button>
           ) : null}
-          <span className="hidden text-xs text-muted-foreground sm:inline">{user.email}</span>
+          <span className="text-text-muted hidden text-xs sm:inline">{user.email}</span>
           <form action="/logout" method="post">
-            <Button type="submit" variant="outline" size="sm">
+            <Button
+              type="submit"
+              variant="outline"
+              size="sm"
+              aria-label="Cerrar sesión y volver a la página de login"
+            >
               Cerrar sesión
             </Button>
           </form>
