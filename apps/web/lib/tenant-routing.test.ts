@@ -85,12 +85,16 @@ describe('tenant routing', () => {
     expect(target).toBe('/app/tenant-1/dashboard');
   });
 
-  it('classifies admin pages as internal admin-console routes', () => {
+  it('does not classify legacy /admin pages as in-tenant routes (handled by next.config 301)', () => {
+    // After PR-04 the admin console moved out of the tenant URL space to
+    // canonical /admin/*. Any in-tenant `/app/:t/admin/*` request is rewritten
+    // by `next.config.mjs` redirects before the in-app router sees it, so the
+    // resolver no longer needs to recognise the path. Treating it as
+    // `unknown` here is the safe default.
     const match = matchTenantRoute('/app/tenant-1/admin/tenants', 'tenant-1');
 
-    expect(match.kind).toBe('internal');
-    expect(match.navigationKey).toBe('admin_console');
-    expect(match.canonicalPath).toBe('/admin/tenants');
+    expect(match.kind).toBe('unknown');
+    expect(match.navigationKey).toBeUndefined();
   });
 
   it('keeps fisio tenants on the shared shell but blocks routes outside their navigation', () => {
@@ -107,21 +111,12 @@ describe('tenant routing', () => {
     expect(target).toBe('/app/tenant-1/dashboard');
   });
 
-  it('redirects non-admin internal tenants away from the admin console', () => {
-    const target = resolveTenantRouteRedirect({
-      pathname: '/app/tenant-1/admin/tenants',
-      tenantId: 'tenant-1',
-      experience: {
-        activeVertical: 'internal',
-        allowedNavigation: ['platform_internal'],
-        defaultRoute: '/app/tenant-1/dashboard',
-      },
-    });
-
-    expect(target).toBe('/app/tenant-1/dashboard');
-  });
-
-  it('redirects clinic tenants away from admin routes even through the internal namespace', () => {
+  it('returns no redirect for legacy in-tenant /admin paths (next.config handles them)', () => {
+    // The next.config.mjs `permanent: true` redirects rewrite
+    // /app/:tenantId/admin/* to /admin/* before the client-side resolver
+    // runs, so the resolver intentionally returns null here. Defending
+    // against tenants without admin access is the canonical /admin/*
+    // shell's job, not this function's.
     const target = resolveTenantRouteRedirect({
       pathname: '/app/tenant-1/admin/tenants',
       tenantId: 'tenant-1',
@@ -132,6 +127,6 @@ describe('tenant routing', () => {
       },
     });
 
-    expect(target).toBe('/app/tenant-1/dashboard');
+    expect(target).toBeNull();
   });
 });

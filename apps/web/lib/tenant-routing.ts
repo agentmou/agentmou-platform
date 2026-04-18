@@ -19,7 +19,10 @@ const INTERNAL_ROUTE_PATTERNS: Array<{
   prefix: string;
   navigationKey: TenantNavigationKey;
 }> = [
-  { prefix: '/admin', navigationKey: 'admin_console' },
+  // The admin console moved out of the tenant URL space to canonical
+  // /admin/* in PR-04. The tenant-scoped `/admin/*` paths now only exist as
+  // permanent redirects in next.config.mjs; they no longer match here so
+  // routing inside the shell does not try to render them.
   { prefix: '/approvals', navigationKey: 'platform_internal' },
   { prefix: '/marketplace', navigationKey: 'platform_internal' },
   { prefix: '/installer', navigationKey: 'platform_internal' },
