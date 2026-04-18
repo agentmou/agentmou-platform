@@ -17,6 +17,7 @@ import {
   AdminStopImpersonationInput,
   AdminStopImpersonationResponse,
   AdminTenantDetail,
+  AdminTenantFeatureResolution,
   AdminTenantListFilters,
   AdminTenantListResponse,
   AdminTenantUser,
@@ -175,6 +176,10 @@ export interface AdminMethods {
     managedTenantId: string
   ): Promise<AdminTenantDetail | null>;
   listAdminTenantUsers(adminTenantId: string, managedTenantId: string): Promise<AdminTenantUser[]>;
+  getAdminTenantFeatureResolution(
+    adminTenantId: string,
+    managedTenantId: string
+  ): Promise<AdminTenantFeatureResolution | null>;
   createAdminTenantUser(
     adminTenantId: string,
     managedTenantId: string,

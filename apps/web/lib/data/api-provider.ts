@@ -13,6 +13,7 @@ import {
   approveRequest as apiApprove,
   fetchBillingOverview,
   fetchAdminTenantDetail,
+  fetchAdminTenantFeatureResolution,
   fetchAdminTenantUsers,
   fetchAdminTenants,
   fetchCatalogAgent,
@@ -139,6 +140,8 @@ export const apiProvider: DataProvider = {
     fetchAdminTenantDetail(adminTenantId, managedTenantId),
   listAdminTenantUsers: (adminTenantId, managedTenantId) =>
     fetchAdminTenantUsers(adminTenantId, managedTenantId),
+  getAdminTenantFeatureResolution: (adminTenantId, managedTenantId) =>
+    fetchAdminTenantFeatureResolution(adminTenantId, managedTenantId),
   createAdminTenantUser: (adminTenantId, managedTenantId, body) =>
     createAdminTenantUser(adminTenantId, managedTenantId, body),
   updateAdminTenantUser: (adminTenantId, managedTenantId, userId, body) =>
