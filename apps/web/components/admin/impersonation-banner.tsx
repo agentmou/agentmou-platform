@@ -38,7 +38,11 @@ export function ImpersonationBanner() {
         preferredTenantId: actorTenantId,
       });
 
-      router.replace(`/app/${actorTenantId}/admin/tenants/${targetTenantId}`);
+      // After stopping impersonation we land back in the canonical admin
+      // console — the actor's tenant is restored from the session and the
+      // managed tenant id stays in the URL so the operator keeps context.
+      void actorTenantId;
+      router.replace(`/admin/tenants/${targetTenantId}`);
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
