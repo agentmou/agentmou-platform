@@ -86,6 +86,32 @@ describe('clinic marketing content', () => {
     expect(clinicPricingPlans.every((plan) => plan.bestFor.length > 0)).toBe(true);
   });
 
+  it('maps each pricing tier to a programmatic plan, module, and flag contract', () => {
+    // Every card must reference a real TenantPlan and at least one module +
+    // one plan flag. The type-check already enforces the key strings; the
+    // runtime assertions here keep the cardinality honest.
+    expect(clinicPricingPlans.map((plan) => plan.planKey)).toEqual([
+      'starter',
+      'pro',
+      'scale',
+      'enterprise',
+    ]);
+    expect(
+      clinicPricingPlans.every((plan) => plan.moduleKeys.length > 0 && plan.planFlags.length > 0)
+    ).toBe(true);
+    // Enterprise must strictly supersede lower tiers in both modules and flags.
+    const enterprise = clinicPricingPlans.find((plan) => plan.planKey === 'enterprise');
+    const scale = clinicPricingPlans.find((plan) => plan.planKey === 'scale');
+    const pro = clinicPricingPlans.find((plan) => plan.planKey === 'pro');
+    expect(enterprise && scale && pro).toBeTruthy();
+    for (const module of scale!.moduleKeys) {
+      expect(enterprise!.moduleKeys).toContain(module);
+    }
+    for (const flag of pro!.planFlags) {
+      expect(enterprise!.planFlags).toContain(flag);
+    }
+  });
+
   it('keeps trust messaging grounded in clinic operations and closes with onboarding steps', () => {
     expect(clinicSecurityPillars).toHaveLength(4);
     expect(JSON.stringify(clinicSecurityPillars)).toContain('tenant');

@@ -1,10 +1,13 @@
 import { ReflagClient } from '@reflag/node-sdk';
-import type { ModuleKey, TenantPlan, VerticalKey } from '@agentmou/contracts';
+import type { ModuleKey, PlanFlagKey, TenantPlan, VerticalKey } from '@agentmou/contracts';
 import { createServiceLogger } from '@agentmou/observability';
 
 import type { FeatureFlagKey } from './catalog.js';
 
-type FeatureFlagOverrideMap = Partial<Record<FeatureFlagKey, boolean>>;
+// Reflag hosts both the `rollout.*` and `plan.*` namespaces in the same
+// project, so the provider returns a union type. The resolvers filter by
+// catalog membership to keep each namespace isolated downstream.
+type FeatureFlagOverrideMap = Partial<Record<FeatureFlagKey | PlanFlagKey, boolean>>;
 
 export interface ReflagProviderConfig {
   sdkKey?: string;

@@ -1,7 +1,7 @@
 import type { ClinicChannel, ClinicModuleEntitlement, ClinicProfile } from '@agentmou/contracts';
 import { describe, expect, it } from 'vitest';
 
-import { FEATURE_FLAG_KEYS } from './catalog.js';
+import { FEATURE_FLAG_KEYS, PLAN_FLAG_KEYS } from './catalog.js';
 import { FeatureFlagService, type FeatureFlagContext } from './feature-flag.service.js';
 import { LocalFallbackProvider } from './local-fallback-provider.js';
 import { ReflagProvider, type ReflagOverrideResult } from './reflag-provider.js';
@@ -221,5 +221,107 @@ describe('FeatureFlagService', () => {
 
     expect(result.flags.reactivationEnabled).toBe(false);
     expect(result.flags.smartGapFillEnabled).toBe(false);
+  });
+});
+
+describe('FeatureFlagService.resolvePlanEntitlements', () => {
+  it('grants the starter baseline: core reception, forms, confirmations only', async () => {
+    const service = createService({});
+
+    const result = await service.resolvePlanEntitlements({
+      tenantId: 'tenant-1',
+      activeVertical: 'clinic',
+      isPlatformAdminTenant: false,
+      plan: 'starter',
+    });
+
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicCoreReception]).toBe(true);
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicForms]).toBe(true);
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicConfirmations]).toBe(true);
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicVoiceInbound]).toBe(false);
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicGapRecovery]).toBe(false);
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicMultiLocation]).toBe(false);
+  });
+
+  it('grants pro-tier voice but leaves growth capabilities locked', async () => {
+    const service = createService({});
+
+    const result = await service.resolvePlanEntitlements({
+      tenantId: 'tenant-1',
+      activeVertical: 'clinic',
+      isPlatformAdminTenant: false,
+      plan: 'pro',
+    });
+
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicVoiceInbound]).toBe(true);
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicVoiceOutbound]).toBe(true);
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicGapRecovery]).toBe(false);
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicReactivation]).toBe(false);
+  });
+
+  it('grants scale-tier growth capabilities and keeps enterprise-only flags locked', async () => {
+    const service = createService({});
+
+    const result = await service.resolvePlanEntitlements({
+      tenantId: 'tenant-1',
+      activeVertical: 'clinic',
+      isPlatformAdminTenant: false,
+      plan: 'scale',
+    });
+
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicGapRecovery]).toBe(true);
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicReactivation]).toBe(true);
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicWaitlist]).toBe(true);
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicAdvancedSettings]).toBe(false);
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicMultiLocation]).toBe(false);
+  });
+
+  it('grants every capability at the enterprise tier', async () => {
+    const service = createService({});
+
+    const result = await service.resolvePlanEntitlements({
+      tenantId: 'tenant-1',
+      activeVertical: 'clinic',
+      isPlatformAdminTenant: false,
+      plan: 'enterprise',
+    });
+
+    expect(Object.values(result.entitlements).every(Boolean)).toBe(true);
+  });
+
+  it('honors a Reflag override that unlocks a capability below the plan baseline', async () => {
+    const service = createService({
+      reflagResult: {
+        overrides: {
+          [PLAN_FLAG_KEYS.clinicVoiceInbound]: true,
+        },
+      },
+    });
+
+    const result = await service.resolvePlanEntitlements({
+      tenantId: 'tenant-1',
+      activeVertical: 'clinic',
+      isPlatformAdminTenant: false,
+      plan: 'starter',
+    });
+
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicVoiceInbound]).toBe(true);
+    const voiceDecision = result.decisions.find((d) => d.key === PLAN_FLAG_KEYS.clinicVoiceInbound);
+    expect(voiceDecision?.source).toBe('reflag-plan-override');
+  });
+
+  it('returns false for every clinic plan flag on a non-clinic vertical even at enterprise', async () => {
+    const service = createService({});
+
+    const result = await service.resolvePlanEntitlements({
+      tenantId: 'tenant-1',
+      activeVertical: 'fisio',
+      isPlatformAdminTenant: false,
+      plan: 'enterprise',
+    });
+
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicCoreReception]).toBe(false);
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicVoiceInbound]).toBe(false);
+    expect(result.entitlements[PLAN_FLAG_KEYS.clinicGapRecovery]).toBe(false);
   });
 });
