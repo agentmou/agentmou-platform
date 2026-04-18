@@ -70,5 +70,35 @@ export default tseslint.config(
         },
       ],
     },
+  },
+  {
+    // Authorization is never driven by the client-side Reflag SDK. Read from
+    // the server-resolved TenantExperience payload instead.
+    files: [
+      'apps/web/lib/auth/**/*.{ts,tsx}',
+      'apps/web/lib/providers/**/*.{ts,tsx}',
+      'apps/web/proxy.ts',
+      'apps/web/**/*-access.{ts,tsx}',
+      'services/api/src/middleware/**/*.{ts,tsx}',
+      'services/api/src/**/*-access.{ts,tsx}',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@/lib/feature-flags/client',
+                '@/lib/feature-flags/client.js',
+                '@/lib/feature-flags/client.tsx',
+              ],
+              message:
+                'Authorization paths must not depend on client-side Reflag flags. Use TenantExperience.flags resolved server-side.',
+            },
+          ],
+        },
+      ],
+    },
   }
 );
