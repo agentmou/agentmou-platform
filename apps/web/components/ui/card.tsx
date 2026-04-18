@@ -1,15 +1,62 @@
 import * as React from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
-function Card({ className, ...props }: React.ComponentProps<'div'>) {
+/**
+ * Card surface primitive.
+ *
+ * The `variant` and `padding` props are additive (PR-05): existing call
+ * sites that pass only `className` keep their previous look, because the
+ * legacy classes are folded into the `default` variant. New code should
+ * prefer the `variant` API to opt into the semantic surface tokens.
+ */
+const cardVariants = cva('flex flex-col gap-6 transition-colors', {
+  variants: {
+    variant: {
+      // Legacy default — preserved bit for bit so unmigrated call sites
+      // keep their elevated white card with a subtle shadow.
+      default: 'bg-card text-card-foreground rounded-xl border shadow-sm',
+      // Same elevation as `default` but explicit about being a surface,
+      // and uses the semantic border token. Use this for new admin pages.
+      raised:
+        'bg-surface-raised text-card-foreground rounded-xl border border-border-default shadow-sm',
+      // Lighter surface for grouping inside a `default` container — e.g.
+      // a filters bar that should read as "secondary depth".
+      subtle: 'bg-surface-subtle text-card-foreground rounded-xl border border-border-subtle',
+      // Outline-only — no fill. Useful for empty states and dashed groupings.
+      outline: 'bg-transparent text-card-foreground rounded-xl border border-border-default',
+      // No chrome at all — keeps the layout primitives so consumers can
+      // wrap a fully-custom surface without losing CardHeader/Content.
+      ghost: 'bg-transparent text-card-foreground',
+    },
+    padding: {
+      none: 'py-0',
+      sm: 'py-4',
+      md: 'py-6',
+      lg: 'py-8',
+    },
+  },
+  defaultVariants: {
+    variant: 'default',
+    padding: 'md',
+  },
+});
+
+export type CardVariant = NonNullable<VariantProps<typeof cardVariants>['variant']>;
+export type CardPadding = NonNullable<VariantProps<typeof cardVariants>['padding']>;
+
+function Card({
+  className,
+  variant,
+  padding,
+  ...props
+}: React.ComponentProps<'div'> & VariantProps<typeof cardVariants>) {
   return (
     <div
       data-slot="card"
-      className={cn(
-        'bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm',
-        className
-      )}
+      data-card-variant={variant ?? 'default'}
+      className={cn(cardVariants({ variant, padding }), className)}
       {...props}
     />
   );
@@ -72,4 +119,13 @@ function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-export { Card, CardHeader, CardFooter, CardTitle, CardAction, CardDescription, CardContent };
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardAction,
+  CardDescription,
+  CardContent,
+  cardVariants,
+};
