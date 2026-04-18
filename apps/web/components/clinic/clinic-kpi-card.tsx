@@ -3,6 +3,17 @@ import { ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+type ClinicKpiTone = 'default' | 'success' | 'warning';
+
+const TONE_CLASSES: Record<ClinicKpiTone, string> = {
+  // Accent / mint is the "information, no urgency" default for clinic
+  // KPI cards. Success and warning lean on the semantic *-subtle tokens
+  // introduced in PR-05.
+  default: 'bg-accent/10 text-accent',
+  success: 'bg-success-subtle text-success',
+  warning: 'bg-warning-subtle text-warning-foreground',
+};
+
 export function ClinicKpiCard({
   label,
   value,
@@ -12,27 +23,26 @@ export function ClinicKpiCard({
   label: string;
   value: number | string;
   helper?: string;
-  tone?: 'default' | 'success' | 'warning';
+  tone?: ClinicKpiTone;
 }) {
   return (
-    <Card className="border-border/60">
+    <Card variant="raised">
       <CardHeader className="space-y-1 pb-3">
-        <CardTitle className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+        <CardTitle className="text-text-muted text-xs uppercase tracking-[0.12em]">
           {label}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex items-end justify-between gap-3">
         <div>
-          <div className="text-3xl font-semibold tracking-tight">{value}</div>
-          {helper ? <p className="mt-1 text-sm text-muted-foreground">{helper}</p> : null}
+          <div className="text-text-primary text-3xl font-semibold tracking-tight">{value}</div>
+          {helper ? <p className="text-text-secondary mt-1 text-sm">{helper}</p> : null}
         </div>
         <div
           className={cn(
             'flex h-10 w-10 items-center justify-center rounded-full',
-            tone === 'success' && 'bg-emerald-500/10 text-emerald-600',
-            tone === 'warning' && 'bg-amber-500/10 text-amber-600',
-            tone === 'default' && 'bg-accent/10 text-accent'
+            TONE_CLASSES[tone]
           )}
+          aria-hidden
         >
           <ArrowUpRight className="h-4 w-4" />
         </div>

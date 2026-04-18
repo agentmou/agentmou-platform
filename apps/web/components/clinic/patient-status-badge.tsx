@@ -1,7 +1,6 @@
 import type { Patient } from '@agentmou/contracts';
 
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { Badge, type BadgeTone } from '@/components/ui/badge';
 
 const STATUS_LABELS: Record<Patient['status'], string> = {
   new_lead: 'Nuevo paciente',
@@ -13,6 +12,28 @@ const STATUS_LABELS: Record<Patient['status'], string> = {
   do_not_contact: 'No contactar',
 };
 
+/**
+ * Per-status tone mapping for the patient lifecycle.
+ *
+ * - `success` tones (filled green) signal a positive state worth noticing
+ *   (new lead, reactivated patient).
+ * - `info` tones (filled blue) signal "something is in progress" states
+ *   where the next operational step is clear (intake pending).
+ * - `warning` tones (filled amber) signal states that need operator attention
+ *   (waiting on clinic response, inactive patients that may need a nudge).
+ * - Neutral outline covers the steady-state "existing patient" and the
+ *   compliance-sensitive "do not contact" label.
+ */
+const STATUS_TONE: Record<Patient['status'], BadgeTone> = {
+  new_lead: 'success',
+  intake_pending: 'info',
+  existing: 'neutral',
+  waiting: 'warning',
+  inactive: 'warning',
+  reactivated: 'success',
+  do_not_contact: 'neutral',
+};
+
 export function PatientStatusBadge({
   status,
   isExisting,
@@ -20,20 +41,16 @@ export function PatientStatusBadge({
   status: Patient['status'];
   isExisting: boolean;
 }) {
-  return (
-    <Badge
-      variant="outline"
-      className={cn(
-        'border-transparent',
-        isExisting ? 'bg-slate-100 text-slate-700' : 'bg-emerald-100 text-emerald-700',
-        status === 'inactive' && 'bg-amber-100 text-amber-700',
-        status === 'do_not_contact' && 'bg-neutral-200 text-neutral-600',
-        status === 'intake_pending' && 'bg-sky-100 text-sky-700',
-        status === 'reactivated' && 'bg-violet-100 text-violet-700',
-        status === 'waiting' && 'bg-orange-100 text-orange-700'
-      )}
-    >
-      {STATUS_LABELS[status]}
-    </Badge>
-  );
+  // Existing patients stay in a neutral outline regardless of lifecycle
+  // stage — the "existing vs new" distinction is the primary read, and
+  // overlaying a warm tone on an existing patient would be misleading.
+  const tone = isExisting ? 'neutral' : STATUS_TONE[status];
+
+  // Neutral tones render as an outlined chip; coloured tones use the
+  // default filled style from PR-05's Badge variants.
+  if (tone === 'neutral') {
+    return <Badge variant="outline">{STATUS_LABELS[status]}</Badge>;
+  }
+
+  return <Badge tone={tone}>{STATUS_LABELS[status]}</Badge>;
 }
