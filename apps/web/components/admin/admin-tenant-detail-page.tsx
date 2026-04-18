@@ -67,6 +67,8 @@ import { useAuthStore } from '@/lib/auth/store';
 import { useDataProvider } from '@/lib/providers/context';
 import { useProviderQuery } from '@/lib/data/use-provider-query';
 
+import { AdminTenantVerticalsToggler } from './admin-tenant-verticals-toggler';
+
 const USER_ROLE_OPTIONS: UserRole[] = ['owner', 'admin', 'operator', 'viewer'];
 const VERTICAL_OPTIONS: VerticalKey[] = ['internal', 'clinic', 'fisio'];
 
@@ -442,37 +444,7 @@ export function AdminTenantDetailPage() {
           </CardContent>
         </Card>
 
-        <Card variant="raised">
-          <CardHeader>
-            <CardTitle className="text-lg">Vertical configs</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {detail.verticalConfigs.length > 0 ? (
-              detail.verticalConfigs.map((config) => (
-                <Card
-                  key={config.id}
-                  variant="subtle"
-                  padding="none"
-                  className="rounded-2xl px-4 py-3"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <Badge tone="info" className="capitalize">
-                      {config.verticalKey}
-                    </Badge>
-                    <span className="text-text-muted text-xs">
-                      Updated {formatTimestamp(config.updatedAt)}
-                    </span>
-                  </div>
-                  <p className="text-text-secondary mt-2 text-sm">
-                    Esta config queda preservada aunque cambies la vertical activa del tenant.
-                  </p>
-                </Card>
-              ))
-            ) : (
-              <p className="text-text-muted text-sm">No hay configs verticales registradas.</p>
-            )}
-          </CardContent>
-        </Card>
+        <AdminTenantVerticalsToggler detail={detail} onUpdated={refresh} />
       </div>
 
       <Card variant="raised">

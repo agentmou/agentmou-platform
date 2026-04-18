@@ -8,6 +8,8 @@ function createRepositoryMock() {
     getTenantDetail: vi.fn(),
     updateTenantActiveVertical: vi.fn(),
     ensureTenantVerticalConfig: vi.fn(),
+    listTenantEnabledVerticals: vi.fn(),
+    setTenantEnabledVerticals: vi.fn(),
     listTenantUsers: vi.fn(),
     findUserByEmail: vi.fn(),
     createUser: vi.fn(),
@@ -513,6 +515,98 @@ describe('AdminService', () => {
       message: 'Impersonation session has expired',
       statusCode: 409,
     });
+  });
+
+  it('updateTenantEnabledVerticals rejects dropping the active vertical', async () => {
+    const repository = createRepositoryMock();
+    const dependencies = createDependenciesMock();
+    repository.getTenantDetail.mockResolvedValue({
+      id: 'tenant-1',
+      name: 'Acme',
+      type: 'business',
+      plan: 'pro',
+      ownerId: 'user-1',
+      createdAt: '2026-04-01T10:00:00.000Z',
+      activeVertical: 'clinic',
+      isPlatformAdminTenant: false,
+      userCount: 4,
+      settings: {
+        timezone: 'Europe/Madrid',
+        defaultHITL: false,
+        logRetentionDays: 30,
+        memoryRetentionDays: 7,
+        activeVertical: 'clinic',
+        isPlatformAdminTenant: false,
+        settingsVersion: 2,
+        verticalClinicUi: true,
+        clinicDentalMode: true,
+        internalPlatformVisible: false,
+      },
+      verticalConfigs: [],
+    });
+
+    const service = new AdminService(repository as never, dependencies as never);
+
+    await expect(
+      service.updateTenantEnabledVerticals({
+        tenantId: 'tenant-1',
+        enabled: ['fisio'],
+        actorUserId: 'actor',
+        actorTenantId: 'admin',
+      })
+    ).rejects.toMatchObject({
+      message: expect.stringContaining('active vertical'),
+      statusCode: 409,
+    });
+
+    expect(repository.setTenantEnabledVerticals).not.toHaveBeenCalled();
+  });
+
+  it('updateTenantEnabledVerticals short-circuits when the list did not change', async () => {
+    const repository = createRepositoryMock();
+    const dependencies = createDependenciesMock();
+    const existing = {
+      id: 'tenant-1',
+      name: 'Acme',
+      type: 'business',
+      plan: 'pro',
+      ownerId: 'user-1',
+      createdAt: '2026-04-01T10:00:00.000Z',
+      activeVertical: 'clinic',
+      isPlatformAdminTenant: false,
+      userCount: 4,
+      settings: {
+        timezone: 'Europe/Madrid',
+        defaultHITL: false,
+        logRetentionDays: 30,
+        memoryRetentionDays: 7,
+        activeVertical: 'clinic',
+        isPlatformAdminTenant: false,
+        settingsVersion: 2,
+        verticalClinicUi: true,
+        clinicDentalMode: true,
+        internalPlatformVisible: false,
+      },
+      verticalConfigs: [],
+    };
+    repository.getTenantDetail.mockResolvedValue(existing);
+    // Repository already reports the same list we're about to set — the
+    // service should return early without hitting the write path or audit
+    // log, keeping admin actions idempotent.
+    repository.listTenantEnabledVerticals.mockResolvedValue(['clinic', 'fisio']);
+
+    const service = new AdminService(repository as never, dependencies as never);
+
+    const result = await service.updateTenantEnabledVerticals({
+      tenantId: 'tenant-1',
+      enabled: ['fisio', 'clinic'],
+      actorUserId: 'actor',
+      actorTenantId: 'admin',
+    });
+
+    expect(result).toBe(existing);
+    expect(repository.setTenantEnabledVerticals).not.toHaveBeenCalled();
+    expect(dependencies.recordAdminAuditEvent).not.toHaveBeenCalled();
   });
 
   it('returns null from getTenantFeatureResolution when the tenant does not exist', async () => {

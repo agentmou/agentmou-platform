@@ -11,6 +11,7 @@
 
 import {
   AdminChangeTenantVerticalInput,
+  AdminUpdateTenantEnabledVerticalsInput,
   AdminDeleteTenantUserResponse,
   AdminStartImpersonationInput,
   AdminStartImpersonationResponse,
@@ -200,6 +201,11 @@ export interface AdminMethods {
     adminTenantId: string,
     managedTenantId: string,
     body: AdminChangeTenantVerticalInput
+  ): Promise<AdminTenantDetail>;
+  updateAdminTenantEnabledVerticals(
+    adminTenantId: string,
+    managedTenantId: string,
+    body: AdminUpdateTenantEnabledVerticalsInput
   ): Promise<AdminTenantDetail>;
   startAdminImpersonation(
     adminTenantId: string,
