@@ -14,5 +14,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     setupFiles: [fileURLToPath(new URL('../../vitest.setup.ts', import.meta.url))],
+    // Playwright smoke suite has its own runner; keep Vitest out.
+    exclude: ['**/node_modules/**', '**/dist/**', '**/.next/**', 'e2e/**'],
   },
 });
