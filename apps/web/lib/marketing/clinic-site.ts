@@ -1,3 +1,5 @@
+import type { ModuleKey, PlanFlagKey, TenantPlan } from '@agentmou/contracts';
+
 export interface MarketingStat {
   value: string;
   label: string;
@@ -92,10 +94,24 @@ export interface MarketingOnboardingStep {
   description: string;
 }
 
+/**
+ * Commercial pricing plan.
+ *
+ * `planKey`, `moduleKeys`, and `planFlags` are the programmatic contract —
+ * the typechecker enforces they match `TenantPlan` / `ModuleKey` /
+ * `PlanFlagKey`, which keeps the marketing page and the runtime
+ * entitlement resolver in lockstep.
+ *
+ * `name`, `subtitle`, `modules` (string labels), `features`, `bestFor`,
+ * `ctaLabel`, `price`, and `highlight` are human-facing copy — edit freely.
+ */
 export interface PricingPlan {
   name: string;
   price: string;
   subtitle: string;
+  planKey: TenantPlan;
+  moduleKeys: readonly ModuleKey[];
+  planFlags: readonly PlanFlagKey[];
   modules: string[];
   features: string[];
   bestFor: string;
@@ -507,6 +523,9 @@ export const clinicPricingPlans: readonly PricingPlan[] = [
     name: 'Reception',
     price: 'Custom',
     subtitle: 'Para clínicas que quieren resolver recepción y agenda sin fricción.',
+    planKey: 'starter',
+    moduleKeys: ['core_reception'],
+    planFlags: ['plan.clinic.core_reception', 'plan.clinic.forms', 'plan.clinic.confirmations'],
     modules: ['Core Reception'],
     features: [
       'WhatsApp inbound y outbound operativo',
@@ -522,6 +541,15 @@ export const clinicPricingPlans: readonly PricingPlan[] = [
     name: 'Reception + Voice',
     price: 'Custom',
     subtitle: 'Suma llamadas entrantes y callbacks al mismo centro de recepción.',
+    planKey: 'pro',
+    moduleKeys: ['core_reception', 'voice'],
+    planFlags: [
+      'plan.clinic.core_reception',
+      'plan.clinic.forms',
+      'plan.clinic.confirmations',
+      'plan.clinic.voice.inbound',
+      'plan.clinic.voice.outbound',
+    ],
     modules: ['Core Reception', 'Voice'],
     features: [
       'Todo lo de Reception',
@@ -537,6 +565,16 @@ export const clinicPricingPlans: readonly PricingPlan[] = [
     name: 'Reception + Growth',
     price: 'Custom',
     subtitle: 'Activa recuperación de huecos y reactivación para proteger ingresos.',
+    planKey: 'scale',
+    moduleKeys: ['core_reception', 'growth'],
+    planFlags: [
+      'plan.clinic.core_reception',
+      'plan.clinic.forms',
+      'plan.clinic.confirmations',
+      'plan.clinic.gap_recovery',
+      'plan.clinic.reactivation',
+      'plan.clinic.waitlist',
+    ],
     modules: ['Core Reception', 'Growth'],
     features: [
       'Todo lo de Reception',
@@ -551,6 +589,21 @@ export const clinicPricingPlans: readonly PricingPlan[] = [
     name: 'Enterprise',
     price: 'Custom',
     subtitle: 'Para grupos, sedes múltiples y despliegues con requisitos especiales.',
+    planKey: 'enterprise',
+    moduleKeys: ['core_reception', 'voice', 'growth', 'advanced_mode'],
+    planFlags: [
+      'plan.clinic.core_reception',
+      'plan.clinic.forms',
+      'plan.clinic.confirmations',
+      'plan.clinic.voice.inbound',
+      'plan.clinic.voice.outbound',
+      'plan.clinic.gap_recovery',
+      'plan.clinic.reactivation',
+      'plan.clinic.waitlist',
+      'plan.clinic.multi_location',
+      'plan.clinic.advanced_settings',
+      'plan.clinic.priority_support',
+    ],
     modules: ['Core Reception', 'Voice', 'Growth', 'Enterprise'],
     features: [
       'Permisos avanzados y control ampliado',
