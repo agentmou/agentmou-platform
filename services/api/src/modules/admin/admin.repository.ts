@@ -6,9 +6,11 @@ import {
   tenants,
   users,
 } from '@agentmou/db';
-import { and, desc, eq, ilike, inArray, lt, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, inArray, lt, or, sql, type SQL } from 'drizzle-orm';
 import type {
   AdminTenantDetail,
+  AdminTenantListSortBy,
+  AdminTenantListSortDir,
   AdminTenantSummary,
   AdminTenantUser,
   VerticalKey,
@@ -27,6 +29,8 @@ interface ListAdminTenantsParams {
   plan?: AdminTenantSummary['plan'];
   vertical?: VerticalKey;
   isPlatformAdminTenant?: boolean;
+  sortBy?: AdminTenantListSortBy;
+  sortDir?: AdminTenantListSortDir;
   limit: number;
   cursor?: AdminTenantCursor;
 }
@@ -127,11 +131,35 @@ export class AdminRepository {
       );
     }
 
+    // Sort columns are whitelisted on the type. The cursor pagination above is
+    // anchored to (createdAt, id) so when the consumer asks for a different
+    // sort we still need a stable secondary order — keep id desc as the
+    // tiebreaker so paging stays deterministic.
+    const sortDir = params.sortDir ?? 'desc';
+    const dirFn = sortDir === 'asc' ? asc : desc;
+    const orderBy: SQL[] = [];
+    switch (params.sortBy) {
+      case 'name':
+        orderBy.push(dirFn(tenants.name));
+        break;
+      case 'plan':
+        orderBy.push(dirFn(tenants.plan));
+        break;
+      case 'vertical':
+        orderBy.push(dirFn(sql`${tenants.settings} ->> 'activeVertical'`));
+        break;
+      case 'createdAt':
+      default:
+        orderBy.push(dirFn(tenants.createdAt));
+        break;
+    }
+    orderBy.push(desc(tenants.id));
+
     const rows = await db
       .select()
       .from(tenants)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(tenants.createdAt), desc(tenants.id))
+      .orderBy(...orderBy)
       .limit(params.limit + 1);
 
     const hasMore = rows.length > params.limit;

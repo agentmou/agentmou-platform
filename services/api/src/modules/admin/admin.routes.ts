@@ -4,6 +4,7 @@ import {
   AdminStartImpersonationResponseSchema,
   AdminStopImpersonationResponseSchema,
   AdminTenantDetailResponseSchema,
+  AdminTenantFeatureResolutionResponseSchema,
   AdminTenantListResponseSchema,
   AdminTenantUserMutationResponseSchema,
   AdminTenantUsersResponseSchema,
@@ -117,6 +118,27 @@ export async function adminRoutes(fastify: FastifyInstance) {
         const { tenantId } = request.params as { tenantId: string };
         const response = await service.listTenantUsers(tenantId);
         return reply.send(AdminTenantUsersResponseSchema.parse(response));
+      } catch (error) {
+        return handleAdminRouteError(reply, error);
+      }
+    }
+  );
+
+  fastify.get(
+    '/tenants/:tenantId/feature-resolution',
+    {
+      schema: {
+        params: adminTenantParamsSchema,
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const { tenantId } = request.params as { tenantId: string };
+        const resolution = await service.getTenantFeatureResolution(tenantId);
+        if (!resolution) {
+          return reply.status(404).send({ error: 'Tenant not found' });
+        }
+        return reply.send(AdminTenantFeatureResolutionResponseSchema.parse({ resolution }));
       } catch (error) {
         return handleAdminRouteError(reply, error);
       }

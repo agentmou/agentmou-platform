@@ -1,13 +1,16 @@
 import type {
   AdminCreateTenantUserInput,
+  AdminFeatureDecision,
   AdminStartImpersonationInput,
   AdminStopImpersonationInput,
   AdminTenantDetail,
+  AdminTenantFeatureResolution,
   AdminTenantListFilters,
   AdminTenantListResponse,
   AdminTenantUserMutationResponse,
   AdminTenantUsersResponse,
   AdminUpdateTenantUserInput,
+  PlanFlagKey,
   VerticalKey,
 } from '@agentmou/contracts';
 
@@ -18,6 +21,12 @@ import {
 } from '../../lib/auth-sessions.js';
 import { recordAdminAuditEvent } from '../../lib/audit.js';
 import { issuePasswordResetToken } from '../../lib/password-reset.js';
+import {
+  resolveTenantExperienceWithDecisions,
+  resolveClinicModuleEntitlements,
+} from '../clinic-shared/clinic-entitlements.js';
+import { ClinicExperienceRepository } from '../clinic-shared/clinic-experience.repository.js';
+import { FeatureFlagService } from '../feature-flags/feature-flag.service.js';
 import { AdminRepository, type AdminTenantCursor } from './admin.repository.js';
 
 const IMPERSONATION_TTL_MS = 30 * 60 * 1000;
@@ -70,7 +79,9 @@ const DEFAULT_DEPENDENCIES: AdminServiceDependencies = {
 export class AdminService {
   constructor(
     private readonly repository = new AdminRepository(),
-    private readonly dependencies: AdminServiceDependencies = DEFAULT_DEPENDENCIES
+    private readonly dependencies: AdminServiceDependencies = DEFAULT_DEPENDENCIES,
+    private readonly clinicExperienceRepository = new ClinicExperienceRepository(),
+    private readonly featureFlagService = new FeatureFlagService()
   ) {}
 
   async listTenants(filters: AdminTenantListFilters): Promise<AdminTenantListResponse> {
@@ -80,6 +91,8 @@ export class AdminService {
       plan: filters.plan,
       vertical: filters.vertical,
       isPlatformAdminTenant: filters.isPlatformAdminTenant,
+      sortBy: filters.sortBy,
+      sortDir: filters.sortDir,
       limit,
       cursor: decodeTenantCursor(filters.cursor),
     });
@@ -127,6 +140,86 @@ export class AdminService {
     }
 
     return updated;
+  }
+
+  /**
+   * Resolve every feature decision for a managed tenant — both the commercial
+   * `plan.*` namespace and the deployment-strategy `rollout.*` namespace —
+   * with the source/reason trace the admin UI needs to explain why each
+   * capability is on or off.
+   */
+  async getTenantFeatureResolution(tenantId: string): Promise<AdminTenantFeatureResolution | null> {
+    const context = await this.clinicExperienceRepository.loadContext(tenantId);
+    if (!context) {
+      return null;
+    }
+
+    // Module entitlements feed into the rollout pipeline (modules gate
+    // readiness checks). Resolve them once and reuse for both branches.
+    const modules = resolveClinicModuleEntitlements({
+      tenantId,
+      plan: context.plan,
+      settings: context.settings,
+      profile: context.profile,
+      modules: context.modules,
+      channels: context.channels,
+    });
+
+    const [planResolution, experience] = await Promise.all([
+      this.featureFlagService.resolvePlanEntitlements({
+        tenantId,
+        activeVertical: context.settings.activeVertical,
+        isPlatformAdminTenant: context.settings.isPlatformAdminTenant,
+        plan: context.plan,
+        activeModuleKeys: modules
+          .filter((module) => module.enabled)
+          .map((module) => module.moduleKey),
+      }),
+      resolveTenantExperienceWithDecisions({
+        tenantId,
+        plan: context.plan,
+        settings: context.settings,
+        profile: context.profile,
+        modules: context.modules,
+        channels: context.channels,
+      }),
+    ]);
+
+    const planDecisions: AdminFeatureDecision[] = planResolution.decisions.map((decision) => ({
+      key: decision.key,
+      kind: 'plan',
+      enabled: decision.enabled,
+      source: decision.source,
+      moduleKey: decision.moduleKey,
+      detail: decision.detail,
+    }));
+
+    const rolloutDecisions: AdminFeatureDecision[] = Object.entries(experience.decisions).map(
+      ([key, decision]) => ({
+        key,
+        kind: 'rollout' as const,
+        enabled: decision.enabled,
+        source: decision.source,
+        reason: decision.reason,
+        moduleKey: decision.moduleKey,
+        detail: decision.detail,
+      })
+    );
+
+    // Plan flags are the canonical entitlement view — render them first so
+    // the admin sees commercial state above the rollout overlay.
+    const decisions: AdminFeatureDecision[] = [...planDecisions, ...rolloutDecisions];
+
+    return {
+      tenantId,
+      plan: context.plan,
+      activeVertical: context.settings.activeVertical,
+      modules,
+      planEntitlements: planResolution.entitlements as Record<PlanFlagKey, boolean>,
+      rolloutFlags: experience.experience.flags,
+      decisions,
+      rolloutDecisionsTrace: experience.decisions,
+    };
   }
 
   async listTenantUsers(tenantId: string): Promise<AdminTenantUsersResponse> {
