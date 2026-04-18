@@ -514,4 +514,27 @@ describe('AdminService', () => {
       statusCode: 409,
     });
   });
+
+  it('returns null from getTenantFeatureResolution when the tenant does not exist', async () => {
+    const repository = createRepositoryMock();
+    const dependencies = createDependenciesMock();
+    const clinicExperienceRepository = { loadContext: vi.fn().mockResolvedValue(null) };
+    const featureFlagService = {
+      resolve: vi.fn(),
+      resolvePlanEntitlements: vi.fn(),
+    };
+
+    const service = new AdminService(
+      repository as never,
+      dependencies as never,
+      clinicExperienceRepository as never,
+      featureFlagService as never
+    );
+
+    const result = await service.getTenantFeatureResolution('missing-tenant');
+
+    expect(result).toBeNull();
+    expect(featureFlagService.resolve).not.toHaveBeenCalled();
+    expect(featureFlagService.resolvePlanEntitlements).not.toHaveBeenCalled();
+  });
 });

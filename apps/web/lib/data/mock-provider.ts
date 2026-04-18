@@ -96,6 +96,9 @@ export const mockProvider: DataProvider = {
     _getAdminTenantDetail(managedTenantId),
   listAdminTenantUsers: async (_adminTenantId, managedTenantId) =>
     _listAdminTenantUsers(managedTenantId),
+  // Mock provider returns null for the trace — feature-resolution is an
+  // admin-only diagnostic and does not need a fixture in marketing/demo flows.
+  getAdminTenantFeatureResolution: async () => null,
   createAdminTenantUser: async (_adminTenantId, managedTenantId, body) =>
     _createAdminTenantUser(managedTenantId, body),
   updateAdminTenantUser: async (_adminTenantId, managedTenantId, userId, body) =>

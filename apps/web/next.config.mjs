@@ -26,6 +26,20 @@ const nextConfig = {
         destination: '/app/:tenantId/:path*',
         permanent: true,
       },
+      // Legacy /app/:tenantId/admin/* admin console — moved to top-level
+      // /admin/* so the URL no longer carries the actor's tenantId. The actor
+      // is resolved from the auth-store / cookie. Permanent redirects preserve
+      // any external deeplinks an operator may have bookmarked.
+      {
+        source: '/app/:tenantId/admin',
+        destination: '/admin/tenants',
+        permanent: true,
+      },
+      {
+        source: '/app/:tenantId/admin/:path*',
+        destination: '/admin/:path*',
+        permanent: true,
+      },
     ];
   },
 };

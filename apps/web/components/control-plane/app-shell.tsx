@@ -275,12 +275,15 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                 </p>
               )}
               {section.items.map((item) => {
-                const active = isActive(item.href);
+                const itemHref = item.absoluteHref ? item.href : getShellHref(item.href);
+                const active = item.absoluteHref
+                  ? pathname.startsWith(item.href)
+                  : isActive(item.href);
                 const Icon = INTERNAL_NAV_ICONS[item.icon];
                 return (
                   <Link
                     key={item.href}
-                    href={getShellHref(item.href)}
+                    href={itemHref}
                     className={cn(
                       'group flex items-center gap-3 rounded-sm px-3 py-2 text-[11px] uppercase tracking-[0.05em] font-medium transition-colors',
                       active

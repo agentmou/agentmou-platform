@@ -26,6 +26,12 @@ export interface InternalNavigationItem {
   icon: InternalNavigationItemIcon;
   navigationKey?: TenantNavigationKey;
   badge?: 'pending_approvals';
+  /**
+   * When true the shell renders `href` as-is instead of prefixing it with
+   * the actor's tenant id. Used by the canonical `/admin/*` console links
+   * which intentionally live outside the tenant URL space.
+   */
+  absoluteHref?: boolean;
 }
 
 export interface InternalNavigationSection {
@@ -126,6 +132,7 @@ const INTERNAL_NAVIGATION_TEMPLATE: Array<
       {
         key: 'admin-console',
         href: '/admin/tenants',
+        absoluteHref: true,
         label: 'Tenants',
         icon: 'building2',
         navigationKey: 'admin_console',

@@ -44,6 +44,20 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  // Top-level admin console — same gate as /app/*. The platform-admin
+  // role check stays server-side (`requirePlatformAdmin` middleware on the
+  // API + the admin layout's session resolution). The proxy only enforces
+  // that an authenticated cookie is present so unauthenticated visitors
+  // see /login instead of a blank screen.
+  if (pathname.startsWith('/admin/') || pathname === '/admin') {
+    if (!token) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = '/login';
+      loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   if ((pathname === '/login' || pathname === '/register') && token) {
     const appUrl = request.nextUrl.clone();
     appUrl.pathname = '/app';
@@ -71,5 +85,7 @@ export const config = {
     '/auth/callback',
     '/app',
     '/app/:path*',
+    '/admin',
+    '/admin/:path*',
   ],
 };

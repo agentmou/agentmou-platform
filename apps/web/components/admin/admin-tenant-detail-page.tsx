@@ -123,7 +123,12 @@ export function AdminTenantDetailPage() {
   const router = useRouter();
   const provider = useDataProvider();
   const refreshSession = useAuthStore((state) => state.refreshSession);
-  const adminTenantId = params.tenantId as string;
+  // Admin tenant comes from the actor's session, not from the URL — both the
+  // legacy `/app/[tenantId]/admin/...` and the canonical `/admin/...` mount
+  // call into this component, and the canonical mount has no `tenantId` URL
+  // segment. The auth store always reflects the actor (impersonation is
+  // gated upstream by `requirePlatformAdmin`).
+  const adminTenantId = useAuthStore((state) => state.activeTenantId) ?? '';
   const managedTenantId = params.managedTenantId as string;
   const [reloadKey, setReloadKey] = React.useState(0);
 
@@ -324,7 +329,7 @@ export function AdminTenantDetailPage() {
     return (
       <div className="space-y-4 p-6 lg:p-8">
         <Button asChild variant="ghost" size="sm">
-          <Link href={`/app/${adminTenantId}/admin/tenants`}>
+          <Link href="/admin/tenants">
             <ArrowLeft className="h-4 w-4" />
             Volver a tenants
           </Link>
@@ -343,7 +348,7 @@ export function AdminTenantDetailPage() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-3">
           <Button asChild variant="ghost" size="sm" className="-ml-2">
-            <Link href={`/app/${adminTenantId}/admin/tenants`}>
+            <Link href="/admin/tenants">
               <ArrowLeft className="h-4 w-4" />
               Volver a tenants
             </Link>
@@ -359,6 +364,12 @@ export function AdminTenantDetailPage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href={`/admin/tenants/${managedTenantId}/features`}>
+              <Shield className="h-4 w-4" />
+              Ver features
+            </Link>
+          </Button>
           <Button variant="outline" onClick={() => setVerticalOpen(true)}>
             <ArrowRightLeft className="h-4 w-4" />
             Cambiar vertical

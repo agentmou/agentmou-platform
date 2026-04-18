@@ -11,6 +11,7 @@ import {
   AdminStopImpersonationResponseSchema,
   AdminTenantDetailResponseSchema,
   AdminTenantListResponseSchema,
+  AdminTenantFeatureResolutionResponseSchema,
   AdminTenantUserMutationResponseSchema,
   AdminTenantUsersResponseSchema,
   ApprovalRequestsResponseSchema,
@@ -44,6 +45,7 @@ import {
   type AdminStopImpersonationInput,
   type AdminStopImpersonationResponse,
   type AdminTenantDetail,
+  type AdminTenantFeatureResolution,
   type AdminTenantListFilters,
   type AdminTenantListResponse,
   type AdminTenantUser,
@@ -182,6 +184,27 @@ export async function fetchAdminTenantUsers(
     }
   );
   return data.users;
+}
+
+export async function fetchAdminTenantFeatureResolution(
+  adminTenantId: string,
+  tenantId: string
+): Promise<AdminTenantFeatureResolution | null> {
+  try {
+    const data = await requestParsed(
+      `/api/v1/admin/tenants/${tenantId}/feature-resolution`,
+      AdminTenantFeatureResolutionResponseSchema,
+      {
+        headers: adminHeaders(adminTenantId),
+      }
+    );
+    return data.resolution;
+  } catch (error) {
+    if (isApiNotFound(error)) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 export async function createAdminTenantUser(
