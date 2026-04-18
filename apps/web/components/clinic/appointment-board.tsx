@@ -1,10 +1,35 @@
-import type { AppointmentSummary } from '@agentmou/contracts';
-
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EmptyState } from '@/components/control-plane/empty-state';
+import type { AppointmentStatus, AppointmentSummary } from '@agentmou/contracts';
 import { CalendarDays } from 'lucide-react';
+
+import { EmptyState } from '@/components/control-plane/empty-state';
+import { Badge, type BadgeTone } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatClinicLabel, formatClinicTime } from '@/lib/clinic-formatting';
+
 import { PatientStatusBadge } from './patient-status-badge';
+
+/**
+ * Appointment status → tone mapping (Q5-A).
+ *
+ *   draft / pending_form / scheduled / rescheduled → info
+ *     Booking is on the books but still needs confirmation.
+ *   confirmed / completed → success
+ *     Patient agreed or already came in; no reviewer action needed.
+ *   cancelled → neutral
+ *     Cancelled cleanly; the slot was freed.
+ *   no_show → warning
+ *     Patient did not show up; recepción must triage.
+ */
+const APPOINTMENT_STATUS_TONE: Record<AppointmentStatus, BadgeTone> = {
+  draft: 'info',
+  pending_form: 'info',
+  scheduled: 'info',
+  rescheduled: 'info',
+  confirmed: 'success',
+  completed: 'success',
+  cancelled: 'neutral',
+  no_show: 'warning',
+};
 
 export function AppointmentBoard({
   appointments,
@@ -16,7 +41,7 @@ export function AppointmentBoard({
   timezone: string;
 }) {
   return (
-    <Card className="border-border/60">
+    <Card variant="raised">
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
@@ -28,44 +53,54 @@ export function AppointmentBoard({
             description="Cuando entren reservas o cambios para hoy, la agenda priorizada aparecerá aquí."
           />
         ) : null}
-        {appointments.map((appointment) => (
-          <div
-            key={appointment.id}
-            className="flex flex-col gap-2 rounded-xl border border-border/60 p-3"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-medium">
-                  {appointment.patient?.fullName ?? 'Paciente sin asignar'}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {formatClinicTime(appointment.startsAt, timezone)}
-                  {' · '}
-                  {appointment.service?.name ?? 'Cita general'}
-                </p>
+        {appointments.map((appointment) => {
+          const statusTone = APPOINTMENT_STATUS_TONE[appointment.status];
+          return (
+            <Card
+              key={appointment.id}
+              variant="subtle"
+              padding="none"
+              className="flex flex-col gap-2 rounded-xl px-3 py-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-text-primary font-medium">
+                    {appointment.patient?.fullName ?? 'Paciente sin asignar'}
+                  </p>
+                  <p className="text-text-muted text-sm">
+                    {formatClinicTime(appointment.startsAt, timezone)}
+                    {' · '}
+                    {appointment.service?.name ?? 'Cita general'}
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  {statusTone === 'neutral' ? (
+                    <Badge variant="outline">{formatClinicLabel(appointment.status)}</Badge>
+                  ) : (
+                    <Badge tone={statusTone}>{formatClinicLabel(appointment.status)}</Badge>
+                  )}
+                  {appointment.patient ? (
+                    <PatientStatusBadge
+                      status={appointment.patient.status}
+                      isExisting={appointment.patient.isExisting}
+                    />
+                  ) : null}
+                </div>
               </div>
-              {appointment.patient ? (
-                <PatientStatusBadge
-                  status={appointment.patient.status}
-                  isExisting={appointment.patient.isExisting}
-                />
-              ) : null}
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-              {appointment.practitioner ? (
-                <span className="rounded-full bg-muted px-2 py-1">
-                  {appointment.practitioner.name}
-                </span>
-              ) : null}
-              {appointment.location ? (
-                <span className="rounded-full bg-muted px-2 py-1">{appointment.location.name}</span>
-              ) : null}
-              <span className="rounded-full bg-muted px-2 py-1">
-                {formatClinicLabel(appointment.confirmationStatus)}
-              </span>
-            </div>
-          </div>
-        ))}
+              <div className="flex flex-wrap items-center gap-2">
+                {appointment.practitioner ? (
+                  <Badge variant="outline">{appointment.practitioner.name}</Badge>
+                ) : null}
+                {appointment.location ? (
+                  <Badge variant="outline">{appointment.location.name}</Badge>
+                ) : null}
+                <Badge variant="outline" className="text-text-muted">
+                  {formatClinicLabel(appointment.confirmationStatus)}
+                </Badge>
+              </div>
+            </Card>
+          );
+        })}
       </CardContent>
     </Card>
   );
