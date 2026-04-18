@@ -11,6 +11,7 @@ import type {
   AdminTenantListResponse,
   AdminTenantUser,
   AdminTenantUserMutationResponse,
+  AdminUpdateTenantEnabledVerticalsInput,
   AdminUpdateTenantUserInput,
   Tenant,
   VerticalKey,
@@ -275,6 +276,24 @@ export function changeAdminTenantVertical(
     throw new Error('Tenant not found');
   }
 
+  return clone(detail);
+}
+
+/**
+ * Demo-provider analogue of `updateTenantEnabledVerticals`. The demo
+ * catalog doesn't persist `tenant_vertical_configs`, so this is a
+ * no-op that just returns the current detail — enough to keep the
+ * admin UI wiring functional on the demo workspace without introducing
+ * fake multi-vertical state.
+ */
+export function updateAdminTenantEnabledVerticals(
+  tenantId: string,
+  _body: AdminUpdateTenantEnabledVerticalsInput
+): AdminTenantDetail {
+  const detail = buildTenantDetail(tenantId);
+  if (!detail) {
+    throw new Error('Tenant not found');
+  }
   return clone(detail);
 }
 
