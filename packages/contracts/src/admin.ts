@@ -1,6 +1,13 @@
 import { z } from 'zod';
 
 import {
+  ClinicModuleEntitlementSchema,
+  ModuleKeySchema,
+  TenantFeatureDecisionsSchema,
+  TenantResolvedFlagsSchema,
+} from './clinic';
+import { PlanFlagKeySchema } from './feature-flags';
+import {
   TenantPlanSchema,
   TenantSettingsSchema,
   TenantTypeSchema,
@@ -8,11 +15,19 @@ import {
 } from './tenancy';
 import { VerticalKeySchema } from './verticals';
 
+export const AdminTenantListSortBySchema = z.enum(['name', 'plan', 'vertical', 'createdAt']);
+export type AdminTenantListSortBy = z.infer<typeof AdminTenantListSortBySchema>;
+
+export const AdminTenantListSortDirSchema = z.enum(['asc', 'desc']);
+export type AdminTenantListSortDir = z.infer<typeof AdminTenantListSortDirSchema>;
+
 export const AdminTenantListFiltersSchema = z.object({
   q: z.string().optional(),
   plan: TenantPlanSchema.optional(),
   vertical: VerticalKeySchema.optional(),
   isPlatformAdminTenant: z.boolean().optional(),
+  sortBy: AdminTenantListSortBySchema.optional(),
+  sortDir: AdminTenantListSortDirSchema.optional(),
   limit: z.number().int().positive().max(100).optional(),
   cursor: z.string().optional(),
 });
@@ -136,3 +151,43 @@ export const AdminStopImpersonationResponseSchema = z.object({
   endedAt: z.string(),
 });
 export type AdminStopImpersonationResponse = z.infer<typeof AdminStopImpersonationResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// Feature resolution (admin trace of plan baseline + Reflag overrides)
+// ---------------------------------------------------------------------------
+
+/**
+ * One row in the admin feature-resolution trace. The same shape covers both
+ * `plan.*` decisions (where `source` is plan-baseline or reflag-plan-override)
+ * and `rollout.*` decisions (where `source` is entitlement, readiness, or
+ * rollout). The admin UI groups by `kind` to render two separate tables.
+ */
+export const AdminFeatureDecisionSchema = z.object({
+  key: z.string(),
+  kind: z.enum(['plan', 'rollout']),
+  enabled: z.boolean(),
+  source: z.string(),
+  reason: z.string().optional(),
+  moduleKey: ModuleKeySchema.optional(),
+  detail: z.string().optional(),
+});
+export type AdminFeatureDecision = z.infer<typeof AdminFeatureDecisionSchema>;
+
+export const AdminTenantFeatureResolutionSchema = z.object({
+  tenantId: z.string(),
+  plan: TenantPlanSchema,
+  activeVertical: VerticalKeySchema,
+  modules: z.array(ClinicModuleEntitlementSchema),
+  planEntitlements: z.record(PlanFlagKeySchema, z.boolean()),
+  rolloutFlags: TenantResolvedFlagsSchema,
+  decisions: z.array(AdminFeatureDecisionSchema),
+  rolloutDecisionsTrace: TenantFeatureDecisionsSchema,
+});
+export type AdminTenantFeatureResolution = z.infer<typeof AdminTenantFeatureResolutionSchema>;
+
+export const AdminTenantFeatureResolutionResponseSchema = z.object({
+  resolution: AdminTenantFeatureResolutionSchema,
+});
+export type AdminTenantFeatureResolutionResponse = z.infer<
+  typeof AdminTenantFeatureResolutionResponseSchema
+>;
