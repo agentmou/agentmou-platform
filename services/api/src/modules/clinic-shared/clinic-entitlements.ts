@@ -90,6 +90,13 @@ export interface ClinicEntitlementContext {
   modules: TenantModule[];
   channels: ClinicChannel[];
   tenantRole?: string;
+  /**
+   * Persisted list of verticals the tenant operates in, loaded from
+   * `tenant_vertical_configs` (PR-09). When empty, callers fall back to
+   * `[settings.activeVertical]` via the resolver's default branch —
+   * that's the legacy single-vertical path every tenant still runs on.
+   */
+  enabledVerticals?: readonly import('@agentmou/contracts').VerticalKey[];
 }
 
 const MODULE_MIN_PLAN: Record<ModuleKey, TenantPlan> = {
@@ -552,6 +559,7 @@ export async function resolveTenantExperienceWithDecisions(
   const normalizedRole = normalizeTenantMembershipRole(context.tenantRole);
   const verticalConfig: TenantVerticalConfig = resolveTenantVerticalConfig({
     settings: context.settings,
+    enabledKeys: context.enabledVerticals,
   });
 
   if (context.settings.activeVertical === 'internal') {

@@ -395,6 +395,70 @@ export class AdminRepository {
     return created;
   }
 
+  /**
+   * Read the persisted list of verticals a tenant operates in.
+   *
+   * Returns an empty array when no rows exist yet — callers treat that
+   * as "legacy single-vertical tenant" and fall back to
+   * `settings.activeVertical`. The `vertical-resolver.ts` helper in
+   * clinic-shared already encodes that contract.
+   */
+  async listTenantEnabledVerticals(tenantId: string): Promise<VerticalKey[]> {
+    const rows = await db
+      .select({ verticalKey: tenantVerticalConfigs.verticalKey })
+      .from(tenantVerticalConfigs)
+      .where(eq(tenantVerticalConfigs.tenantId, tenantId))
+      .orderBy(tenantVerticalConfigs.verticalKey);
+
+    return rows.map((row) => row.verticalKey as VerticalKey);
+  }
+
+  /**
+   * Replace the tenant's `tenant_vertical_configs` membership to match
+   * `enabled`. Rows for verticals in `enabled` that do not already exist
+   * get inserted with an empty config; rows for verticals that dropped
+   * out of the set get deleted.
+   *
+   * The operation runs in a single transaction so an admin never sees
+   * a partial state (e.g. deleted the old rows but insert failed).
+   */
+  async setTenantEnabledVerticals(tenantId: string, enabled: readonly VerticalKey[]) {
+    const nextSet = new Set(enabled);
+    const verticalsArray = Array.from(nextSet);
+
+    await db.transaction(async (tx) => {
+      const existing = await tx
+        .select({ verticalKey: tenantVerticalConfigs.verticalKey })
+        .from(tenantVerticalConfigs)
+        .where(eq(tenantVerticalConfigs.tenantId, tenantId));
+
+      const existingSet = new Set(existing.map((row) => row.verticalKey as VerticalKey));
+      const toDelete = Array.from(existingSet).filter((key) => !nextSet.has(key));
+      const toInsert = verticalsArray.filter((key) => !existingSet.has(key));
+
+      if (toDelete.length > 0) {
+        await tx
+          .delete(tenantVerticalConfigs)
+          .where(
+            and(
+              eq(tenantVerticalConfigs.tenantId, tenantId),
+              inArray(tenantVerticalConfigs.verticalKey, toDelete)
+            )
+          );
+      }
+
+      if (toInsert.length > 0) {
+        await tx.insert(tenantVerticalConfigs).values(
+          toInsert.map((verticalKey) => ({
+            tenantId,
+            verticalKey,
+            config: {},
+          }))
+        );
+      }
+    });
+  }
+
   async createImpersonationSession(values: {
     actorUserId: string;
     actorTenantId: string;
