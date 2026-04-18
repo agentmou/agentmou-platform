@@ -2,6 +2,7 @@
 export * from './catalog';
 export * from './public-origins';
 export * from './verticals';
+export * from './feature-flags';
 export * from './tenancy';
 export * from './installations';
 export * from './execution';
