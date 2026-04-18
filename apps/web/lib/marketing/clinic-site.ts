@@ -616,6 +616,175 @@ export const clinicPricingPlans: readonly PricingPlan[] = [
   },
 ] as const;
 
+/**
+ * Capability rows rendered by the public comparison table on
+ * `/pricing`. One row = one label that shows up as a band across all
+ * four plan columns.
+ *
+ * Rows come in two shapes:
+ *
+ *   1. **Flag-backed** — `flagKey` points at a `plan.*` key in the
+ *      Reflag catalog (see
+ *      `services/api/src/modules/feature-flags/catalog.ts`). The row's
+ *      per-plan value is `"Incluido"` when `includedIn` contains the
+ *      plan and `"—"` otherwise. Use this for rows that describe a
+ *      concrete capability the runtime actually gates on.
+ *
+ *   2. **Narrative** — `flagKey` is omitted and `comparisonValue`
+ *      returns a custom string per plan. Use this for commercial
+ *      positioning rows like "Cobertura operativa" or "Despliegue"
+ *      that are not backed by a single flag.
+ *
+ * This array is the single source of truth for the public comparison
+ * table. The admin features page (PR-04) and the entitlement resolver
+ * (PR-03) walk the same `plan.*` catalog, so adding a new capability
+ * on one side requires updating the other — enforced by the
+ * `PlanFlagKey` type on `flagKey`.
+ */
+export interface PricingCapability {
+  label: string;
+  flagKey?: PlanFlagKey;
+  includedIn: readonly TenantPlan[];
+  /** Override the per-plan value for narrative rows. */
+  comparisonValue?: (plan: TenantPlan) => string;
+}
+
+const ALL_TIER_PLANS: readonly TenantPlan[] = ['starter', 'pro', 'scale', 'enterprise'];
+
+export const pricingCapabilities: readonly PricingCapability[] = [
+  {
+    label: 'Core Reception',
+    flagKey: 'plan.clinic.core_reception',
+    includedIn: ALL_TIER_PLANS,
+    comparisonValue: () => 'Incluido',
+  },
+  {
+    label: 'Voice',
+    flagKey: 'plan.clinic.voice.inbound',
+    includedIn: ['pro', 'enterprise'],
+    comparisonValue: (plan) => (plan === 'pro' || plan === 'enterprise' ? 'Incluido' : 'Opcional'),
+  },
+  {
+    label: 'Growth',
+    flagKey: 'plan.clinic.gap_recovery',
+    includedIn: ['scale', 'enterprise'],
+    comparisonValue: (plan) =>
+      plan === 'scale' || plan === 'enterprise' ? 'Incluido' : 'Opcional',
+  },
+  {
+    label: 'Formularios e intake',
+    flagKey: 'plan.clinic.forms',
+    includedIn: ALL_TIER_PLANS,
+    comparisonValue: () => 'Incluido',
+  },
+  {
+    label: 'Confirmaciones',
+    flagKey: 'plan.clinic.confirmations',
+    includedIn: ALL_TIER_PLANS,
+    comparisonValue: () => 'Incluido',
+  },
+  {
+    label: 'Lista de espera',
+    flagKey: 'plan.clinic.waitlist',
+    includedIn: ['scale', 'enterprise'],
+  },
+  {
+    label: 'Reactivación de pacientes',
+    flagKey: 'plan.clinic.reactivation',
+    includedIn: ['scale', 'enterprise'],
+  },
+  {
+    label: 'Multi-sede',
+    flagKey: 'plan.clinic.multi_location',
+    includedIn: ['enterprise'],
+  },
+  {
+    label: 'Configuraciones avanzadas',
+    flagKey: 'plan.clinic.advanced_settings',
+    includedIn: ['enterprise'],
+  },
+  {
+    label: 'Soporte prioritario',
+    flagKey: 'plan.clinic.priority_support',
+    includedIn: ['enterprise'],
+  },
+  {
+    label: 'Canales',
+    includedIn: ALL_TIER_PLANS,
+    comparisonValue: (plan) => {
+      switch (plan) {
+        case 'pro':
+          return 'WhatsApp + voz';
+        case 'scale':
+          return 'WhatsApp + growth';
+        case 'enterprise':
+          return 'Multicanal';
+        default:
+          return 'WhatsApp';
+      }
+    },
+  },
+  {
+    label: 'Cobertura operativa',
+    includedIn: ALL_TIER_PLANS,
+    comparisonValue: (plan) => {
+      switch (plan) {
+        case 'pro':
+          return 'Recepción + llamadas';
+        case 'scale':
+          return 'Recepción + recuperación';
+        case 'enterprise':
+          return 'Sedes y flujos complejos';
+        default:
+          return 'Recepción y agenda';
+      }
+    },
+  },
+  {
+    label: 'Despliegue',
+    includedIn: ALL_TIER_PLANS,
+    comparisonValue: (plan) => (plan === 'enterprise' ? 'Acompañamiento dedicado' : 'Guiado'),
+  },
+];
+
+/**
+ * Plan column order for the comparison table — must match the card
+ * order in `clinicPricingPlans` so the two visual blocks tell the
+ * same story from left to right.
+ */
+export const pricingComparisonPlanOrder: readonly TenantPlan[] = [
+  'starter',
+  'pro',
+  'scale',
+  'enterprise',
+];
+
+export interface PricingComparisonRow {
+  label: string;
+  values: readonly string[];
+}
+
+/**
+ * Derive the per-plan values for the comparison table from
+ * `pricingCapabilities`. This is what the public `/pricing` page
+ * renders — the array is generated so marketing never falls out of
+ * sync with the flag catalog.
+ */
+export function buildPricingComparisonRows(
+  capabilities: readonly PricingCapability[] = pricingCapabilities,
+  plans: readonly TenantPlan[] = pricingComparisonPlanOrder
+): PricingComparisonRow[] {
+  return capabilities.map((capability) => ({
+    label: capability.label,
+    values: plans.map((plan) => {
+      if (capability.comparisonValue) {
+        return capability.comparisonValue(plan);
+      }
+      return capability.includedIn.includes(plan) ? 'Incluido' : '—';
+    }),
+  }));
+}
+
 export const clinicSecurityPillars: readonly MarketingTrustCard[] = [
   {
     title: 'Privacidad y aislamiento por clínica',
