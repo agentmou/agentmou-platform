@@ -22,6 +22,13 @@ export default tseslint.config(
       '**/.turbo/**',
       '**/coverage/**',
       'infra/**',
+      // Playwright smoke suite — lives under its own tsconfig (apps/web/e2e)
+      // and exercises Node-level test helpers that legitimately call
+      // `console.log`, so the core-hygiene rules don't apply.
+      'apps/web/e2e/**',
+      'apps/web/playwright.config.ts',
+      'apps/web/test-results/**',
+      'apps/web/playwright-report/**',
     ],
   },
   {

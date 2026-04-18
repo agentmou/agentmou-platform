@@ -8,6 +8,13 @@ import {
   resolveCanonicalSurface,
 } from '@/lib/runtime/canonical-hosts';
 
+// The Playwright smoke suite runs `next start` on 127.0.0.1:3100 and
+// mocks every /api/v1/* call, so it has no meaningful "canonical" host
+// pair to enforce. This flag is set at build time by `pnpm test:e2e`
+// and is never shipped to production builds (the official CI builds
+// never set `E2E_DISABLE_CANONICAL_REDIRECT`).
+const E2E_DISABLE_CANONICAL_REDIRECT = process.env.E2E_DISABLE_CANONICAL_REDIRECT === '1';
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -21,13 +28,15 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const canonicalSurface = resolveCanonicalSurface(pathname);
-  if (canonicalSurface) {
-    const canonicalOrigin = getCanonicalSurfaceOrigin(canonicalSurface);
-    if (request.nextUrl.origin !== canonicalOrigin) {
-      return NextResponse.redirect(
-        buildCanonicalSurfaceUrl(canonicalSurface, pathname, request.nextUrl.search)
-      );
+  if (!E2E_DISABLE_CANONICAL_REDIRECT) {
+    const canonicalSurface = resolveCanonicalSurface(pathname);
+    if (canonicalSurface) {
+      const canonicalOrigin = getCanonicalSurfaceOrigin(canonicalSurface);
+      if (request.nextUrl.origin !== canonicalOrigin) {
+        return NextResponse.redirect(
+          buildCanonicalSurfaceUrl(canonicalSurface, pathname, request.nextUrl.search)
+        );
+      }
     }
   }
 

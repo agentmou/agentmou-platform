@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "../../node_modules/.bin/vitest run --passWithNoTests"
+    "test": "../../node_modules/.bin/vitest run --passWithNoTests",
+    "test:e2e": "E2E_DISABLE_CANONICAL_REDIRECT=1 NEXT_PUBLIC_API_URL=http://127.0.0.1:47321 MARKETING_PUBLIC_BASE_URL=http://127.0.0.1:3100 APP_PUBLIC_BASE_URL=http://127.0.0.1:3100 API_PUBLIC_BASE_URL=http://127.0.0.1:47321 NODE_ENV=production next build --webpack && E2E_DISABLE_CANONICAL_REDIRECT=1 playwright test",
+    "test:e2e:no-build": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@agentmou/contracts": "workspace:*",
@@ -66,6 +69,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4.2.0",
     "@types/node": "^22",
     "@types/react": "19.2.14",
