@@ -4,6 +4,8 @@ import type {
   ClinicModuleEntitlement,
   ClinicProfile,
   ModuleKey,
+  PlanEntitlements,
+  PlanFlagKey,
   TenantFeatureDecisionReason,
   TenantPlan,
   TenantResolvedFlags,
@@ -12,7 +14,13 @@ import type {
 import { createServiceLogger } from '@agentmou/observability';
 
 import { getApiConfig } from '../../config.js';
-import { FEATURE_FLAG_KEYS, FEATURE_FLAG_KEYS_IN_ORDER, type FeatureFlagKey } from './catalog.js';
+import {
+  FEATURE_FLAG_KEYS,
+  FEATURE_FLAG_KEYS_IN_ORDER,
+  PLAN_FLAG_CATALOG,
+  planSatisfies,
+  type FeatureFlagKey,
+} from './catalog.js';
 import { LocalFallbackProvider } from './local-fallback-provider.js';
 import { ReflagProvider } from './reflag-provider.js';
 
@@ -62,6 +70,31 @@ export interface FeatureFlagContext {
   modules: ClinicModuleEntitlement[];
   channels: ClinicChannel[];
   profile: ClinicProfile | null;
+}
+
+export type PlanEntitlementDecisionSource = 'plan-baseline' | 'reflag-plan-override';
+
+export interface PlanEntitlementDecision {
+  key: PlanFlagKey;
+  enabled: boolean;
+  source: PlanEntitlementDecisionSource;
+  minPlan: TenantPlan;
+  moduleKey?: ModuleKey;
+  detail?: string;
+}
+
+export interface PlanEntitlementResolution {
+  entitlements: PlanEntitlements;
+  decisions: PlanEntitlementDecision[];
+}
+
+export interface PlanEntitlementContext {
+  tenantId: string;
+  activeVertical: VerticalKey;
+  isPlatformAdminTenant: boolean;
+  plan: TenantPlan;
+  /** Currently enabled `ModuleKey`s, used to enrich the Reflag context. */
+  activeModuleKeys?: readonly ModuleKey[];
 }
 
 function toModuleReason(
@@ -420,6 +453,100 @@ export class FeatureFlagService {
         reactivationEnabled: decisions.reactivationEnabled.enabled,
         advancedClinicModeEnabled: decisions.advancedClinicModeEnabled.enabled,
       },
+      decisions,
+    };
+  }
+
+  /**
+   * Resolve the **commercial entitlements** (`plan.*` namespace) for a tenant.
+   *
+   * Resolution order per flag:
+   *   1. Plan baseline — `tenant.plan >= minPlan` and the vertical is supported.
+   *   2. Reflag override — if Reflag returns a boolean for the `plan.*` key,
+   *      it wins (used for per-tenant overrides like "enable Voice for this
+   *      clinic even though they are on Starter").
+   *
+   * The returned `decisions` array is a trace for the admin UI; the product
+   * runtime consumes only `entitlements`.
+   *
+   * This method is the **only** authorized consumer of `plan.*` keys.
+   * `rollout.*` keys remain the job of `resolve()`.
+   */
+  async resolvePlanEntitlements(
+    context: PlanEntitlementContext
+  ): Promise<PlanEntitlementResolution> {
+    const localOverrides = this.localFallbackProvider.getOverrides({
+      tenantId: context.tenantId,
+      activeVertical: context.activeVertical,
+    }) as Partial<Record<FeatureFlagKey | PlanFlagKey, boolean>>;
+
+    const hasLocalOverrides = Object.keys(localOverrides).length > 0;
+    const remote = hasLocalOverrides
+      ? { overrides: null as Partial<Record<string, boolean>> | null, failureReason: undefined }
+      : await this.reflagProvider.getOverrides({
+          tenantId: context.tenantId,
+          activeVertical: context.activeVertical,
+          isPlatformAdminTenant: context.isPlatformAdminTenant,
+          plan: context.plan,
+          activeModules: [...(context.activeModuleKeys ?? [])],
+          activeChannels: [],
+          hasClinicProfile: false,
+        });
+
+    const overrides: Partial<Record<string, boolean>> = hasLocalOverrides
+      ? localOverrides
+      : (remote.overrides ?? {});
+
+    const entitlements: Partial<PlanEntitlements> = {};
+    const decisions: PlanEntitlementDecision[] = [];
+
+    for (const entry of PLAN_FLAG_CATALOG) {
+      const baseline =
+        entry.supportedVerticals.includes(context.activeVertical) &&
+        planSatisfies(context.plan, entry.minPlan);
+      const override = overrides[entry.key];
+
+      if (typeof override === 'boolean') {
+        entitlements[entry.key] = override;
+        decisions.push({
+          key: entry.key,
+          enabled: override,
+          source: 'reflag-plan-override',
+          minPlan: entry.minPlan,
+          moduleKey: entry.moduleKey,
+          detail: override
+            ? 'Granted by tenant-scoped Reflag override.'
+            : 'Denied by tenant-scoped Reflag override.',
+        });
+        continue;
+      }
+
+      entitlements[entry.key] = baseline;
+      decisions.push({
+        key: entry.key,
+        enabled: baseline,
+        source: 'plan-baseline',
+        minPlan: entry.minPlan,
+        moduleKey: entry.moduleKey,
+        detail: baseline
+          ? `Included in plan "${context.plan}" baseline.`
+          : `Requires plan "${entry.minPlan}" or above on a supported vertical.`,
+      });
+    }
+
+    if (!hasLocalOverrides && remote.failureReason && process.env.NODE_ENV !== 'test') {
+      this.logger.warn(
+        {
+          tenantId: context.tenantId,
+          vertical: context.activeVertical,
+          reason: remote.failureReason,
+        },
+        'plan entitlements fell back to baseline'
+      );
+    }
+
+    return {
+      entitlements: entitlements as PlanEntitlements,
       decisions,
     };
   }
