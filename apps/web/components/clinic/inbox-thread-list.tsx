@@ -2,6 +2,7 @@ import type { ConversationThreadListItem } from '@agentmou/contracts';
 import { Inbox, MessageCircleMore, Phone, TriangleAlert, UserRound } from 'lucide-react';
 
 import { EmptyState } from '@/components/control-plane/empty-state';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatClinicLabel } from '@/lib/clinic-formatting';
@@ -27,7 +28,7 @@ export function InboxThreadList({
   emptyDescription?: string;
 }) {
   return (
-    <Card className="border-border/60">
+    <Card variant="raised">
       <CardHeader>
         <CardTitle className="text-base">Bandeja priorizada</CardTitle>
       </CardHeader>
@@ -38,7 +39,7 @@ export function InboxThreadList({
           </div>
         ) : null}
         <ScrollArea className="h-[420px]">
-          <div className="divide-y divide-border/50">
+          <div className="divide-border-subtle divide-y">
             {threads.map((thread) => {
               const Icon = channelIcon(thread.channelType);
               const isActive = thread.id === selectedThreadId;
@@ -48,36 +49,45 @@ export function InboxThreadList({
                   key={thread.id}
                   type="button"
                   onClick={() => onSelect?.(thread)}
+                  aria-pressed={isActive}
                   className={cn(
-                    'flex w-full flex-col gap-3 p-4 text-left transition-colors',
-                    isActive ? 'bg-accent/10' : 'hover:bg-muted/40'
+                    'flex w-full flex-col gap-3 border-l-2 p-4 text-left transition-colors',
+                    isActive
+                      ? 'border-accent bg-accent/10'
+                      : 'hover:bg-card-hover border-transparent'
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                      <span
+                        className="bg-muted flex h-8 w-8 items-center justify-center rounded-full"
+                        aria-hidden
+                      >
                         <Icon className="h-4 w-4" />
                       </span>
                       <div>
-                        <p className="font-medium">
+                        <p className="text-text-primary font-medium">
                           {thread.patient?.fullName ?? 'Paciente por identificar'}
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-text-muted text-xs">
                           {thread.channelType === 'voice' ? 'Llamada' : 'WhatsApp'}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       {thread.requiresHumanReview ? (
-                        <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-700">
-                          <TriangleAlert className="h-3 w-3" />
+                        <Badge tone="warning" className="gap-1">
+                          <TriangleAlert className="h-3 w-3" aria-hidden />
                           Escalado
-                        </span>
+                        </Badge>
                       ) : null}
                       {(thread.unreadCount ?? 0) > 0 ? (
-                        <span className="rounded-full bg-accent px-2 py-1 text-xs font-medium text-accent-foreground">
+                        <Badge
+                          className="bg-accent text-accent-foreground border-transparent"
+                          aria-label={`${thread.unreadCount} mensajes sin leer`}
+                        >
                           {thread.unreadCount}
-                        </span>
+                        </Badge>
                       ) : null}
                     </div>
                   </div>
@@ -88,23 +98,19 @@ export function InboxThreadList({
                         isExisting={thread.patient.isExisting}
                       />
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
-                        <UserRound className="h-3 w-3" />
+                      <Badge variant="outline" className="gap-1">
+                        <UserRound className="h-3 w-3" aria-hidden />
                         Sin identificar
-                      </span>
+                      </Badge>
                     )}
-                    <span className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
-                      {formatClinicLabel(thread.priority)}
-                    </span>
-                    <span className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
-                      {formatClinicLabel(thread.status)}
-                    </span>
+                    <Badge variant="outline">{formatClinicLabel(thread.priority)}</Badge>
+                    <Badge variant="outline">{formatClinicLabel(thread.status)}</Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-text-muted text-sm">
                     {thread.lastMessagePreview ?? 'Sin mensaje reciente'}
                   </p>
                   {thread.nextSuggestedAction ? (
-                    <p className="text-sm font-medium text-foreground">
+                    <p className="text-text-primary text-sm font-medium">
                       {thread.nextSuggestedAction}
                     </p>
                   ) : null}

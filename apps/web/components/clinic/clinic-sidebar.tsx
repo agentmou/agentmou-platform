@@ -27,25 +27,32 @@ export function ClinicSidebar({ tenantId, pathname, onNavigate }: ClinicSidebarP
   const navigation = React.useMemo(() => resolveClinicSidebarNavigation(experience), [experience]);
 
   return (
-    <div className="flex h-[100dvh] min-h-0 flex-col bg-sidebar lg:h-full">
-      <div className="flex h-16 items-center border-b border-border/60 px-4">
+    <nav
+      aria-label="Navegación de la clínica"
+      className="bg-sidebar flex h-[100dvh] min-h-0 flex-col lg:h-full"
+    >
+      <div className="border-border-subtle flex h-16 items-center border-b px-4">
         <Link
           href={`/app/${tenantId}/dashboard`}
           className="flex items-center"
           onClick={onNavigate}
+          aria-label="Ir al dashboard de la clínica"
         >
           <Logo variant="sidebar" />
         </Link>
       </div>
 
       <ScrollArea className="min-h-0 flex-1 px-3 py-6">
-        <nav className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6">
           {navigation.sections.map((section) => (
             <div key={section.key} className="flex flex-col gap-1">
-              <p className="px-3 text-editorial-tiny uppercase tracking-[0.05em] text-muted-foreground">
+              <p
+                className="text-text-muted px-3 text-[11px] uppercase tracking-[0.08em]"
+                aria-hidden
+              >
                 {section.label}
               </p>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-0.5">
                 {section.items.map((item) => {
                   const active = isActiveClinicItem(pathname, tenantId, item.href);
 
@@ -54,18 +61,20 @@ export function ClinicSidebar({ tenantId, pathname, onNavigate }: ClinicSidebarP
                       key={item.href}
                       href={`/app/${tenantId}${item.href}`}
                       onClick={onNavigate}
+                      aria-current={active ? 'page' : undefined}
                       className={cn(
-                        'flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors',
+                        'group flex items-center gap-3 rounded-xl border-l-2 px-3 py-2.5 text-sm font-medium transition-colors',
                         active
-                          ? 'bg-accent/10 text-foreground'
-                          : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+                          ? 'bg-accent/10 border-accent text-text-primary'
+                          : 'text-text-muted hover:bg-card-hover hover:text-text-primary border-transparent'
                       )}
                     >
                       <item.icon
                         className={cn(
-                          'h-4 w-4 shrink-0',
-                          active ? 'text-accent' : 'text-muted-foreground'
+                          'h-4 w-4 shrink-0 transition-colors',
+                          active ? 'text-accent' : 'text-text-muted group-hover:text-text-primary'
                         )}
+                        aria-hidden
                       />
                       <span>{item.label}</span>
                     </Link>
@@ -74,11 +83,11 @@ export function ClinicSidebar({ tenantId, pathname, onNavigate }: ClinicSidebarP
               </div>
             </div>
           ))}
-        </nav>
+        </div>
       </ScrollArea>
 
       {navigation.footerItem ? (
-        <div className="border-t border-border/60 p-3">
+        <div className="border-border-subtle border-t p-3">
           <Button
             asChild
             variant={
@@ -89,12 +98,12 @@ export function ClinicSidebar({ tenantId, pathname, onNavigate }: ClinicSidebarP
             className="w-full justify-start gap-2 rounded-xl"
           >
             <Link href={`/app/${tenantId}${navigation.footerItem.href}`} onClick={onNavigate}>
-              <navigation.footerItem.icon className="h-4 w-4 shrink-0" />
+              <navigation.footerItem.icon className="h-4 w-4 shrink-0" aria-hidden />
               <span>{navigation.footerItem.label}</span>
             </Link>
           </Button>
         </div>
       ) : null}
-    </div>
+    </nav>
   );
 }
