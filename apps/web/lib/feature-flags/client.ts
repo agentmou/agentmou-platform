@@ -64,7 +64,8 @@ function warnOnce(key: string, message: string) {
   }
   warnedKeys.add(key);
   if (isDevelopment()) {
-    // eslint-disable-next-line no-console -- dev-only diagnostic, silent in production.
+    // `console.warn` is allowed by the root ESLint config; this is a
+    // dev-only diagnostic, silent in production.
     console.warn(`[feature-flags/client] ${message}`);
   }
 }
