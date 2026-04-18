@@ -162,10 +162,55 @@ jobs:
           python -m py_compile services/agents/main.py
           python -m unittest discover -s services/agents -p 'test_*.py'
 
+  e2e:
+    # Playwright smoke suite — 4 UI-level tests against a production Next
+    # build with every /api/v1/* call intercepted by an in-process mock
+    # server. No DB or Redis service container needed. See
+    # `apps/web/e2e/README.md` for the design.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      E2E_DISABLE_CANONICAL_REDIRECT: '1'
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:47321
+      API_PUBLIC_BASE_URL: http://127.0.0.1:47321
+      MARKETING_PUBLIC_BASE_URL: http://127.0.0.1:3100
+      APP_PUBLIC_BASE_URL: http://127.0.0.1:3100
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @agentmou/web exec playwright install chromium --with-deps
+
+      - name: Run Playwright smoke suite
+        run: pnpm --filter @agentmou/web test:e2e
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          retention-days: 14
+
   deploy-prod:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [check, clinic-demo-validation, agents]
+    needs: [check, clinic-demo-validation, agents, e2e]
     if: >-
       github.event_name == 'push' && github.ref == 'refs/heads/main'
       && vars.DEPLOY_PROD_ENABLED == 'true'
