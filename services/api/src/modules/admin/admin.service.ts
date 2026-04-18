@@ -143,6 +143,72 @@ export class AdminService {
   }
 
   /**
+   * Replace the `tenant_vertical_configs` list for a managed tenant.
+   *
+   * Guardrails:
+   *   - The set must include the current `activeVertical`. An admin that
+   *     wants to drop the active vertical has to change the active one
+   *     first (via `changeTenantVertical`) — that keeps shell selection
+   *     and the enabled list consistent.
+   *   - Deduplication is the repository's job; callers can pass duplicate
+   *     verticals safely.
+   */
+  async updateTenantEnabledVerticals(params: {
+    tenantId: string;
+    enabled: readonly VerticalKey[];
+    actorUserId: string;
+    actorTenantId: string;
+  }): Promise<AdminTenantDetail> {
+    const existing = await this.repository.getTenantDetail(params.tenantId);
+    if (!existing) {
+      throw createHttpError('Tenant not found', 404);
+    }
+
+    const dedup = Array.from(new Set(params.enabled));
+    if (dedup.length === 0) {
+      throw createHttpError('At least one enabled vertical is required', 400);
+    }
+    if (!dedup.includes(existing.activeVertical)) {
+      throw createHttpError(
+        'The active vertical must stay in the enabled list. Change the active vertical first.',
+        409
+      );
+    }
+
+    const previous = await this.repository.listTenantEnabledVerticals(params.tenantId);
+    const previousSet = new Set(previous);
+    const nextSet = new Set(dedup);
+    const changed =
+      previous.length !== dedup.length ||
+      dedup.some((key) => !previousSet.has(key)) ||
+      previous.some((key) => !nextSet.has(key));
+
+    if (!changed) {
+      return existing;
+    }
+
+    await this.repository.setTenantEnabledVerticals(params.tenantId, dedup);
+
+    await this.dependencies.recordAdminAuditEvent({
+      actorId: params.actorUserId,
+      actorTenantId: params.actorTenantId,
+      targetTenantId: params.tenantId,
+      action: 'admin.tenant.enabled_verticals_changed',
+      details: {
+        previousEnabled: previous,
+        nextEnabled: dedup,
+      },
+    });
+
+    const updated = await this.repository.getTenantDetail(params.tenantId);
+    if (!updated) {
+      throw createHttpError('Tenant not found', 404);
+    }
+
+    return updated;
+  }
+
+  /**
    * Resolve every feature decision for a managed tenant — both the commercial
    * `plan.*` namespace and the deployment-strategy `rollout.*` namespace —
    * with the source/reason trace the admin UI needs to explain why each
@@ -182,6 +248,7 @@ export class AdminService {
         profile: context.profile,
         modules: context.modules,
         channels: context.channels,
+        enabledVerticals: context.enabledVerticals,
       }),
     ]);
 

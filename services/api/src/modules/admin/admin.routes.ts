@@ -18,6 +18,7 @@ import {
   adminTenantListQuerySchema,
   adminTenantParamsSchema,
   adminTenantUserParamsSchema,
+  adminUpdateTenantEnabledVerticalsSchema,
   adminUpdateTenantUserSchema,
 } from './admin.schema.js';
 import { AdminService } from './admin.service.js';
@@ -95,6 +96,33 @@ export async function adminRoutes(fastify: FastifyInstance) {
         const tenant = await service.changeTenantVertical({
           tenantId,
           activeVertical: body.activeVertical,
+          actorUserId: request.userId!,
+          actorTenantId: request.adminTenantId!,
+        });
+
+        return reply.send(AdminTenantDetailResponseSchema.parse({ tenant }));
+      } catch (error) {
+        return handleAdminRouteError(reply, error);
+      }
+    }
+  );
+
+  fastify.patch(
+    '/tenants/:tenantId/verticals-enabled',
+    {
+      schema: {
+        params: adminTenantParamsSchema,
+        body: adminUpdateTenantEnabledVerticalsSchema,
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const { tenantId } = request.params as { tenantId: string };
+        const body = request.body as { enabled: ('internal' | 'clinic' | 'fisio')[] };
+
+        const tenant = await service.updateTenantEnabledVerticals({
+          tenantId,
+          enabled: body.enabled,
           actorUserId: request.userId!,
           actorTenantId: request.adminTenantId!,
         });
