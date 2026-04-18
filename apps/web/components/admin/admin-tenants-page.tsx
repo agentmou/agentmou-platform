@@ -4,11 +4,11 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { AdminTenantListResponse, TenantPlan, VerticalKey } from '@agentmou/contracts';
-import { ArrowRight, Search, Shield } from 'lucide-react';
+import { ArrowRight, Crown, Inbox, Search, X } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -41,6 +42,7 @@ import {
 
 const EMPTY_LIST: AdminTenantListResponse = { tenants: [] };
 const SEARCH_DEBOUNCE_MS = 300;
+const SKELETON_ROWS = 4;
 
 function formatPlan(plan: TenantPlan) {
   return plan.replace('_', ' ');
@@ -48,6 +50,34 @@ function formatPlan(plan: TenantPlan) {
 
 function formatVertical(vertical: VerticalKey) {
   return vertical === 'clinic' ? 'clinic' : vertical;
+}
+
+function SkeletonRow() {
+  return (
+    <TableRow>
+      <TableCell>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-3 w-24" />
+        </div>
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-5 w-16" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-5 w-16" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-4 w-8" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-5 w-24" />
+      </TableCell>
+      <TableCell className="text-right">
+        <Skeleton className="ml-auto h-8 w-24" />
+      </TableCell>
+    </TableRow>
+  );
 }
 
 interface AdminTenantsPageProps {
@@ -121,122 +151,155 @@ export function AdminTenantsPage({ basePath = '/admin/tenants' }: AdminTenantsPa
   };
 
   const filtersActive = hasActiveAdminTenantsFilters(urlState);
+  const showSkeleton = isLoading && data.tenants.length === 0;
+  const showEmpty = !isLoading && !error && data.tenants.length === 0;
 
   return (
     <div className="space-y-6 p-6 lg:p-8">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-[0.12em] text-muted-foreground">Admin</p>
-          <h1 className="text-3xl font-semibold tracking-tight">Tenants</h1>
-          <p className="max-w-3xl text-sm text-muted-foreground">
-            Gestiona tenants, cambia su vertical activa y entra al detalle para operar usuarios e
-            impersonation sin salir de la shell interna.
-          </p>
-        </div>
-      </div>
+      <header className="space-y-2">
+        <p className="text-text-muted text-xs uppercase tracking-[0.12em]" aria-hidden>
+          Admin
+        </p>
+        <h1 className="text-3xl font-semibold tracking-tight text-text-primary">Tenants</h1>
+        <p className="max-w-3xl text-sm text-text-secondary">
+          Gestiona tenants, cambia su vertical activa y entra al detalle para operar usuarios e
+          impersonation sin salir de la consola interna.
+        </p>
+      </header>
 
-      <Card className="border-border/60">
-        <CardHeader className="space-y-4">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <CardTitle className="text-lg">Directory</CardTitle>
-            <div className="flex flex-col gap-3 md:flex-row md:items-center">
-              <div className="relative min-w-[240px]">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={draftQuery}
-                  onChange={(event) => setDraftQuery(event.target.value)}
-                  className="pl-9"
-                  placeholder="Buscar tenant o email"
-                  aria-label="Buscar tenants"
-                />
-              </div>
-              <Select
-                value={urlState.plan}
-                onValueChange={(value) =>
-                  handleFilterChange({ plan: value as AdminTenantsPlanFilter })
-                }
-              >
-                <SelectTrigger className="w-full md:w-[150px]">
-                  <SelectValue placeholder="Plan" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los planes</SelectItem>
-                  <SelectItem value="free">Free</SelectItem>
-                  <SelectItem value="starter">Starter</SelectItem>
-                  <SelectItem value="pro">Pro</SelectItem>
-                  <SelectItem value="scale">Scale</SelectItem>
-                  <SelectItem value="enterprise">Enterprise</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={urlState.vertical}
-                onValueChange={(value) =>
-                  handleFilterChange({ vertical: value as AdminTenantsVerticalFilter })
-                }
-              >
-                <SelectTrigger className="w-full md:w-[150px]">
-                  <SelectValue placeholder="Vertical" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las verticales</SelectItem>
-                  <SelectItem value="internal">Internal</SelectItem>
-                  <SelectItem value="clinic">Clinic</SelectItem>
-                  <SelectItem value="fisio">Fisio</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={urlState.type}
-                onValueChange={(value) =>
-                  handleFilterChange({ type: value as AdminTenantsAdminFilter })
-                }
-              >
-                <SelectTrigger className="w-full md:w-[190px]">
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los tenants</SelectItem>
-                  <SelectItem value="admin">Solo admin</SelectItem>
-                  <SelectItem value="client">Solo cliente</SelectItem>
-                </SelectContent>
-              </Select>
-              {filtersActive ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClearFilters}
-                  aria-label="Limpiar filtros"
-                >
-                  Limpiar filtros
-                </Button>
-              ) : null}
-            </div>
+      <Card variant="subtle" padding="sm">
+        <CardContent className="flex flex-col gap-3 px-4 md:flex-row md:items-center md:gap-3">
+          <div className="relative min-w-0 flex-1 md:max-w-xs">
+            <Search
+              className="text-text-muted pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+              aria-hidden
+            />
+            <Input
+              value={draftQuery}
+              onChange={(event) => setDraftQuery(event.target.value)}
+              className="pl-9"
+              placeholder="Buscar tenant o email"
+              aria-label="Buscar tenants"
+            />
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {error ? (
-            <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-              {error.message}
-            </div>
+          <Select
+            value={urlState.plan}
+            onValueChange={(value) => handleFilterChange({ plan: value as AdminTenantsPlanFilter })}
+          >
+            <SelectTrigger className="w-full md:w-[150px]" aria-label="Filtrar por plan">
+              <SelectValue placeholder="Plan" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los planes</SelectItem>
+              <SelectItem value="free">Free</SelectItem>
+              <SelectItem value="starter">Starter</SelectItem>
+              <SelectItem value="pro">Pro</SelectItem>
+              <SelectItem value="scale">Scale</SelectItem>
+              <SelectItem value="enterprise">Enterprise</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={urlState.vertical}
+            onValueChange={(value) =>
+              handleFilterChange({ vertical: value as AdminTenantsVerticalFilter })
+            }
+          >
+            <SelectTrigger className="w-full md:w-[150px]" aria-label="Filtrar por vertical">
+              <SelectValue placeholder="Vertical" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las verticales</SelectItem>
+              <SelectItem value="internal">Internal</SelectItem>
+              <SelectItem value="clinic">Clinic</SelectItem>
+              <SelectItem value="fisio">Fisio</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={urlState.type}
+            onValueChange={(value) =>
+              handleFilterChange({ type: value as AdminTenantsAdminFilter })
+            }
+          >
+            <SelectTrigger className="w-full md:w-[170px]" aria-label="Filtrar por tipo de tenant">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los tenants</SelectItem>
+              <SelectItem value="admin">Solo admin</SelectItem>
+              <SelectItem value="client">Solo cliente</SelectItem>
+            </SelectContent>
+          </Select>
+          {filtersActive ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFilters}
+              aria-label="Limpiar filtros"
+              className="md:ml-auto"
+            >
+              <X className="h-4 w-4" aria-hidden />
+              Limpiar filtros
+            </Button>
           ) : null}
+        </CardContent>
+      </Card>
 
-          <Table>
-            <TableHeader>
+      {error ? (
+        <Card
+          variant="outline"
+          padding="sm"
+          role="alert"
+          className="border-destructive/30 bg-destructive-subtle"
+        >
+          <CardContent className="px-4 text-sm text-destructive">{error.message}</CardContent>
+        </Card>
+      ) : null}
+
+      <Card variant="raised" padding="none" className="overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Tenant</TableHead>
+              <TableHead>Plan</TableHead>
+              <TableHead>Vertical</TableHead>
+              <TableHead>Users</TableHead>
+              <TableHead>Flags</TableHead>
+              <TableHead className="text-right">Acción</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {showSkeleton ? (
+              // Skeleton row keys are stable across renders because the
+              // placeholder count is fixed; index-as-key is fine here.
+              Array.from({ length: SKELETON_ROWS }).map((_, index) => (
+                <SkeletonRow key={`skeleton-${index}`} />
+              ))
+            ) : showEmpty ? (
               <TableRow>
-                <TableHead>Tenant</TableHead>
-                <TableHead>Plan</TableHead>
-                <TableHead>Vertical</TableHead>
-                <TableHead>Users</TableHead>
-                <TableHead>Flags</TableHead>
-                <TableHead className="text-right">Accion</TableHead>
+                <TableCell colSpan={6} className="py-12">
+                  <div className="flex flex-col items-center gap-3 text-center text-text-muted">
+                    <Inbox className="text-text-muted h-8 w-8" aria-hidden />
+                    <p className="text-sm">No hay tenants que coincidan con los filtros.</p>
+                    {filtersActive ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleClearFilters}
+                        aria-label="Limpiar filtros y mostrar todos los tenants"
+                      >
+                        Limpiar filtros
+                      </Button>
+                    ) : null}
+                  </div>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.tenants.map((tenant) => (
-                <TableRow key={tenant.id}>
+            ) : (
+              data.tenants.map((tenant) => (
+                <TableRow key={tenant.id} className="hover:bg-card-hover">
                   <TableCell className="align-top">
                     <div className="space-y-1">
-                      <div className="font-medium">{tenant.name}</div>
-                      <div className="text-xs text-muted-foreground">{tenant.id}</div>
+                      <div className="text-text-primary font-medium">{tenant.name}</div>
+                      <code className="text-text-muted block font-mono text-xs">{tenant.id}</code>
                     </div>
                   </TableCell>
                   <TableCell className="align-top">
@@ -245,56 +308,39 @@ export function AdminTenantsPage({ basePath = '/admin/tenants' }: AdminTenantsPa
                     </Badge>
                   </TableCell>
                   <TableCell className="align-top">
-                    <Badge variant="secondary" className="capitalize">
+                    <Badge tone="info" className="capitalize">
                       {formatVertical(tenant.activeVertical)}
                     </Badge>
                   </TableCell>
-                  <TableCell className="align-top text-sm">{tenant.userCount}</TableCell>
+                  <TableCell className="text-text-secondary align-top text-sm">
+                    {tenant.userCount}
+                  </TableCell>
                   <TableCell className="align-top">
-                    <div className="flex flex-wrap gap-2">
-                      {tenant.isPlatformAdminTenant ? (
-                        <Badge variant="default" className="gap-1">
-                          <Shield className="h-3 w-3" />
-                          Admin tenant
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">Client tenant</Badge>
-                      )}
-                    </div>
+                    {tenant.isPlatformAdminTenant ? (
+                      <Badge tone="warning" className="gap-1">
+                        <Crown className="h-3 w-3" aria-hidden />
+                        Admin tenant
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline">Client tenant</Badge>
+                    )}
                   </TableCell>
                   <TableCell className="text-right align-top">
                     <Button asChild size="sm" variant="outline">
-                      <Link href={`/admin/tenants/${tenant.id}`}>
+                      <Link
+                        href={`/admin/tenants/${tenant.id}`}
+                        aria-label={`Ver detalle de ${tenant.name}`}
+                      >
                         Ver detalle
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowRight className="h-4 w-4" aria-hidden />
                       </Link>
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))}
-              {!isLoading && data.tenants.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="py-10 text-center text-sm text-muted-foreground"
-                  >
-                    No hay tenants que coincidan con los filtros actuales.
-                  </TableCell>
-                </TableRow>
-              ) : null}
-              {isLoading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="py-10 text-center text-sm text-muted-foreground"
-                  >
-                    Cargando tenants...
-                  </TableCell>
-                </TableRow>
-              ) : null}
-            </TableBody>
-          </Table>
-        </CardContent>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </Card>
     </div>
   );

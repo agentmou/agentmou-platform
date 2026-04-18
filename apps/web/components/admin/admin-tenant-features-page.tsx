@@ -9,6 +9,7 @@ import { ArrowLeft, ExternalLink, Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -29,13 +30,6 @@ function reflagAppUrl(): string | null {
   return url && url.length > 0 ? url : null;
 }
 
-function badgeToneFor(decision: AdminFeatureDecision) {
-  if (decision.enabled) {
-    return 'default' as const;
-  }
-  return 'outline' as const;
-}
-
 function DecisionTable({
   decisions,
   emptyLabel,
@@ -45,7 +39,7 @@ function DecisionTable({
 }) {
   if (decisions.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-border/60 px-4 py-6 text-center text-sm text-muted-foreground">
+      <p className="border-border-subtle text-text-muted rounded-xl border border-dashed px-4 py-6 text-center text-sm">
         {emptyLabel}
       </p>
     );
@@ -64,16 +58,22 @@ function DecisionTable({
       <TableBody>
         {decisions.map((decision) => (
           <TableRow key={`${decision.kind}:${decision.key}`}>
-            <TableCell className="align-top font-mono text-xs text-muted-foreground">
+            <TableCell className="text-text-muted align-top font-mono text-xs">
               {decision.key}
             </TableCell>
             <TableCell className="align-top">
-              <Badge variant={badgeToneFor(decision)} className="capitalize">
-                {decision.enabled ? 'Activo' : 'Inactivo'}
-              </Badge>
+              {decision.enabled ? (
+                <Badge tone="success">Activo</Badge>
+              ) : (
+                <Badge tone="warning" variant="outline">
+                  Inactivo
+                </Badge>
+              )}
             </TableCell>
-            <TableCell className="align-top text-sm">{decision.source}</TableCell>
-            <TableCell className="align-top text-sm text-muted-foreground">
+            <TableCell className="text-text-secondary align-top text-sm">
+              {decision.source}
+            </TableCell>
+            <TableCell className="text-text-muted align-top text-sm">
               {decision.detail ?? decision.reason ?? '—'}
             </TableCell>
           </TableRow>
@@ -115,16 +115,23 @@ export function AdminTenantFeaturesPage() {
     <div className="space-y-6 p-6 lg:p-8">
       <div className="flex flex-col gap-3">
         <Button asChild variant="ghost" size="sm" className="-ml-2 w-fit">
-          <Link href={`/admin/tenants/${managedTenantId}`}>
-            <ArrowLeft className="h-4 w-4" />
+          <Link
+            href={`/admin/tenants/${managedTenantId}`}
+            aria-label="Volver al detalle del tenant"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden />
             Volver al detalle
           </Link>
         </Button>
         <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-2">
-            <p className="text-sm uppercase tracking-[0.12em] text-muted-foreground">Admin</p>
-            <h1 className="text-3xl font-semibold tracking-tight">Resolución de features</h1>
-            <p className="max-w-3xl text-sm text-muted-foreground">
+            <p className="text-text-muted text-xs uppercase tracking-[0.12em]" aria-hidden>
+              Admin
+            </p>
+            <h1 className="text-text-primary text-3xl font-semibold tracking-tight">
+              Resolución de features
+            </h1>
+            <p className="text-text-secondary max-w-3xl text-sm">
               Trace completo del plan baseline, los overrides de módulos y las decisiones de Reflag
               para este tenant. Diagnóstico read-only — para cambiar entitlements usa la consola de
               Reflag o el cambio de plan/módulos.
@@ -132,9 +139,14 @@ export function AdminTenantFeaturesPage() {
           </div>
           {reflagUrl ? (
             <Button asChild variant="outline">
-              <a href={reflagUrl} target="_blank" rel="noreferrer">
+              <a
+                href={reflagUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Abrir Reflag dashboard en otra pestaña"
+              >
                 Abrir Reflag
-                <ExternalLink className="h-4 w-4" />
+                <ExternalLink className="h-4 w-4" aria-hidden />
               </a>
             </Button>
           ) : null}
@@ -142,23 +154,32 @@ export function AdminTenantFeaturesPage() {
       </div>
 
       {error ? (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          {error.message}
-        </div>
+        <Card
+          variant="outline"
+          padding="sm"
+          role="alert"
+          className="border-destructive/30 bg-destructive-subtle"
+        >
+          <CardContent className="text-sm text-destructive">{error.message}</CardContent>
+        </Card>
       ) : null}
 
       {!error && isLoading && !resolution ? (
-        <Card className="border-border/60">
-          <CardContent className="py-12 text-center text-sm text-muted-foreground">
-            Cargando resolución de features…
-          </CardContent>
-        </Card>
+        <div className="space-y-4" aria-busy="true" aria-live="polite">
+          <div className="grid gap-4 md:grid-cols-3">
+            <Skeleton className="h-24 rounded-xl" />
+            <Skeleton className="h-24 rounded-xl" />
+            <Skeleton className="h-24 rounded-xl" />
+          </div>
+          <Skeleton className="h-9 w-72" />
+          <Skeleton className="h-72 rounded-xl" />
+        </div>
       ) : null}
 
       {resolution ? (
         <>
           <div className="grid gap-4 md:grid-cols-3">
-            <Card className="border-border/60">
+            <Card variant="raised">
               <CardHeader>
                 <CardTitle className="text-base">Plan</CardTitle>
               </CardHeader>
@@ -168,23 +189,25 @@ export function AdminTenantFeaturesPage() {
                 </Badge>
               </CardContent>
             </Card>
-            <Card className="border-border/60">
+            <Card variant="raised">
               <CardHeader>
                 <CardTitle className="text-base">Vertical activa</CardTitle>
               </CardHeader>
               <CardContent>
-                <Badge variant="secondary" className="capitalize">
+                <Badge tone="info" className="capitalize">
                   {resolution.activeVertical}
                 </Badge>
               </CardContent>
             </Card>
-            <Card className="border-border/60">
+            <Card variant="raised">
               <CardHeader>
                 <CardTitle className="text-base">Módulos activos</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                {moduleDecisions.filter((module) => module.enabled).length} de{' '}
-                {moduleDecisions.length}
+              <CardContent className="text-text-secondary text-sm">
+                <span className="text-text-primary font-medium">
+                  {moduleDecisions.filter((module) => module.enabled).length}
+                </span>{' '}
+                de {moduleDecisions.length}
               </CardContent>
             </Card>
           </div>
@@ -199,7 +222,7 @@ export function AdminTenantFeaturesPage() {
             </TabsList>
 
             <TabsContent value="plan" className="space-y-3">
-              <Card className="border-border/60">
+              <Card variant="raised">
                 <CardHeader>
                   <CardTitle className="text-base">Decisiones por capability comercial</CardTitle>
                 </CardHeader>
@@ -213,7 +236,7 @@ export function AdminTenantFeaturesPage() {
             </TabsContent>
 
             <TabsContent value="modules" className="space-y-3">
-              <Card className="border-border/60">
+              <Card variant="raised">
                 <CardHeader>
                   <CardTitle className="text-base">Módulos por tenant</CardTitle>
                 </CardHeader>
@@ -232,21 +255,27 @@ export function AdminTenantFeaturesPage() {
                         <TableRow key={module.moduleKey}>
                           <TableCell className="align-top">
                             <div className="space-y-1">
-                              <div className="font-medium">{module.displayName}</div>
-                              <div className="text-xs font-mono text-muted-foreground">
-                                {module.moduleKey}
+                              <div className="text-text-primary font-medium">
+                                {module.displayName}
                               </div>
+                              <code className="text-text-muted block font-mono text-xs">
+                                {module.moduleKey}
+                              </code>
                             </div>
                           </TableCell>
                           <TableCell className="align-top">
-                            <Badge variant={module.enabled ? 'default' : 'outline'}>
-                              {module.status}
-                            </Badge>
+                            {module.enabled ? (
+                              <Badge tone="success">{module.status}</Badge>
+                            ) : (
+                              <Badge tone="warning" variant="outline">
+                                {module.status}
+                              </Badge>
+                            )}
                           </TableCell>
-                          <TableCell className="align-top text-sm">
+                          <TableCell className="text-text-secondary align-top text-sm">
                             {module.visibilityState}
                           </TableCell>
-                          <TableCell className="align-top text-sm text-muted-foreground">
+                          <TableCell className="text-text-muted align-top text-sm">
                             {module.visibilityReason}
                           </TableCell>
                         </TableRow>
@@ -258,7 +287,7 @@ export function AdminTenantFeaturesPage() {
             </TabsContent>
 
             <TabsContent value="rollouts" className="space-y-3">
-              <Card className="border-border/60">
+              <Card variant="raised">
                 <CardHeader>
                   <CardTitle className="text-base">Rollouts y readiness</CardTitle>
                 </CardHeader>

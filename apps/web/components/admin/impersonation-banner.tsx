@@ -51,9 +51,13 @@ export function ImpersonationBanner() {
   };
 
   return (
-    <div className="sticky top-0 z-[60] flex h-11 items-center justify-between gap-3 border-b border-amber-500/30 bg-amber-500/10 px-4 text-sm text-amber-950 backdrop-blur lg:px-6 dark:text-amber-100">
+    <div
+      role="alert"
+      aria-live="polite"
+      className="bg-warning-subtle text-warning-foreground border-warning/30 sticky top-0 z-[60] flex h-11 items-center justify-between gap-3 border-b px-4 text-sm backdrop-blur lg:px-6"
+    >
       <div className="flex min-w-0 items-center gap-2">
-        <ShieldAlert className="h-4 w-4 shrink-0" />
+        <ShieldAlert className="h-4 w-4 shrink-0" aria-hidden />
         <p className="truncate">
           Impersonando a{' '}
           <span className="font-medium">{user?.name ?? user?.email ?? 'usuario'}</span> en{' '}
@@ -65,9 +69,10 @@ export function ImpersonationBanner() {
         variant="outline"
         onClick={handleStop}
         disabled={isStopping}
-        className="h-8 shrink-0 border-amber-500/30 bg-background/80 text-amber-950 hover:bg-background dark:text-amber-100"
+        aria-label="Salir de la sesión de impersonation"
+        className="border-warning/30 bg-background/80 text-warning-foreground hover:bg-background h-8 shrink-0"
       >
-        <ArrowLeftRight className="h-4 w-4" />
+        <ArrowLeftRight className="h-4 w-4" aria-hidden />
         Salir de impersonation
       </Button>
     </div>

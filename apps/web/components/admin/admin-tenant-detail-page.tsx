@@ -46,6 +46,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
   SelectContent,
@@ -99,8 +100,8 @@ function MutationAlert({
   }
 
   return (
-    <Alert className="border-emerald-500/30 bg-emerald-500/5">
-      <Shield className="h-4 w-4 text-emerald-600" />
+    <Alert className="border-success/30 bg-success-subtle text-text-primary">
+      <Shield className="h-4 w-4 text-success" aria-hidden />
       <AlertTitle>Activation payload listo</AlertTitle>
       <AlertDescription className="space-y-2">
         <p>El usuario nuevo todavia no tiene password. Puedes usar este enlace de activacion:</p>
@@ -108,11 +109,11 @@ function MutationAlert({
           href={result.link}
           target="_blank"
           rel="noreferrer"
-          className="break-all text-emerald-700 underline underline-offset-4"
+          className="break-all text-success underline underline-offset-4"
         >
           {result.link}
         </a>
-        <p className="text-xs text-muted-foreground">Expira: {formatTimestamp(result.expiresAt)}</p>
+        <p className="text-text-muted text-xs">Expira: {formatTimestamp(result.expiresAt)}</p>
       </AlertDescription>
     </Alert>
   );
@@ -321,21 +322,32 @@ export function AdminTenantDetailPage() {
 
   if (isLoadingDetail && !detail) {
     return (
-      <div className="p-6 text-sm text-muted-foreground lg:p-8">Cargando tenant gestionado...</div>
+      <div className="space-y-6 p-6 lg:p-8" aria-busy="true" aria-live="polite">
+        <div className="space-y-3">
+          <Skeleton className="h-7 w-24" />
+          <Skeleton className="h-9 w-72" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
+        <div className="grid gap-4 xl:grid-cols-[1.6fr_minmax(320px,1fr)]">
+          <Skeleton className="h-40 rounded-xl" />
+          <Skeleton className="h-40 rounded-xl" />
+        </div>
+        <Skeleton className="h-64 rounded-xl" />
+      </div>
     );
   }
 
   if (!detail) {
     return (
       <div className="space-y-4 p-6 lg:p-8">
-        <Button asChild variant="ghost" size="sm">
-          <Link href="/admin/tenants">
-            <ArrowLeft className="h-4 w-4" />
+        <Button asChild variant="ghost" size="sm" className="-ml-2">
+          <Link href="/admin/tenants" aria-label="Volver al listado de tenants">
+            <ArrowLeft className="h-4 w-4" aria-hidden />
             Volver a tenants
           </Link>
         </Button>
-        <Card>
-          <CardContent className="p-6 text-sm text-muted-foreground">
+        <Card variant="outline" padding="md" role="alert">
+          <CardContent className="text-text-muted text-sm">
             {detailError?.message ?? 'Tenant no encontrado'}
           </CardContent>
         </Card>
@@ -354,9 +366,14 @@ export function AdminTenantDetailPage() {
             </Link>
           </Button>
           <div className="space-y-2">
-            <p className="text-sm uppercase tracking-[0.12em] text-muted-foreground">Admin</p>
-            <h1 className="text-3xl font-semibold tracking-tight">{detail.name}</h1>
-            <p className="max-w-3xl text-sm text-muted-foreground">
+            <p className="text-text-muted text-xs uppercase tracking-[0.12em]" aria-hidden>
+              Admin
+            </p>
+            <h1 className="text-text-primary text-3xl font-semibold tracking-tight">
+              {detail.name}
+            </h1>
+            <code className="text-text-muted block font-mono text-xs">{detail.id}</code>
+            <p className="text-text-secondary max-w-3xl text-sm">
               Cambia la vertical activa, opera memberships y entra en impersonation sobre usuarios
               reales del tenant sin perder el contexto del workspace admin.
             </p>
@@ -390,32 +407,32 @@ export function AdminTenantDetailPage() {
       ) : null}
 
       <div className="grid gap-4 xl:grid-cols-[1.6fr_minmax(320px,1fr)]">
-        <Card className="border-border/60">
+        <Card variant="raised">
           <CardHeader>
             <CardTitle className="text-lg">Tenant summary</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Plan</p>
+              <p className="text-text-muted text-xs uppercase tracking-[0.12em]">Plan</p>
               <Badge variant="outline" className="capitalize">
                 {formatPlan(detail.plan)}
               </Badge>
             </div>
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Vertical</p>
-              <Badge variant="secondary" className="capitalize">
+              <p className="text-text-muted text-xs uppercase tracking-[0.12em]">Vertical</p>
+              <Badge tone="info" className="capitalize">
                 {detail.activeVertical}
               </Badge>
             </div>
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Users</p>
-              <p className="text-sm font-medium">{detail.userCount}</p>
+              <p className="text-text-muted text-xs uppercase tracking-[0.12em]">Users</p>
+              <p className="text-text-primary text-sm font-medium">{detail.userCount}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Flags</p>
+              <p className="text-text-muted text-xs uppercase tracking-[0.12em]">Flags</p>
               {detail.isPlatformAdminTenant ? (
-                <Badge className="gap-1">
-                  <Shield className="h-3 w-3" />
+                <Badge tone="warning" className="gap-1">
+                  <Shield className="h-3 w-3" aria-hidden />
                   Platform admin tenant
                 </Badge>
               ) : (
@@ -425,46 +442,49 @@ export function AdminTenantDetailPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
+        <Card variant="raised">
           <CardHeader>
             <CardTitle className="text-lg">Vertical configs</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {detail.verticalConfigs.length > 0 ? (
               detail.verticalConfigs.map((config) => (
-                <div key={config.id} className="rounded-2xl border border-border/60 p-4">
+                <Card
+                  key={config.id}
+                  variant="subtle"
+                  padding="none"
+                  className="rounded-2xl px-4 py-3"
+                >
                   <div className="flex items-center justify-between gap-3">
-                    <Badge variant="secondary" className="capitalize">
+                    <Badge tone="info" className="capitalize">
                       {config.verticalKey}
                     </Badge>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-text-muted text-xs">
                       Updated {formatTimestamp(config.updatedAt)}
                     </span>
                   </div>
-                  <p className="mt-2 text-sm text-muted-foreground">
+                  <p className="text-text-secondary mt-2 text-sm">
                     Esta config queda preservada aunque cambies la vertical activa del tenant.
                   </p>
-                </div>
+                </Card>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">
-                No hay configs verticales registradas.
-              </p>
+              <p className="text-text-muted text-sm">No hay configs verticales registradas.</p>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-border/60">
+      <Card variant="raised">
         <CardHeader className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <CardTitle className="text-lg">Users and memberships</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="text-text-secondary mt-1 text-sm">
               Gestiona roles tenant-scoped y lanza impersonation desde una fila concreta.
             </p>
           </div>
           <Badge variant="outline" className="w-fit">
-            <Users className="h-3 w-3" />
+            <Users className="h-3 w-3" aria-hidden />
             {detail.userCount} usuarios
           </Badge>
         </CardHeader>
@@ -475,30 +495,34 @@ export function AdminTenantDetailPage() {
                 <TableHead>Usuario</TableHead>
                 <TableHead>Rol</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead>Ultima actividad</TableHead>
+                <TableHead>Última actividad</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((user) => (
-                <TableRow key={user.membershipId}>
+                <TableRow key={user.membershipId} className="hover:bg-card-hover">
                   <TableCell className="align-top">
                     <div className="space-y-1">
-                      <div className="font-medium">{user.name ?? user.email}</div>
-                      <div className="text-xs text-muted-foreground">{user.email}</div>
+                      <div className="text-text-primary font-medium">{user.name ?? user.email}</div>
+                      <div className="text-text-muted text-xs">{user.email}</div>
                     </div>
                   </TableCell>
                   <TableCell className="align-top">
-                    <Badge variant={user.role === 'owner' ? 'default' : 'outline'}>
+                    <Badge tone={user.role === 'owner' ? 'warning' : 'neutral'} variant="outline">
                       {formatRole(user.role)}
                     </Badge>
                   </TableCell>
                   <TableCell className="align-top">
-                    <Badge variant={user.hasPassword ? 'secondary' : 'outline'}>
-                      {user.hasPassword ? 'Activo' : 'Pendiente de activacion'}
-                    </Badge>
+                    {user.hasPassword ? (
+                      <Badge tone="success">Activo</Badge>
+                    ) : (
+                      <Badge tone="warning" variant="outline">
+                        Pendiente de activación
+                      </Badge>
+                    )}
                   </TableCell>
-                  <TableCell className="align-top text-sm text-muted-foreground">
+                  <TableCell className="text-text-muted align-top text-sm">
                     {formatTimestamp(user.lastActiveAt)}
                   </TableCell>
                   <TableCell className="text-right align-top">
@@ -506,27 +530,34 @@ export function AdminTenantDetailPage() {
                       <Button
                         size="sm"
                         variant="outline"
+                        aria-label={`Editar ${user.name ?? user.email}`}
                         onClick={() => {
                           setEditUser(user);
                           setActivation(null);
                         }}
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-4 w-4" aria-hidden />
                         Editar
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
+                        aria-label={`Impersonar ${user.name ?? user.email}`}
                         onClick={() => {
                           setImpersonationUser(user);
                           setImpersonationReason('');
                         }}
                       >
-                        <ArrowRightLeft className="h-4 w-4" />
+                        <ArrowRightLeft className="h-4 w-4" aria-hidden />
                         Impersonar
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => setDeleteUser(user)}>
-                        <Trash2 className="h-4 w-4" />
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        aria-label={`Borrar membership de ${user.name ?? user.email}`}
+                        onClick={() => setDeleteUser(user)}
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden />
                         Borrar
                       </Button>
                     </div>
@@ -535,17 +566,39 @@ export function AdminTenantDetailPage() {
               ))}
               {!isLoadingUsers && users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
-                    Este tenant todavia no tiene memberships visibles.
+                  <TableCell colSpan={5} className="py-8">
+                    <div className="text-text-muted flex flex-col items-center gap-2 text-center">
+                      <Users className="h-7 w-7" aria-hidden />
+                      <p className="text-sm">Este tenant todavia no tiene memberships visibles.</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : null}
               {isLoadingUsers ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
-                    Cargando usuarios...
-                  </TableCell>
-                </TableRow>
+                <>
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <TableRow key={`user-skeleton-${index}`}>
+                      <TableCell>
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-40" />
+                          <Skeleton className="h-3 w-32" />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-16" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Skeleton className="ml-auto h-8 w-48" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </>
               ) : null}
             </TableBody>
           </Table>
