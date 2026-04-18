@@ -131,6 +131,21 @@ export const AdminChangeTenantVerticalSchema = z.object({
 });
 export type AdminChangeTenantVerticalInput = z.infer<typeof AdminChangeTenantVerticalSchema>;
 
+/**
+ * Payload for PATCH /admin/tenants/:id/verticals-enabled.
+ *
+ * Overwrites the tenant's `tenant_vertical_configs` rows so the list
+ * on the server matches `enabled`. The backend enforces that the
+ * tenant's current `activeVertical` stays in the list — changing the
+ * active vertical is a separate operation (/admin/tenants/:id/vertical).
+ */
+export const AdminUpdateTenantEnabledVerticalsSchema = z.object({
+  enabled: z.array(VerticalKeySchema).min(1),
+});
+export type AdminUpdateTenantEnabledVerticalsInput = z.infer<
+  typeof AdminUpdateTenantEnabledVerticalsSchema
+>;
+
 export const AdminStartImpersonationSchema = z.object({
   targetUserId: z.string().uuid(),
   reason: z.string().max(500).optional(),
