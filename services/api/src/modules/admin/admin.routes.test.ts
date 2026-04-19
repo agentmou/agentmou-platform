@@ -7,6 +7,7 @@ const { mockService } = vi.hoisted(() => ({
   mockService: {
     listTenants: vi.fn(),
     getTenantDetail: vi.fn(),
+    changeTenantStatus: vi.fn(),
     changeTenantVertical: vi.fn(),
     listTenantUsers: vi.fn(),
     createTenantUser: vi.fn(),
@@ -57,6 +58,7 @@ describe('adminRoutes', () => {
           name: 'Demo Workspace',
           type: 'business',
           plan: 'enterprise',
+          status: 'active',
           ownerId: '0f7d76b0-e149-4bc8-b8ba-7e71938ef6d2',
           createdAt: '2026-04-01T10:00:00.000Z',
           activeVertical: 'internal',
@@ -97,6 +99,7 @@ describe('adminRoutes', () => {
       name: 'Tenant',
       type: 'business',
       plan: 'starter',
+      status: 'active',
       ownerId: '0f7d76b0-e149-4bc8-b8ba-7e71938ef6d2',
       createdAt: '2026-04-01T10:00:00.000Z',
       activeVertical: 'fisio',
@@ -130,6 +133,55 @@ describe('adminRoutes', () => {
     expect(mockService.changeTenantVertical).toHaveBeenCalledWith({
       tenantId: 'cb99d0e2-bab2-4d26-9c84-6ea48dd3f1f5',
       activeVertical: 'fisio',
+      actorUserId: '0f7d76b0-e149-4bc8-b8ba-7e71938ef6d2',
+      actorTenantId: '6ad5a85e-1dc1-4ce3-b8df-a6dcf6cc12b1',
+    });
+
+    await app.close();
+  });
+
+  it('changes a tenant status with actor context from the request', async () => {
+    mockService.changeTenantStatus.mockResolvedValue({
+      id: 'cb99d0e2-bab2-4d26-9c84-6ea48dd3f1f5',
+      name: 'Tenant',
+      type: 'business',
+      plan: 'starter',
+      status: 'frozen',
+      ownerId: '0f7d76b0-e149-4bc8-b8ba-7e71938ef6d2',
+      createdAt: '2026-04-01T10:00:00.000Z',
+      activeVertical: 'clinic',
+      isPlatformAdminTenant: false,
+      userCount: 2,
+      settings: {
+        timezone: 'Europe/Madrid',
+        defaultHITL: false,
+        logRetentionDays: 30,
+        memoryRetentionDays: 7,
+        activeVertical: 'clinic',
+        isPlatformAdminTenant: false,
+        settingsVersion: 2,
+        verticalClinicUi: true,
+        clinicDentalMode: true,
+        internalPlatformVisible: false,
+      },
+      verticalConfigs: [],
+    });
+
+    const app = await buildAdminRoutesApp();
+    const response = await app.inject({
+      method: 'PATCH',
+      url: '/api/v1/admin/tenants/cb99d0e2-bab2-4d26-9c84-6ea48dd3f1f5/status',
+      payload: {
+        status: 'frozen',
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(mockService.changeTenantStatus).toHaveBeenCalledWith({
+      tenantId: 'cb99d0e2-bab2-4d26-9c84-6ea48dd3f1f5',
+      body: {
+        status: 'frozen',
+      },
       actorUserId: '0f7d76b0-e149-4bc8-b8ba-7e71938ef6d2',
       actorTenantId: '6ad5a85e-1dc1-4ce3-b8df-a6dcf6cc12b1',
     });

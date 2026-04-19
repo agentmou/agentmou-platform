@@ -1,12 +1,23 @@
 import { db, conversationMessages, conversationThreads, clinicAiToolInvocations } from '@agentmou/db';
 import { eq, and } from 'drizzle-orm';
+import { getOpenAiToolDefinitions, toolRegistry } from '@agentmou/agent-engine';
 
 import { loadAiSecrets } from './secrets.js';
 import { loadReceptionistContext, type ReceptionistContext } from './context.js';
 import { buildWhatsAppSystemPrompt } from './prompts.js';
-import { toolRegistry, getOpenAiToolDefinitions } from './tools/registry.js';
 
 const MAX_TOOL_ITERATIONS = 5;
+
+type OpenAiToolCall = {
+  id: string;
+  type: string;
+  function: { name: string; arguments: string };
+};
+
+type OpenAiRequestMessage =
+  | { role: 'system' | 'user'; content: string }
+  | { role: 'assistant'; content?: string; tool_calls?: OpenAiToolCall[] }
+  | { role: 'tool'; content: string; tool_call_id: string };
 
 export interface ReceptionistTurnInput {
   tenantId: string;
@@ -61,7 +72,7 @@ export async function runReceptionistTurn(
   const systemPrompt = buildWhatsAppSystemPrompt(ctx);
   const tools = getOpenAiToolDefinitions();
 
-  const messages: Array<{ role: string; content: string }> = [
+  const messages: OpenAiRequestMessage[] = [
     { role: 'system', content: systemPrompt },
     ...ctx.recentMessages,
     { role: 'user', content: input.inboundMessage },
@@ -88,7 +99,11 @@ export async function runReceptionistTurn(
     }
 
     if (choice.finish_reason === 'tool_calls' && choice.message?.tool_calls?.length) {
-      messages.push(choice.message);
+      messages.push({
+        role: 'assistant',
+        content: choice.message.content,
+        tool_calls: choice.message.tool_calls,
+      });
 
       for (const tc of choice.message.tool_calls) {
         const toolName = tc.function.name;
@@ -137,7 +152,7 @@ export async function runReceptionistTurn(
           role: 'tool',
           content: result,
           tool_call_id: tc.id,
-        } as unknown as { role: string; content: string });
+        });
       }
 
       continue;
@@ -167,7 +182,7 @@ export async function runReceptionistTurn(
 async function callOpenAi(params: {
   apiKey: string;
   model: string;
-  messages: Array<{ role: string; content: string }>;
+  messages: OpenAiRequestMessage[];
   tools: Array<Record<string, unknown>>;
 }) {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -199,11 +214,7 @@ interface OpenAiChatResponse {
     message: {
       role: string;
       content?: string;
-      tool_calls?: Array<{
-        id: string;
-        type: string;
-        function: { name: string; arguments: string };
-      }>;
+      tool_calls?: OpenAiToolCall[];
     };
   }>;
   usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };

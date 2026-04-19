@@ -94,6 +94,7 @@ describe('tenants.mapper', () => {
       name: 'Acme',
       type: 'business',
       plan: 'pro',
+      status: 'active',
       ownerId: 'user-1',
       settings: {},
       createdAt: new Date('2024-01-01T00:00:00Z'),
@@ -105,6 +106,7 @@ describe('tenants.mapper', () => {
       name: 'Acme',
       type: 'business',
       plan: 'pro',
+      status: 'active',
       ownerId: 'user-1',
       createdAt: '2024-01-01T00:00:00.000Z',
       settings: {

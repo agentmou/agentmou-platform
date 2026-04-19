@@ -14,7 +14,6 @@ vi.mock('../config.js', () => ({
 
 describe('sendPasswordResetEmail', () => {
   const originalNodeEnv = process.env.NODE_ENV;
-  const originalLogResetLink = process.env.LOG_PASSWORD_RESET_LINK;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -23,21 +22,19 @@ describe('sendPasswordResetEmail', () => {
     process.stdout.write = stdoutWriteMock as typeof process.stdout.write;
     mockGetApiConfig.mockReturnValue({
       appPublicBaseUrl: 'https://app.agentmou.io',
-      passwordResetWebhookUrl: undefined,
-      passwordResetWebhookToken: undefined,
+      resendApiKey: undefined,
+      resendFromEmail: undefined,
     });
   });
 
   afterEach(() => {
     process.env.NODE_ENV = originalNodeEnv;
-    process.env.LOG_PASSWORD_RESET_LINK = originalLogResetLink;
     globalThis.fetch = originalFetch;
     process.stdout.write = originalStdoutWrite;
   });
 
-  it('logs the reset link in non-production when no webhook is configured', async () => {
+  it('logs the reset link in non-production when Resend is not configured', async () => {
     process.env.NODE_ENV = 'development';
-    process.env.LOG_PASSWORD_RESET_LINK = '0';
 
     const { sendPasswordResetEmail } = await import('./password-reset-email.js');
     const result = await sendPasswordResetEmail({
@@ -53,12 +50,12 @@ describe('sendPasswordResetEmail', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('posts a password reset payload to the configured webhook', async () => {
+  it('posts the auth email payload to Resend', async () => {
     process.env.NODE_ENV = 'production';
     mockGetApiConfig.mockReturnValue({
       appPublicBaseUrl: 'https://app.agentmou.io',
-      passwordResetWebhookUrl: 'https://hooks.example.com/password-reset',
-      passwordResetWebhookToken: 'webhook-secret',
+      resendApiKey: 're_test_key',
+      resendFromEmail: 'no-reply@agentmou.io',
     });
     fetchMock.mockResolvedValue({
       ok: true,
@@ -72,31 +69,29 @@ describe('sendPasswordResetEmail', () => {
       expiresAt,
     });
 
-    expect(result).toEqual({ delivery: 'webhook' });
-    expect(fetchMock).toHaveBeenCalledWith('https://hooks.example.com/password-reset', {
+    expect(result).toEqual({ delivery: 'resend' });
+    expect(fetchMock).toHaveBeenCalledWith('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: 'Bearer webhook-secret',
+        Authorization: 'Bearer re_test_key',
       },
       body: expect.any(String),
     });
     const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(JSON.parse(String(requestInit.body))).toMatchObject({
-      event: 'password_reset',
+      from: 'no-reply@agentmou.io',
       to: 'owner@example.com',
-      resetLink: 'https://app.agentmou.io/reset-password?token=test-token',
-      expiresAt: expiresAt.toISOString(),
-      source: 'agentmou_api_auth',
+      subject: 'Restablece tu contrasena de Agentmou',
     });
   });
 
-  it('throws when webhook delivery fails', async () => {
+  it('throws when Resend delivery fails', async () => {
     process.env.NODE_ENV = 'production';
     mockGetApiConfig.mockReturnValue({
       appPublicBaseUrl: 'https://app.agentmou.io',
-      passwordResetWebhookUrl: 'https://hooks.example.com/password-reset',
-      passwordResetWebhookToken: undefined,
+      resendApiKey: 're_test_key',
+      resendFromEmail: 'no-reply@agentmou.io',
     });
     fetchMock.mockResolvedValue({
       ok: false,
@@ -112,6 +107,6 @@ describe('sendPasswordResetEmail', () => {
         link: 'https://app.agentmou.io/reset-password?token=test-token',
         expiresAt: new Date('2026-04-15T18:00:00.000Z'),
       })
-    ).rejects.toThrow('Password reset email delivery failed');
+    ).rejects.toThrow('Auth email delivery failed');
   });
 });

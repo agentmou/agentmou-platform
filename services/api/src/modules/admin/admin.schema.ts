@@ -5,6 +5,7 @@ import {
   AdminStartImpersonationSchema,
   AdminStopImpersonationSchema,
   AdminTenantListFiltersSchema,
+  AdminUpdateTenantStatusSchema,
   AdminUpdateTenantEnabledVerticalsSchema,
   AdminUpdateTenantUserSchema,
 } from '@agentmou/contracts';
@@ -63,6 +64,7 @@ export const adminTenantListQuerySchema = z.preprocess(
 export const adminCreateTenantUserSchema = AdminCreateTenantUserSchema;
 export const adminUpdateTenantUserSchema = AdminUpdateTenantUserSchema;
 export const adminChangeTenantVerticalSchema = AdminChangeTenantVerticalSchema;
+export const adminUpdateTenantStatusSchema = AdminUpdateTenantStatusSchema;
 export const adminUpdateTenantEnabledVerticalsSchema = AdminUpdateTenantEnabledVerticalsSchema;
 export const adminStartImpersonationSchema = AdminStartImpersonationSchema;
 export const adminStopImpersonationSchema = AdminStopImpersonationSchema;

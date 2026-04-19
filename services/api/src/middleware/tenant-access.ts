@@ -1,5 +1,5 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import { db, memberships } from '@agentmou/db';
+import { db, memberships, tenants } from '@agentmou/db';
 import { and, eq } from 'drizzle-orm';
 
 declare module 'fastify' {
@@ -36,13 +36,24 @@ export async function requireTenantAccess(request: FastifyRequest, reply: Fastif
   }
 
   const [membership] = await db
-    .select({ role: memberships.role })
+    .select({
+      role: memberships.role,
+      tenantStatus: tenants.status,
+    })
     .from(memberships)
+    .innerJoin(tenants, eq(memberships.tenantId, tenants.id))
     .where(and(eq(memberships.tenantId, tenantId), eq(memberships.userId, userId)))
     .limit(1);
 
   if (!membership) {
     return reply.status(403).send({ error: 'Not a member of this tenant' });
+  }
+
+  if (membership.tenantStatus === 'frozen') {
+    return reply.status(423).send({
+      error: 'Tenant account is frozen',
+      tenantStatus: 'frozen',
+    });
   }
 
   request.tenantRole = membership.role;

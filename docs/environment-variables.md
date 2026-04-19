@@ -88,8 +88,8 @@ cp infra/compose/.env.example infra/compose/.env
 | `MICROSOFT_OAUTH_CLIENT_ID` | (from Microsoft Console) | Optional | OAuth client ID for Microsoft login |
 | `MICROSOFT_OAUTH_CLIENT_SECRET` | (from Microsoft Console) | Optional | OAuth client secret for Microsoft login |
 | `MICROSOFT_OAUTH_REDIRECT_URI` | `http://localhost:3001/api/v1/auth/oauth/microsoft/callback` | Optional | Redirect URI registered in Microsoft Console |
-| `PASSWORD_RESET_WEBHOOK_URL` | `https://hooks.example.com/password-reset` | Required in production | Webhook target used by `services/api` to dispatch real password reset emails |
-| `PASSWORD_RESET_WEBHOOK_TOKEN` | `password-reset-webhook-secret` | Optional | Bearer token sent by `services/api` when delivering password reset payloads to the configured webhook |
+| `RESEND_API_KEY` | `re_xxx` | Required in production | API key used by `services/api` to send verification, activation, and reset emails directly with Resend |
+| `RESEND_FROM_EMAIL` | `no-reply@agentmou.io` | Required in production | Verified sender identity used for auth transactional emails |
 | `LOG_PASSWORD_RESET_LINK` | `1` | Optional | Set to 1 to log password reset links (dev only, remove in prod) |
 
 **Note:** OAuth is optional for local development. Leave blank to use email/password only.
@@ -165,8 +165,8 @@ APP_PUBLIC_BASE_URL=http://localhost:3000
 API_PUBLIC_BASE_URL=http://localhost:3001
 AUTH_WEB_ORIGIN_ALLOWLIST=http://localhost:3000
 CORS_ORIGIN=http://localhost:3000
-PASSWORD_RESET_WEBHOOK_URL=
-PASSWORD_RESET_WEBHOOK_TOKEN=
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=no-reply@agentmou.io
 LE_EMAIL=admin@localhost
 BASIC_AUTH_USERS=admin:changeme
 TWILIO_ACCOUNT_SID=
@@ -200,8 +200,8 @@ APP_PUBLIC_BASE_URL=https://app.agentmou.io
 API_PUBLIC_BASE_URL=https://api.agentmou.io
 CORS_ORIGIN=https://app.agentmou.io
 AUTH_WEB_ORIGIN_ALLOWLIST=https://app.agentmou.io
-PASSWORD_RESET_WEBHOOK_URL=https://hooks.example.com/password-reset
-PASSWORD_RESET_WEBHOOK_TOKEN=(shared-secret)
+RESEND_API_KEY=(your-resend-api-key)
+RESEND_FROM_EMAIL=no-reply@agentmou.io
 
 # OAuth (if using)
 GOOGLE_OAUTH_CLIENT_ID=(your-client-id)
@@ -238,7 +238,8 @@ Production contract:
 - `API_PUBLIC_BASE_URL` is the public API host (`api.agentmou.io`)
 - `CORS_ORIGIN` must match the app origin
 - `AUTH_WEB_ORIGIN_ALLOWLIST` must include the app origin
-- `PASSWORD_RESET_WEBHOOK_URL` must be configured in production for real forgot/reset delivery
+- `RESEND_API_KEY` and `RESEND_FROM_EMAIL` must be configured in production for
+  auth email delivery
 - OAuth callback URLs registered with providers must hang off `API_PUBLIC_BASE_URL`
 - When using the optional Docker `web` profile on the VPS, it serves the app
   host variant only; marketing still stays on the external marketing host
@@ -252,8 +253,8 @@ Production contract:
 5. **Limit access** — Restrict who can view/edit `.env`
 6. **Audit access** — Log who reads sensitive variables
 7. **Never log secrets** — Remove `LOG_PASSWORD_RESET_LINK` in production
-8. **Protect password-reset delivery** — Keep `PASSWORD_RESET_WEBHOOK_TOKEN` out of Git and
-   never log full reset URLs in production
+8. **Protect auth email delivery** — Keep `RESEND_API_KEY` out of Git and never
+   log full verification/reset URLs in production
 
 ## Validation
 

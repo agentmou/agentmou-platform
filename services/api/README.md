@@ -181,8 +181,8 @@ dependencies:
 | `GOOGLE_OAUTH_REDIRECT_URI` | API callback URL for B2C Google login |
 | `MICROSOFT_OAUTH_CLIENT_ID` / `MICROSOFT_OAUTH_CLIENT_SECRET` | B2C Microsoft login |
 | `MICROSOFT_OAUTH_REDIRECT_URI` | API callback URL for B2C Microsoft login |
-| `PASSWORD_RESET_WEBHOOK_URL` | Absolute webhook endpoint used to dispatch real password reset emails |
-| `PASSWORD_RESET_WEBHOOK_TOKEN` | Optional bearer token for the password reset delivery webhook |
+| `RESEND_API_KEY` | Resend API key used for auth transactional email delivery |
+| `RESEND_FROM_EMAIL` | Verified sender used for verification, activation, and password reset emails |
 | `LOG_PASSWORD_RESET_LINK` | When `1`, log reset links (intended for non-production debugging and local fallback only) |
 | `MARKETING_PUBLIC_BASE_URL` | Canonical marketing origin for public links emitted by the API |
 | `APP_PUBLIC_BASE_URL` | Canonical app/auth origin for reset links and tenant deep links |
@@ -206,8 +206,9 @@ current local and VPS-oriented example values.
 Password reset delivery contract:
 
 - `APP_PUBLIC_BASE_URL` is always the host used in reset links (`/reset-password?...`).
-- In production, `PASSWORD_RESET_WEBHOOK_URL` must be configured so the API can
-  deliver real password reset emails through the external relay/provider.
+- In production, `RESEND_API_KEY` and `RESEND_FROM_EMAIL` must be configured so
+  the API can deliver verification, activation, and password reset emails
+  directly through Resend.
 - `LOG_PASSWORD_RESET_LINK` is only for controlled local/non-production fallback
   and must not be treated as the primary delivery mechanism.
 

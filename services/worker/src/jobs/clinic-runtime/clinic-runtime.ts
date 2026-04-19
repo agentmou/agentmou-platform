@@ -1253,32 +1253,27 @@ async function tryAiReceptionistTurn(params: {
       return false;
     }
 
-    await db.insert(conversationMessages).values({
-      tenantId: params.tenantId,
-      threadId: params.threadId,
-      patientId: params.patientId,
-      direction: 'outbound',
-      channelType: params.channelType,
-      messageType: 'text',
-      body: result.assistantText,
-      payload: {
-        aiGenerated: true,
-        model: result.model,
-        tokensUsed: result.tokensUsed,
-        toolCalls: result.toolCalls.map((tc) => tc.name),
-      },
-      deliveryStatus: 'queued',
-    });
-
-    const sendQueue = getQueue(QUEUE_NAMES.CLINIC_SEND_MESSAGE);
-    await sendQueue.add(
-      'clinic-send-message',
-      {
+    const [message] = await db
+      .insert(conversationMessages)
+      .values({
         tenantId: params.tenantId,
         threadId: params.threadId,
-        automationKind: 'ai_receptionist',
-      } as ClinicSendMessagePayload
-    );
+        patientId: params.patientId,
+        direction: 'outbound',
+        channelType: params.channelType,
+        messageType: 'text',
+        body: result.assistantText,
+        payload: {
+          aiGenerated: true,
+          model: result.model,
+          tokensUsed: result.tokensUsed,
+          toolCalls: result.toolCalls.map((tc) => tc.name),
+        },
+        deliveryStatus: 'queued',
+      })
+      .returning({ id: conversationMessages.id });
+
+    await enqueueMessageJob(params.tenantId, message.id, undefined);
 
     return true;
   } catch {

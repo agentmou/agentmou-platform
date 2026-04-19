@@ -71,17 +71,18 @@ export async function findOrCreateUserFromOAuthProfile(
 
   const displayName = profile.name?.trim() || email.split('@')[0] || 'User';
 
-  const result = await db.transaction(async (tx) => {
-    const [user] = await tx
-      .insert(users)
-      .values({
-        email,
-        name: displayName,
-        passwordHash: null,
-      })
-      .returning({ id: users.id, email: users.email });
+    const result = await db.transaction(async (tx) => {
+      const [user] = await tx
+        .insert(users)
+        .values({
+          email,
+          name: displayName,
+          passwordHash: null,
+          emailVerifiedAt: new Date(),
+        })
+        .returning({ id: users.id, email: users.email });
 
-    await tx.insert(userIdentities).values({
+      await tx.insert(userIdentities).values({
       userId: user.id,
       provider: profile.provider,
       providerSubject: profile.subject,
@@ -95,6 +96,7 @@ export async function findOrCreateUserFromOAuthProfile(
         name: `${displayName}'s Workspace`,
         type: 'business',
         plan: 'free',
+        status: 'active',
         ownerId: user.id,
         settings: normalizeTenantSettings(
           {

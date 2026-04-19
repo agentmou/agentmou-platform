@@ -4,11 +4,15 @@ import {
   loginSchema,
   registerSchema,
   forgotPasswordSchema,
+  resendVerificationSchema,
   resetPasswordSchema,
+  verifyEmailSchema,
   type LoginInput,
   type RegisterInput,
   type ForgotPasswordInput,
+  type ResendVerificationInput,
   type ResetPasswordInput,
+  type VerifyEmailInput,
 } from './auth.schema.js';
 import { registerB2cOAuthRoutes } from './oauth.routes.js';
 import { clearAuthSessionCookie, setAuthSessionCookie } from '../../lib/auth-sessions.js';
@@ -28,9 +32,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       const body = request.body as RegisterInput;
       const result = await service.register(body);
-      await setAuthSessionCookie(reply, result.cookieSession);
-      const { cookieSession: _cookieSession, ...response } = result;
-      return reply.status(201).send(response);
+      return reply.status(201).send(result);
     }
   );
 
@@ -81,6 +83,20 @@ export async function authRoutes(fastify: FastifyInstance) {
   );
 
   fastify.post(
+    '/resend-verification',
+    {
+      schema: {
+        body: resendVerificationSchema,
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const body = request.body as ResendVerificationInput;
+      const result = await service.resendVerification(body.email);
+      return reply.send(result);
+    }
+  );
+
+  fastify.post(
     '/reset-password',
     {
       schema: {
@@ -90,6 +106,20 @@ export async function authRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       const body = request.body as ResetPasswordInput;
       const result = await service.resetPassword(body.token, body.password);
+      return reply.send(result);
+    }
+  );
+
+  fastify.post(
+    '/verify-email',
+    {
+      schema: {
+        body: verifyEmailSchema,
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const body = request.body as VerifyEmailInput;
+      const result = await service.verifyEmail(body.token);
       return reply.send(result);
     }
   );

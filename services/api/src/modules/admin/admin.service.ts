@@ -9,6 +9,7 @@ import type {
   AdminTenantListResponse,
   AdminTenantUserMutationResponse,
   AdminTenantUsersResponse,
+  AdminUpdateTenantStatusInput,
   AdminUpdateTenantUserInput,
   PlanFlagKey,
   VerticalKey,
@@ -20,6 +21,7 @@ import {
   type AuthenticatedRequestContext,
 } from '../../lib/auth-sessions.js';
 import { recordAdminAuditEvent } from '../../lib/audit.js';
+import { sendUserActivationEmail } from '../../lib/auth-email.js';
 import { issuePasswordResetToken } from '../../lib/password-reset.js';
 import {
   resolveTenantExperienceWithDecisions,
@@ -62,6 +64,7 @@ function decodeTenantCursor(cursor?: string): AdminTenantCursor | undefined {
 
 interface AdminServiceDependencies {
   issuePasswordResetToken: typeof issuePasswordResetToken;
+  sendUserActivationEmail: typeof sendUserActivationEmail;
   recordAdminAuditEvent: typeof recordAdminAuditEvent;
   createAuthSession: typeof createAuthSession;
   revokeAuthSessionById: typeof revokeAuthSessionById;
@@ -70,6 +73,7 @@ interface AdminServiceDependencies {
 
 const DEFAULT_DEPENDENCIES: AdminServiceDependencies = {
   issuePasswordResetToken,
+  sendUserActivationEmail,
   recordAdminAuditEvent,
   createAuthSession,
   revokeAuthSessionById,
@@ -105,6 +109,40 @@ export class AdminService {
 
   async getTenantDetail(tenantId: string) {
     return this.repository.getTenantDetail(tenantId);
+  }
+
+  async changeTenantStatus(params: {
+    tenantId: string;
+    body: AdminUpdateTenantStatusInput;
+    actorUserId: string;
+    actorTenantId: string;
+  }): Promise<AdminTenantDetail> {
+    const existing = await this.repository.getTenantDetail(params.tenantId);
+    if (!existing) {
+      throw createHttpError('Tenant not found', 404);
+    }
+
+    if (existing.status !== params.body.status) {
+      await this.repository.updateTenantStatus(params.tenantId, params.body.status);
+
+      await this.dependencies.recordAdminAuditEvent({
+        actorId: params.actorUserId,
+        actorTenantId: params.actorTenantId,
+        targetTenantId: params.tenantId,
+        action: 'admin.tenant.status_changed',
+        details: {
+          oldStatus: existing.status,
+          newStatus: params.body.status,
+        },
+      });
+    }
+
+    const updated = await this.repository.getTenantDetail(params.tenantId);
+    if (!updated) {
+      throw createHttpError('Tenant not found', 404);
+    }
+
+    return updated;
   }
 
   async changeTenantVertical(params: {
@@ -334,11 +372,28 @@ export class AdminService {
     let activation: AdminTenantUserMutationResponse['activation'];
     if (!user.passwordHash) {
       const issuedToken = await this.dependencies.issuePasswordResetToken(user.id);
-      activation = {
-        token: issuedToken.token,
-        link: issuedToken.link,
-        expiresAt: issuedToken.expiresAt.toISOString(),
-      };
+      try {
+        await this.dependencies.sendUserActivationEmail({
+          email: user.email,
+          name: user.name,
+          link: issuedToken.link,
+          expiresAt: issuedToken.expiresAt,
+        });
+      } catch (error) {
+        console.error('[admin] user activation delivery failed', {
+          userId: user.id,
+          tenantId: params.tenantId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+
+      if (process.env.NODE_ENV !== 'production') {
+        activation = {
+          token: issuedToken.token,
+          link: issuedToken.link,
+          expiresAt: issuedToken.expiresAt.toISOString(),
+        };
+      }
     }
 
     const adminUser = await this.repository.getTenantUser(params.tenantId, user.id);
@@ -494,6 +549,15 @@ export class AdminService {
   }) {
     if (params.actorUserId === params.body.targetUserId) {
       throw createHttpError('Cannot impersonate the current user', 409);
+    }
+
+    const tenant = await this.repository.getTenantDetail(params.tenantId);
+    if (!tenant) {
+      throw createHttpError('Tenant not found', 404);
+    }
+
+    if (tenant.status === 'frozen') {
+      throw createHttpError('Frozen tenants cannot be impersonated', 409);
     }
 
     const targetUser = await this.repository.getUserById(params.body.targetUserId);

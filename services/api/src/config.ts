@@ -8,8 +8,8 @@ export interface ApiConfig {
   marketingPublicBaseUrl: string;
   appPublicBaseUrl: string;
   apiPublicBaseUrl: string;
-  passwordResetWebhookUrl?: string;
-  passwordResetWebhookToken?: string;
+  resendApiKey?: string;
+  resendFromEmail?: string;
   reflagSdkKey?: string;
   reflagEnvironment: string;
   reflagBaseUrl?: string;
@@ -115,16 +115,21 @@ function validateProductionPublicOriginConfig(params: {
   }
 }
 
-function validatePasswordResetDeliveryConfig(params: {
+function validateAuthEmailDeliveryConfig(params: {
   nodeEnv: string | undefined;
-  passwordResetWebhookUrl?: string;
+  resendApiKey?: string;
+  resendFromEmail?: string;
 }) {
   if (params.nodeEnv !== 'production') {
     return;
   }
 
-  if (!params.passwordResetWebhookUrl) {
-    throw new Error('PASSWORD_RESET_WEBHOOK_URL must be set in production');
+  if (!params.resendApiKey) {
+    throw new Error('RESEND_API_KEY must be set in production');
+  }
+
+  if (!params.resendFromEmail) {
+    throw new Error('RESEND_FROM_EMAIL must be set in production');
   }
 }
 
@@ -147,13 +152,11 @@ export function getApiConfig(): ApiConfig {
     appPublicBaseUrl: publicOrigins.appPublicBaseUrl,
     apiPublicBaseUrl: publicOrigins.apiPublicBaseUrl,
   });
-  const passwordResetWebhookUrl = readOptionalAbsoluteUrl(
-    process.env.PASSWORD_RESET_WEBHOOK_URL,
-    'PASSWORD_RESET_WEBHOOK_URL'
-  );
-  validatePasswordResetDeliveryConfig({
+  const resendFromEmail = process.env.RESEND_FROM_EMAIL?.trim() || undefined;
+  validateAuthEmailDeliveryConfig({
     nodeEnv: process.env.NODE_ENV,
-    passwordResetWebhookUrl,
+    resendApiKey: process.env.RESEND_API_KEY?.trim() || undefined,
+    resendFromEmail,
   });
 
   return {
@@ -164,8 +167,8 @@ export function getApiConfig(): ApiConfig {
     marketingPublicBaseUrl: publicOrigins.marketingPublicBaseUrl,
     appPublicBaseUrl: publicOrigins.appPublicBaseUrl,
     apiPublicBaseUrl: publicOrigins.apiPublicBaseUrl,
-    passwordResetWebhookUrl,
-    passwordResetWebhookToken: process.env.PASSWORD_RESET_WEBHOOK_TOKEN?.trim() || undefined,
+    resendApiKey: process.env.RESEND_API_KEY?.trim() || undefined,
+    resendFromEmail,
     reflagSdkKey: process.env.REFLAG_SDK_KEY,
     reflagEnvironment: process.env.REFLAG_ENVIRONMENT ?? process.env.NODE_ENV ?? 'development',
     reflagBaseUrl: process.env.REFLAG_BASE_URL,

@@ -18,6 +18,7 @@ import {
   adminTenantListQuerySchema,
   adminTenantParamsSchema,
   adminTenantUserParamsSchema,
+  adminUpdateTenantStatusSchema,
   adminUpdateTenantEnabledVerticalsSchema,
   adminUpdateTenantUserSchema,
 } from './admin.schema.js';
@@ -72,6 +73,32 @@ export async function adminRoutes(fastify: FastifyInstance) {
         if (!tenant) {
           return reply.status(404).send({ error: 'Tenant not found' });
         }
+
+        return reply.send(AdminTenantDetailResponseSchema.parse({ tenant }));
+      } catch (error) {
+        return handleAdminRouteError(reply, error);
+      }
+    }
+  );
+
+  fastify.patch(
+    '/tenants/:tenantId/status',
+    {
+      schema: {
+        params: adminTenantParamsSchema,
+        body: adminUpdateTenantStatusSchema,
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const { tenantId } = request.params as { tenantId: string };
+
+        const tenant = await service.changeTenantStatus({
+          tenantId,
+          body: request.body as never,
+          actorUserId: request.userId!,
+          actorTenantId: request.adminTenantId!,
+        });
 
         return reply.send(AdminTenantDetailResponseSchema.parse({ tenant }));
       } catch (error) {
