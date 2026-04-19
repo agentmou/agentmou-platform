@@ -87,14 +87,23 @@ export interface ClinicDemoSeedBlueprint {
     config: Record<string, unknown>;
   }>;
   channels: Array<{
-    key: 'whatsapp' | 'voice';
+    key: string;
     channelType: 'whatsapp' | 'voice';
-    provider: 'twilio_whatsapp' | 'twilio_voice';
+    provider: 'twilio_whatsapp' | 'twilio_voice' | 'retell_voice';
     phoneNumber: string;
     status: 'active';
     directionPolicy: Record<string, unknown>;
     config: Record<string, unknown>;
   }>;
+  aiConfig?: {
+    enabled: boolean;
+    persona: string;
+    languages: string[];
+    modelWhatsapp: string;
+    modelVoice: string;
+    knowledgeBaseEnabled: boolean;
+    dailyTokenBudget: number;
+  };
   services: Array<{
     key: string;
     externalServiceId: string;
@@ -662,7 +671,34 @@ export function buildClinicDemoSeedFixture(now = new Date()): ClinicDemoSeedBlue
         },
         config: { ivrProfile: 'front-desk' },
       },
+      {
+        key: 'retell_voice',
+        channelType: 'voice',
+        provider: 'retell_voice',
+        phoneNumber: '+34910000003',
+        status: 'active',
+        directionPolicy: {
+          inboundEnabled: true,
+          outboundEnabled: true,
+          fallbackToHuman: true,
+        },
+        config: {
+          agentId: 'demo-retell-agent',
+          fromNumber: '+34910000003',
+          language: 'es',
+        },
+      },
     ],
+    aiConfig: {
+      enabled: true,
+      persona:
+        'Siempre ofrece la primera visita gratuita. Menciona que la clinica tiene parking gratis y esta a 5 minutos del metro.',
+      languages: ['es'],
+      modelWhatsapp: 'gpt-4.1-mini',
+      modelVoice: 'gpt-4.1-mini',
+      knowledgeBaseEnabled: false,
+      dailyTokenBudget: 500000,
+    },
     services: [
       {
         key: 'first-visit',

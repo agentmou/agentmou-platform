@@ -232,6 +232,9 @@ Current rollout matrix:
 | `smartGapFillEnabled` | `growth` | `rollout.clinic.gap_recovery` | Gap-recovery policy enabled |
 | `reactivationEnabled` | `growth` | `rollout.clinic.reactivation` | Reactivation policy enabled |
 | `advancedClinicModeEnabled` | `advanced_mode` | `rollout.clinic.advanced_settings` | Advanced mode module enabled |
+| `aiReceptionistEnabled` | `core_reception` | `rollout.clinic.ai.receptionist` | Active WhatsApp channel + tenant AI config enabled |
+| `aiVoiceReceptionistEnabled` | `voice` | `rollout.clinic.ai.voice_receptionist` | Active `retell_voice` channel + tenant AI config enabled |
+| `aiOutboundEnabled` | `growth` | `rollout.clinic.ai.outbound` | AI receptionist enabled + growth module |
 
 `whatsappOutboundEnabled` is intentionally not part of the remote rollout
 catalog: it is derived from `core_reception` entitlement plus an active

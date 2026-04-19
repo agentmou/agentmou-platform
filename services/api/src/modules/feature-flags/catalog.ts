@@ -35,6 +35,9 @@ export const FEATURE_FLAG_KEYS = {
   clinicGapRecoveryRollout: 'rollout.clinic.gap_recovery',
   clinicReactivationRollout: 'rollout.clinic.reactivation',
   clinicAdvancedSettingsRollout: 'rollout.clinic.advanced_settings',
+  clinicAiReceptionistRollout: 'rollout.clinic.ai.receptionist',
+  clinicAiVoiceReceptionistRollout: 'rollout.clinic.ai.voice_receptionist',
+  clinicAiOutboundRollout: 'rollout.clinic.ai.outbound',
 } as const;
 
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[keyof typeof FEATURE_FLAG_KEYS];
@@ -87,6 +90,24 @@ export const FEATURE_FLAG_CATALOG: readonly FeatureFlagCatalogEntry[] = [
     key: FEATURE_FLAG_KEYS.clinicAdvancedSettingsRollout,
     moduleKey: 'advanced_mode',
     prerequisite: 'advanced mode module enabled',
+    supportedVerticals: ['clinic'],
+  },
+  {
+    key: FEATURE_FLAG_KEYS.clinicAiReceptionistRollout,
+    moduleKey: 'core_reception',
+    prerequisite: 'active WhatsApp channel plus tenant AI config enabled',
+    supportedVerticals: ['clinic'],
+  },
+  {
+    key: FEATURE_FLAG_KEYS.clinicAiVoiceReceptionistRollout,
+    moduleKey: 'voice',
+    prerequisite: 'active retell_voice channel plus tenant AI config enabled',
+    supportedVerticals: ['clinic'],
+  },
+  {
+    key: FEATURE_FLAG_KEYS.clinicAiOutboundRollout,
+    moduleKey: 'growth',
+    prerequisite: 'AI receptionist enabled plus growth module',
     supportedVerticals: ['clinic'],
   },
 ] as const;

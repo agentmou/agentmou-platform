@@ -2,6 +2,8 @@ import { createHmac, randomUUID } from 'node:crypto';
 import {
   ClinicDeliveryResultSchema,
   NormalizedClinicWebhookEventSchema,
+  RetellPostCallWebhookPayloadSchema,
+  RetellVoiceConfigSchema,
   TwilioVoiceConfigSchema,
   TwilioVoiceWebhookPayloadSchema,
   TwilioWhatsAppConfigSchema,
@@ -469,6 +471,109 @@ class TwilioVoiceAdapter extends BaseTwilioAdapter implements ClinicChannelAdapt
   }
 }
 
+class RetellVoiceAdapter implements ClinicChannelAdapter {
+  readonly provider = 'retell_voice';
+  readonly channelType = 'voice' as const;
+  private readonly config = RetellVoiceConfigSchema.parse(this.channel.config ?? {});
+
+  constructor(private readonly channel: ClinicChannel) {}
+
+  validateWebhookSignature(input: ClinicWebhookParseInput): boolean {
+    const secret = this.config.signingSecret ?? process.env.RETELL_WEBHOOK_SECRET;
+    if (!secret) {
+      return true;
+    }
+    if (!input.signature) {
+      return false;
+    }
+    const rawBody = JSON.stringify(input.payload);
+    const expected = createHmac('sha256', secret).update(rawBody, 'utf8').digest('hex');
+    return expected === input.signature;
+  }
+
+  parseWebhookEvent(input: ClinicWebhookParseInput): NormalizedClinicWebhookEvent {
+    const payload = RetellPostCallWebhookPayloadSchema.parse(input.payload);
+    const eventKind = payload.event === 'call_analyzed' ? 'call_ai_completed' : 'call_status';
+
+    return NormalizedClinicWebhookEventSchema.parse({
+      provider: this.provider,
+      channelType: this.channelType,
+      eventKind,
+      eventId: `retell-voice:${payload.call_id}:${payload.event}`,
+      occurredAt: new Date().toISOString(),
+      phoneNumber: normalizePhoneAddress(
+        payload.to_number ?? payload.from_number ?? this.channel.phoneNumber
+      ),
+      from: payload.from_number,
+      to: payload.to_number,
+      body: payload.call_summary,
+      providerCallId: payload.call_id,
+      providerStatus: payload.event,
+      payload: {
+        transcript: payload.transcript,
+        callSummary: payload.call_summary,
+        customAnalysis: payload.custom_analysis,
+        durationMs: payload.duration_ms,
+        callType: payload.call_type,
+      },
+    });
+  }
+
+  async scheduleCallback(input: VoiceCallbackRequest): Promise<ClinicDeliveryResult> {
+    const apiKey = process.env.RETELL_API_KEY;
+    const agentId = this.config.agentId ?? process.env.RETELL_AGENT_ID_DEFAULT;
+
+    if (!apiKey || !agentId) {
+      return ClinicDeliveryResultSchema.parse({
+        provider: this.provider,
+        channelType: this.channelType,
+        status: 'failed',
+        failureReason: 'channel_misconfigured',
+        detail: 'Retell API key or agent ID not configured.',
+        payload: {},
+      });
+    }
+
+    const fromNumber =
+      this.config.fromNumber ?? this.channel.phoneNumber ?? undefined;
+
+    const response = await fetch('https://api.retellai.com/v2/create-phone-call', {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${apiKey}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        from_number: fromNumber,
+        to_number: input.to,
+        agent_id: agentId,
+        metadata: { note: input.note },
+      }),
+    });
+
+    const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+
+    if (!response.ok) {
+      return ClinicDeliveryResultSchema.parse({
+        provider: this.provider,
+        channelType: this.channelType,
+        status: 'failed',
+        failureReason: 'provider_rejected',
+        detail: typeof data.message === 'string' ? data.message : 'Retell call failed.',
+        payload: data,
+      });
+    }
+
+    return ClinicDeliveryResultSchema.parse({
+      provider: this.provider,
+      channelType: this.channelType,
+      status: 'accepted',
+      providerCallId: typeof data.call_id === 'string' ? data.call_id : undefined,
+      payload: data,
+    });
+  }
+}
+
 export function resolveClinicChannelAdapter(
   channel: ClinicChannel,
   options: ResolveClinicChannelAdapterOptions = {}
@@ -495,6 +600,10 @@ export function resolveClinicChannelAdapter(
       return new MockVoiceAdapter(channel);
     }
     return new TwilioVoiceAdapter(channel);
+  }
+
+  if (channel.provider === 'retell_voice') {
+    return new RetellVoiceAdapter(channel);
   }
 
   if (allowMockFallback) {
