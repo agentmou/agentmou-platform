@@ -74,6 +74,13 @@ pnpm --filter @agentmou/worker start
 | `clinic-reactivation-campaign` | `processClinicReactivationCampaignJob` | Materializes or dispatches reactivation recipients for one-shot and recurring campaign sends |
 | `clinic-voice-callback` | `processClinicVoiceCallbackJob` | Triggers scheduled voice callbacks and synchronizes the resulting call/thread state |
 
+The AI receptionist orchestrator (`services/worker/src/ai/receptionist/`) runs
+inside `processClinicChannelEvent` when `aiReceptionistEnabled` is true. It
+calls OpenAI with tool-calling, persists tool invocations in
+`clinic_ai_tool_invocations`, and enqueues outbound replies via
+`clinic-send-message`. If the orchestrator fails or hands off, the existing
+regex-based `updateAutomationFromInboundMessage` runs as fallback.
+
 The worker deliberately no longer carries placeholder job families that are not
 started by `src/index.ts`. Shared runtime helpers now live under
 `src/jobs/clinic-runtime/` and `src/jobs/runtime-support/` so the active job
@@ -103,6 +110,9 @@ Important environment variables:
 | `TWILIO_WHATSAPP_FROM` | Optional default WhatsApp sender |
 | `TWILIO_WHATSAPP_MESSAGING_SERVICE_SID` | Optional default Messaging Service SID |
 | `TWILIO_VOICE_FROM` | Optional default voice caller ID |
+| `RETELL_API_KEY` | Retell AI API key (fallback when tenant secret is missing) |
+| `RETELL_AGENT_ID_DEFAULT` | Default Retell agent ID for voice AI receptionist |
+| `RETELL_WEBHOOK_SECRET` | Retell webhook signing secret (fallback) |
 
 ## Development
 

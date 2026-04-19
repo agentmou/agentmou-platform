@@ -33,6 +33,7 @@ This is why some routes live directly under `/api/v1/*` while others live under
 | Public chat | `POST /api/v1/public/chat` |
 | Stripe webhook | `POST /api/v1/webhooks/stripe` |
 | Twilio clinic webhooks | `POST /api/v1/webhooks/twilio/whatsapp`, `POST /api/v1/webhooks/twilio/voice` |
+| Retell clinic webhooks | `POST /api/v1/webhooks/retell/tool` (synchronous tool execution), `POST /api/v1/webhooks/retell/post-call` (async post-call analysis) |
 
 Notes:
 
