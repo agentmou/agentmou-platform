@@ -14,6 +14,13 @@
  * Notes:
  * - `--cleanup` is opt-in and removes the validation fixture after the run.
  * - `DATABASE_URL` is required only when `--cleanup` is used.
+ * - New tenants default to `activeVertical=clinic`, which makes the
+ *   internal-platform routes (/installations, /runs) return 409 behind
+ *   `requireInternalPlatformAccess`. When `--cleanup` is passed (so we
+ *   already have DB access), we promote the ephemeral tenant to
+ *   `activeVertical=internal` right after registration so the full vertical
+ *   slice can run. Without `--cleanup` the internal-only steps are skipped
+ *   and the run is a lighter smoke (auth + catalog + OAuth URL).
  */
 
 import { parseArgs } from 'node:util';
@@ -67,11 +74,48 @@ const state = {
   cleanupRequested: values.cleanup,
   email: '',
   password: DEFAULT_PASSWORD,
-  token: '',
+  sessionCookie: '',
   tenantId: '',
   agentInstallationId: '',
   runId: '',
+  /** True once we've promoted the ephemeral tenant to `activeVertical=internal`.
+   *  Internal-only steps (installations, runs) skip themselves when false so
+   *  the script stays useful in --cleanup-less smoke mode. */
+  verticalPromoted: false,
 };
+
+const AUTH_SESSION_COOKIE_NAME = 'agentmou-session';
+
+/**
+ * Browser auth now uses an HttpOnly cookie (see
+ * `services/api/src/lib/auth-sessions.ts`). Register/login responses no
+ * longer return a JWT in the body — they set `Set-Cookie:
+ * agentmou-session=<opaque>`. Every authenticated call must echo that
+ * cookie back on the request.
+ */
+function extractSessionCookie(res: Response): string {
+  // Node 18/20 fetch: `headers.getSetCookie()` returns an array; fall back
+  // to `.get('set-cookie')` for older runtimes where it's a combined string.
+  const raw =
+    typeof (res.headers as unknown as { getSetCookie?: () => string[] }).getSetCookie === 'function'
+      ? (res.headers as unknown as { getSetCookie: () => string[] }).getSetCookie()
+      : res.headers.get('set-cookie')
+        ? [res.headers.get('set-cookie') as string]
+        : [];
+  for (const value of raw) {
+    const match = value.match(new RegExp(`${AUTH_SESSION_COOKIE_NAME}=([^;]+)`));
+    if (match && match[1]) return match[1];
+  }
+  return '';
+}
+
+function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  assert(state.sessionCookie.length > 0, 'Missing session cookie for authenticated request');
+  return {
+    Cookie: `${AUTH_SESSION_COOKIE_NAME}=${state.sessionCookie}`,
+    ...extra,
+  };
+}
 
 const steps: Step[] = [
   {
@@ -100,10 +144,37 @@ const steps: Step[] = [
       });
       assert(res.status === 201, `Register failed: ${res.status}`);
       const body = await res.json();
-      state.token = body.token;
+      state.sessionCookie = extractSessionCookie(res);
+      assert(state.sessionCookie.length > 0, 'Register did not set the agentmou-session cookie');
       state.tenantId = body.tenant.id;
       console.log(`   → user registered, tenantId=${state.tenantId}`);
       return body;
+    },
+  },
+  {
+    name: '2b. Promote ephemeral tenant to internal vertical (requires --cleanup)',
+    fn: async () => {
+      if (!state.cleanupRequested) {
+        console.log(
+          '   → skipped (no --cleanup / DATABASE_URL; internal-only steps will be skipped)'
+        );
+        return;
+      }
+
+      const { createDb, sql } = await import('@agentmou/db');
+      const { db, close } = createDb();
+      try {
+        // Route preHandler `requireInternalPlatformAccess` reads
+        // `settings.activeVertical`; flip it so the install/run endpoints
+        // don't 409 this ephemeral tenant.
+        await db.execute(
+          sql`UPDATE tenants SET settings = jsonb_set(COALESCE(settings, '{}'::jsonb), '{activeVertical}', '"internal"') WHERE id = ${state.tenantId}`
+        );
+        state.verticalPromoted = true;
+        console.log('   → tenant promoted to activeVertical=internal');
+      } finally {
+        await close();
+      }
     },
   },
   {
@@ -119,21 +190,23 @@ const steps: Step[] = [
         }),
       });
       assert(res.ok, `Login failed: ${res.status}`);
-      const body = await res.json();
-      state.token = body.token;
-      console.log('   → login token issued');
-      return { token: `${state.token.substring(0, 20)}...` };
+      const cookie = extractSessionCookie(res);
+      assert(cookie.length > 0, 'Login did not set the agentmou-session cookie');
+      state.sessionCookie = cookie;
+      console.log('   → login session cookie issued');
+      return { cookiePrefix: `${cookie.substring(0, 20)}...` };
     },
   },
   {
     name: '4. Queue Support Starter pack installation',
     fn: async () => {
+      if (!state.verticalPromoted) {
+        console.log('   → skipped (tenant not promoted to internal vertical)');
+        return;
+      }
       const res = await fetch(`${API_URL}/api/v1/tenants/${state.tenantId}/installations/packs`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${state.token}`,
-        },
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ packId: 'support-starter' }),
       });
       assert(res.status === 202, `Install pack failed: expected 202, received ${res.status}`);
@@ -146,6 +219,10 @@ const steps: Step[] = [
   {
     name: '5. Poll for installed agents',
     fn: async () => {
+      if (!state.verticalPromoted) {
+        console.log('   → skipped (tenant not promoted to internal vertical)');
+        return;
+      }
       const installations = await pollForInstallations();
       const agents = installations.installations?.agents ?? [];
       const workflows = installations.installations?.workflows ?? [];
@@ -162,7 +239,7 @@ const steps: Step[] = [
     fn: async () => {
       const res = await fetch(
         `${API_URL}/api/v1/tenants/${state.tenantId}/connectors/oauth/gmail/authorize`,
-        { headers: { Authorization: `Bearer ${state.token}` } }
+        { headers: authHeaders() }
       );
       assert(res.ok, `OAuth authorize failed: ${res.status}`);
       const body = await res.json();
@@ -174,13 +251,14 @@ const steps: Step[] = [
   {
     name: '7. Trigger manual run',
     fn: async () => {
+      if (!state.verticalPromoted) {
+        console.log('   → skipped (tenant not promoted to internal vertical)');
+        return;
+      }
       assert(state.agentInstallationId.length > 0, 'Missing agentInstallationId for manual run');
       const res = await fetch(`${API_URL}/api/v1/tenants/${state.tenantId}/runs`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${state.token}`,
-        },
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           agentInstallationId: state.agentInstallationId,
         }),
@@ -196,6 +274,10 @@ const steps: Step[] = [
   {
     name: '8. Verify the run appears in the runs list',
     fn: async () => {
+      if (!state.verticalPromoted) {
+        console.log('   → skipped (tenant not promoted to internal vertical)');
+        return;
+      }
       const runs = await pollForRun(state.runId);
       console.log(`   → run ${state.runId} visible (${runs.length} run(s) listed)`);
       return runs;
@@ -205,7 +287,7 @@ const steps: Step[] = [
     name: '9. List connectors',
     fn: async () => {
       const res = await fetch(`${API_URL}/api/v1/tenants/${state.tenantId}/connectors`, {
-        headers: { Authorization: `Bearer ${state.token}` },
+        headers: authHeaders(),
       });
       assert(res.ok, `List connectors failed: ${res.status}`);
       const body = await res.json();
@@ -261,7 +343,7 @@ async function pollForInstallations() {
 
   while (Date.now() < deadline) {
     const res = await fetch(`${API_URL}/api/v1/tenants/${state.tenantId}/installations`, {
-      headers: { Authorization: `Bearer ${state.token}` },
+      headers: authHeaders(),
     });
     assert(res.ok, `List installations failed: ${res.status}`);
 
@@ -286,7 +368,7 @@ async function pollForRun(runId: string) {
 
   while (Date.now() < deadline) {
     const res = await fetch(`${API_URL}/api/v1/tenants/${state.tenantId}/runs`, {
-      headers: { Authorization: `Bearer ${state.token}` },
+      headers: authHeaders(),
     });
     assert(res.ok, `List runs failed: ${res.status}`);
 
