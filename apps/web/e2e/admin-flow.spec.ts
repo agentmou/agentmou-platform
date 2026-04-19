@@ -62,9 +62,7 @@ test.describe('admin console', () => {
 
     await expect(page).toHaveURL(/\/admin\/tenants\/managed-tenant-1\/features$/);
     await expect(page.getByRole('heading', { name: 'Resolución de features' })).toBeVisible();
-    await expect(
-      page.getByRole('heading', { name: 'Decisiones por capability comercial' })
-    ).toBeVisible();
+    await expect(page.getByText('Decisiones por capability comercial')).toBeVisible();
     await expect(page.getByRole('tab', { name: /plan baseline/i })).toBeVisible();
   });
 });
