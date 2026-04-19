@@ -45,6 +45,7 @@ async function insertOne<T>(action: Promise<T[]>, errorMessage: string): Promise
 }
 
 async function ensureUser(db: Database) {
+  const emailVerifiedAt = new Date();
   const existing = (
     await db.select().from(schema.users).where(eq(schema.users.email, QA_SEED_ADMIN_EMAIL)).limit(1)
   )[0];
@@ -55,6 +56,7 @@ async function ensureUser(db: Database) {
       .set({
         name: 'Admin User',
         passwordHash: QA_SEED_ADMIN_PASSWORD_HASH,
+        emailVerifiedAt,
         updatedAt: new Date(),
       })
       .where(eq(schema.users.id, existing.id))
@@ -74,6 +76,7 @@ async function ensureUser(db: Database) {
         email: QA_SEED_ADMIN_EMAIL,
         name: 'Admin User',
         passwordHash: QA_SEED_ADMIN_PASSWORD_HASH,
+        emailVerifiedAt,
       })
       .returning(),
     'Failed to create seed user'
