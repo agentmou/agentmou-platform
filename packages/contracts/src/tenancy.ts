@@ -17,6 +17,12 @@ export const TenantPlanSchema = z.enum(['free', 'starter', 'pro', 'scale', 'ente
 /** TypeScript view of supported tenant plans. */
 export type TenantPlan = z.infer<typeof TenantPlanSchema>;
 
+/** Canonical account states for a tenant workspace. */
+export const TenantStatusSchema = z.enum(['active', 'frozen']);
+
+/** TypeScript view of tenant account status. */
+export type TenantStatus = z.infer<typeof TenantStatusSchema>;
+
 /** Persisted tenant-level defaults used by the platform runtime. */
 export const TenantSettingsSchema = z.object({
   timezone: z.string(),
@@ -43,6 +49,7 @@ export const TenantSchema = z.object({
   name: z.string(),
   type: TenantTypeSchema,
   plan: TenantPlanSchema,
+  status: TenantStatusSchema.default('active'),
   createdAt: z.string(),
   ownerId: z.string(),
   settings: TenantSettingsSchema,

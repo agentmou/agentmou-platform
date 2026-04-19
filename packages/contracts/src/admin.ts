@@ -10,6 +10,7 @@ import { PlanFlagKeySchema } from './feature-flags';
 import {
   TenantPlanSchema,
   TenantSettingsSchema,
+  TenantStatusSchema,
   TenantTypeSchema,
   UserRoleSchema,
 } from './tenancy';
@@ -48,6 +49,7 @@ export const AdminTenantSummarySchema = z.object({
   name: z.string(),
   type: TenantTypeSchema,
   plan: TenantPlanSchema,
+  status: TenantStatusSchema,
   ownerId: z.string(),
   createdAt: z.string(),
   activeVertical: VerticalKeySchema,
@@ -130,6 +132,11 @@ export const AdminChangeTenantVerticalSchema = z.object({
   activeVertical: VerticalKeySchema,
 });
 export type AdminChangeTenantVerticalInput = z.infer<typeof AdminChangeTenantVerticalSchema>;
+
+export const AdminUpdateTenantStatusSchema = z.object({
+  status: TenantStatusSchema,
+});
+export type AdminUpdateTenantStatusInput = z.infer<typeof AdminUpdateTenantStatusSchema>;
 
 /**
  * Payload for PATCH /admin/tenants/:id/verticals-enabled.

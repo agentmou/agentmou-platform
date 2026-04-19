@@ -77,6 +77,7 @@ describe('TenantSchema', () => {
     name: 'Acme Corp',
     type: 'business',
     plan: 'pro',
+    status: 'active',
     createdAt: '2024-01-01T00:00:00Z',
     ownerId: 'user-1',
     settings: {
@@ -91,6 +92,7 @@ describe('TenantSchema', () => {
     const result = TenantSchema.parse(validTenant);
     expect(result.id).toBe('tenant-1');
     expect(result.plan).toBe('pro');
+    expect(result.status).toBe('active');
     expect(result.settings.activeVertical).toBe('internal');
     expect(result.settings.isPlatformAdminTenant).toBe(false);
     expect(result.settings.settingsVersion).toBe(2);
@@ -147,6 +149,9 @@ describe('Clinic domain schemas', () => {
         reactivationEnabled: true,
         advancedClinicModeEnabled: false,
         internalPlatformVisible: true,
+        aiReceptionistEnabled: true,
+        aiVoiceReceptionistEnabled: false,
+        aiOutboundEnabled: false,
       },
       featureDecisions: {
         voiceInboundEnabled: {
@@ -194,6 +199,28 @@ describe('Clinic domain schemas', () => {
           source: 'entitlement',
           reason: 'not_in_plan',
           moduleKey: 'advanced_mode',
+        },
+        aiReceptionistEnabled: {
+          enabled: true,
+          source: 'readiness',
+          moduleKey: 'core_reception',
+          channelType: 'whatsapp',
+          rolloutKey: 'rollout.clinic.ai.receptionist',
+        },
+        aiVoiceReceptionistEnabled: {
+          enabled: false,
+          source: 'readiness',
+          reason: 'channel_missing',
+          moduleKey: 'voice',
+          channelType: 'voice',
+          rolloutKey: 'rollout.clinic.ai.voice_receptionist',
+        },
+        aiOutboundEnabled: {
+          enabled: false,
+          source: 'readiness',
+          reason: 'requires_configuration',
+          moduleKey: 'growth',
+          rolloutKey: 'rollout.clinic.ai.outbound',
         },
         internalPlatformVisible: {
           enabled: false,
@@ -260,6 +287,9 @@ describe('Clinic domain schemas', () => {
           reactivationEnabled: false,
           advancedClinicModeEnabled: false,
           internalPlatformVisible: true,
+          aiReceptionistEnabled: false,
+          aiVoiceReceptionistEnabled: false,
+          aiOutboundEnabled: false,
         },
         settingsSections: [
           'general',
@@ -525,6 +555,9 @@ describe('Clinic domain schemas', () => {
           reactivationEnabled: false,
           advancedClinicModeEnabled: false,
           internalPlatformVisible: true,
+          aiReceptionistEnabled: true,
+          aiVoiceReceptionistEnabled: false,
+          aiOutboundEnabled: false,
         },
         modules: [
           {
