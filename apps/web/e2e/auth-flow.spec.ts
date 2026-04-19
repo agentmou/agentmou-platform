@@ -20,11 +20,12 @@ test.describe('auth flow', () => {
     await clearSession(context);
 
     await page.goto('/login');
-    await expect(page.getByRole('tab', { name: /sign in/i })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /iniciar sesión/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Bienvenido de nuevo' })).toBeVisible();
 
     await page.getByLabel(/email/i).fill('admin@agentmou.test');
     await page.getByLabel(/^password$/i).fill('changeme');
-    await page.getByRole('button', { name: /^sign in$/i }).click();
+    await page.getByRole('button', { name: /^entrar$/i }).click();
 
     await expect(page).toHaveURL(/^https?:\/\/[^/]+\/app(\/|$)/);
   });
