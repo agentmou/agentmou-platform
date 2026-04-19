@@ -366,6 +366,9 @@ function buildBaseFlags(settings: TenantSettings): TenantExperience['flags'] {
     reactivationEnabled: false,
     advancedClinicModeEnabled: false,
     internalPlatformVisible: false,
+    aiReceptionistEnabled: false,
+    aiVoiceReceptionistEnabled: false,
+    aiOutboundEnabled: false,
   };
 }
 
@@ -451,7 +454,7 @@ function combineFeatureDecisions(params: {
     ...params.productDecisions,
     internalPlatformVisible: params.internalDecisions.internalPlatformVisible,
     adminConsoleEnabled: params.internalDecisions.adminConsoleEnabled,
-  };
+  } as TenantFeatureDecisions;
 }
 
 function buildClinicSettingsSections(
@@ -461,6 +464,8 @@ function buildClinicSettingsSections(
     | 'appointmentConfirmationsEnabled'
     | 'smartGapFillEnabled'
     | 'reactivationEnabled'
+    | 'aiReceptionistEnabled'
+    | 'aiVoiceReceptionistEnabled'
   >
 ) {
   const sections: TenantExperience['settingsSections'] = [
@@ -484,6 +489,9 @@ function buildClinicSettingsSections(
   }
   if (flags.reactivationEnabled) {
     sections.push('care_reactivation');
+  }
+  if (flags.aiReceptionistEnabled || flags.aiVoiceReceptionistEnabled) {
+    sections.push('care_ai_assistant');
   }
   return sections;
 }
@@ -544,6 +552,9 @@ function toClinicExperience(experience: TenantExperience): ClinicExperience {
       reactivationEnabled: experience.flags.reactivationEnabled,
       advancedClinicModeEnabled: experience.flags.advancedClinicModeEnabled,
       internalPlatformVisible: experience.flags.internalPlatformVisible,
+      aiReceptionistEnabled: experience.flags.aiReceptionistEnabled,
+      aiVoiceReceptionistEnabled: experience.flags.aiVoiceReceptionistEnabled,
+      aiOutboundEnabled: experience.flags.aiOutboundEnabled,
     },
     modules: experience.modules,
     allowedNavigation,
@@ -736,6 +747,13 @@ export async function resolveTenantExperienceWithDecisions(
   }
   if (permissionSet.has('view_reports')) {
     allowedNavigation.push('reports');
+  }
+  if (
+    (flags.aiReceptionistEnabled || flags.aiVoiceReceptionistEnabled) &&
+    canRoleManageSettings(context.tenantRole)
+  ) {
+    allowedNavigation.push('ai_assistant');
+    permissions.push('manage_ai_assistant');
   }
   if (canRoleManageSettings(context.tenantRole)) {
     allowedNavigation.push('configuration');

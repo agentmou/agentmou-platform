@@ -45,6 +45,9 @@ export interface ResolvedProductFeatureDecisions {
   smartGapFillEnabled: ResolvedFeatureDecision;
   reactivationEnabled: ResolvedFeatureDecision;
   advancedClinicModeEnabled: ResolvedFeatureDecision;
+  aiReceptionistEnabled: ResolvedFeatureDecision;
+  aiVoiceReceptionistEnabled: ResolvedFeatureDecision;
+  aiOutboundEnabled: ResolvedFeatureDecision;
 }
 
 export interface FeatureFlagResolution {
@@ -58,6 +61,9 @@ export interface FeatureFlagResolution {
     | 'smartGapFillEnabled'
     | 'reactivationEnabled'
     | 'advancedClinicModeEnabled'
+    | 'aiReceptionistEnabled'
+    | 'aiVoiceReceptionistEnabled'
+    | 'aiOutboundEnabled'
   >;
   decisions: ResolvedProductFeatureDecisions;
 }
@@ -431,6 +437,82 @@ export class FeatureFlagService {
             moduleKey: 'advanced_mode',
           });
 
+    const aiReceptionist =
+      context.activeVertical === 'clinic'
+        ? applyOverride(
+            coreBaseline ??
+              (hasConfiguredChannel(context.channels, 'whatsapp')
+                ? createEnabledDecision({
+                    source: 'readiness',
+                    moduleKey: 'core_reception',
+                    channelType: 'whatsapp',
+                  })
+                : createDisabledDecision({
+                    source: 'readiness',
+                    reason: 'channel_missing',
+                    moduleKey: 'core_reception',
+                    channelType: 'whatsapp',
+                  })),
+            FEATURE_FLAG_KEYS.clinicAiReceptionistRollout
+          )
+        : createDisabledDecision({
+            source: 'entitlement',
+            reason: 'not_in_plan',
+            moduleKey: 'core_reception',
+          });
+
+    const hasRetellVoice = context.channels.some(
+      (ch) => ch.channelType === 'voice' && ch.provider === 'retell_voice' && ch.status === 'active'
+    );
+
+    const aiVoiceReceptionist =
+      context.activeVertical === 'clinic'
+        ? applyOverride(
+            voiceBaseline ??
+              (hasRetellVoice
+                ? createEnabledDecision({
+                    source: 'readiness',
+                    moduleKey: 'voice',
+                    channelType: 'voice',
+                  })
+                : createDisabledDecision({
+                    source: 'readiness',
+                    reason: 'channel_missing',
+                    moduleKey: 'voice',
+                    channelType: 'voice',
+                    detail: 'Requires a retell_voice channel.',
+                  })),
+            FEATURE_FLAG_KEYS.clinicAiVoiceReceptionistRollout
+          )
+        : createDisabledDecision({
+            source: 'entitlement',
+            reason: 'not_in_plan',
+            moduleKey: 'voice',
+          });
+
+    const aiOutbound =
+      context.activeVertical === 'clinic'
+        ? applyOverride(
+            growthBaseline ??
+              (aiReceptionist.enabled
+                ? createEnabledDecision({
+                    source: 'readiness',
+                    moduleKey: 'growth',
+                  })
+                : createDisabledDecision({
+                    source: 'readiness',
+                    reason: 'requires_configuration',
+                    moduleKey: 'growth',
+                    detail: 'AI receptionist must be enabled first.',
+                  })),
+            FEATURE_FLAG_KEYS.clinicAiOutboundRollout
+          )
+        : createDisabledDecision({
+            source: 'entitlement',
+            reason: 'not_in_plan',
+            moduleKey: 'growth',
+          });
+
     const decisions: ResolvedProductFeatureDecisions = {
       voiceInboundEnabled: voiceInbound,
       voiceOutboundEnabled: voiceOutbound,
@@ -440,6 +522,9 @@ export class FeatureFlagService {
       smartGapFillEnabled: smartGapFill,
       reactivationEnabled: reactivation,
       advancedClinicModeEnabled: advancedClinicMode,
+      aiReceptionistEnabled: aiReceptionist,
+      aiVoiceReceptionistEnabled: aiVoiceReceptionist,
+      aiOutboundEnabled: aiOutbound,
     };
 
     return {
@@ -452,6 +537,9 @@ export class FeatureFlagService {
         smartGapFillEnabled: decisions.smartGapFillEnabled.enabled,
         reactivationEnabled: decisions.reactivationEnabled.enabled,
         advancedClinicModeEnabled: decisions.advancedClinicModeEnabled.enabled,
+        aiReceptionistEnabled: decisions.aiReceptionistEnabled.enabled,
+        aiVoiceReceptionistEnabled: decisions.aiVoiceReceptionistEnabled.enabled,
+        aiOutboundEnabled: decisions.aiOutboundEnabled.enabled,
       },
       decisions,
     };
