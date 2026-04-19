@@ -190,9 +190,9 @@ The script:
    `HEALTHY_TIMEOUT_SECONDS`). Then verifies the local API edge and runs
    the public smoke test.
 8. Runs the live E2E triage (`pnpm ops:smoke-e2e-live`) against the public
-   API as the final gate. On success, cleans up the validation tenant.
-   Skippable with `SKIP_E2E_TRIAGE=1`; retain the fixture with
-   `SKIP_E2E_CLEANUP=1`.
+   API as the final gate, using a pre-provisioned verified smoke user
+   (`E2E_EMAIL`, `E2E_PASSWORD`, optional `E2E_TENANT_ID`).
+   Skippable with `SKIP_E2E_TRIAGE=1`.
 
 **Expected output**:
 ```
@@ -346,20 +346,20 @@ when you want to re-run the check outside a deploy, or in environments
 where you ran the script with `SKIP_E2E_TRIAGE=1`:
 
 ```bash
-API_URL=https://api.agentmou.io pnpm ops:smoke-e2e-live
+API_URL=https://api.agentmou.io \
+E2E_EMAIL=ops-smoke@agentmou.io \
+E2E_PASSWORD='...' \
+E2E_TENANT_ID=<optional-internal-tenant-id> \
+pnpm ops:smoke-e2e-live
 ```
 
 Expected result: `PASS` with a green summary. If it fails, the deploy is
 **not** healthy even though traffic is being served — investigate before
 closing the window.
 
-The script provisions a disposable `validation-*` tenant. `deploy-prod.sh`
-cleans it up automatically; when running the triage manually, clean it up
-with (requires `DATABASE_URL`):
-
-```bash
-pnpm cleanup:validation-tenant
-```
+The script logs in with a verified smoke user and targets a pre-provisioned
+internal tenant. Keep those credentials in the VPS `.env` so the gate can
+run non-interactively during deploys.
 
 ---
 
