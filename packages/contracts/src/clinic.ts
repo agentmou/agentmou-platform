@@ -61,6 +61,7 @@ export const ClinicChannelProviderSchema = z.enum([
   'mock_voice',
   'twilio_whatsapp',
   'twilio_voice',
+  'retell_voice',
 ]);
 export type ClinicChannelProvider = z.infer<typeof ClinicChannelProviderSchema>;
 
@@ -396,6 +397,15 @@ export const TwilioVoiceConfigSchema = z.object({
 });
 export type TwilioVoiceConfig = z.infer<typeof TwilioVoiceConfigSchema>;
 
+/** Retell voice configuration stored in clinic channel config payloads. */
+export const RetellVoiceConfigSchema = z.object({
+  agentId: z.string().optional(),
+  fromNumber: z.string().optional(),
+  signingSecret: z.string().optional(),
+  language: z.string().optional(),
+});
+export type RetellVoiceConfig = z.infer<typeof RetellVoiceConfigSchema>;
+
 /** Raw Twilio WhatsApp webhook payload subset used by the backend runtime. */
 export const TwilioWhatsAppWebhookPayloadSchema = z
   .object({
@@ -429,12 +439,36 @@ export const TwilioVoiceWebhookPayloadSchema = z
   .catchall(z.union([z.string(), z.number(), z.boolean(), z.null(), z.undefined()]));
 export type TwilioVoiceWebhookPayload = z.infer<typeof TwilioVoiceWebhookPayloadSchema>;
 
+/** Retell tool-call webhook payload received during a live voice call. */
+export const RetellToolCallWebhookPayloadSchema = z.object({
+  call_id: z.string(),
+  event: z.literal('tool_call').optional(),
+  tool_name: z.string(),
+  args: z.record(z.unknown()).default({}),
+});
+export type RetellToolCallWebhookPayload = z.infer<typeof RetellToolCallWebhookPayloadSchema>;
+
+/** Retell post-call webhook payload sent after call analysis completes. */
+export const RetellPostCallWebhookPayloadSchema = z.object({
+  event: z.string(),
+  call_id: z.string(),
+  call_type: z.string().optional(),
+  from_number: z.string().optional(),
+  to_number: z.string().optional(),
+  duration_ms: z.number().optional(),
+  transcript: z.string().optional(),
+  call_summary: z.string().optional(),
+  custom_analysis: z.record(z.unknown()).optional(),
+});
+export type RetellPostCallWebhookPayload = z.infer<typeof RetellPostCallWebhookPayloadSchema>;
+
 /** Normalized webhook event kinds produced by clinic channel adapters. */
 export const ClinicWebhookEventKindSchema = z.enum([
   'message_inbound',
   'message_status',
   'call_inbound',
   'call_status',
+  'call_ai_completed',
 ]);
 export type ClinicWebhookEventKind = z.infer<typeof ClinicWebhookEventKindSchema>;
 
@@ -883,6 +917,46 @@ export const ReactivationRecipientSchema = z.object({
 });
 export type ReactivationRecipient = z.infer<typeof ReactivationRecipientSchema>;
 
+/** Tenant-scoped AI receptionist configuration. */
+export const ClinicAiConfigSchema = z.object({
+  id: z.string(),
+  tenantId: z.string(),
+  enabled: z.boolean(),
+  persona: NullableStringSchema.optional(),
+  languages: z.array(z.string()).default(['es']),
+  businessRules: JsonRecordSchema.default({}),
+  toolsPolicy: JsonRecordSchema.default({}),
+  modelWhatsapp: z.string().default('gpt-4.1-mini'),
+  modelVoice: z.string().default('gpt-4.1-mini'),
+  retellAgentId: NullableStringSchema.optional(),
+  knowledgeBaseEnabled: z.boolean().default(false),
+  handoffRules: JsonRecordSchema.default({}),
+  dailyTokenBudget: z.number().default(500000),
+  createdAt: DateTimeStringSchema,
+  updatedAt: DateTimeStringSchema,
+});
+export type ClinicAiConfig = z.infer<typeof ClinicAiConfigSchema>;
+
+/** AI tool invocation status values. */
+export const AiToolInvocationStatusSchema = z.enum(['success', 'error', 'timeout']);
+export type AiToolInvocationStatus = z.infer<typeof AiToolInvocationStatusSchema>;
+
+/** Audit record for an AI receptionist tool invocation. */
+export const ClinicAiToolInvocationSchema = z.object({
+  id: z.string(),
+  tenantId: z.string(),
+  threadId: NullableStringSchema.optional(),
+  runId: NullableStringSchema.optional(),
+  toolName: z.string(),
+  args: JsonRecordSchema.default({}),
+  result: JsonRecordSchema.default({}),
+  status: AiToolInvocationStatusSchema,
+  durationMs: z.number(),
+  tokensUsed: z.number().default(0),
+  createdAt: DateTimeStringSchema,
+});
+export type ClinicAiToolInvocation = z.infer<typeof ClinicAiToolInvocationSchema>;
+
 // ---------------------------------------------------------------------------
 // Read models and envelopes
 // ---------------------------------------------------------------------------
@@ -955,6 +1029,9 @@ export const ClinicDashboardKpisSchema = z.object({
   todaysAppointments: z.number(),
   patientsNew: z.number(),
   patientsExisting: z.number(),
+  aiTurnsToday: z.number().optional(),
+  aiHandoffRate: z.number().optional(),
+  aiAvgLatencyMs: z.number().optional(),
 });
 export type ClinicDashboardKpis = z.infer<typeof ClinicDashboardKpisSchema>;
 
@@ -992,6 +1069,9 @@ export const ClinicResolvedFlagsSchema = z.object({
   reactivationEnabled: z.boolean(),
   advancedClinicModeEnabled: z.boolean(),
   internalPlatformVisible: z.boolean(),
+  aiReceptionistEnabled: z.boolean(),
+  aiVoiceReceptionistEnabled: z.boolean(),
+  aiOutboundEnabled: z.boolean(),
 });
 export type ClinicResolvedFlags = z.infer<typeof ClinicResolvedFlagsSchema>;
 
@@ -1047,6 +1127,9 @@ export const TenantFeatureDecisionsSchema = z.object({
   smartGapFillEnabled: TenantFeatureDecisionSchema,
   reactivationEnabled: TenantFeatureDecisionSchema,
   advancedClinicModeEnabled: TenantFeatureDecisionSchema,
+  aiReceptionistEnabled: TenantFeatureDecisionSchema,
+  aiVoiceReceptionistEnabled: TenantFeatureDecisionSchema,
+  aiOutboundEnabled: TenantFeatureDecisionSchema,
   internalPlatformVisible: TenantFeatureDecisionSchema,
   adminConsoleEnabled: TenantFeatureDecisionSchema,
 });
@@ -1067,6 +1150,7 @@ export const TenantPermissionSchema = z.enum([
   'manage_reactivation',
   'view_reports',
   'manage_clinic_settings',
+  'manage_ai_assistant',
   'view_internal_platform',
   'view_admin_console',
 ]);
@@ -1084,6 +1168,7 @@ export const ClinicNavigationKeySchema = z.enum([
   'gaps',
   'reactivation',
   'reports',
+  'ai_assistant',
   'configuration',
   'platform_internal',
 ]);
@@ -1101,6 +1186,7 @@ export const TenantNavigationKeySchema = z.enum([
   'gaps',
   'reactivation',
   'reports',
+  'ai_assistant',
   'configuration',
   'platform_internal',
   'admin_console',
@@ -1125,6 +1211,7 @@ export const TenantSettingsSectionSchema = z.enum([
   'care_confirmations',
   'care_gap_recovery',
   'care_reactivation',
+  'care_ai_assistant',
   'internal_defaults',
   'internal_approvals',
 ]);
