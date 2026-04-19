@@ -85,6 +85,16 @@ services:
   n8n:
     image: n8nio/n8n:2.11.2
     restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "wget --no-verbose --tries=1 --spider http://127.0.0.1:5678/healthz || wget --no-verbose --tries=1 --spider http://127.0.0.1:5678/ || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     environment:
       TZ: ${TZ}
       GENERIC_TIMEZONE: ${TZ}
@@ -143,6 +153,16 @@ services:
     environment:
       AGENTS_API_KEY: ${AGENTS_API_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/docs', timeout=3).status == 200 else 1)\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - web
     labels:
@@ -214,6 +234,16 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "node -e \"require('http').get('http://127.0.0.1:3001/health', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - internal
       - web
@@ -275,11 +305,22 @@ services:
       - TWILIO_WHATSAPP_MESSAGING_SERVICE_SID=${TWILIO_WHATSAPP_MESSAGING_SERVICE_SID}
       - TWILIO_VOICE_FROM=${TWILIO_VOICE_FROM}
       - NODE_ENV=production
+      - WORKER_HEALTH_PORT=3002
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "node -e \"require('http').get('http://127.0.0.1:3002/health', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - internal
       - web
@@ -310,6 +351,16 @@ services:
       - NODE_ENV=production
     depends_on:
       - api
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "node -e \"require('http').get('http://127.0.0.1:3000/', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
     networks:
       - web
     labels:
