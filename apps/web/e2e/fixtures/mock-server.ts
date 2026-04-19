@@ -1,5 +1,6 @@
 import { createServer, type Server } from 'node:http';
 import { AddressInfo } from 'node:net';
+import { AdminTenantFeatureResolutionResponseSchema } from '@agentmou/contracts';
 
 /**
  * Tiny in-process mock of the Agentmou API surface.
@@ -128,7 +129,7 @@ const TENANT_USERS_PAYLOAD = {
   ],
 };
 
-const FEATURE_RESOLUTION_PAYLOAD = {
+const FEATURE_RESOLUTION_PAYLOAD = AdminTenantFeatureResolutionResponseSchema.parse({
   resolution: {
     tenantId: MANAGED_TENANT_SUMMARY.id,
     plan: 'pro' as const,
@@ -172,6 +173,9 @@ const FEATURE_RESOLUTION_PAYLOAD = {
       reactivationEnabled: false,
       advancedClinicModeEnabled: false,
       internalPlatformVisible: false,
+      aiReceptionistEnabled: true,
+      aiVoiceReceptionistEnabled: true,
+      aiOutboundEnabled: false,
     },
     decisions: [
       {
@@ -208,11 +212,14 @@ const FEATURE_RESOLUTION_PAYLOAD = {
       smartGapFillEnabled: { enabled: false, source: 'entitlement' },
       reactivationEnabled: { enabled: false, source: 'entitlement' },
       advancedClinicModeEnabled: { enabled: false, source: 'entitlement' },
+      aiReceptionistEnabled: { enabled: true, source: 'readiness' },
+      aiVoiceReceptionistEnabled: { enabled: true, source: 'readiness' },
+      aiOutboundEnabled: { enabled: false, source: 'entitlement' },
       internalPlatformVisible: { enabled: false, source: 'internal_access' },
       adminConsoleEnabled: { enabled: false, source: 'internal_access' },
     },
   },
-};
+});
 
 export interface MockApiServer {
   readonly url: string;
