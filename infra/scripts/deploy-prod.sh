@@ -16,11 +16,11 @@ set -euo pipefail
 #   7. Wait for all services to become healthy, verify local edge,
 #      run the public smoke test
 #   8. Run the live E2E triage against the public API as the final gate
+#      using a pre-provisioned verified smoke user
 #
 # Env toggles:
 #   SKIP_PRE_DEPLOY_BACKUP=1   — skip step 3 (use for rapid iteration only)
 #   SKIP_E2E_TRIAGE=1          — skip step 8 (test-e2e-triage)
-#   SKIP_E2E_CLEANUP=1         — keep the validation-* tenant after triage
 #   HEALTHY_TIMEOUT_SECONDS=180 — override max wait for services to become healthy
 #
 # Usage:
@@ -398,6 +398,15 @@ for var_name in "${optional_env_vars[@]}"; do
   check_env_var "$var_name" "optional"
 done
 
+if [ "${SKIP_E2E_TRIAGE:-0}" != "1" ]; then
+  for var_name in E2E_EMAIL E2E_PASSWORD; do
+    if ! check_env_var "$var_name" "required"; then
+      missing_required=1
+    fi
+  done
+  check_env_var "E2E_TENANT_ID" "optional"
+fi
+
 if ! check_optional_oauth_config \
   "Google" \
   "GOOGLE_OAUTH_CLIENT_ID" \
@@ -522,37 +531,13 @@ else
   if ! command -v pnpm >/dev/null 2>&1; then
     warn "pnpm not available on PATH; skipping live E2E triage"
   else
-    # Resolve Postgres + Redis container IPs — the VPS may have native
-    # services on 0.0.0.0:5432 / 0.0.0.0:6379 that shadow the compose host
-    # port bindings, leaving host connections hanging (see
-    # cleanup-validation-tenant.sh).
-    POSTGRES_CONTAINER_ID=$(docker compose "${COMPOSE_ARGS[@]}" ps -q postgres)
-    REDIS_CONTAINER_ID=$(docker compose "${COMPOSE_ARGS[@]}" ps -q redis)
-    POSTGRES_IP=""
-    REDIS_IP=""
-    if [ -n "$POSTGRES_CONTAINER_ID" ]; then
-      POSTGRES_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$POSTGRES_CONTAINER_ID" 2>/dev/null || true)
-    fi
-    if [ -n "$REDIS_CONTAINER_ID" ]; then
-      REDIS_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$REDIS_CONTAINER_ID" 2>/dev/null || true)
-    fi
-
-    triage_args=()
-    if [ "${SKIP_E2E_CLEANUP:-0}" = "1" ]; then
-      warn "SKIP_E2E_CLEANUP=1; triage will skip internal-vertical steps and leave fixture in DB"
-    else
-      if [ -z "$POSTGRES_IP" ] || [ -z "$REDIS_IP" ]; then
-        warn "Could not resolve Postgres/Redis container IPs; triage will run in light-smoke mode"
-      else
-        triage_args+=(--cleanup)
-        export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_IP}:5432/${POSTGRES_DB}"
-        export REDIS_URL="redis://${REDIS_IP}:6379"
-      fi
-    fi
-
     (
       cd "$REPO_ROOT"
-      API_URL="https://${API_HOST}" pnpm tsx scripts/test-e2e-triage.ts "${triage_args[@]}"
+      API_URL="https://${API_HOST}" \
+        E2E_EMAIL="${E2E_EMAIL}" \
+        E2E_PASSWORD="${E2E_PASSWORD}" \
+        E2E_TENANT_ID="${E2E_TENANT_ID:-}" \
+        pnpm tsx scripts/test-e2e-triage.ts
     ) || fail "Live E2E triage failed — prod is serving traffic but the vertical slice is broken"
     ok "Live E2E triage passed"
   fi
