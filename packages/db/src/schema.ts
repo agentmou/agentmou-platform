@@ -454,6 +454,7 @@ export const conversationThreads = pgTable(
     lastOutboundAt: timestamp('last_outbound_at'),
     requiresHumanReview: boolean('requires_human_review').notNull().default(false),
     resolution: text('resolution'),
+    metadata: jsonb('metadata').default({}),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
@@ -512,7 +513,9 @@ export const callSessions = pgTable(
     threadId: uuid('thread_id').references(() => conversationThreads.id),
     direction: text('direction').notNull(),
     status: text('status').notNull().default('received'),
+    provider: text('provider'),
     providerCallId: text('provider_call_id'),
+    externalCallId: text('external_call_id'),
     fromNumber: text('from_number').notNull(),
     toNumber: text('to_number').notNull(),
     startedAt: timestamp('started_at').notNull(),
@@ -521,6 +524,7 @@ export const callSessions = pgTable(
     summary: text('summary'),
     transcript: text('transcript'),
     resolution: text('resolution'),
+    metadata: jsonb('metadata').default({}),
     requiresHumanReview: boolean('requires_human_review').notNull().default(false),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -904,6 +908,66 @@ export const reactivationRecipients = pgTable(
     index('reactivation_recipients_tenant_campaign_idx').on(table.tenantId, table.campaignId),
     index('reactivation_recipients_tenant_status_idx').on(table.tenantId, table.status),
     index('reactivation_recipients_patient_idx').on(table.patientId),
+  ]
+);
+
+// ---------------------------------------------------------------------------
+// Clinic AI Configuration
+// ---------------------------------------------------------------------------
+
+/** Tenant-scoped AI receptionist configuration. */
+export const clinicAiConfigs = pgTable(
+  'clinic_ai_configs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    enabled: boolean('enabled').notNull().default(false),
+    persona: text('persona'),
+    languages: jsonb('languages').default(['es']),
+    businessRules: jsonb('business_rules').default({}),
+    toolsPolicy: jsonb('tools_policy').default({}),
+    modelWhatsapp: text('model_whatsapp').notNull().default('gpt-4.1-mini'),
+    modelVoice: text('model_voice').notNull().default('gpt-4.1-mini'),
+    retellAgentId: text('retell_agent_id'),
+    knowledgeBaseEnabled: boolean('knowledge_base_enabled').notNull().default(false),
+    handoffRules: jsonb('handoff_rules').default({}),
+    dailyTokenBudget: integer('daily_token_budget').notNull().default(500000),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('clinic_ai_configs_tenant_uidx').on(table.tenantId),
+  ]
+);
+
+// ---------------------------------------------------------------------------
+// Clinic AI Tool Invocations
+// ---------------------------------------------------------------------------
+
+/** Audit records for AI receptionist tool invocations. */
+export const clinicAiToolInvocations = pgTable(
+  'clinic_ai_tool_invocations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    threadId: uuid('thread_id').references(() => conversationThreads.id),
+    runId: text('run_id'),
+    toolName: text('tool_name').notNull(),
+    args: jsonb('args').default({}),
+    result: jsonb('result').default({}),
+    status: text('status').notNull().default('success'),
+    durationMs: integer('duration_ms').notNull().default(0),
+    tokensUsed: integer('tokens_used').notNull().default(0),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('clinic_ai_tool_invocations_tenant_idx').on(table.tenantId),
+    index('clinic_ai_tool_invocations_thread_idx').on(table.threadId),
+    index('clinic_ai_tool_invocations_tenant_created_idx').on(table.tenantId, table.createdAt),
   ]
 );
 
