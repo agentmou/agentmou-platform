@@ -82,6 +82,7 @@ export const config = {
     '/pricing',
     '/security',
     '/contact-sales',
+    '/cookies',
     '/privacy',
     '/terms',
     '/docs',

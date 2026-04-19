@@ -63,6 +63,7 @@ export const publicMarketingFooterColumns: readonly MarketingFooterColumn[] = [
   {
     title: 'Legal',
     links: [
+      { label: 'Cookies', href: '/cookies' },
       { label: 'Privacidad', href: '/privacy' },
       { label: 'Términos', href: '/terms' },
     ],
