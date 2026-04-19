@@ -37,7 +37,7 @@ type ChannelType = 'whatsapp' | 'voice';
 type NormalizedClinicWebhookEvent = {
   provider: string;
   channelType: ChannelType;
-  eventKind: 'message_inbound' | 'message_status' | 'call_inbound' | 'call_status';
+  eventKind: 'message_inbound' | 'message_status' | 'call_inbound' | 'call_status' | 'call_ai_completed';
   eventId: string;
   occurredAt?: string;
   phoneNumber?: string;
@@ -1226,6 +1226,66 @@ async function updateAutomationFromInboundMessage(
   }
 }
 
+async function tryAiReceptionistTurn(params: {
+  tenantId: string;
+  threadId: string;
+  threadStatus: string;
+  patientId: string;
+  inboundBody: string;
+  channelType: ChannelType;
+}): Promise<boolean> {
+  if (params.threadStatus === 'pending_human' || params.threadStatus === 'escalated') {
+    return false;
+  }
+
+  try {
+    const { runReceptionistTurn } = await import('../../ai/receptionist/orchestrator.js');
+
+    const result = await runReceptionistTurn({
+      tenantId: params.tenantId,
+      threadId: params.threadId,
+      patientId: params.patientId,
+      inboundMessage: params.inboundBody,
+      channelType: params.channelType,
+    });
+
+    if (result.handoff || !result.assistantText) {
+      return false;
+    }
+
+    await db.insert(conversationMessages).values({
+      tenantId: params.tenantId,
+      threadId: params.threadId,
+      patientId: params.patientId,
+      direction: 'outbound',
+      channelType: params.channelType,
+      messageType: 'text',
+      body: result.assistantText,
+      payload: {
+        aiGenerated: true,
+        model: result.model,
+        tokensUsed: result.tokensUsed,
+        toolCalls: result.toolCalls.map((tc) => tc.name),
+      },
+      deliveryStatus: 'queued',
+    });
+
+    const sendQueue = getQueue(QUEUE_NAMES.CLINIC_SEND_MESSAGE);
+    await sendQueue.add(
+      'clinic-send-message',
+      {
+        tenantId: params.tenantId,
+        threadId: params.threadId,
+        automationKind: 'ai_receptionist',
+      } as ClinicSendMessagePayload
+    );
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function processInboundMessageEvent(
   tenantId: string,
   normalizedEvent: NormalizedClinicWebhookEvent
@@ -1291,7 +1351,18 @@ async function processInboundMessageEvent(
     })
     .where(eq(conversationThreads.id, thread.id));
 
-  await updateAutomationFromInboundMessage(tenantId, patient.id, normalizedEvent.body ?? '');
+  const aiHandled = await tryAiReceptionistTurn({
+    tenantId,
+    threadId: thread.id,
+    threadStatus: thread.status,
+    patientId: patient.id,
+    inboundBody: normalizedEvent.body ?? '',
+    channelType: normalizedEvent.channelType,
+  });
+
+  if (!aiHandled) {
+    await updateAutomationFromInboundMessage(tenantId, patient.id, normalizedEvent.body ?? '');
+  }
 }
 
 async function processMessageStatusEvent(
