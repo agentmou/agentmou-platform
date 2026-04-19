@@ -29,7 +29,7 @@ interface AuthState {
   isHydrated: boolean;
 
   login: (email: string, password: string, rememberMe?: boolean) => Promise<string>;
-  register: (email: string, password: string, name: string) => Promise<string>;
+  register: (email: string, password: string, name: string) => Promise<RegisterResponse>;
   /**
    * Clears the auth store state locally. The actual session revocation and
    * cookie invalidation live in the `POST /logout` route handler so that
@@ -58,15 +58,18 @@ function resolveActiveTenantId(
   preferredTenantId?: string | null,
   fallbackTenantId?: string | null
 ) {
-  if (preferredTenantId && tenants.some((tenant) => tenant.id === preferredTenantId)) {
+  const activeTenants = tenants.filter((tenant) => tenant.status !== 'frozen');
+  const selectableTenants = activeTenants.length > 0 ? activeTenants : tenants;
+
+  if (preferredTenantId && selectableTenants.some((tenant) => tenant.id === preferredTenantId)) {
     return preferredTenantId;
   }
 
-  if (fallbackTenantId && tenants.some((tenant) => tenant.id === fallbackTenantId)) {
+  if (fallbackTenantId && selectableTenants.some((tenant) => tenant.id === fallbackTenantId)) {
     return fallbackTenantId;
   }
 
-  return tenants[0]?.id ?? null;
+  return selectableTenants[0]?.id ?? null;
 }
 
 function clearAuthState() {
@@ -142,18 +145,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const res = await registerApi(email, password, name);
-      const nextState = derivePayloadState(res);
-      if (!nextState.activeTenantId) {
-        set({ isLoading: false });
-        throw new Error('No workspace found for this account. Contact support.');
-      }
-
       set({
-        ...nextState,
-        isHydrated: true,
+        ...clearAuthState(),
+        isHydrated: false,
         isLoading: false,
       });
-      return nextState.activeTenantId;
+      return res;
     } catch (error) {
       set({ isLoading: false });
       throw error;

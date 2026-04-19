@@ -11,6 +11,7 @@ import type {
   AdminTenantListResponse,
   AdminTenantUser,
   AdminTenantUserMutationResponse,
+  AdminUpdateTenantStatusInput,
   AdminUpdateTenantEnabledVerticalsInput,
   AdminUpdateTenantUserInput,
   Tenant,
@@ -80,6 +81,7 @@ function buildTenantDetail(tenantId: string): AdminTenantDetail | null {
     name: tenant.name,
     type: tenant.type,
     plan: tenant.plan,
+    status: tenant.status,
     ownerId: tenant.ownerId,
     createdAt: tenant.createdAt,
     activeVertical,
@@ -141,6 +143,7 @@ export function listAdminTenants(filters: AdminTenantListFilters = {}): AdminTen
         name: tenant.name,
         type: tenant.type,
         plan: tenant.plan,
+        status: tenant.status,
         ownerId: tenant.ownerId,
         createdAt: tenant.createdAt,
         activeVertical: normalizeVertical(tenant),
@@ -279,6 +282,27 @@ export function changeAdminTenantVertical(
   return clone(detail);
 }
 
+export function changeAdminTenantStatus(
+  tenantId: string,
+  body: AdminUpdateTenantStatusInput
+): AdminTenantDetail {
+  demoTenants = demoTenants.map((tenant) =>
+    tenant.id === tenantId
+      ? {
+          ...tenant,
+          status: body.status,
+        }
+      : tenant
+  );
+
+  const detail = buildTenantDetail(tenantId);
+  if (!detail) {
+    throw new Error('Tenant not found');
+  }
+
+  return clone(detail);
+}
+
 /**
  * Demo-provider analogue of `updateTenantEnabledVerticals`. The demo
  * catalog doesn't persist `tenant_vertical_configs`, so this is a
@@ -301,6 +325,11 @@ export function startAdminImpersonation(
   tenantId: string,
   body: AdminStartImpersonationInput
 ): AdminStartImpersonationResponse {
+  const detail = buildTenantDetail(tenantId);
+  if (detail?.status === 'frozen') {
+    throw new Error('Frozen tenants cannot be impersonated');
+  }
+
   const user = ensureTenantUsers(tenantId).find((item) => item.userId === body.targetUserId);
   if (!user) {
     throw new Error('Target user not found');

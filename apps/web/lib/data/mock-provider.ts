@@ -38,6 +38,7 @@ import {
 } from '@/lib/demo/read-model';
 import {
   changeAdminTenantVertical as _changeAdminTenantVertical,
+  changeAdminTenantStatus as _changeAdminTenantStatus,
   updateAdminTenantEnabledVerticals as _updateAdminTenantEnabledVerticals,
   createAdminTenantUser as _createAdminTenantUser,
   deleteAdminTenantUser as _deleteAdminTenantUser,
@@ -108,6 +109,8 @@ export const mockProvider: DataProvider = {
     _deleteAdminTenantUser(managedTenantId, userId),
   changeAdminTenantVertical: async (_adminTenantId, managedTenantId, body) =>
     _changeAdminTenantVertical(managedTenantId, body),
+  changeAdminTenantStatus: async (_adminTenantId, managedTenantId, body) =>
+    _changeAdminTenantStatus(managedTenantId, body),
   updateAdminTenantEnabledVerticals: async (_adminTenantId, managedTenantId, body) =>
     _updateAdminTenantEnabledVerticals(managedTenantId, body),
   startAdminImpersonation: async (_adminTenantId, managedTenantId, body) =>

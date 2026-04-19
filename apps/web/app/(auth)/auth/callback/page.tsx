@@ -35,9 +35,9 @@ function OAuthCallbackInner() {
       try {
         const res = await exchangeOAuthLoginCode(code);
         if (cancelled) return;
-        const tenantId = applyOAuthExchange(res);
+        applyOAuthExchange(res);
         const redirect = searchParams.get('redirect');
-        router.replace(redirect || `/app/${tenantId}/dashboard`);
+        router.replace(redirect || '/app');
       } catch (e) {
         if (cancelled) return;
         const msg = e instanceof Error ? e.message : 'Could not complete sign-in.';

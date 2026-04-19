@@ -38,6 +38,7 @@ import {
   WorkflowTemplatesResponseSchema,
   WorkflowEngineStatusResponseSchema,
   type AdminChangeTenantVerticalInput,
+  type AdminUpdateTenantStatusInput,
   type AdminUpdateTenantEnabledVerticalsInput,
   type AdminCreateTenantUserInput,
   type AdminDeleteTenantUserResponse,
@@ -263,6 +264,23 @@ export async function changeAdminTenantVertical(
 ): Promise<AdminTenantDetail> {
   const data = await requestParsed(
     `/api/v1/admin/tenants/${tenantId}/vertical`,
+    AdminTenantDetailResponseSchema,
+    {
+      method: 'PATCH',
+      headers: adminHeaders(adminTenantId),
+      body: JSON.stringify(body),
+    }
+  );
+  return data.tenant;
+}
+
+export async function changeAdminTenantStatus(
+  adminTenantId: string,
+  tenantId: string,
+  body: AdminUpdateTenantStatusInput
+): Promise<AdminTenantDetail> {
+  const data = await requestParsed(
+    `/api/v1/admin/tenants/${tenantId}/status`,
     AdminTenantDetailResponseSchema,
     {
       method: 'PATCH',

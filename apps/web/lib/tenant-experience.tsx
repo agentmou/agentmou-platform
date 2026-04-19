@@ -121,6 +121,7 @@ function buildTenantFallbackFromAuthTenant(authTenant: {
   id: string;
   name: string;
   plan: string;
+  status: 'active' | 'frozen';
   settings?: {
     timezone?: string;
     defaultHITL?: boolean;
@@ -141,6 +142,7 @@ function buildTenantFallbackFromAuthTenant(authTenant: {
     name: authTenant.name,
     type: 'business',
     plan: authTenant.plan as Tenant['plan'],
+    status: authTenant.status,
     createdAt: '',
     ownerId: '',
     settings: {
@@ -248,6 +250,7 @@ export function hasClinicNavigationAccess(
     gaps: experience.capabilities.gapsEnabled,
     reactivation: experience.capabilities.reactivationEnabled,
     reports: experience.capabilities.coreReceptionEnabled,
+    ai_assistant: experience.capabilities.voiceEnabled || experience.capabilities.whatsappAvailable,
     configuration: true,
     platform_internal: experience.capabilities.canAccessInternalPlatform,
   };
@@ -336,10 +339,12 @@ export function useResolvedTenantExperience(tenantId: string, provider: DataProv
     };
   }, [authTenants, isHydrated, provider, tenantId]);
 
-  const role = authTenants.find((item) => item.id === tenantId)?.role;
+  const authTenant = authTenants.find((item) => item.id === tenantId);
+  const role = authTenant?.role;
   const hasTenantAccess =
-    tenantId === 'demo-workspace' || authTenants.some((item) => item.id === tenantId);
-  const fallbackTenantId = authTenants[0]?.id ?? null;
+    tenantId === 'demo-workspace' ||
+    authTenants.some((item) => item.id === tenantId && item.status !== 'frozen');
+  const fallbackTenantId = authTenants.find((item) => item.status !== 'frozen')?.id ?? null;
   const activeVertical =
     resolvedExperience?.activeVertical ?? resolveTenantVertical(tenant?.settings);
   const registryEntry = getVerticalRegistryEntry(resolvedExperience ?? tenant?.settings);

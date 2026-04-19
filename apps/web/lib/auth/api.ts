@@ -2,7 +2,7 @@
  * Typed functions for the Agentmou Auth API.
  *
  * Browser auth is cookie-based:
- *   POST /api/v1/auth/register      -> sets HttpOnly session cookie
+ *   POST /api/v1/auth/register      -> creates account, verification required
  *   POST /api/v1/auth/login         -> sets HttpOnly session cookie
  *   GET  /api/v1/auth/me            -> resolves current user from cookie
  *   POST /api/v1/auth/oauth/exchange -> sets HttpOnly session cookie
@@ -20,12 +20,14 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string | null;
+  emailVerified: boolean;
 }
 
 export interface AuthTenant {
   id: string;
   name: string;
   plan: string;
+  status: 'active' | 'frozen';
   role?: string;
   settings?: {
     timezone: string;
@@ -54,6 +56,8 @@ export interface RegisterResponse {
   user: AuthUser;
   tenant: AuthTenant;
   session: AuthSession | null;
+  requiresEmailVerification: boolean;
+  emailVerificationSent: boolean;
 }
 
 export interface LoginResponse {
@@ -166,5 +170,19 @@ export async function resetPasswordApi(token: string, password: string): Promise
   return authRequest<{ ok: true }>('/api/v1/auth/reset-password', {
     method: 'POST',
     body: JSON.stringify({ token, password }),
+  });
+}
+
+export async function verifyEmailApi(token: string): Promise<{ ok: true }> {
+  return authRequest<{ ok: true }>('/api/v1/auth/verify-email', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  });
+}
+
+export async function resendVerificationApi(email: string): Promise<{ ok: true }> {
+  return authRequest<{ ok: true }>('/api/v1/auth/resend-verification', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
   });
 }

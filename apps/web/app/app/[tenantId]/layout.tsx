@@ -19,6 +19,7 @@ export default function TenantLayout({ children }: { children: React.ReactNode }
   const tenantId = params.tenantId as string;
   const authTenants = useAuthStore((state) => state.tenants);
   const authTenant = authTenants.find((tenant) => tenant.id === tenantId);
+  const activeFallbackTenant = authTenants.find((tenant) => tenant.status !== 'frozen') ?? null;
   const provider = React.useMemo(() => getTenantDataProvider(tenantId), [tenantId]);
   const experience = useResolvedTenantExperience(tenantId, provider);
   const fallbackTenant = authTenants.find((tenant) => tenant.id === experience.fallbackTenantId);
@@ -32,27 +33,46 @@ export default function TenantLayout({ children }: { children: React.ReactNode }
       : null;
 
   React.useEffect(() => {
+    if (authTenant?.status === 'frozen') {
+      const params = new URLSearchParams({
+        tenantId,
+        tenantName: authTenant.name,
+      });
+      router.replace(`/app/frozen?${params.toString()}`);
+      return;
+    }
+
     if (experience.isLoading || experience.hasTenantAccess) {
       return;
     }
 
     if (experience.fallbackTenantId) {
       router.replace(
-        getTenantDefaultHref(experience.fallbackTenantId, fallbackTenant?.settings ?? 'internal')
+        getTenantDefaultHref(
+          experience.fallbackTenantId,
+          activeFallbackTenant?.settings ?? fallbackTenant?.settings ?? 'internal'
+        )
       );
       return;
     }
 
-    // No tenant access and no fallback: the session is either expired or the
-    // route was reached without a valid membership. Always send to /login —
-    // bouncing to /app would loop back here.
+    if (authTenants.length > 0) {
+      router.replace('/app/frozen');
+      return;
+    }
+
     router.replace('/login');
   }, [
+    activeFallbackTenant?.settings,
+    authTenant?.name,
+    authTenant?.status,
+    authTenants.length,
     experience.fallbackTenantId,
     experience.hasTenantAccess,
     experience.isLoading,
     fallbackTenant?.settings,
     router,
+    tenantId,
   ]);
 
   React.useEffect(() => {

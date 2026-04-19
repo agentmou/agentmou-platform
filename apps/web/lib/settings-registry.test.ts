@@ -56,6 +56,9 @@ function buildContext(
           reactivationEnabled: true,
           advancedClinicModeEnabled: false,
           internalPlatformVisible: activeVertical === 'internal',
+          aiReceptionistEnabled: false,
+          aiVoiceReceptionistEnabled: false,
+          aiOutboundEnabled: false,
         },
         settingsSections,
         canAccessInternalPlatform: activeVertical === 'internal',
@@ -107,6 +110,7 @@ function buildContext(
       name: 'Tenant 1',
       type: 'business',
       plan: 'pro',
+      status: 'active',
       createdAt: '2026-01-01T00:00:00.000Z',
       ownerId: 'owner-1',
       settings: {

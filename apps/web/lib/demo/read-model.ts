@@ -153,6 +153,9 @@ export function getTenantExperience(tenantId: string): TenantExperience | null {
         reactivationEnabled: false,
         advancedClinicModeEnabled: false,
         internalPlatformVisible: false,
+        aiReceptionistEnabled: false,
+        aiVoiceReceptionistEnabled: false,
+        aiOutboundEnabled: false,
       },
       featureDecisions: {
         voiceInboundEnabled: {
@@ -215,6 +218,24 @@ export function getTenantExperience(tenantId: string): TenantExperience | null {
           source: 'internal_access',
           reason: 'hidden_internal_only',
         },
+        aiReceptionistEnabled: {
+          enabled: false,
+          source: 'entitlement',
+          reason: 'not_in_plan',
+          moduleKey: 'core_reception',
+        },
+        aiVoiceReceptionistEnabled: {
+          enabled: false,
+          source: 'entitlement',
+          reason: 'not_in_plan',
+          moduleKey: 'voice',
+        },
+        aiOutboundEnabled: {
+          enabled: false,
+          source: 'entitlement',
+          reason: 'not_in_plan',
+          moduleKey: 'growth',
+        },
       },
       settingsSections: [
         'general',
@@ -254,6 +275,9 @@ export function getTenantExperience(tenantId: string): TenantExperience | null {
       reactivationEnabled: false,
       advancedClinicModeEnabled: false,
       internalPlatformVisible: true,
+      aiReceptionistEnabled: false,
+      aiVoiceReceptionistEnabled: false,
+      aiOutboundEnabled: false,
     },
     featureDecisions: {
       voiceInboundEnabled: {
@@ -320,6 +344,24 @@ export function getTenantExperience(tenantId: string): TenantExperience | null {
             source: 'internal_access',
             reason: 'not_admin_tenant',
           },
+      aiReceptionistEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'core_reception',
+      },
+      aiVoiceReceptionistEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'voice',
+      },
+      aiOutboundEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'growth',
+      },
     },
     settingsSections: tenant.settings.isPlatformAdminTenant
       ? [

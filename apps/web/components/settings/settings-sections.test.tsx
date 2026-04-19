@@ -60,6 +60,9 @@ function buildContext(): SettingsRegistryContext {
           reactivationEnabled: false,
           advancedClinicModeEnabled: false,
           internalPlatformVisible: false,
+          aiReceptionistEnabled: false,
+          aiVoiceReceptionistEnabled: false,
+          aiOutboundEnabled: false,
         },
         featureDecisions: {
           voiceInboundEnabled: {
@@ -121,6 +124,24 @@ function buildContext(): SettingsRegistryContext {
             source: 'internal_access',
             reason: 'hidden_internal_only',
           },
+          aiReceptionistEnabled: {
+            enabled: false,
+            source: 'entitlement',
+            reason: 'not_in_plan',
+            moduleKey: 'core_reception',
+          },
+          aiVoiceReceptionistEnabled: {
+            enabled: false,
+            source: 'entitlement',
+            reason: 'not_in_plan',
+            moduleKey: 'voice',
+          },
+          aiOutboundEnabled: {
+            enabled: false,
+            source: 'entitlement',
+            reason: 'not_in_plan',
+            moduleKey: 'growth',
+          },
         },
         settingsSections: ['general', 'team', 'integrations', 'plan', 'security'],
         canAccessInternalPlatform: false,
@@ -160,6 +181,7 @@ function buildContext(): SettingsRegistryContext {
       name: 'Clinica Norte',
       type: 'business',
       plan: 'pro',
+      status: 'active',
       createdAt: '2026-01-01T00:00:00.000Z',
       ownerId: 'owner-1',
       settings: {

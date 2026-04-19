@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { AdminTenantListResponse, TenantPlan, VerticalKey } from '@agentmou/contracts';
-import { ArrowRight, Crown, Inbox, Search, X } from 'lucide-react';
+import { ArrowRight, Crown, Inbox, PauseCircle, Search, Snowflake, X } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -262,6 +262,7 @@ export function AdminTenantsPage({ basePath = '/admin/tenants' }: AdminTenantsPa
               <TableHead>Tenant</TableHead>
               <TableHead>Plan</TableHead>
               <TableHead>Vertical</TableHead>
+              <TableHead>Estado</TableHead>
               <TableHead>Users</TableHead>
               <TableHead>Flags</TableHead>
               <TableHead className="text-right">Acción</TableHead>
@@ -276,7 +277,7 @@ export function AdminTenantsPage({ basePath = '/admin/tenants' }: AdminTenantsPa
               ))
             ) : showEmpty ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-12">
+                <TableCell colSpan={7} className="py-12">
                   <div className="flex flex-col items-center gap-3 text-center text-text-muted">
                     <Inbox className="text-text-muted h-8 w-8" aria-hidden />
                     <p className="text-sm">No hay tenants que coincidan con los filtros.</p>
@@ -311,6 +312,19 @@ export function AdminTenantsPage({ basePath = '/admin/tenants' }: AdminTenantsPa
                     <Badge tone="info" className="capitalize">
                       {formatVertical(tenant.activeVertical)}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="align-top">
+                    {tenant.status === 'frozen' ? (
+                      <Badge tone="warning" className="gap-1">
+                        <Snowflake className="h-3 w-3" aria-hidden />
+                        Frozen
+                      </Badge>
+                    ) : (
+                      <Badge tone="success" className="gap-1">
+                        <PauseCircle className="h-3 w-3" aria-hidden />
+                        Active
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell className="text-text-secondary align-top text-sm">
                     {tenant.userCount}

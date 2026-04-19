@@ -84,7 +84,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
 
   React.useEffect(() => {
     if (emailTouched && registerEmail && !validateEmail(registerEmail)) {
-      setEmailError('Enter a valid email address');
+      setEmailError('Introduce un email válido');
     } else {
       setEmailError(null);
     }
@@ -92,7 +92,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
 
   React.useEffect(() => {
     if (confirmTouched && confirmPassword && registerPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match');
+      setPasswordError('Las contraseñas no coinciden');
     } else {
       setPasswordError(null);
     }
@@ -101,15 +101,18 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
   const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!loginEmail || !loginPassword) {
-      toast.error('Email and password are required');
+      toast.error('Email y contraseña son obligatorios');
       return;
     }
     try {
-      const tenantId = await login(loginEmail, loginPassword, rememberMe);
+      await login(loginEmail, loginPassword, rememberMe);
       const redirect = searchParams.get('redirect');
-      router.push(redirect || `/app/${tenantId}/dashboard`);
+      router.push(redirect || '/app');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Login failed. Please try again.';
+      const message = err instanceof Error ? err.message : 'No hemos podido iniciar sesión.';
+      if (message.toLowerCase().includes('confirmar tu email')) {
+        router.push(`/verify-email?email=${encodeURIComponent(loginEmail.trim())}`);
+      }
       toast.error(message);
     }
   };
@@ -118,26 +121,30 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
     e.preventDefault();
 
     if (!validateEmail(registerEmail)) {
-      setEmailError('Enter a valid email address');
+      setEmailError('Introduce un email válido');
       return;
     }
 
     if (registerPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match');
+      setPasswordError('Las contraseñas no coinciden');
       return;
     }
 
     if (!registerName?.trim()) {
-      toast.error('Name is required');
+      toast.error('El nombre es obligatorio');
       return;
     }
 
     try {
-      const tenantId = await register(registerEmail, registerPassword, registerName.trim());
-      toast.success('Account created!');
-      router.push(`/app/${tenantId}/dashboard`);
+      const response = await register(registerEmail, registerPassword, registerName.trim());
+      toast.success(
+        response.emailVerificationSent
+          ? 'Te hemos enviado un email para confirmar tu cuenta.'
+          : 'La cuenta se ha creado. Puedes reenviar la verificación cuando quieras.'
+      );
+      router.push(`/verify-email?email=${encodeURIComponent(registerEmail.trim())}`);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+      const message = err instanceof Error ? err.message : 'No hemos podido crear la cuenta.';
       toast.error(message);
     }
   };
@@ -182,15 +189,15 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
                   disabled
                 >
                   <span className="text-muted-foreground text-sm">
-                    Enterprise SSO (SAML / OIDC)
+                    SSO empresarial (SAML / OIDC)
                   </span>
                 </Button>
               </span>
             </TooltipTrigger>
             <TooltipContent className="max-w-xs">
               <p>
-                Tenant-level SAML and OIDC are configured per workspace. See platform docs / ADR for
-                WorkOS or Auth0 integration.
+                El SSO enterprise por tenant llegará después. Aquí activamos Google y Microsoft
+                como acceso B2C global.
               </p>
             </TooltipContent>
           </Tooltip>
@@ -200,7 +207,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                Or continue with email
+                O continúa con email
               </span>
             </div>
           </div>
@@ -214,18 +221,22 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
       >
         <TabsList className="grid w-full grid-cols-2 mb-8">
           <TabsTrigger value="login" className="transition-all duration-200">
-            Sign in
+            Iniciar sesión
           </TabsTrigger>
           <TabsTrigger value="register" className="transition-all duration-200">
-            Register
+            Crear cuenta
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="login" className="animate-in fade-in-50 duration-300">
           <div className="space-y-6">
             <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-semibold tracking-tight text-balance">Welcome back</h1>
-              <p className="text-sm text-muted-foreground">Sign in with your email and password</p>
+              <h1 className="text-2xl font-semibold tracking-tight text-balance">
+                Bienvenido de nuevo
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Accede con tu email y contraseña
+              </p>
             </div>
 
             <form onSubmit={handleLoginSubmit} className="space-y-4">
@@ -235,7 +246,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
                   id="login-email"
                   name="email"
                   type="email"
-                  placeholder="you@company.com"
+                  placeholder="tu@empresa.com"
                   required
                   disabled={isLoading}
                   value={loginEmail}
@@ -252,7 +263,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
                     onClick={() => setForgotOpen(true)}
                     className="text-sm text-primary hover:underline underline-offset-4"
                   >
-                    Forgot password?
+                    ¿Olvidaste tu contraseña?
                   </button>
                 </div>
                 <PasswordInput
@@ -278,7 +289,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
                   htmlFor="remember-me"
                   className="text-sm font-normal cursor-pointer select-none"
                 >
-                  Remember me on this device
+                  Recordarme en este dispositivo
                 </Label>
               </div>
 
@@ -305,10 +316,10 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    Signing in...
+                    Entrando...
                   </span>
                 ) : (
-                  'Sign in'
+                  'Entrar'
                 )}
               </Button>
             </form>
@@ -319,19 +330,21 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
           <div className="space-y-6">
             <div className="space-y-2 text-center">
               <h1 className="text-2xl font-semibold tracking-tight text-balance">
-                Create your account
+                Crea tu cuenta
               </h1>
-              <p className="text-sm text-muted-foreground">Enter your details to get started</p>
+              <p className="text-sm text-muted-foreground">
+                Confirmaremos el email antes de abrir sesión
+              </p>
             </div>
 
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="register-name">Full name</Label>
+                <Label htmlFor="register-name">Nombre completo</Label>
                 <Input
                   id="register-name"
                   name="name"
                   type="text"
-                  placeholder="Your name"
+                  placeholder="Tu nombre"
                   required
                   disabled={isLoading}
                   value={registerName}
@@ -346,7 +359,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
                   id="register-email"
                   name="email"
                   type="email"
-                  placeholder="you@company.com"
+                  placeholder="tu@empresa.com"
                   required
                   disabled={isLoading}
                   value={registerEmail}
@@ -367,7 +380,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="register-password">Password</Label>
+                <Label htmlFor="register-password">Contraseña</Label>
                 <PasswordInput
                   id="register-password"
                   name="password"
@@ -383,7 +396,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="register-confirm-password">Confirm password</Label>
+                <Label htmlFor="register-confirm-password">Confirmar contraseña</Label>
                 <PasswordInput
                   id="register-confirm-password"
                   name="confirmPassword"
@@ -421,18 +434,16 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    Creating account...
+                    Creando cuenta...
                   </span>
                 ) : (
-                  'Create account'
+                  'Crear cuenta'
                 )}
               </Button>
             </form>
 
             <p className="text-center text-xs text-muted-foreground">
-              By registering you agree to our{' '}
-              <span className="text-muted-foreground">Terms of Service and Privacy Policy</span>{' '}
-              (links coming soon).
+              Al registrarte aceptas nuestros términos y política de privacidad.
             </p>
           </div>
         </TabsContent>

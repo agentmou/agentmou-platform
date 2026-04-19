@@ -20,6 +20,7 @@ const tenantFallback: Tenant = {
   name: '',
   type: 'business',
   plan: 'starter',
+  status: 'active',
   createdAt: '',
   ownerId: '',
   settings: {
