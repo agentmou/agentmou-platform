@@ -5,6 +5,9 @@ backend deployment model. The public web app is expected to live outside the
 VPS (for example, on Vercel), while this stack runs the API, worker, agents,
 n8n, PostgreSQL, Redis, Traefik, and uptime monitoring.
 
+For dev- and CI-facing scripts that run from a workstation rather than the
+VPS, see [`scripts/README.md`](../../scripts/README.md).
+
 ## Script Inventory
 
 | Script | Purpose |

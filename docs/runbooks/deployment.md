@@ -328,6 +328,31 @@ This tests:
 - Public catalog response shape
 - Auth validation on an invalid login payload
 
+### Live E2E Triage (Post-Deploy Gate)
+
+The smoke test above is intentionally shallow. For a deeper post-deploy
+verification that exercises the vertical slice end-to-end (user registration,
+tenant bootstrap, catalog, Gmail inbox triage run), run the e2e-triage script
+against the public API:
+
+```bash
+API_URL=https://api.agentmou.io pnpm ops:smoke-e2e-live
+```
+
+Expected result: `PASS` with a green summary. If it fails, the deploy is
+**not** healthy even though traffic is being served — investigate before
+closing the window.
+
+The script provisions a disposable `validation-*` tenant. Clean it up after a
+successful run with the companion script (requires `DATABASE_URL`):
+
+```bash
+pnpm cleanup:validation-tenant
+```
+
+This path is currently manual; automating it inside `deploy-prod.sh` is
+tracked as a follow-up (see PR-11 in the script-hygiene plan).
+
 ---
 
 ## Secret Rotation
