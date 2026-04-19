@@ -178,11 +178,21 @@ The script:
 1. Pulls the latest code from `origin/main`
 2. Validates required environment variables, including the public frontend
    origin used by auth and password reset flows
-3. Rebuilds Docker images (api, worker, agents, migrate)
-4. Waits for PostgreSQL to become healthy
-5. Runs database migrations
-6. Restarts the stack
-7. Verifies API edge health and runs the public smoke test
+3. Snapshots the production database to
+   `/var/backups/agentmou/pre-deploy/${TIMESTAMP}_${COMMIT_SHA}.sql.gz`
+   as a rollback point (keeps the last 10). Skippable with
+   `SKIP_PRE_DEPLOY_BACKUP=1`.
+4. Rebuilds Docker images (api, worker, agents, migrate)
+5. Waits for PostgreSQL to become healthy
+6. Runs database migrations
+7. Restarts the stack and waits for every service with a declared
+   healthcheck to report `healthy` (default timeout 180s — override with
+   `HEALTHY_TIMEOUT_SECONDS`). Then verifies the local API edge and runs
+   the public smoke test.
+8. Runs the live E2E triage (`pnpm ops:smoke-e2e-live`) against the public
+   API as the final gate. On success, cleans up the validation tenant.
+   Skippable with `SKIP_E2E_TRIAGE=1`; retain the fixture with
+   `SKIP_E2E_CLEANUP=1`.
 
 **Expected output**:
 ```
@@ -330,10 +340,10 @@ This tests:
 
 ### Live E2E Triage (Post-Deploy Gate)
 
-The smoke test above is intentionally shallow. For a deeper post-deploy
-verification that exercises the vertical slice end-to-end (user registration,
-tenant bootstrap, catalog, Gmail inbox triage run), run the e2e-triage script
-against the public API:
+`deploy-prod.sh` runs the live E2E triage automatically as step 8 and
+fails the deploy if it doesn't pass. You only need to invoke it manually
+when you want to re-run the check outside a deploy, or in environments
+where you ran the script with `SKIP_E2E_TRIAGE=1`:
 
 ```bash
 API_URL=https://api.agentmou.io pnpm ops:smoke-e2e-live
@@ -343,15 +353,13 @@ Expected result: `PASS` with a green summary. If it fails, the deploy is
 **not** healthy even though traffic is being served — investigate before
 closing the window.
 
-The script provisions a disposable `validation-*` tenant. Clean it up after a
-successful run with the companion script (requires `DATABASE_URL`):
+The script provisions a disposable `validation-*` tenant. `deploy-prod.sh`
+cleans it up automatically; when running the triage manually, clean it up
+with (requires `DATABASE_URL`):
 
 ```bash
 pnpm cleanup:validation-tenant
 ```
-
-This path is currently manual; automating it inside `deploy-prod.sh` is
-tracked as a follow-up (see PR-11 in the script-hygiene plan).
 
 ---
 
@@ -418,11 +426,33 @@ primary browser session cookie by itself.
 
 ## Rollback Procedure
 
-If a deployment causes issues, rollback to the previous version:
+If a deployment causes issues, rollback to the previous version. The
+canonical path is the helper script which combines the git checkout,
+optional DB restore, and redeploy into one command:
 
-### Rollback Strategy
+### Canonical Rollback (rollback-to.sh)
 
-Agentmou uses a Git history-based rollback:
+```bash
+# Rollback code only — use when the regression is code-side
+bash infra/scripts/rollback-to.sh <COMMIT_HASH>
+
+# Rollback code AND restore the pre-deploy DB snapshot for that commit
+RESTORE_DB=1 bash infra/scripts/rollback-to.sh <COMMIT_HASH>
+```
+
+With `RESTORE_DB=1`, the script looks up
+`/var/backups/agentmou/pre-deploy/${TS}_${COMMIT_HASH}.sql.gz` — written
+by `deploy-prod.sh` step 3 when that commit was deployed — and pipes it
+through `psql`. If no matching snapshot exists it aborts; fall back to a
+routine backup under `/var/backups/agentmou/` (see [VPS Operations](./vps-operations.md)).
+
+The script leaves HEAD detached at the target SHA. To resume tracking
+`main`, either roll `main` backwards with a force-push (needs sign-off)
+or fix forward on `main` and let the next normal deploy pick it up.
+
+### Manual Rollback (fallback)
+
+If `rollback-to.sh` is unavailable or you want manual control:
 
 ```bash
 # Check recent deployments

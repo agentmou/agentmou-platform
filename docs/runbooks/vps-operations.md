@@ -128,6 +128,19 @@ This writes artifacts to `/var/backups/agentmou`, for example:
 - `agentmou-stack_n8n-workflows_YYYY-MM-DD_HHMMSS.json`
 - `agentmou-stack_files_YYYY-MM-DD_HHMMSS.tar.gz`
 
+### Pre-Deploy Snapshots
+
+In addition to the routine backup, `deploy-prod.sh` writes a Postgres
+`pg_dumpall` snapshot to `/var/backups/agentmou/pre-deploy/` before
+each deploy:
+
+- `${TIMESTAMP}_${COMMIT_SHA}.sql.gz`
+
+The script keeps the last 10 snapshots and rotates older ones. These are
+the canonical rollback point for `infra/scripts/rollback-to.sh` — the
+SHA in the filename corresponds to the commit **that was about to be
+deployed**, so restoring it returns the DB to the pre-that-deploy state.
+
 ### Automated Backups with Cron
 
 The local backup is scheduled through `/etc/cron.d/agentmou-backup`:
