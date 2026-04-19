@@ -20,8 +20,8 @@ lives here.
 | Script | Invoked via | Purpose |
 | --- | --- | --- |
 | `test-e2e-clinic-demo.ts` | `pnpm test:clinic-demo-smoke` | Full-stack smoke over the clinic demo seed (local compose). |
-| `test-e2e-triage.ts` | `pnpm ops:smoke-e2e-live` | API-driven vertical slice test (Gmail inbox triage). Runs against any `API_URL` — including production. Supports `--cleanup` to drop the fixture tenant. |
-| `cleanup-validation-tenant.ts` | `pnpm cleanup:validation-tenant` | Removes the disposable fixture tenant created by `test-e2e-triage.ts`. Requires `DATABASE_URL`. |
+| `test-e2e-triage.ts` | `pnpm ops:smoke-e2e-live` | API-driven vertical slice test (Gmail inbox triage). Runs against any `API_URL` — including production — using a pre-provisioned verified smoke user (`E2E_EMAIL`, `E2E_PASSWORD`, optional `E2E_TENANT_ID`). |
+| `cleanup-validation-tenant.ts` | `pnpm cleanup:validation-tenant` | Manual cleanup helper for disposable validation fixtures created in local/ephemeral workflows. Requires `DATABASE_URL`. |
 | `generate-operational-catalog-ids.ts` | `pnpm demo-catalog:generate` | Rebuilds the catalog id map consumed by the demo seed. Paired with `demo-catalog:check` guard in CI. |
 | `validate-clinic-demo.sh` | `pnpm validate:clinic-demo` | CI/local smoke for the clinic vertical. Boots a local Postgres via compose, migrates+seeds, then runs db/api/web tests plus the clinic e2e smoke. |
 

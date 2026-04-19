@@ -21,7 +21,7 @@ VPS, see [`scripts/README.md`](../../scripts/README.md).
 | `backup-offsite.sh` | Offsite restic snapshot of the local backup artifacts |
 | `restore-offsite-smoke.sh` | Restore the latest offsite snapshot into a temp path and verify artifacts |
 | `install-offsite-backup.sh` | Install restic plus the offsite systemd timer on the VPS |
-| `cleanup-validation-tenant.sh` | VPS wrapper around disposable fixture cleanup |
+| `cleanup-validation-tenant.sh` | VPS wrapper around disposable fixture cleanup for local/ephemeral validation flows |
 
 ## Operating Rules
 
