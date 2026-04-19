@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Analytics } from '@vercel/analytics/next';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { getMarketingUrl } from '@/lib/runtime/public-origins';
@@ -50,7 +49,6 @@ export default function RootLayout({
           {children}
         </ThemeProvider>
         <Toaster />
-        <Analytics />
       </body>
     </html>
   );
