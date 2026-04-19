@@ -61,8 +61,8 @@ export interface ClinicDemoSeedBlueprint {
     config: Record<string, unknown>;
   }>;
   connectorAccounts: Array<{
-    key: 'whatsapp' | 'voice';
-    provider: 'twilio_whatsapp' | 'twilio_voice';
+    key: 'whatsapp' | 'voice' | 'retell_voice';
+    provider: 'twilio_whatsapp' | 'twilio_voice' | 'retell_voice';
     externalAccountId: string;
     scopes: string[];
     connectedAt: Date;
@@ -569,6 +569,13 @@ export function buildClinicDemoSeedFixture(now = new Date()): ClinicDemoSeedBlue
         key: 'voice',
         provider: 'twilio_voice',
         externalAccountId: 'seed-voice-account',
+        scopes: ['calls:read', 'calls:write'],
+        connectedAt: addDays(anchor, -30),
+      },
+      {
+        key: 'retell_voice',
+        provider: 'retell_voice',
+        externalAccountId: 'seed-retell-voice-account',
         scopes: ['calls:read', 'calls:write'],
         connectedAt: addDays(anchor, -30),
       },
