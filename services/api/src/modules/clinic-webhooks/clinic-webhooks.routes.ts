@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import { RetellToolCallWebhookPayloadSchema } from '@agentmou/contracts';
 
 import { ClinicWebhooksService } from './clinic-webhooks.service.js';
 
@@ -28,6 +29,11 @@ function getSignature(request: FastifyRequest) {
   return Array.isArray(value) ? value[0] : (value ?? null);
 }
 
+function getRetellSignature(request: FastifyRequest) {
+  const value = request.headers['x-retell-signature'];
+  return Array.isArray(value) ? value[0] : (value ?? null);
+}
+
 export async function clinicWebhookRoutes(fastify: FastifyInstance) {
   ensureFormBodyParser(fastify);
   const service = new ClinicWebhooksService();
@@ -44,4 +50,33 @@ export async function clinicWebhookRoutes(fastify: FastifyInstance) {
     const result = await service.handleTwilioWebhook('voice', request, getSignature(request));
     return reply.send(result);
   });
+
+  fastify.post(
+    '/webhooks/retell/tool',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const body = RetellToolCallWebhookPayloadSchema.parse(request.body);
+        const result = await service.handleRetellToolCall(
+          body,
+          getRetellSignature(request)
+        );
+        return reply.send(result);
+      } catch (error) {
+        return reply.send({
+          result: 'No he podido completar la accion, derivo con mi equipo.',
+        });
+      }
+    }
+  );
+
+  fastify.post(
+    '/webhooks/retell/post-call',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const result = await service.handleRetellPostCall(
+        request,
+        getRetellSignature(request)
+      );
+      return reply.send(result);
+    }
+  );
 }

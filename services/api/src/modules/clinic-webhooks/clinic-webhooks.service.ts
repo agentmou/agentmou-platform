@@ -2,6 +2,7 @@ import type { FastifyRequest } from 'fastify';
 import { clinicChannels, db, webhookEvents } from '@agentmou/db';
 import { eq } from 'drizzle-orm';
 import { normalizePhoneAddress, resolveClinicChannelAdapter } from '@agentmou/connectors';
+import type { RetellToolCallWebhookPayload } from '@agentmou/contracts';
 
 import { ClinicAutomationService } from '../clinic-shared/clinic-automation.service.js';
 
@@ -131,6 +132,121 @@ export class ClinicWebhooksService {
         : typeof payload.From === 'string'
           ? payload.From
           : undefined
+    );
+  }
+
+  async handleRetellToolCall(
+    body: RetellToolCallWebhookPayload,
+    _signature?: string | null
+  ): Promise<{ result: string }> {
+    const channel = await this.resolveRetellChannel(body.call_id);
+    if (!channel?.tenantId) {
+      return { result: 'Canal no configurado.' };
+    }
+
+    // Delegate to the shared tool registry. The import is dynamic to avoid
+    // a hard dependency from API on the worker tool modules at startup.
+    try {
+      const { executeReceptionistTool } = await import(
+        '../../lib/ai-tool-bridge.js'
+      );
+      const toolResult = await executeReceptionistTool({
+        tenantId: channel.tenantId,
+        toolName: body.tool_name,
+        args: body.args as Record<string, unknown>,
+        callId: body.call_id,
+      });
+      return { result: toolResult };
+    } catch {
+      return { result: 'Error procesando la solicitud.' };
+    }
+  }
+
+  async handleRetellPostCall(
+    request: FastifyRequest,
+    signature?: string | null
+  ) {
+    const payload = toRecord(request.body);
+    const callId = typeof payload.call_id === 'string' ? payload.call_id : undefined;
+    const channel = callId ? await this.resolveRetellChannel(callId) : null;
+
+    const adapter = resolveClinicChannelAdapter(
+      channel
+        ? mapChannel(channel)
+        : {
+            id: 'fallback-retell',
+            tenantId: 'unknown',
+            channelType: 'voice',
+            directionPolicy: {},
+            provider: 'retell_voice',
+            connectorAccountId: null,
+            status: 'active',
+            phoneNumber: null,
+            config: {},
+            createdAt: new Date(0).toISOString(),
+            updatedAt: new Date(0).toISOString(),
+          },
+      { allowMockFallback: process.env.NODE_ENV !== 'production' }
+    );
+
+    if (
+      channel &&
+      !adapter.validateWebhookSignature({
+        url: getRequestUrl(request),
+        payload,
+        signature,
+      })
+    ) {
+      throw Object.assign(new Error('Invalid Retell webhook signature'), {
+        statusCode: 401,
+      });
+    }
+
+    const normalized = adapter.parseWebhookEvent({
+      url: getRequestUrl(request),
+      payload,
+      signature,
+    });
+
+    const [existing] = await db
+      .select()
+      .from(webhookEvents)
+      .where(eq(webhookEvents.providerEventId, normalized.eventId))
+      .limit(1);
+
+    if (existing) {
+      return { ok: true, duplicate: true };
+    }
+
+    const [created] = await db
+      .insert(webhookEvents)
+      .values({
+        provider: normalized.provider,
+        providerEventId: normalized.eventId,
+        tenantId: channel?.tenantId ?? null,
+        type: `voice.${normalized.eventKind}`,
+        signature: signature ?? null,
+        payload: { raw: payload, normalized },
+      })
+      .returning();
+
+    if (channel?.tenantId) {
+      await this.automation.enqueueChannelEvent(created.id);
+    }
+
+    return { ok: true, duplicate: false, ignored: !channel?.tenantId };
+  }
+
+  private async resolveRetellChannel(callId: string) {
+    const channels = await db
+      .select()
+      .from(clinicChannels)
+      .where(eq(clinicChannels.provider, 'retell_voice'));
+
+    if (channels.length === 0) return null;
+    return (
+      channels.find((c) => c.status === 'active') ??
+      [...channels].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0]
     );
   }
 
