@@ -51,23 +51,30 @@ export async function ensureCreatorAdminTenantForUser(params: {
         tenant: tenants,
         role: memberships.role,
         activeVertical: sql<string>`coalesce(${tenants.settings} ->> 'activeVertical', 'internal')`,
-        isPlatformAdminTenant:
-          sql<boolean>`coalesce((${tenants.settings} ->> 'isPlatformAdminTenant')::boolean, false)`,
+        isPlatformAdminTenant: sql<boolean>`coalesce((${tenants.settings} ->> 'isPlatformAdminTenant')::boolean, false)`,
       })
       .from(memberships)
       .innerJoin(tenants, eq(memberships.tenantId, tenants.id))
       .where(
         and(
           eq(memberships.userId, user.id),
-          or(eq(tenants.ownerId, user.id), eq(memberships.role, 'owner'), eq(memberships.role, 'admin'))
+          or(
+            eq(tenants.ownerId, user.id),
+            eq(memberships.role, 'owner'),
+            eq(memberships.role, 'admin')
+          )
         )
       )
       .orderBy(
-        desc(sql<number>`case when ${tenants.name} = ${CREATOR_ADMIN_TENANT_NAME} then 1 else 0 end`),
+        desc(
+          sql<number>`case when ${tenants.name} = ${CREATOR_ADMIN_TENANT_NAME} then 1 else 0 end`
+        ),
         desc(
           sql<number>`case when coalesce((${tenants.settings} ->> 'isPlatformAdminTenant')::boolean, false) then 1 else 0 end`
         ),
-        desc(sql<number>`case when coalesce(${tenants.settings} ->> 'activeVertical', 'internal') = 'internal' then 1 else 0 end`),
+        desc(
+          sql<number>`case when coalesce(${tenants.settings} ->> 'activeVertical', 'internal') = 'internal' then 1 else 0 end`
+        ),
         desc(sql<number>`case when ${memberships.role} = 'owner' then 1 else 0 end`),
         desc(tenants.createdAt)
       );

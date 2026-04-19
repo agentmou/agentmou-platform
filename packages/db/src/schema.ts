@@ -949,9 +949,7 @@ export const clinicAiConfigs = pgTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
-  (table) => [
-    uniqueIndex('clinic_ai_configs_tenant_uidx').on(table.tenantId),
-  ]
+  (table) => [uniqueIndex('clinic_ai_configs_tenant_uidx').on(table.tenantId)]
 );
 
 // ---------------------------------------------------------------------------

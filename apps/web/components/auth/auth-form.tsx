@@ -196,8 +196,8 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
             </TooltipTrigger>
             <TooltipContent className="max-w-xs">
               <p>
-                El SSO enterprise por tenant llegará después. Aquí activamos Google y Microsoft
-                como acceso B2C global.
+                El SSO enterprise por tenant llegará después. Aquí activamos Google y Microsoft como
+                acceso B2C global.
               </p>
             </TooltipContent>
           </Tooltip>
@@ -206,9 +206,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                O continúa con email
-              </span>
+              <span className="bg-background px-2 text-muted-foreground">O continúa con email</span>
             </div>
           </div>
         </div>
@@ -234,9 +232,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
               <h1 className="text-2xl font-semibold tracking-tight text-balance">
                 Bienvenido de nuevo
               </h1>
-              <p className="text-sm text-muted-foreground">
-                Accede con tu email y contraseña
-              </p>
+              <p className="text-sm text-muted-foreground">Accede con tu email y contraseña</p>
             </div>
 
             <form onSubmit={handleLoginSubmit} className="space-y-4">
@@ -329,9 +325,7 @@ export function AuthForm({ className, defaultTab = 'login' }: AuthFormProps) {
         <TabsContent value="register" className="animate-in fade-in-50 duration-300">
           <div className="space-y-6">
             <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-semibold tracking-tight text-balance">
-                Crea tu cuenta
-              </h1>
+              <h1 className="text-2xl font-semibold tracking-tight text-balance">Crea tu cuenta</h1>
               <p className="text-sm text-muted-foreground">
                 Confirmaremos el email antes de abrir sesión
               </p>

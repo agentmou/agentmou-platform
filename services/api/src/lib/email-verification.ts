@@ -22,10 +22,7 @@ export async function issueEmailVerificationToken(
       .update(emailVerificationTokens)
       .set({ consumedAt: new Date() })
       .where(
-        and(
-          eq(emailVerificationTokens.userId, userId),
-          isNull(emailVerificationTokens.consumedAt)
-        )
+        and(eq(emailVerificationTokens.userId, userId), isNull(emailVerificationTokens.consumedAt))
       );
 
     await tx.insert(emailVerificationTokens).values({

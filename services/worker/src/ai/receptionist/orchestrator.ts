@@ -1,9 +1,8 @@
-import { db, conversationMessages, conversationThreads, clinicAiToolInvocations } from '@agentmou/db';
-import { eq, and } from 'drizzle-orm';
+import { db, clinicAiToolInvocations } from '@agentmou/db';
 import { getOpenAiToolDefinitions, toolRegistry } from '@agentmou/agent-engine';
 
 import { loadAiSecrets } from './secrets.js';
-import { loadReceptionistContext, type ReceptionistContext } from './context.js';
+import { loadReceptionistContext } from './context.js';
 import { buildWhatsAppSystemPrompt } from './prompts.js';
 
 const MAX_TOOL_ITERATIONS = 5;
@@ -110,7 +109,9 @@ export async function runReceptionistTurn(
         let args: Record<string, unknown> = {};
         try {
           args = JSON.parse(tc.function.arguments);
-        } catch { /* empty */ }
+        } catch {
+          /* empty */
+        }
 
         const tool = toolRegistry[toolName];
         let result = 'Herramienta no encontrada.';
@@ -123,7 +124,7 @@ export async function runReceptionistTurn(
               args,
               threadId: input.threadId,
             });
-          } catch (err) {
+          } catch {
             result = 'Error ejecutando la herramienta.';
           }
         }

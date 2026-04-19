@@ -37,7 +37,12 @@ type ChannelType = 'whatsapp' | 'voice';
 type NormalizedClinicWebhookEvent = {
   provider: string;
   channelType: ChannelType;
-  eventKind: 'message_inbound' | 'message_status' | 'call_inbound' | 'call_status' | 'call_ai_completed';
+  eventKind:
+    | 'message_inbound'
+    | 'message_status'
+    | 'call_inbound'
+    | 'call_status'
+    | 'call_ai_completed';
   eventId: string;
   occurredAt?: string;
   phoneNumber?: string;

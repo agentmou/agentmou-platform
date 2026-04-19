@@ -279,6 +279,9 @@ describe('clinic api client', () => {
               reactivationEnabled: true,
               advancedClinicModeEnabled: false,
               internalPlatformVisible: false,
+              aiReceptionistEnabled: false,
+              aiVoiceReceptionistEnabled: false,
+              aiOutboundEnabled: false,
             },
             modules: [
               {

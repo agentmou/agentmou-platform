@@ -11,7 +11,11 @@
 
 const API_BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:3001';
 
-async function postWebhook(path: string, body: Record<string, unknown>, contentType = 'application/json') {
+async function postWebhook(
+  path: string,
+  body: Record<string, unknown>,
+  contentType = 'application/json'
+) {
   const isForm = contentType.includes('form-urlencoded');
   const bodyPayload = isForm
     ? new URLSearchParams(Object.fromEntries(Object.entries(body).map(([k, v]) => [k, String(v)])))

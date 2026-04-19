@@ -13,9 +13,7 @@ export default function FrozenTenantPage() {
     <div className="flex min-h-[70vh] items-center justify-center px-6 py-12">
       <Card className="w-full max-w-lg border-border/70 bg-background/95 shadow-xl">
         <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl font-semibold tracking-tight">
-            Cuenta congelada
-          </CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Cuenta congelada</CardTitle>
           <CardDescription>
             El acceso a {tenantName} está congelado temporalmente. La consola admin global sigue
             pudiendo gestionarlo, pero los usuarios del tenant no pueden entrar en el workspace.

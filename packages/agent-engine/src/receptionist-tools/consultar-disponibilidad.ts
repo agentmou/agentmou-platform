@@ -58,7 +58,9 @@ export const consultarDisponibilidad: ReceptionistToolDefinition = {
         )
       );
 
-    const busy = new Set(existing.map((appointment) => appointment.startsAt.toISOString().slice(0, 13)));
+    const busy = new Set(
+      existing.map((appointment) => appointment.startsAt.toISOString().slice(0, 13))
+    );
 
     const slots: string[] = [];
     const cursor = new Date(start);

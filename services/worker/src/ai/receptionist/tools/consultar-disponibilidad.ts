@@ -57,9 +57,7 @@ export const consultarDisponibilidad: ToolDefinition = {
         )
       );
 
-    const busy = new Set(
-      existing.map((a) => `${a.startsAt.toISOString().slice(0, 13)}`)
-    );
+    const busy = new Set(existing.map((a) => `${a.startsAt.toISOString().slice(0, 13)}`));
 
     const slots: string[] = [];
     const cursor = new Date(start);

@@ -59,9 +59,10 @@ export const guardarLead: ToolDefinition = {
         status: 'new_lead',
         isExisting: false,
         source: canal_origen ?? 'whatsapp',
-        notes: [servicio_interes ? `Interes: ${servicio_interes}` : '', notas]
-          .filter(Boolean)
-          .join(' | ') || null,
+        notes:
+          [servicio_interes ? `Interes: ${servicio_interes}` : '', notas]
+            .filter(Boolean)
+            .join(' | ') || null,
         lastInteractionAt: new Date(),
       })
       .returning();

@@ -304,7 +304,9 @@ export function AdminTenantDetailPage() {
       });
       refresh();
       toast.success(
-        nextStatus === 'frozen' ? 'Tenant congelado correctamente' : 'Tenant reactivado correctamente'
+        nextStatus === 'frozen'
+          ? 'Tenant congelado correctamente'
+          : 'Tenant reactivado correctamente'
       );
     } catch (error) {
       toast.error(getErrorMessage(error));

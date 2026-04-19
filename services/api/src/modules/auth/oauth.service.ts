@@ -3,7 +3,10 @@ import { db, users, tenants, memberships, userOauthStates, oauthLoginCodes } fro
 import { eq, and, lt } from 'drizzle-orm';
 import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
 import { createAuthSession } from '../../lib/auth-sessions.js';
-import { ensureCreatorAdminTenantForUser, sortAuthTenants } from '../../lib/platform-admin-tenant.js';
+import {
+  ensureCreatorAdminTenantForUser,
+  sortAuthTenants,
+} from '../../lib/platform-admin-tenant.js';
 import { findOrCreateUserFromOAuthProfile, type OAuthProfile } from './identity.service.js';
 import { isAllowedAuthCallbackUrl, parseWebOriginAllowlist } from './oauth-allowlist.js';
 import { normalizeTenantSettings } from '../tenants/tenants.mapper.js';

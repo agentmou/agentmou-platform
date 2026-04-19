@@ -147,9 +147,7 @@ export class ClinicWebhooksService {
     // Delegate to the shared tool registry. The import is dynamic to avoid
     // a hard dependency from API on the worker tool modules at startup.
     try {
-      const { executeReceptionistTool } = await import(
-        '../../lib/ai-tool-bridge.js'
-      );
+      const { executeReceptionistTool } = await import('../../lib/ai-tool-bridge.js');
       const toolResult = await executeReceptionistTool({
         tenantId: channel.tenantId,
         toolName: body.tool_name,
@@ -162,10 +160,7 @@ export class ClinicWebhooksService {
     }
   }
 
-  async handleRetellPostCall(
-    request: FastifyRequest,
-    signature?: string | null
-  ) {
+  async handleRetellPostCall(request: FastifyRequest, signature?: string | null) {
     const payload = toRecord(request.body);
     const callId = typeof payload.call_id === 'string' ? payload.call_id : undefined;
     const channel = callId ? await this.resolveRetellChannel(callId) : null;
@@ -237,7 +232,7 @@ export class ClinicWebhooksService {
     return { ok: true, duplicate: false, ignored: !channel?.tenantId };
   }
 
-  private async resolveRetellChannel(callId: string) {
+  private async resolveRetellChannel(_callId: string) {
     const channels = await db
       .select()
       .from(clinicChannels)

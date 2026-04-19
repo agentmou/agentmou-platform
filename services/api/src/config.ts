@@ -45,19 +45,6 @@ function normalizeOrigin(value: string, envName: string) {
   }
 }
 
-function readOptionalAbsoluteUrl(value: string | undefined, envName: string) {
-  const trimmed = value?.trim();
-  if (!trimmed) {
-    return undefined;
-  }
-
-  try {
-    return new URL(trimmed).toString();
-  } catch {
-    throw new Error(`${envName} must be a valid absolute URL`);
-  }
-}
-
 function parseOriginAllowlist(raw: string | undefined) {
   if (!raw?.trim()) {
     return [];

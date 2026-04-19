@@ -61,8 +61,9 @@ export const guardarLead: ReceptionistToolDefinition = {
         isExisting: false,
         source: canal_origen ?? 'whatsapp',
         notes:
-          [servicio_interes ? `Interes: ${servicio_interes}` : '', notas].filter(Boolean).join(' | ') ||
-          null,
+          [servicio_interes ? `Interes: ${servicio_interes}` : '', notas]
+            .filter(Boolean)
+            .join(' | ') || null,
         lastInteractionAt: new Date(),
       })
       .returning();

@@ -35,8 +35,7 @@ export async function loadAiSecrets(tenantId: string): Promise<AiSecrets> {
   return {
     openaiApiKey: byKey.get('openai_api_key') ?? process.env.OPENAI_API_KEY ?? null,
     retellApiKey: byKey.get('retell_api_key') ?? process.env.RETELL_API_KEY ?? null,
-    retellAgentId:
-      byKey.get('retell_agent_id') ?? process.env.RETELL_AGENT_ID_DEFAULT ?? null,
+    retellAgentId: byKey.get('retell_agent_id') ?? process.env.RETELL_AGENT_ID_DEFAULT ?? null,
     retellWebhookSecret:
       byKey.get('retell_webhook_secret') ?? process.env.RETELL_WEBHOOK_SECRET ?? null,
     elevenlabsVoiceId: byKey.get('elevenlabs_voice_id') ?? null,

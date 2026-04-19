@@ -63,6 +63,9 @@ describe('clinicExperienceRoutes', () => {
         reactivationEnabled: false,
         advancedClinicModeEnabled: false,
         internalPlatformVisible: true,
+        aiReceptionistEnabled: false,
+        aiVoiceReceptionistEnabled: false,
+        aiOutboundEnabled: false,
       },
       settingsSections: [
         'general',
@@ -122,6 +125,9 @@ describe('clinicExperienceRoutes', () => {
         reactivationEnabled: false,
         advancedClinicModeEnabled: false,
         internalPlatformVisible: false,
+        aiReceptionistEnabled: false,
+        aiVoiceReceptionistEnabled: false,
+        aiOutboundEnabled: false,
       },
       settingsSections: [
         'general',
@@ -180,6 +186,9 @@ describe('clinicExperienceRoutes', () => {
         reactivationEnabled: false,
         advancedClinicModeEnabled: false,
         internalPlatformVisible: false,
+        aiReceptionistEnabled: false,
+        aiVoiceReceptionistEnabled: false,
+        aiOutboundEnabled: false,
       },
       settingsSections: [
         'general',
@@ -236,6 +245,9 @@ describe('clinicExperienceRoutes', () => {
         reactivationEnabled: false,
         advancedClinicModeEnabled: false,
         internalPlatformVisible: false,
+        aiReceptionistEnabled: false,
+        aiVoiceReceptionistEnabled: false,
+        aiOutboundEnabled: false,
       },
       modules: [
         {
