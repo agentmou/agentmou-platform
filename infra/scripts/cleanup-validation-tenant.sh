@@ -64,6 +64,21 @@ if [ -z "$REDIS_IP" ]; then
   fail "Could not resolve the Redis container IP"
 fi
 
+POSTGRES_CONTAINER_ID=$(docker compose -f "$COMPOSE_FILE" ps -q postgres)
+if [ -z "$POSTGRES_CONTAINER_ID" ]; then
+  fail "Postgres container is not running. Start the production stack first."
+fi
+
+# Resolve the Postgres container IP dynamically instead of relying on the
+# compose-mapped host port. The VPS may have a native Postgres listening on
+# 0.0.0.0:5432 (observed April 2026), which wins the race and leaves the
+# container's HostConfig binding orphaned — host → 127.0.0.1:5432 reaches the
+# wrong server and hangs during authentication.
+POSTGRES_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$POSTGRES_CONTAINER_ID" 2>/dev/null)
+if [ -z "$POSTGRES_IP" ]; then
+  fail "Could not resolve the Postgres container IP"
+fi
+
 if [ -z "${POSTGRES_USER:-}" ] || [ -z "${POSTGRES_PASSWORD:-}" ] || [ -z "${POSTGRES_DB:-}" ]; then
   fail "POSTGRES_USER, POSTGRES_PASSWORD, and POSTGRES_DB must be set in $ENV_FILE"
 fi
@@ -72,7 +87,7 @@ if [ -z "${N8N_EDITOR_BASE_URL:-}" ]; then
   fail "N8N_EDITOR_BASE_URL must be set in $ENV_FILE"
 fi
 
-export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}"
+export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_IP}:5432/${POSTGRES_DB}"
 export REDIS_URL="redis://${REDIS_IP}:6379"
 export N8N_API_URL="${N8N_EDITOR_BASE_URL%/}/api/v1"
 

@@ -504,24 +504,57 @@ step "Step 8/8 - Live E2E triage against the public API"
 if [ "${SKIP_E2E_TRIAGE:-0}" = "1" ]; then
   warn "SKIP_E2E_TRIAGE=1; skipping live E2E triage"
 else
+  # Ensure pnpm is on PATH. pnpm is typically installed via the standalone
+  # script and lives under ~/.local/share/pnpm, which isn't in non-interactive
+  # login shells on the VPS.
+  if [ -n "${PNPM_HOME:-}" ]; then
+    :
+  elif [ -d "$HOME/.local/share/pnpm" ]; then
+    export PNPM_HOME="$HOME/.local/share/pnpm"
+  fi
+  if [ -n "${PNPM_HOME:-}" ]; then
+    case ":$PATH:" in
+      *:"$PNPM_HOME":*) ;;
+      *) export PATH="$PNPM_HOME:$PATH" ;;
+    esac
+  fi
+
   if ! command -v pnpm >/dev/null 2>&1; then
     warn "pnpm not available on PATH; skipping live E2E triage"
   else
-    (
-      cd "$REPO_ROOT"
-      API_URL="https://${API_HOST}" pnpm -s ops:smoke-e2e-live
-    ) || fail "Live E2E triage failed — prod is serving traffic but the vertical slice is broken"
-    ok "Live E2E triage passed"
+    # Resolve Postgres + Redis container IPs — the VPS may have native
+    # services on 0.0.0.0:5432 / 0.0.0.0:6379 that shadow the compose host
+    # port bindings, leaving host connections hanging (see
+    # cleanup-validation-tenant.sh).
+    POSTGRES_CONTAINER_ID=$(docker compose "${COMPOSE_ARGS[@]}" ps -q postgres)
+    REDIS_CONTAINER_ID=$(docker compose "${COMPOSE_ARGS[@]}" ps -q redis)
+    POSTGRES_IP=""
+    REDIS_IP=""
+    if [ -n "$POSTGRES_CONTAINER_ID" ]; then
+      POSTGRES_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$POSTGRES_CONTAINER_ID" 2>/dev/null || true)
+    fi
+    if [ -n "$REDIS_CONTAINER_ID" ]; then
+      REDIS_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$REDIS_CONTAINER_ID" 2>/dev/null || true)
+    fi
 
+    triage_args=()
     if [ "${SKIP_E2E_CLEANUP:-0}" = "1" ]; then
-      warn "SKIP_E2E_CLEANUP=1; validation tenant retained for inspection"
+      warn "SKIP_E2E_CLEANUP=1; triage will skip internal-vertical steps and leave fixture in DB"
     else
-      if bash "$REPO_ROOT/infra/scripts/cleanup-validation-tenant.sh" >/dev/null 2>&1; then
-        ok "Validation tenant cleaned up"
+      if [ -z "$POSTGRES_IP" ] || [ -z "$REDIS_IP" ]; then
+        warn "Could not resolve Postgres/Redis container IPs; triage will run in light-smoke mode"
       else
-        warn "Cleanup of validation tenant failed; run pnpm cleanup:validation-tenant manually"
+        triage_args+=(--cleanup)
+        export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_IP}:5432/${POSTGRES_DB}"
+        export REDIS_URL="redis://${REDIS_IP}:6379"
       fi
     fi
+
+    (
+      cd "$REPO_ROOT"
+      API_URL="https://${API_HOST}" pnpm tsx scripts/test-e2e-triage.ts "${triage_args[@]}"
+    ) || fail "Live E2E triage failed — prod is serving traffic but the vertical slice is broken"
+    ok "Live E2E triage passed"
   fi
 fi
 
