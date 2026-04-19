@@ -183,6 +183,7 @@ export function resolveTenantRouteRedirect({
 
 interface AppRootTenantLike {
   id: string;
+  status?: 'active' | 'frozen';
   settings?: {
     activeVertical?: 'internal' | 'clinic' | 'fisio';
     verticalClinicUi?: boolean;
@@ -193,11 +194,17 @@ export function resolveAppRootRedirect(params: {
   tenants: AppRootTenantLike[];
   activeTenantId?: string | null;
 }) {
+  const activeTenants = params.tenants.filter((tenant) => tenant.status !== 'frozen');
+  const candidates = activeTenants.length > 0 ? activeTenants : params.tenants;
   const activeTenant =
-    params.tenants.find((tenant) => tenant.id === params.activeTenantId) ?? params.tenants[0];
+    candidates.find((tenant) => tenant.id === params.activeTenantId) ?? candidates[0];
 
   if (!activeTenant) {
     return getTenantDefaultHref('demo-workspace', 'clinic');
+  }
+
+  if (activeTenant.status === 'frozen') {
+    return `/app/frozen?tenantId=${encodeURIComponent(activeTenant.id)}`;
   }
 
   return getTenantDefaultHref(activeTenant.id, activeTenant.settings);

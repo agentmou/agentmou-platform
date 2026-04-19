@@ -20,9 +20,17 @@ export const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
 });
 
+export const resendVerificationSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+
 export const resetPasswordSchema = z.object({
   token: z.string().min(16, 'Invalid token'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+export const verifyEmailSchema = z.object({
+  token: z.string().min(16, 'Invalid token'),
 });
 
 export const refreshSchema = z.object({
@@ -39,6 +47,8 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type OauthExchangeInput = z.infer<typeof oauthExchangeSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type RefreshInput = z.infer<typeof refreshSchema>;
 export type TokenResponse = z.infer<typeof tokenResponseSchema>;

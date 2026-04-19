@@ -10,6 +10,8 @@ const { mockService } = vi.hoisted(() => ({
     getCurrentUser: vi.fn(),
     logout: vi.fn(),
     forgotPassword: vi.fn(),
+    resendVerification: vi.fn(),
+    verifyEmail: vi.fn(),
     resetPassword: vi.fn(),
   },
 }));
@@ -43,6 +45,7 @@ describe('authRoutes', () => {
         id: 'user-1',
         email: 'owner@example.com',
         name: 'Owner',
+        emailVerified: true,
       },
       tenants: [],
       session: null,
@@ -74,6 +77,7 @@ describe('authRoutes', () => {
         id: 'user-1',
         email: 'owner@example.com',
         name: 'Owner',
+        emailVerified: true,
       },
       tenants: [],
       session: null,
@@ -90,6 +94,7 @@ describe('authRoutes', () => {
         id: 'user-1',
         email: 'owner@example.com',
         name: 'Owner',
+        emailVerified: true,
         tenants: [],
       },
       session: null,
@@ -115,6 +120,7 @@ describe('authRoutes', () => {
         id: 'user-1',
         email: 'owner@example.com',
         name: 'Owner',
+        emailVerified: true,
         tenants: [],
       },
       session: null,
@@ -129,6 +135,7 @@ describe('authRoutes', () => {
         id: 'user-target',
         email: 'target@example.com',
         name: 'Target User',
+        emailVerified: true,
         tenants: [],
       },
       session: {
@@ -199,6 +206,44 @@ describe('authRoutes', () => {
 
     expect(response.statusCode).toBe(200);
     expect(mockService.forgotPassword).toHaveBeenCalledWith('owner@example.com');
+    expect(response.json()).toEqual({ ok: true });
+
+    await app.close();
+  });
+
+  it('accepts resend-verification requests with a generic ok response', async () => {
+    mockService.resendVerification.mockResolvedValue({ ok: true });
+
+    const app = await buildAuthRoutesApp();
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/resend-verification',
+      payload: {
+        email: 'owner@example.com',
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(mockService.resendVerification).toHaveBeenCalledWith('owner@example.com');
+    expect(response.json()).toEqual({ ok: true });
+
+    await app.close();
+  });
+
+  it('accepts verify-email requests and forwards the token', async () => {
+    mockService.verifyEmail.mockResolvedValue({ ok: true });
+
+    const app = await buildAuthRoutesApp();
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/verify-email',
+      payload: {
+        token: 'a'.repeat(32),
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(mockService.verifyEmail).toHaveBeenCalledWith('a'.repeat(32));
     expect(response.json()).toEqual({ ok: true });
 
     await app.close();

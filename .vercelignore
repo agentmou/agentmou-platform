@@ -1,0 +1,17 @@
+.git
+.claude
+.codex
+.cursor
+.pnpm-store
+.turbo
+node_modules
+postgres
+redis
+n8n
+uptime-kuma
+traefik/letsencrypt
+backups/out
+**/.next
+**/test-results
+**/playwright-report
+**/.playwright

@@ -16,6 +16,7 @@ import {
   Pencil,
   Plus,
   Shield,
+  Snowflake,
   Trash2,
   UserPlus,
   Users,
@@ -290,6 +291,30 @@ export function AdminTenantDetailPage() {
     }
   }, [adminTenantId, detail, managedTenantId, provider, refresh, verticalDraft]);
 
+  const handleToggleStatus = React.useCallback(async () => {
+    if (!detail) {
+      return;
+    }
+
+    const nextStatus = detail.status === 'active' ? 'frozen' : 'active';
+    setIsSubmitting('change-status');
+    try {
+      await provider.changeAdminTenantStatus(adminTenantId, managedTenantId, {
+        status: nextStatus,
+      });
+      refresh();
+      toast.success(
+        nextStatus === 'frozen'
+          ? 'Tenant congelado correctamente'
+          : 'Tenant reactivado correctamente'
+      );
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setIsSubmitting(null);
+    }
+  }, [adminTenantId, detail, managedTenantId, provider, refresh]);
+
   const handleStartImpersonation = React.useCallback(async () => {
     if (!impersonationUser) {
       return;
@@ -393,6 +418,14 @@ export function AdminTenantDetailPage() {
             <ArrowRightLeft className="h-4 w-4" />
             Cambiar vertical
           </Button>
+          <Button
+            variant={detail.status === 'frozen' ? 'default' : 'outline'}
+            onClick={handleToggleStatus}
+            disabled={isSubmitting === 'change-status'}
+          >
+            <Snowflake className="h-4 w-4" />
+            {detail.status === 'frozen' ? 'Descongelar tenant' : 'Congelar tenant'}
+          </Button>
           <Button onClick={() => setCreateOpen(true)}>
             <UserPlus className="h-4 w-4" />
             Crear usuario
@@ -429,6 +462,17 @@ export function AdminTenantDetailPage() {
             <div className="space-y-1">
               <p className="text-text-muted text-xs uppercase tracking-[0.12em]">Users</p>
               <p className="text-text-primary text-sm font-medium">{detail.userCount}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-text-muted text-xs uppercase tracking-[0.12em]">Estado</p>
+              {detail.status === 'frozen' ? (
+                <Badge tone="warning" className="gap-1">
+                  <Snowflake className="h-3 w-3" aria-hidden />
+                  Frozen
+                </Badge>
+              ) : (
+                <Badge tone="success">Active</Badge>
+              )}
             </div>
             <div className="space-y-1">
               <p className="text-text-muted text-xs uppercase tracking-[0.12em]">Flags</p>
@@ -515,6 +559,7 @@ export function AdminTenantDetailPage() {
                         size="sm"
                         variant="outline"
                         aria-label={`Impersonar ${user.name ?? user.email}`}
+                        disabled={detail.status === 'frozen'}
                         onClick={() => {
                           setImpersonationUser(user);
                           setImpersonationReason('');
@@ -590,8 +635,8 @@ export function AdminTenantDetailPage() {
           <DialogHeader>
             <DialogTitle>Crear usuario del tenant</DialogTitle>
             <DialogDescription>
-              Crea una membership tenant-scoped. Si el usuario es nuevo, devolvemos tambien el
-              activation payload para que pueda terminar su alta.
+              Crea una membership tenant-scoped. Si el usuario no tiene contraseña, enviaremos un
+              email de activación con Resend.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -632,6 +677,12 @@ export function AdminTenantDetailPage() {
               </Select>
             </div>
             <MutationAlert result={activation} />
+            {!activation ? (
+              <p className="text-sm text-muted-foreground">
+                En producción el alta se completa por email; el enlace manual solo aparece en
+                entornos no productivos.
+              </p>
+            ) : null}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>

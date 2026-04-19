@@ -12,8 +12,8 @@ describe('getApiConfig', () => {
   const originalGoogleOauthRedirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URI;
   const originalMicrosoftOauthRedirectUri = process.env.MICROSOFT_OAUTH_REDIRECT_URI;
   const originalGoogleRedirectUri = process.env.GOOGLE_REDIRECT_URI;
-  const originalPasswordResetWebhookUrl = process.env.PASSWORD_RESET_WEBHOOK_URL;
-  const originalPasswordResetWebhookToken = process.env.PASSWORD_RESET_WEBHOOK_TOKEN;
+  const originalResendApiKey = process.env.RESEND_API_KEY;
+  const originalResendFromEmail = process.env.RESEND_FROM_EMAIL;
 
   afterEach(() => {
     process.env.NODE_ENV = originalNodeEnv;
@@ -25,8 +25,8 @@ describe('getApiConfig', () => {
     process.env.GOOGLE_OAUTH_REDIRECT_URI = originalGoogleOauthRedirectUri;
     process.env.MICROSOFT_OAUTH_REDIRECT_URI = originalMicrosoftOauthRedirectUri;
     process.env.GOOGLE_REDIRECT_URI = originalGoogleRedirectUri;
-    process.env.PASSWORD_RESET_WEBHOOK_URL = originalPasswordResetWebhookUrl;
-    process.env.PASSWORD_RESET_WEBHOOK_TOKEN = originalPasswordResetWebhookToken;
+    process.env.RESEND_API_KEY = originalResendApiKey;
+    process.env.RESEND_FROM_EMAIL = originalResendFromEmail;
   });
 
   it('exposes the renamed public origin fields', () => {
@@ -41,16 +41,16 @@ describe('getApiConfig', () => {
     process.env.MICROSOFT_OAUTH_REDIRECT_URI =
       'https://api.agentmou.io/api/v1/auth/oauth/microsoft/callback';
     process.env.GOOGLE_REDIRECT_URI = 'https://api.agentmou.io/api/v1/oauth/callback';
-    process.env.PASSWORD_RESET_WEBHOOK_URL = 'https://hooks.agentmou.io/password-reset';
-    process.env.PASSWORD_RESET_WEBHOOK_TOKEN = 'reset-webhook-secret';
+    process.env.RESEND_API_KEY = 're_test_key';
+    process.env.RESEND_FROM_EMAIL = 'no-reply@agentmou.io';
 
     expect(getApiConfig()).toMatchObject({
       corsOrigin: 'https://app.agentmou.io',
       marketingPublicBaseUrl: 'https://agentmou.io',
       appPublicBaseUrl: 'https://app.agentmou.io',
       apiPublicBaseUrl: 'https://api.agentmou.io',
-      passwordResetWebhookUrl: 'https://hooks.agentmou.io/password-reset',
-      passwordResetWebhookToken: 'reset-webhook-secret',
+      resendApiKey: 're_test_key',
+      resendFromEmail: 'no-reply@agentmou.io',
     });
   });
 
@@ -95,7 +95,7 @@ describe('getApiConfig', () => {
     );
   });
 
-  it('rejects a production config when password reset delivery is not configured', () => {
+  it('rejects a production config when Resend is not configured', () => {
     process.env.NODE_ENV = 'production';
     process.env.CORS_ORIGIN = 'https://app.agentmou.io';
     process.env.MARKETING_PUBLIC_BASE_URL = 'https://agentmou.io';
@@ -107,8 +107,9 @@ describe('getApiConfig', () => {
     process.env.MICROSOFT_OAUTH_REDIRECT_URI =
       'https://api.agentmou.io/api/v1/auth/oauth/microsoft/callback';
     process.env.GOOGLE_REDIRECT_URI = 'https://api.agentmou.io/api/v1/oauth/callback';
-    process.env.PASSWORD_RESET_WEBHOOK_URL = '';
+    process.env.RESEND_API_KEY = '';
+    process.env.RESEND_FROM_EMAIL = 'no-reply@agentmou.io';
 
-    expect(() => getApiConfig()).toThrow('PASSWORD_RESET_WEBHOOK_URL must be set in production');
+    expect(() => getApiConfig()).toThrow('RESEND_API_KEY must be set in production');
   });
 });

@@ -474,9 +474,11 @@ class TwilioVoiceAdapter extends BaseTwilioAdapter implements ClinicChannelAdapt
 class RetellVoiceAdapter implements ClinicChannelAdapter {
   readonly provider = 'retell_voice';
   readonly channelType = 'voice' as const;
-  private readonly config = RetellVoiceConfigSchema.parse(this.channel.config ?? {});
+  private readonly config: ReturnType<typeof RetellVoiceConfigSchema.parse>;
 
-  constructor(private readonly channel: ClinicChannel) {}
+  constructor(private readonly channel: ClinicChannel) {
+    this.config = RetellVoiceConfigSchema.parse(channel.config ?? {});
+  }
 
   validateWebhookSignature(input: ClinicWebhookParseInput): boolean {
     const secret = this.config.signingSecret ?? process.env.RETELL_WEBHOOK_SECRET;
@@ -534,8 +536,7 @@ class RetellVoiceAdapter implements ClinicChannelAdapter {
       });
     }
 
-    const fromNumber =
-      this.config.fromNumber ?? this.channel.phoneNumber ?? undefined;
+    const fromNumber = this.config.fromNumber ?? this.channel.phoneNumber ?? undefined;
 
     const response = await fetch('https://api.retellai.com/v2/create-phone-call', {
       method: 'POST',

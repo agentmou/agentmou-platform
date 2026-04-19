@@ -36,6 +36,9 @@ describe('buildClinicDemoSeedFixture', () => {
     const threadKeys = new Set(fixture.threads.map((thread) => thread.key));
     const appointmentKeys = new Set(fixture.appointments.map((appointment) => appointment.key));
     const campaignKeys = new Set(fixture.campaigns.map((campaign) => campaign.key));
+    const connectorKeys = new Set<string>(
+      fixture.connectorAccounts.map((connector) => connector.key)
+    );
 
     expect(
       fixture.formSubmissions.every(
@@ -57,5 +60,6 @@ describe('buildClinicDemoSeedFixture', () => {
             appointmentKeys.has(recipient.generatedAppointmentKey))
       )
     ).toBe(true);
+    expect(fixture.channels.every((channel) => connectorKeys.has(channel.key))).toBe(true);
   });
 });

@@ -3,6 +3,10 @@ import { db, users, tenants, memberships, userOauthStates, oauthLoginCodes } fro
 import { eq, and, lt } from 'drizzle-orm';
 import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
 import { createAuthSession } from '../../lib/auth-sessions.js';
+import {
+  ensureCreatorAdminTenantForUser,
+  sortAuthTenants,
+} from '../../lib/platform-admin-tenant.js';
 import { findOrCreateUserFromOAuthProfile, type OAuthProfile } from './identity.service.js';
 import { isAllowedAuthCallbackUrl, parseWebOriginAllowlist } from './oauth-allowlist.js';
 import { normalizeTenantSettings } from '../tenants/tenants.mapper.js';
@@ -256,11 +260,12 @@ export async function completeB2cOAuthCallback(
 }
 
 export async function exchangeOAuthLoginCode(plainCode: string): Promise<{
-  user: { id: string; email: string; name: string | null };
+  user: { id: string; email: string; name: string | null; emailVerified: boolean };
   tenants: {
     id: string;
     name: string;
     plan: string;
+    status: string;
     role?: string;
     settings?: unknown;
   }[];
@@ -293,6 +298,7 @@ export async function exchangeOAuthLoginCode(plainCode: string): Promise<{
       id: users.id,
       email: users.email,
       name: users.name,
+      emailVerifiedAt: users.emailVerifiedAt,
     })
     .from(users)
     .where(eq(users.id, row.userId))
@@ -302,11 +308,17 @@ export async function exchangeOAuthLoginCode(plainCode: string): Promise<{
     throw Object.assign(new Error('User not found'), { statusCode: 404 });
   }
 
+  await ensureCreatorAdminTenantForUser({
+    userId: user.id,
+    email: user.email,
+  });
+
   const userTenants = await db
     .select({
       id: tenants.id,
       name: tenants.name,
       plan: tenants.plan,
+      status: tenants.status,
       role: memberships.role,
       settings: tenants.settings,
     })
@@ -324,8 +336,9 @@ export async function exchangeOAuthLoginCode(plainCode: string): Promise<{
       id: user.id,
       email: user.email,
       name: user.name ?? null,
+      emailVerified: Boolean(user.emailVerifiedAt),
     },
-    tenants: userTenants.map((tenant) => ({
+    tenants: sortAuthTenants(userTenants).map((tenant) => ({
       ...tenant,
       role: normalizeTenantMembershipRole(tenant.role),
       settings: normalizeTenantSettings(tenant.settings),

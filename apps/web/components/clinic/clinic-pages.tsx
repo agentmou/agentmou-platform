@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { Activity, CalendarDays, MessageCircleMore, RefreshCw, Search, Users } from 'lucide-react';
-import type { ConversationThreadDetail } from '@agentmou/contracts';
+import type { ClinicDashboard, ConversationThreadDetail } from '@agentmou/contracts';
 
 import {
   AppointmentBoard,
@@ -31,7 +31,7 @@ import {
 import { useProviderQuery } from '@/lib/data/use-provider-query';
 import { hasClinicNavigationAccess, useTenantExperience } from '@/lib/tenant-experience';
 
-const emptyDashboard = {
+const emptyDashboard: ClinicDashboard = {
   tenantId: '',
   generatedAt: '',
   kpis: {

@@ -34,6 +34,7 @@ export const tenants: Tenant[] = [
     name: 'Demo Workspace',
     type: 'business',
     plan: 'pro',
+    status: 'active',
     createdAt: '2024-01-01T00:00:00Z',
     ownerId: 'demo-user',
     settings: {
@@ -54,6 +55,7 @@ export const tenants: Tenant[] = [
     name: 'Acme Corp',
     type: 'business',
     plan: 'pro',
+    status: 'active',
     createdAt: '2024-01-15T10:00:00Z',
     ownerId: 'user-1',
     settings: {
@@ -74,6 +76,7 @@ export const tenants: Tenant[] = [
     name: 'My Workspace',
     type: 'personal',
     plan: 'starter',
+    status: 'active',
     createdAt: '2024-02-20T14:30:00Z',
     ownerId: 'user-1',
     settings: {
@@ -94,6 +97,7 @@ export const tenants: Tenant[] = [
     name: 'Fisio Pilot Workspace',
     type: 'business',
     plan: 'starter',
+    status: 'active',
     createdAt: '2024-03-01T09:00:00Z',
     ownerId: 'user-2',
     settings: {

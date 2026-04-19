@@ -81,12 +81,7 @@ export async function loadReceptionistContext(params: {
   const upcoming = await db
     .select({ startsAt: appointments.startsAt })
     .from(appointments)
-    .where(
-      and(
-        eq(appointments.tenantId, params.tenantId),
-        gte(appointments.startsAt, now),
-      )
-    )
+    .where(and(eq(appointments.tenantId, params.tenantId), gte(appointments.startsAt, now)))
     .orderBy(appointments.startsAt)
     .limit(20);
 
@@ -98,7 +93,11 @@ export async function loadReceptionistContext(params: {
     const h = cursor.getHours();
     if (h >= 9 && h < 18 && cursor.getDay() >= 1 && cursor.getDay() <= 5) {
       if (!busyHours.has(cursor.toISOString().slice(0, 13))) {
-        const day = cursor.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+        const day = cursor.toLocaleDateString('es-ES', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+        });
         slotLines.push(`${day} ${String(h).padStart(2, '0')}:00`);
       }
     }
@@ -110,7 +109,10 @@ export async function loadReceptionistContext(params: {
   if (bh && typeof bh === 'object') {
     const days = Object.entries(bh)
       .filter(([, windows]) => Array.isArray(windows) && windows.length > 0)
-      .map(([day, windows]) => `${day}: ${(windows as Array<{start:string;end:string}>).map((w) => `${w.start}-${w.end}`).join(', ')}`)
+      .map(
+        ([day, windows]) =>
+          `${day}: ${(windows as Array<{ start: string; end: string }>).map((w) => `${w.start}-${w.end}`).join(', ')}`
+      )
       .join('; ');
     if (days) businessHoursSummary = days;
   }
@@ -125,9 +127,7 @@ export async function loadReceptionistContext(params: {
     patientName,
     patientId: params.patientId ?? null,
     isExistingPatient,
-    availableSlotsSummary: slotLines.length
-      ? `Proximos huecos:\n${slotLines.join('\n')}`
-      : '',
+    availableSlotsSummary: slotLines.length ? `Proximos huecos:\n${slotLines.join('\n')}` : '',
     persona: (aiConfig?.persona as string) ?? null,
     modelWhatsapp: aiConfig?.modelWhatsapp ?? 'gpt-4.1-mini',
     modelVoice: aiConfig?.modelVoice ?? 'gpt-4.1-mini',

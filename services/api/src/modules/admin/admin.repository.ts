@@ -52,6 +52,7 @@ function mapAdminTenantSummary(
     name: tenant.name,
     type: tenant.type as AdminTenantSummary['type'],
     plan: tenant.plan as AdminTenantSummary['plan'],
+    status: tenant.status as AdminTenantSummary['status'],
     ownerId: tenant.ownerId,
     createdAt: tenant.createdAt.toISOString(),
     activeVertical: settings.activeVertical,
@@ -365,6 +366,19 @@ export class AdminRepository {
       .where(eq(tenants.id, tenantId));
 
     return settings;
+  }
+
+  async updateTenantStatus(tenantId: string, status: AdminTenantSummary['status']) {
+    const [tenant] = await db
+      .update(tenants)
+      .set({
+        status,
+        updatedAt: new Date(),
+      })
+      .where(eq(tenants.id, tenantId))
+      .returning();
+
+    return tenant ?? null;
   }
 
   async ensureTenantVerticalConfig(tenantId: string, verticalKey: VerticalKey) {

@@ -34,12 +34,14 @@ describe('auth store', () => {
         id: 'user-1',
         email: 'owner@example.com',
         name: 'Owner',
+        emailVerified: true,
       },
       tenants: [
         {
           id: 'tenant-1',
           name: 'Demo Workspace',
           plan: 'enterprise',
+          status: 'active',
           role: 'admin',
         },
       ],
@@ -83,11 +85,13 @@ describe('auth store', () => {
         id: 'user-target',
         email: 'target@example.com',
         name: 'Target',
+        emailVerified: true,
         tenants: [
           {
             id: 'tenant-target',
             name: 'Target Clinic',
             plan: 'pro',
+            status: 'active',
             role: 'operator',
           },
         ],
@@ -120,8 +124,10 @@ describe('auth store', () => {
   it('clearSession wipes local state without calling the API', async () => {
     const { useAuthStore } = await loadStore();
     useAuthStore.setState({
-      user: { id: 'user-1', email: 'owner@example.com', name: 'Owner' },
-      tenants: [{ id: 'tenant-1', name: 'Demo', plan: 'enterprise', role: 'admin' }],
+      user: { id: 'user-1', email: 'owner@example.com', name: 'Owner', emailVerified: true },
+      tenants: [
+        { id: 'tenant-1', name: 'Demo', plan: 'enterprise', status: 'active', role: 'admin' },
+      ],
       activeTenantId: 'tenant-1',
       session: null,
       isLoading: false,

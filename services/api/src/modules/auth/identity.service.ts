@@ -78,6 +78,7 @@ export async function findOrCreateUserFromOAuthProfile(
         email,
         name: displayName,
         passwordHash: null,
+        emailVerifiedAt: new Date(),
       })
       .returning({ id: users.id, email: users.email });
 
@@ -95,6 +96,7 @@ export async function findOrCreateUserFromOAuthProfile(
         name: `${displayName}'s Workspace`,
         type: 'business',
         plan: 'free',
+        status: 'active',
         ownerId: user.id,
         settings: normalizeTenantSettings(
           {

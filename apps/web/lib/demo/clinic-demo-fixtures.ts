@@ -1962,6 +1962,9 @@ export function buildClinicDemoDataset(
       reactivationEnabled: true,
       advancedClinicModeEnabled: false,
       internalPlatformVisible: false,
+      aiReceptionistEnabled: false,
+      aiVoiceReceptionistEnabled: false,
+      aiOutboundEnabled: false,
     },
     featureDecisions: {
       voiceInboundEnabled: {
@@ -2019,6 +2022,24 @@ export function buildClinicDemoDataset(
         source: 'internal_access',
         reason: 'hidden_internal_only',
       },
+      aiReceptionistEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'core_reception',
+      },
+      aiVoiceReceptionistEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'voice',
+      },
+      aiOutboundEnabled: {
+        enabled: false,
+        source: 'entitlement',
+        reason: 'not_in_plan',
+        moduleKey: 'growth',
+      },
     },
     settingsSections: [
       'general',
@@ -2061,6 +2082,9 @@ export function buildClinicDemoDataset(
       reactivationEnabled: tenantExperience.flags.reactivationEnabled,
       advancedClinicModeEnabled: tenantExperience.flags.advancedClinicModeEnabled,
       internalPlatformVisible: tenantExperience.flags.internalPlatformVisible,
+      aiReceptionistEnabled: tenantExperience.flags.aiReceptionistEnabled,
+      aiVoiceReceptionistEnabled: tenantExperience.flags.aiVoiceReceptionistEnabled,
+      aiOutboundEnabled: tenantExperience.flags.aiOutboundEnabled,
     },
     modules: tenantExperience.modules,
     allowedNavigation: tenantExperience.allowedNavigation.filter(

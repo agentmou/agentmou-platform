@@ -71,7 +71,10 @@ describe('RetellVoiceAdapter', () => {
 
     const result = adapter.validateWebhookSignature({
       url: 'https://example.com/webhook',
-      payload: { event: 'call_analyzed', call_id: 'call_abc' } as Record<string, string | number | boolean | null | undefined>,
+      payload: { event: 'call_analyzed', call_id: 'call_abc' } as Record<
+        string,
+        string | number | boolean | null | undefined
+      >,
       signature: 'invalid-hex',
     });
 

@@ -8,6 +8,7 @@
 import type { DataProvider } from './provider';
 import {
   changeAdminTenantVertical,
+  changeAdminTenantStatus,
   updateAdminTenantEnabledVerticals,
   createAdminTenantUser,
   deleteAdminTenantUser,
@@ -151,6 +152,8 @@ export const apiProvider: DataProvider = {
     deleteAdminTenantUser(adminTenantId, managedTenantId, userId),
   changeAdminTenantVertical: (adminTenantId, managedTenantId, body) =>
     changeAdminTenantVertical(adminTenantId, managedTenantId, body),
+  changeAdminTenantStatus: (adminTenantId, managedTenantId, body) =>
+    changeAdminTenantStatus(adminTenantId, managedTenantId, body),
   updateAdminTenantEnabledVerticals: (adminTenantId, managedTenantId, body) =>
     updateAdminTenantEnabledVerticals(adminTenantId, managedTenantId, body),
   startAdminImpersonation: (adminTenantId, managedTenantId, body) =>

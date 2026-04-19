@@ -51,31 +51,22 @@ export async function clinicWebhookRoutes(fastify: FastifyInstance) {
     return reply.send(result);
   });
 
-  fastify.post(
-    '/webhooks/retell/tool',
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      try {
-        const body = RetellToolCallWebhookPayloadSchema.parse(request.body);
-        const result = await service.handleRetellToolCall(
-          body,
-          getRetellSignature(request)
-        );
-        return reply.send(result);
-      } catch (error) {
-        return reply.send({
-          result: 'No he podido completar la accion, derivo con mi equipo.',
-        });
-      }
+  fastify.post('/webhooks/retell/tool', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const body = RetellToolCallWebhookPayloadSchema.parse(request.body);
+      const result = await service.handleRetellToolCall(body, getRetellSignature(request));
+      return reply.send(result);
+    } catch {
+      return reply.send({
+        result: 'No he podido completar la accion, derivo con mi equipo.',
+      });
     }
-  );
+  });
 
   fastify.post(
     '/webhooks/retell/post-call',
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const result = await service.handleRetellPostCall(
-        request,
-        getRetellSignature(request)
-      );
+      const result = await service.handleRetellPostCall(request, getRetellSignature(request));
       return reply.send(result);
     }
   );

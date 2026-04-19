@@ -76,3 +76,23 @@ export function buildClearedAuthCookie(options: ClearAuthCookieOptions = {}) {
     expires: new Date(0),
   };
 }
+
+export function buildClearedAuthCookies() {
+  const secure = shouldUseSecureAuthCookie();
+  const domain = resolveAuthCookieDomain();
+
+  return [
+    buildClearedAuthCookie({
+      secure,
+      domain: undefined,
+    }),
+    ...(domain
+      ? [
+          buildClearedAuthCookie({
+            secure,
+            domain,
+          }),
+        ]
+      : []),
+  ];
+}

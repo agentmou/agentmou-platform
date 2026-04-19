@@ -139,6 +139,7 @@ export function mapTenant(tenant: TenantRow): Tenant {
     name: tenant.name,
     type: tenant.type,
     plan: tenant.plan,
+    status: tenant.status,
     createdAt: tenant.createdAt.toISOString(),
     ownerId: tenant.ownerId,
     settings: normalizeTenantSettings(tenant.settings),

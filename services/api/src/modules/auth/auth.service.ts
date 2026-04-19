@@ -2,10 +2,11 @@ import { createHash } from 'node:crypto';
 import {
   adminImpersonationSessions,
   db,
+  emailVerificationTokens,
   memberships,
+  passwordResetTokens,
   tenants,
   users,
-  passwordResetTokens,
 } from '@agentmou/db';
 import { verifyToken, hashPassword, verifyPassword } from '@agentmou/auth';
 import { and, eq, isNull } from 'drizzle-orm';
@@ -18,6 +19,12 @@ import {
   revokeUserAuthSessions,
   type AuthenticatedRequestContext,
 } from '../../lib/auth-sessions.js';
+import { sendEmailVerificationEmail } from '../../lib/auth-email.js';
+import { issueEmailVerificationToken } from '../../lib/email-verification.js';
+import {
+  ensureCreatorAdminTenantForUser,
+  sortAuthTenants,
+} from '../../lib/platform-admin-tenant.js';
 import { normalizeTenantMembershipRole } from '../../lib/tenant-roles.js';
 import { issuePasswordResetToken } from '../../lib/password-reset.js';
 import { sendPasswordResetEmail } from '../../lib/password-reset-email.js';
@@ -32,12 +39,14 @@ interface AuthUserPayload {
   id: string;
   email: string;
   name: string | null;
+  emailVerified: boolean;
 }
 
 interface AuthTenantPayload {
   id: string;
   name: string;
   plan: string;
+  status: string;
   role?: string;
   settings?: unknown;
 }
@@ -62,16 +71,31 @@ interface RegisterResponse {
   user: AuthUserPayload;
   tenant: AuthTenantPayload;
   session: AuthSessionPayload | null;
-  cookieSession: AuthBrowserSessionCookie;
+  requiresEmailVerification: boolean;
+  emailVerificationSent: boolean;
 }
 
 export class AuthService {
   private async listUserTenants(userId: string): Promise<AuthTenantPayload[]> {
+    const [currentUser] = await db
+      .select({
+        email: users.email,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    await ensureCreatorAdminTenantForUser({
+      userId,
+      email: currentUser?.email ?? null,
+    });
+
     const userTenants = await db
       .select({
         id: tenants.id,
         name: tenants.name,
         plan: tenants.plan,
+        status: tenants.status,
         role: memberships.role,
         settings: tenants.settings,
       })
@@ -79,7 +103,7 @@ export class AuthService {
       .innerJoin(tenants, eq(memberships.tenantId, tenants.id))
       .where(eq(memberships.userId, userId));
 
-    return userTenants.map((tenant) => ({
+    return sortAuthTenants(userTenants).map((tenant) => ({
       ...tenant,
       role: normalizeTenantMembershipRole(tenant.role),
       settings: normalizeTenantSettings(tenant.settings),
@@ -115,6 +139,7 @@ export class AuthService {
             id: activeSession.user.id,
             email: activeSession.user.email,
             name: activeSession.user.name ?? null,
+            emailVerified: true,
           },
           authContext: activeSession.authContext,
         };
@@ -150,7 +175,12 @@ export class AuthService {
     }
 
     const [user] = await db
-      .select({ id: users.id, email: users.email, name: users.name })
+      .select({
+        id: users.id,
+        email: users.email,
+        name: users.name,
+        emailVerifiedAt: users.emailVerifiedAt,
+      })
       .from(users)
       .where(eq(users.id, payload.userId))
       .limit(1);
@@ -164,6 +194,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name ?? null,
+        emailVerified: Boolean(user.emailVerifiedAt),
       },
       authContext: {
         userId: payload.userId,
@@ -178,6 +209,20 @@ export class AuthService {
         targetTenantId: payload.targetTenantId ?? null,
       },
     };
+  }
+
+  private async sendVerificationEmail(params: {
+    userId: string;
+    email: string;
+    name?: string | null;
+  }) {
+    const issuedToken = await issueEmailVerificationToken(params.userId);
+    await sendEmailVerificationEmail({
+      email: params.email,
+      name: params.name ?? null,
+      link: issuedToken.link,
+      expiresAt: issuedToken.expiresAt,
+    });
   }
 
   async register(body: {
@@ -202,7 +247,12 @@ export class AuthService {
       const [user] = await tx
         .insert(users)
         .values({ email: normalizedEmail, name, passwordHash: pwHash })
-        .returning({ id: users.id, email: users.email, name: users.name });
+        .returning({
+          id: users.id,
+          email: users.email,
+          name: users.name,
+          emailVerifiedAt: users.emailVerifiedAt,
+        });
 
       const [tenant] = await tx
         .insert(tenants)
@@ -210,6 +260,7 @@ export class AuthService {
           name: `${name}'s Workspace`,
           type: 'business',
           plan: 'free',
+          status: 'active',
           ownerId: user.id,
           settings: normalizeTenantSettings(
             {
@@ -224,6 +275,7 @@ export class AuthService {
           id: tenants.id,
           name: tenants.name,
           plan: tenants.plan,
+          status: tenants.status,
           settings: tenants.settings,
         });
 
@@ -235,24 +287,36 @@ export class AuthService {
 
       return { user, tenant };
     });
-
-    const { session, token } = await createAuthSession({
-      userId: result.user.id,
-      sessionType: 'standard',
-    });
+    let emailVerificationSent = true;
+    try {
+      await this.sendVerificationEmail({
+        userId: result.user.id,
+        email: result.user.email,
+        name: result.user.name,
+      });
+    } catch (error) {
+      emailVerificationSent = false;
+      console.error('[auth] verification email delivery failed', {
+        userId: result.user.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
 
     return {
-      user: result.user,
+      user: {
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.name ?? null,
+        emailVerified: Boolean(result.user.emailVerifiedAt),
+      },
       tenant: {
         ...result.tenant,
         role: 'owner',
         settings: normalizeTenantSettings(result.tenant.settings),
       },
       session: null,
-      cookieSession: {
-        token,
-        expiresAt: session.expiresAt,
-      },
+      requiresEmailVerification: true,
+      emailVerificationSent,
     };
   }
 
@@ -277,6 +341,12 @@ export class AuthService {
       throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
     }
 
+    if (!user.emailVerifiedAt) {
+      throw Object.assign(new Error('Debes confirmar tu email antes de iniciar sesion'), {
+        statusCode: 403,
+      });
+    }
+
     const { session, token } = await createAuthSession({
       userId: user.id,
       sessionType: 'standard',
@@ -284,7 +354,12 @@ export class AuthService {
     });
 
     return {
-      user: { id: user.id, email: user.email, name: user.name ?? null },
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name ?? null,
+        emailVerified: Boolean(user.emailVerifiedAt),
+      },
       tenants: await this.listUserTenants(user.id),
       session: null,
       cookieSession: {
@@ -373,6 +448,68 @@ export class AuthService {
     return { ok: true as const };
   }
 
+  async verifyEmail(token: string) {
+    const tokenHash = createHash('sha256').update(token, 'utf8').digest('hex');
+    const [row] = await db
+      .select()
+      .from(emailVerificationTokens)
+      .where(eq(emailVerificationTokens.tokenHash, tokenHash))
+      .limit(1);
+
+    if (!row || row.consumedAt || row.expiresAt < new Date()) {
+      throw Object.assign(new Error('Invalid or expired verification token'), {
+        statusCode: 400,
+      });
+    }
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(users)
+        .set({
+          emailVerifiedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, row.userId));
+      await tx
+        .update(emailVerificationTokens)
+        .set({ consumedAt: new Date() })
+        .where(eq(emailVerificationTokens.id, row.id));
+    });
+
+    return { ok: true as const };
+  }
+
+  async resendVerification(email: string) {
+    const normalized = email.trim().toLowerCase();
+    const [user] = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        name: users.name,
+        emailVerifiedAt: users.emailVerifiedAt,
+      })
+      .from(users)
+      .where(eq(users.email, normalized))
+      .limit(1);
+
+    if (user && !user.emailVerifiedAt) {
+      try {
+        await this.sendVerificationEmail({
+          userId: user.id,
+          email: user.email,
+          name: user.name,
+        });
+      } catch (error) {
+        console.error('[auth] resend verification delivery failed', {
+          userId: user.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    return { ok: true as const };
+  }
+
   async resetPassword(token: string, password: string) {
     const tokenHash = createHash('sha256').update(token, 'utf8').digest('hex');
     const [row] = await db
@@ -391,7 +528,11 @@ export class AuthService {
     await db.transaction(async (tx) => {
       await tx
         .update(users)
-        .set({ passwordHash: pwHash, updatedAt: new Date() })
+        .set({
+          passwordHash: pwHash,
+          emailVerifiedAt: new Date(),
+          updatedAt: new Date(),
+        })
         .where(eq(users.id, row.userId));
       await tx
         .update(passwordResetTokens)

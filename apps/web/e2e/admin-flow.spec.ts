@@ -62,7 +62,7 @@ test.describe('admin console', () => {
 
     await expect(page).toHaveURL(/\/admin\/tenants\/managed-tenant-1\/features$/);
     await expect(page.getByRole('heading', { name: 'Resolución de features' })).toBeVisible();
-    // Plan baseline tab is the default; verify a known plan flag row renders.
-    await expect(page.getByText('plan.clinic.core_reception')).toBeVisible();
+    await expect(page.getByText('Decisiones por capability comercial')).toBeVisible();
+    await expect(page.getByRole('tab', { name: /plan baseline/i })).toBeVisible();
   });
 });

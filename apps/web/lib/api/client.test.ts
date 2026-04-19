@@ -86,6 +86,9 @@ describe('api client runtime parsing', () => {
               reactivationEnabled: false,
               advancedClinicModeEnabled: false,
               internalPlatformVisible: true,
+              aiReceptionistEnabled: false,
+              aiVoiceReceptionistEnabled: false,
+              aiOutboundEnabled: false,
             },
             settingsSections: [
               'general',

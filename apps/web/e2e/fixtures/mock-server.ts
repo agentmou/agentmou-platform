@@ -1,5 +1,6 @@
 import { createServer, type Server } from 'node:http';
 import { AddressInfo } from 'node:net';
+import { AdminTenantFeatureResolutionResponseSchema } from '@agentmou/contracts';
 
 /**
  * Tiny in-process mock of the Agentmou API surface.
@@ -26,6 +27,7 @@ const ADMIN_TENANT = {
   name: 'Agentmou Internal',
   type: 'business' as const,
   plan: 'enterprise' as const,
+  status: 'active' as const,
   ownerId: 'user-actor',
   createdAt: '2026-01-01T00:00:00.000Z',
   settings: {
@@ -48,6 +50,7 @@ const MANAGED_TENANT_SUMMARY = {
   name: 'Clínica Sonrisa',
   type: 'business' as const,
   plan: 'pro' as const,
+  status: 'active' as const,
   ownerId: 'user-clinic',
   createdAt: '2026-02-01T00:00:00.000Z',
   activeVertical: 'clinic' as const,
@@ -60,6 +63,7 @@ const ME_PAYLOAD = {
     id: 'user-actor',
     email: 'admin@agentmou.test',
     name: 'Admin Actor',
+    emailVerified: true,
     tenants: [ADMIN_TENANT],
   },
   session: null,
@@ -70,6 +74,7 @@ const LOGIN_PAYLOAD = {
     id: 'user-actor',
     email: 'admin@agentmou.test',
     name: 'Admin Actor',
+    emailVerified: true,
   },
   tenants: [ADMIN_TENANT],
   session: null,
@@ -124,7 +129,7 @@ const TENANT_USERS_PAYLOAD = {
   ],
 };
 
-const FEATURE_RESOLUTION_PAYLOAD = {
+const FEATURE_RESOLUTION_PAYLOAD = AdminTenantFeatureResolutionResponseSchema.parse({
   resolution: {
     tenantId: MANAGED_TENANT_SUMMARY.id,
     plan: 'pro' as const,
@@ -168,6 +173,9 @@ const FEATURE_RESOLUTION_PAYLOAD = {
       reactivationEnabled: false,
       advancedClinicModeEnabled: false,
       internalPlatformVisible: false,
+      aiReceptionistEnabled: true,
+      aiVoiceReceptionistEnabled: true,
+      aiOutboundEnabled: false,
     },
     decisions: [
       {
@@ -204,11 +212,14 @@ const FEATURE_RESOLUTION_PAYLOAD = {
       smartGapFillEnabled: { enabled: false, source: 'entitlement' },
       reactivationEnabled: { enabled: false, source: 'entitlement' },
       advancedClinicModeEnabled: { enabled: false, source: 'entitlement' },
+      aiReceptionistEnabled: { enabled: true, source: 'readiness' },
+      aiVoiceReceptionistEnabled: { enabled: true, source: 'readiness' },
+      aiOutboundEnabled: { enabled: false, source: 'entitlement' },
       internalPlatformVisible: { enabled: false, source: 'internal_access' },
       adminConsoleEnabled: { enabled: false, source: 'internal_access' },
     },
   },
-};
+});
 
 export interface MockApiServer {
   readonly url: string;

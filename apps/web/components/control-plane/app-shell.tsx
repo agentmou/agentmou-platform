@@ -96,6 +96,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
     name: t.name,
     type: 'business' as const,
     plan: t.plan as 'free' | 'starter' | 'pro' | 'scale' | 'enterprise',
+    status: t.status,
     createdAt: '',
     ownerId: authUser?.id ?? '',
     settings: {
@@ -118,6 +119,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
     name: 'Demo Workspace',
     type: 'business' as const,
     plan: 'free' as const,
+    status: 'active' as const,
     createdAt: '',
     ownerId: '',
     settings: {

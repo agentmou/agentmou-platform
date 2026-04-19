@@ -28,6 +28,13 @@ export {
 export { ApprovalGateManager, type ApprovalGate, type ApprovalRequest } from './approval-gates';
 export { RunLogger, type LogEntry, type RunMetrics, type RunStep } from './run-logger';
 export { TemplatesManager, type AgentTemplate } from './templates';
+export {
+  getOpenAiToolDefinitions,
+  toolRegistry,
+  type ReceptionistToolDefinition,
+  type ReceptionistToolHandlerContext,
+  type ReceptionistToolRegistry,
+} from './receptionist-tools/registry';
 
 /**
  * Runtime dependencies injected into the agent engine.

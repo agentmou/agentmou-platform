@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 import { AUTH_SESSION_COOKIE_NAME } from '@/lib/auth/constants';
-import { buildClearedAuthCookie } from '@/lib/auth/cookie';
+import { buildClearedAuthCookies } from '@/lib/auth/cookie';
 import { getApiUrl } from '@/lib/runtime/public-origins';
 
 /**
@@ -37,7 +37,9 @@ async function handleLogout(request: NextRequest): Promise<NextResponse> {
 
   const loginUrl = new URL('/login', request.nextUrl.origin);
   const response = NextResponse.redirect(loginUrl, 303);
-  response.cookies.set(buildClearedAuthCookie());
+  for (const cookie of buildClearedAuthCookies()) {
+    response.cookies.set(cookie);
+  }
   return response;
 }
 

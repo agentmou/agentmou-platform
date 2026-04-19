@@ -6,6 +6,7 @@ function createRepositoryMock() {
   return {
     listTenants: vi.fn(),
     getTenantDetail: vi.fn(),
+    updateTenantStatus: vi.fn(),
     updateTenantActiveVertical: vi.fn(),
     ensureTenantVerticalConfig: vi.fn(),
     listTenantEnabledVerticals: vi.fn(),
@@ -30,6 +31,7 @@ function createRepositoryMock() {
 function createDependenciesMock() {
   return {
     issuePasswordResetToken: vi.fn(),
+    sendUserActivationEmail: vi.fn(),
     recordAdminAuditEvent: vi.fn(),
     createAuthSession: vi.fn(),
     revokeAuthSessionById: vi.fn(),
@@ -54,6 +56,7 @@ describe('AdminService', () => {
           name: 'Demo Workspace',
           type: 'business',
           plan: 'enterprise',
+          status: 'active',
           ownerId: 'user-1',
           createdAt: '2026-04-01T10:00:00.000Z',
           activeVertical: 'internal',
@@ -90,6 +93,7 @@ describe('AdminService', () => {
         name: 'Dental Demo Clinic',
         type: 'business',
         plan: 'enterprise',
+        status: 'active',
         ownerId: 'user-1',
         createdAt: '2026-04-01T10:00:00.000Z',
         activeVertical: 'clinic',
@@ -114,6 +118,7 @@ describe('AdminService', () => {
         name: 'Dental Demo Clinic',
         type: 'business',
         plan: 'enterprise',
+        status: 'active',
         ownerId: 'user-1',
         createdAt: '2026-04-01T10:00:00.000Z',
         activeVertical: 'fisio',
@@ -159,6 +164,84 @@ describe('AdminService', () => {
     expect(tenant.activeVertical).toBe('fisio');
   });
 
+  it('changes the tenant status and audits the change', async () => {
+    const repository = createRepositoryMock();
+    const dependencies = createDependenciesMock();
+    repository.getTenantDetail
+      .mockResolvedValueOnce({
+        id: 'tenant-1',
+        name: 'Dental Demo Clinic',
+        type: 'business',
+        plan: 'enterprise',
+        status: 'active',
+        ownerId: 'user-1',
+        createdAt: '2026-04-01T10:00:00.000Z',
+        activeVertical: 'clinic',
+        isPlatformAdminTenant: false,
+        userCount: 4,
+        settings: {
+          timezone: 'Europe/Madrid',
+          defaultHITL: false,
+          logRetentionDays: 30,
+          memoryRetentionDays: 7,
+          activeVertical: 'clinic',
+          isPlatformAdminTenant: false,
+          settingsVersion: 2,
+          verticalClinicUi: true,
+          clinicDentalMode: true,
+          internalPlatformVisible: false,
+        },
+        verticalConfigs: [],
+      })
+      .mockResolvedValueOnce({
+        id: 'tenant-1',
+        name: 'Dental Demo Clinic',
+        type: 'business',
+        plan: 'enterprise',
+        status: 'frozen',
+        ownerId: 'user-1',
+        createdAt: '2026-04-01T10:00:00.000Z',
+        activeVertical: 'clinic',
+        isPlatformAdminTenant: false,
+        userCount: 4,
+        settings: {
+          timezone: 'Europe/Madrid',
+          defaultHITL: false,
+          logRetentionDays: 30,
+          memoryRetentionDays: 7,
+          activeVertical: 'clinic',
+          isPlatformAdminTenant: false,
+          settingsVersion: 2,
+          verticalClinicUi: true,
+          clinicDentalMode: true,
+          internalPlatformVisible: false,
+        },
+        verticalConfigs: [],
+      });
+
+    const service = new AdminService(repository as never, dependencies as never);
+    const tenant = await service.changeTenantStatus({
+      tenantId: 'tenant-1',
+      body: {
+        status: 'frozen',
+      },
+      actorUserId: 'user-admin',
+      actorTenantId: 'tenant-admin',
+    });
+
+    expect(repository.updateTenantStatus).toHaveBeenCalledWith('tenant-1', 'frozen');
+    expect(dependencies.recordAdminAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'admin.tenant.status_changed',
+        details: {
+          oldStatus: 'active',
+          newStatus: 'frozen',
+        },
+      })
+    );
+    expect(tenant.status).toBe('frozen');
+  });
+
   it('creates a new global user, membership, activation payload, and audit event', async () => {
     const repository = createRepositoryMock();
     const dependencies = createDependenciesMock();
@@ -192,6 +275,9 @@ describe('AdminService', () => {
       link: 'https://app.test/reset-password?token=reset-token',
       expiresAt: new Date('2026-04-13T11:00:00.000Z'),
     });
+    dependencies.sendUserActivationEmail.mockResolvedValue({
+      delivery: 'logged',
+    });
 
     const service = new AdminService(repository as never, dependencies as never);
     const response = await service.createTenantUser({
@@ -218,6 +304,12 @@ describe('AdminService', () => {
       token: 'reset-token',
       link: 'https://app.test/reset-password?token=reset-token',
       expiresAt: '2026-04-13T11:00:00.000Z',
+    });
+    expect(dependencies.sendUserActivationEmail).toHaveBeenCalledWith({
+      email: 'new@clinic.test',
+      name: 'New User',
+      link: 'https://app.test/reset-password?token=reset-token',
+      expiresAt: new Date('2026-04-13T11:00:00.000Z'),
     });
     expect(dependencies.recordAdminAuditEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -358,6 +450,31 @@ describe('AdminService', () => {
     const repository = createRepositoryMock();
     const dependencies = createDependenciesMock();
     dependencies.now.mockReturnValue(now);
+    repository.getTenantDetail.mockResolvedValue({
+      id: 'tenant-1',
+      name: 'Dental Demo Clinic',
+      type: 'business',
+      plan: 'enterprise',
+      status: 'active',
+      ownerId: 'user-1',
+      createdAt: '2026-04-01T10:00:00.000Z',
+      activeVertical: 'clinic',
+      isPlatformAdminTenant: false,
+      userCount: 4,
+      settings: {
+        timezone: 'Europe/Madrid',
+        defaultHITL: false,
+        logRetentionDays: 30,
+        memoryRetentionDays: 7,
+        activeVertical: 'clinic',
+        isPlatformAdminTenant: false,
+        settingsVersion: 2,
+        verticalClinicUi: true,
+        clinicDentalMode: true,
+        internalPlatformVisible: false,
+      },
+      verticalConfigs: [],
+    });
     repository.getUserById
       .mockResolvedValueOnce({
         id: 'user-target',
@@ -419,6 +536,52 @@ describe('AdminService', () => {
         action: 'admin.impersonation.started',
       })
     );
+  });
+
+  it('blocks impersonation when the tenant is frozen', async () => {
+    const repository = createRepositoryMock();
+    const dependencies = createDependenciesMock();
+    repository.getTenantDetail.mockResolvedValue({
+      id: 'tenant-1',
+      name: 'Frozen Clinic',
+      type: 'business',
+      plan: 'enterprise',
+      status: 'frozen',
+      ownerId: 'user-1',
+      createdAt: '2026-04-01T10:00:00.000Z',
+      activeVertical: 'clinic',
+      isPlatformAdminTenant: false,
+      userCount: 4,
+      settings: {
+        timezone: 'Europe/Madrid',
+        defaultHITL: false,
+        logRetentionDays: 30,
+        memoryRetentionDays: 7,
+        activeVertical: 'clinic',
+        isPlatformAdminTenant: false,
+        settingsVersion: 2,
+        verticalClinicUi: true,
+        clinicDentalMode: true,
+        internalPlatformVisible: false,
+      },
+      verticalConfigs: [],
+    });
+
+    const service = new AdminService(repository as never, dependencies as never);
+
+    await expect(
+      service.startImpersonation({
+        tenantId: 'tenant-1',
+        body: {
+          targetUserId: 'user-target',
+        },
+        actorUserId: 'user-admin',
+        actorTenantId: 'tenant-admin',
+      })
+    ).rejects.toMatchObject({
+      message: 'Frozen tenants cannot be impersonated',
+      statusCode: 409,
+    });
   });
 
   it('stops impersonation by restoring a fresh actor session', async () => {
@@ -525,6 +688,7 @@ describe('AdminService', () => {
       name: 'Acme',
       type: 'business',
       plan: 'pro',
+      status: 'active',
       ownerId: 'user-1',
       createdAt: '2026-04-01T10:00:00.000Z',
       activeVertical: 'clinic',
@@ -570,6 +734,7 @@ describe('AdminService', () => {
       name: 'Acme',
       type: 'business',
       plan: 'pro',
+      status: 'active',
       ownerId: 'user-1',
       createdAt: '2026-04-01T10:00:00.000Z',
       activeVertical: 'clinic',
