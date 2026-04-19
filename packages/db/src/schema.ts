@@ -22,6 +22,7 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   name: text('name'),
   passwordHash: text('password_hash'),
+  emailVerifiedAt: timestamp('email_verified_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -36,6 +37,7 @@ export const tenants = pgTable('tenants', {
   name: text('name').notNull(),
   type: text('type').notNull().default('business'),
   plan: text('plan').notNull().default('free'),
+  status: text('status').notNull().default('active'),
   ownerId: uuid('owner_id')
     .notNull()
     .references(() => users.id),
@@ -171,6 +173,16 @@ export const oauthLoginCodes = pgTable('oauth_login_codes', {
 });
 
 export const passwordResetTokens = pgTable('password_reset_tokens', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  tokenHash: text('token_hash').notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  consumedAt: timestamp('consumed_at'),
+});
+
+export const emailVerificationTokens = pgTable('email_verification_tokens', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id')
     .notNull()

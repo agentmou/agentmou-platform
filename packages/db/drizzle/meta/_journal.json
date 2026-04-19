@@ -78,6 +78,20 @@
       "when": 1776207600000,
       "tag": "0010_mellow_malibu",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1776400000000,
+      "tag": "0011_ai_receptionist",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1776632488403,
+      "tag": "0012_auth_admin_hardening",
+      "breakpoints": true
     }
   ]
 }
