@@ -1,7 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 COMPOSE_FILE="$REPO_ROOT/infra/compose/docker-compose.local.yml"
 DB_USER="${DB_USER:-agentmou}"
 DB_PASSWORD="${DB_PASSWORD:-changeme}"

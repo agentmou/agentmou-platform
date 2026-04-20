@@ -103,6 +103,14 @@ check "API Health"        "$API_URL/health"
 check "API Catalog"       "$API_URL/api/v1/catalog/agents" "200" "GET" "" "\"id\":\"inbox-triage\""
 check "API Auth Login (invalid payload)" "$API_URL/api/v1/auth/login" "400" "POST" "{}"
 
+# The following checks don't assert functional behaviour — they only confirm
+# that Traefik is routing to the upstream and that the upstream is answering.
+# Expected non-200 codes encode "service is alive and responded":
+#   hooks.${DOMAIN}/…/ping → 404  (no such n8n workflow, but n8n answered)
+#   agents.${DOMAIN}/docs  → 401  (BasicAuth in front of a live FastAPI)
+check "n8n webhook edge"  "https://hooks.${API_DOMAIN}/webhook-test/ping" "404"
+check "Agents edge"       "https://agents.${API_DOMAIN}/docs" "401"
+
 echo ""
 echo "═══════════════════════════════════════════"
 echo " Results: $PASS passed, $FAIL failed"

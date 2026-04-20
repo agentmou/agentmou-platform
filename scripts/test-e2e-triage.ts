@@ -2,36 +2,48 @@
 /**
  * API-driven end-to-end validation for the Gmail inbox triage vertical slice.
  *
- * Validates the full flow: register → login → queue pack install → poll for
- * installations → check Gmail OAuth URL → trigger a run → verify the run is
- * listed.
+ * Validates the full flow: login -> resolve tenant -> queue pack install ->
+ * poll for installations -> check Gmail OAuth URL -> trigger a run ->
+ * verify the run is listed.
  *
  * Usage:
- *   API_URL=http://localhost:3001 tsx scripts/test-e2e-triage.ts
- *   API_URL=http://localhost:3001 DATABASE_URL=postgres://... \
- *     tsx scripts/test-e2e-triage.ts --cleanup
+ *   API_URL=http://localhost:3001 \
+ *   E2E_EMAIL=ops-smoke@agentmou.io \
+ *   E2E_PASSWORD='...' \
+ *   E2E_TENANT_ID=<optional-internal-tenant-id> \
+ *   tsx scripts/test-e2e-triage.ts
  *
  * Notes:
- * - `--cleanup` is opt-in and removes the validation fixture after the run.
- * - `DATABASE_URL` is required only when `--cleanup` is used.
+ * - Uses a pre-provisioned, verified smoke user. It does not register
+ *   users or create disposable tenants.
+ * - `E2E_TENANT_ID` is optional. When omitted, the script auto-selects the
+ *   first internal/platform-admin tenant, or the sole tenant if only one
+ *   membership exists.
+ * - The selected tenant must expose the internal platform routes used by
+ *   the install/run portion of this smoke.
  */
 
+import { AuthMeResponseSchema, type AuthMeResponse } from '@agentmou/contracts';
 import { parseArgs } from 'node:util';
 
 const API_URL = process.env.API_URL || 'http://localhost:3001';
-const DEFAULT_PASSWORD = 'Test1234!';
+const E2E_EMAIL = process.env.E2E_EMAIL?.trim() ?? '';
+const E2E_PASSWORD = process.env.E2E_PASSWORD ?? '';
+const E2E_TENANT_ID = process.env.E2E_TENANT_ID?.trim() ?? '';
 const INSTALLATION_POLL_INTERVAL_MS = 1_000;
 const INSTALLATION_POLL_TIMEOUT_MS = 20_000;
 const RUN_POLL_INTERVAL_MS = 1_000;
 const RUN_POLL_TIMEOUT_MS = 10_000;
+const AUTH_SESSION_COOKIE_NAME = 'agentmou-session';
 const usage = `Usage:
-  API_URL=http://localhost:3001 tsx scripts/test-e2e-triage.ts
-  API_URL=http://localhost:3001 DATABASE_URL=postgres://... \\
-    tsx scripts/test-e2e-triage.ts --cleanup`;
+  API_URL=http://localhost:3001 \\
+  E2E_EMAIL=ops-smoke@agentmou.io \\
+  E2E_PASSWORD='...' \\
+  E2E_TENANT_ID=<optional-internal-tenant-id> \\
+  tsx scripts/test-e2e-triage.ts`;
 
 const { values } = parseArgs({
   options: {
-    cleanup: { type: 'boolean', default: false },
     help: { type: 'boolean', default: false },
   },
   strict: true,
@@ -43,8 +55,10 @@ if (values.help) {
   process.exit(0);
 }
 
-if (values.cleanup && !process.env.DATABASE_URL) {
-  throw new Error('--cleanup requires DATABASE_URL so the validation fixture can be deleted.');
+if (!E2E_EMAIL || !E2E_PASSWORD) {
+  throw new Error(
+    'E2E_EMAIL and E2E_PASSWORD must be set so the smoke can log in with a verified user.'
+  );
 }
 
 interface Step {
@@ -64,14 +78,68 @@ interface RunsPayload {
 }
 
 const state = {
-  cleanupRequested: values.cleanup,
-  email: '',
-  password: DEFAULT_PASSWORD,
-  token: '',
-  tenantId: '',
+  email: E2E_EMAIL,
+  password: E2E_PASSWORD,
+  sessionCookie: '',
+  tenantId: E2E_TENANT_ID,
+  tenantName: '',
   agentInstallationId: '',
   runId: '',
 };
+
+function extractSessionCookie(res: Response): string {
+  const raw =
+    typeof (res.headers as unknown as { getSetCookie?: () => string[] }).getSetCookie === 'function'
+      ? (res.headers as unknown as { getSetCookie: () => string[] }).getSetCookie()
+      : res.headers.get('set-cookie')
+        ? [res.headers.get('set-cookie') as string]
+        : [];
+
+  for (const value of raw) {
+    const match = value.match(new RegExp(`${AUTH_SESSION_COOKIE_NAME}=([^;]+)`));
+    if (match?.[1]) {
+      return match[1];
+    }
+  }
+
+  return '';
+}
+
+function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  assert(state.sessionCookie.length > 0, 'Missing session cookie for authenticated request');
+  return {
+    Cookie: `${AUTH_SESSION_COOKIE_NAME}=${state.sessionCookie}`,
+    ...extra,
+  };
+}
+
+function selectTenant(payload: AuthMeResponse): AuthMeResponse['user']['tenants'][number] {
+  const memberships = payload.user.tenants ?? [];
+  assert(memberships.length > 0, 'The smoke user has no tenant memberships.');
+
+  if (state.tenantId) {
+    const explicit = memberships.find((tenant) => tenant.id === state.tenantId);
+    assert(
+      Boolean(explicit),
+      `E2E_TENANT_ID=${state.tenantId} is not present in the smoke user's memberships.`
+    );
+    return explicit!;
+  }
+
+  const internalTenant =
+    memberships.find(
+      (tenant) =>
+        tenant.settings?.activeVertical === 'internal' ||
+        tenant.settings?.isPlatformAdminTenant === true
+    ) ?? (memberships.length === 1 ? memberships[0] : undefined);
+
+  assert(
+    Boolean(internalTenant),
+    'Unable to auto-select an internal tenant. Set E2E_TENANT_ID explicitly.'
+  );
+
+  return internalTenant!;
+}
 
 const steps: Step[] = [
   {
@@ -85,31 +153,8 @@ const steps: Step[] = [
     },
   },
   {
-    name: '2. Register new user',
+    name: '2. Login with the smoke credentials',
     fn: async () => {
-      state.email = `e2e-${Date.now()}@test.agentmou.io`;
-      const res = await fetch(`${API_URL}/api/v1/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: state.email,
-          password: state.password,
-          name: 'E2E Tester',
-          tenantName: 'E2E Test Workspace',
-        }),
-      });
-      assert(res.status === 201, `Register failed: ${res.status}`);
-      const body = await res.json();
-      state.token = body.token;
-      state.tenantId = body.tenant.id;
-      console.log(`   → user registered, tenantId=${state.tenantId}`);
-      return body;
-    },
-  },
-  {
-    name: '3. Login with the created credentials',
-    fn: async () => {
-      assert(state.email.length > 0, 'Missing registered email for login step');
       const res = await fetch(`${API_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -119,10 +164,37 @@ const steps: Step[] = [
         }),
       });
       assert(res.ok, `Login failed: ${res.status}`);
-      const body = await res.json();
-      state.token = body.token;
-      console.log('   → login token issued');
-      return { token: `${state.token.substring(0, 20)}...` };
+      const cookie = extractSessionCookie(res);
+      assert(cookie.length > 0, 'Login did not set the agentmou-session cookie');
+      state.sessionCookie = cookie;
+      console.log('   → login session cookie issued');
+      return { cookiePrefix: `${cookie.substring(0, 20)}...` };
+    },
+  },
+  {
+    name: '3. Resolve the internal smoke tenant',
+    fn: async () => {
+      const res = await fetch(`${API_URL}/api/v1/auth/me`, {
+        headers: authHeaders(),
+      });
+      assert(res.ok, `/auth/me failed: ${res.status}`);
+      const body = AuthMeResponseSchema.parse(await res.json());
+      const tenant = selectTenant(body);
+
+      assert(
+        tenant.status !== 'frozen',
+        `Selected tenant ${tenant.name} (${tenant.id}) is frozen and cannot be used for smoke tests.`
+      );
+      assert(
+        tenant.settings?.activeVertical === 'internal' ||
+          tenant.settings?.isPlatformAdminTenant === true,
+        `Selected tenant ${tenant.name} (${tenant.id}) does not expose the internal platform routes required by the triage smoke.`
+      );
+
+      state.tenantId = tenant.id;
+      state.tenantName = tenant.name;
+      console.log(`   → using tenant ${tenant.name} (${tenant.id})`);
+      return tenant;
     },
   },
   {
@@ -130,10 +202,7 @@ const steps: Step[] = [
     fn: async () => {
       const res = await fetch(`${API_URL}/api/v1/tenants/${state.tenantId}/installations/packs`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${state.token}`,
-        },
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ packId: 'support-starter' }),
       });
       assert(res.status === 202, `Install pack failed: expected 202, received ${res.status}`);
@@ -162,7 +231,7 @@ const steps: Step[] = [
     fn: async () => {
       const res = await fetch(
         `${API_URL}/api/v1/tenants/${state.tenantId}/connectors/oauth/gmail/authorize`,
-        { headers: { Authorization: `Bearer ${state.token}` } }
+        { headers: authHeaders() }
       );
       assert(res.ok, `OAuth authorize failed: ${res.status}`);
       const body = await res.json();
@@ -177,10 +246,7 @@ const steps: Step[] = [
       assert(state.agentInstallationId.length > 0, 'Missing agentInstallationId for manual run');
       const res = await fetch(`${API_URL}/api/v1/tenants/${state.tenantId}/runs`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${state.token}`,
-        },
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           agentInstallationId: state.agentInstallationId,
         }),
@@ -205,7 +271,7 @@ const steps: Step[] = [
     name: '9. List connectors',
     fn: async () => {
       const res = await fetch(`${API_URL}/api/v1/tenants/${state.tenantId}/connectors`, {
-        headers: { Authorization: `Bearer ${state.token}` },
+        headers: authHeaders(),
       });
       assert(res.ok, `List connectors failed: ${res.status}`);
       const body = await res.json();
@@ -220,32 +286,24 @@ async function main() {
   console.log(' Agentmou E2E Test — Gmail Inbox Triage Vertical Slice');
   console.log('═══════════════════════════════════════════════════════════');
   console.log(`API: ${API_URL}`);
-  console.log(`Cleanup: ${state.cleanupRequested ? 'enabled' : 'disabled'}\n`);
+  console.log(`Smoke user: ${state.email}`);
+  if (state.tenantId) {
+    console.log(`Requested tenant: ${state.tenantId}`);
+  }
+  console.log('');
 
   let passed = 0;
   let failed = 0;
 
-  try {
-    for (const step of steps) {
-      try {
-        console.log(`▶ ${step.name}`);
-        await step.fn();
-        passed++;
-      } catch (err) {
-        failed++;
-        console.error('  ✗ FAILED:', err instanceof Error ? err.message : err);
-      }
-    }
-  } finally {
+  for (const step of steps) {
     try {
-      if (state.cleanupRequested) {
-        await cleanupFixture();
-      } else {
-        printManualCleanupHint();
-      }
-    } catch (error) {
+      console.log(`▶ ${step.name}`);
+      await step.fn();
+      passed++;
+    } catch (err) {
       failed++;
-      console.error('  ✗ CLEANUP FAILED:', error instanceof Error ? error.message : String(error));
+      console.error('  ✗ FAILED:', err instanceof Error ? err.message : err);
+      break;
     }
   }
 
@@ -261,7 +319,7 @@ async function pollForInstallations() {
 
   while (Date.now() < deadline) {
     const res = await fetch(`${API_URL}/api/v1/tenants/${state.tenantId}/installations`, {
-      headers: { Authorization: `Bearer ${state.token}` },
+      headers: authHeaders(),
     });
     assert(res.ok, `List installations failed: ${res.status}`);
 
@@ -286,7 +344,7 @@ async function pollForRun(runId: string) {
 
   while (Date.now() < deadline) {
     const res = await fetch(`${API_URL}/api/v1/tenants/${state.tenantId}/runs`, {
-      headers: { Authorization: `Bearer ${state.token}` },
+      headers: authHeaders(),
     });
     assert(res.ok, `List runs failed: ${res.status}`);
 
@@ -302,47 +360,10 @@ async function pollForRun(runId: string) {
   throw new Error(`Timed out waiting ${RUN_POLL_TIMEOUT_MS}ms for run ${runId} to appear`);
 }
 
-async function cleanupFixture() {
-  if (!state.tenantId || !state.email) {
-    console.log('\nCleanup skipped: no validation fixture was created.');
-    return;
-  }
-
-  const [{ createDb }, { executeValidationFixtureCleanup }] = await Promise.all([
-    import('@agentmou/db'),
-    import('../services/api/src/lib/validation-fixture-cleanup.js'),
-  ]);
-
-  const { db, close } = createDb();
-
-  try {
-    const plan = await executeValidationFixtureCleanup(db, {
-      tenantId: state.tenantId,
-      userEmail: state.email,
-    });
-
-    console.log('\nCleanup completed successfully');
-    console.log(`   → tenant removed: ${plan.tenant.id}`);
-    console.log(`   → user removed: ${plan.user.email}`);
-    console.log(`   → rows removed: ${plan.totalRows}`);
-  } finally {
-    await close();
-  }
-}
-
-function printManualCleanupHint() {
-  if (!state.tenantId || !state.email) {
-    return;
-  }
-
-  console.log('\nFixture cleanup command:');
-  console.log(
-    `  pnpm cleanup:validation-tenant --tenant-id ${state.tenantId} --user-email ${state.email} --execute`
-  );
-}
-
 function assert(condition: boolean, message: string): asserts condition {
-  if (!condition) throw new Error(message);
+  if (!condition) {
+    throw new Error(message);
+  }
 }
 
 function sleep(ms: number): Promise<void> {

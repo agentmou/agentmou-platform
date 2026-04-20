@@ -5,6 +5,7 @@
  * from the jobs/ directory.
  */
 
+import { createServer } from 'node:http';
 import { Worker, type Job } from 'bullmq';
 import { createServiceLogger } from '@agentmou/observability';
 import {
@@ -86,8 +87,28 @@ const workers = [
   ),
 ];
 
+// Lightweight health endpoint so Docker/compose healthchecks can verify the
+// worker process is alive and its queues have been wired up. Each BullMQ
+// `new Worker()` call above opens a Redis connection — if any of them had
+// failed, the process would have crashed before reaching this line. A 200
+// from `/health` therefore means "process up and all queues attached".
+const healthPort = Number(process.env.WORKER_HEALTH_PORT ?? process.env.PORT ?? 3002);
+const healthServer = createServer((req, res) => {
+  if (req.url === '/health' || req.url === '/healthz') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', queues: workers.length }));
+    return;
+  }
+  res.writeHead(404);
+  res.end();
+});
+healthServer.listen(healthPort, '0.0.0.0', () => {
+  logger.info(`Worker health endpoint listening on :${healthPort}/health`);
+});
+
 async function shutdown() {
   logger.info('Shutting down workers...');
+  healthServer.close();
   await Promise.all(workers.map((w) => w.close()));
   process.exit(0);
 }

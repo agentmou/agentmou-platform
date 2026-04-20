@@ -378,7 +378,8 @@ Test complete user flows across the API and async workers.
 
 ```typescript
 // scripts/test-e2e-triage.ts
-const register = await fetch(`${API_URL}/api/v1/auth/register`, { method: 'POST', ... });
+const login = await fetch(`${API_URL}/api/v1/auth/login`, { method: 'POST', ... });
+const me = await fetch(`${API_URL}/api/v1/auth/me`, { headers: { Cookie: 'agentmou-session=...' } });
 const install = await fetch(`${API_URL}/api/v1/tenants/${tenantId}/installations/packs`, {
   method: 'POST',
   ...
@@ -392,7 +393,7 @@ const run = await fetch(`${API_URL}/api/v1/tenants/${tenantId}/runs`, {
 ```
 
 **Example E2E / smoke script:**
-- `scripts/test-e2e-triage.ts` — API-driven validation of the Gmail inbox triage slice
+- `scripts/test-e2e-triage.ts` — API-driven validation of the Gmail inbox triage slice with a verified smoke user
 - `scripts/test-e2e-clinic-demo.ts` — fixture, seed, and in-process API smoke
   for the public clinic demo plus the seeded internal/clinic/fisio QA matrix
 

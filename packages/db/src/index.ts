@@ -2,4 +2,4 @@
 export * from './schema';
 export * from './client';
 export * from './auth-sessions';
-export { and, eq } from 'drizzle-orm';
+export { and, eq, sql } from 'drizzle-orm';

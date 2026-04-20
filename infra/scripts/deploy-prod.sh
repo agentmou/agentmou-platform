@@ -9,10 +9,19 @@ set -euo pipefail
 # Behavior:
 #   1. Pull latest code from origin/main
 #   2. Validate required production environment variables
-#   3. Rebuild api, worker, agents, and migrate images
-#   4. Wait for PostgreSQL health and run migrations
-#   5. Restart the stack
-#   6. Gate success on local edge health and the public smoke test
+#   3. Snapshot the production database (pre-deploy rollback point)
+#   4. Rebuild api, worker, agents, and migrate images
+#   5. Wait for PostgreSQL health and run migrations
+#   6. Restart the stack
+#   7. Wait for all services to become healthy, verify local edge,
+#      run the public smoke test
+#   8. Run the live E2E triage against the public API as the final gate
+#      using a pre-provisioned verified smoke user
+#
+# Env toggles:
+#   SKIP_PRE_DEPLOY_BACKUP=1   — skip step 3 (use for rapid iteration only)
+#   SKIP_E2E_TRIAGE=1          — skip step 8 (test-e2e-triage)
+#   HEALTHY_TIMEOUT_SECONDS=180 — override max wait for services to become healthy
 #
 # Usage:
 #   bash infra/scripts/deploy-prod.sh
@@ -155,6 +164,48 @@ wait_for_postgres() {
   return 1
 }
 
+# Wait until every container that declares a healthcheck reports `healthy`.
+# Services without a healthcheck (e.g. traefik, uptime-kuma) are ignored.
+wait_for_all_healthy() {
+  local timeout_seconds="${1:-180}"
+  local delay_seconds=5
+  local deadline=$((SECONDS + timeout_seconds))
+  local container_ids=""
+  local id=""
+  local name=""
+  local status=""
+  local unhealthy=""
+
+  while [ $SECONDS -lt $deadline ]; do
+    unhealthy=""
+    container_ids=$(docker compose "${COMPOSE_ARGS[@]}" ps -q)
+    for id in $container_ids; do
+      status=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$id" 2>/dev/null || echo "unknown")
+      case "$status" in
+        healthy|none)
+          continue
+          ;;
+        *)
+          name=$(docker inspect --format '{{.Name}}' "$id" 2>/dev/null | sed 's#^/##')
+          unhealthy+="  - ${name} (${status})\n"
+          ;;
+      esac
+    done
+
+    if [ -z "$unhealthy" ]; then
+      return 0
+    fi
+
+    echo "Waiting for services to become healthy..."
+    printf '%b' "$unhealthy"
+    sleep "$delay_seconds"
+  done
+
+  echo "Still unhealthy after ${timeout_seconds}s:"
+  printf '%b' "$unhealthy"
+  return 1
+}
+
 check_local_https_health() {
   local host="$1"
   local label="$2"
@@ -277,12 +328,13 @@ parse_args() {
 
 parse_args "$@"
 
-step "Step 1/6 - Pulling latest code from origin/main"
+step "Step 1/8 - Pulling latest code from origin/main"
 cd "$REPO_ROOT"
 git pull origin main
-ok "Code updated"
+DEPLOY_SHA=$(git rev-parse --short HEAD)
+ok "Code updated to ${DEPLOY_SHA}"
 
-step "Step 2/6 - Validating production environment"
+step "Step 2/8 - Validating production environment"
 
 if [ ! -f "$ENV_FILE" ]; then
   fail ".env file not found at $ENV_FILE"
@@ -346,6 +398,15 @@ for var_name in "${optional_env_vars[@]}"; do
   check_env_var "$var_name" "optional"
 done
 
+if [ "${SKIP_E2E_TRIAGE:-0}" != "1" ]; then
+  for var_name in E2E_EMAIL E2E_PASSWORD; do
+    if ! check_env_var "$var_name" "required"; then
+      missing_required=1
+    fi
+  done
+  check_env_var "E2E_TENANT_ID" "optional"
+fi
+
 if ! check_optional_oauth_config \
   "Google" \
   "GOOGLE_OAUTH_CLIENT_ID" \
@@ -368,7 +429,34 @@ if [ "$missing_required" -ne 0 ]; then
   fail "Populate the missing required production env vars in $ENV_FILE and rerun the deploy"
 fi
 
-step "Step 3/6 - Rebuilding API, worker, agents, and migrate images"
+step "Step 3/8 - Snapshotting database (pre-deploy rollback point)"
+if [ "${SKIP_PRE_DEPLOY_BACKUP:-0}" = "1" ]; then
+  warn "SKIP_PRE_DEPLOY_BACKUP=1; skipping pre-deploy database snapshot"
+else
+  if ! docker compose "${COMPOSE_ARGS[@]}" ps postgres --status=running --quiet | grep -q .; then
+    warn "Postgres is not running yet; skipping pre-deploy snapshot (first deploy?)"
+  else
+    PRE_DEPLOY_DIR="${PRE_DEPLOY_BACKUP_DIR:-/var/backups/agentmou/pre-deploy}"
+    if mkdir -p "$PRE_DEPLOY_DIR" 2>/dev/null; then
+      TS=$(date -u +%Y%m%dT%H%M%SZ)
+      SNAPSHOT="${PRE_DEPLOY_DIR}/${TS}_${DEPLOY_SHA}.sql.gz"
+      if docker compose "${COMPOSE_ARGS[@]}" exec -T postgres \
+          pg_dumpall -U "${POSTGRES_USER}" 2>/dev/null | gzip > "$SNAPSHOT"; then
+        size=$(du -h "$SNAPSHOT" 2>/dev/null | cut -f1 || echo "?")
+        ok "Snapshot saved: ${SNAPSHOT} (${size})"
+        # Rotate: keep only the last 10 pre-deploy snapshots
+        ls -t "${PRE_DEPLOY_DIR}"/*.sql.gz 2>/dev/null | tail -n +11 | xargs -r rm -f
+      else
+        rm -f "$SNAPSHOT"
+        warn "Pre-deploy snapshot failed; continuing (rollback will fall back to routine backups)"
+      fi
+    else
+      warn "Could not create ${PRE_DEPLOY_DIR}; skipping pre-deploy snapshot"
+    fi
+  fi
+fi
+
+step "Step 4/8 - Rebuilding API, worker, agents, and migrate images"
 docker compose "${COMPOSE_ARGS[@]}" --profile ops build api worker agents migrate
 ok "Images rebuilt"
 
@@ -377,7 +465,7 @@ if [ "$BUILD_ONLY" -eq 1 ]; then
   exit 0
 fi
 
-step "Step 4/6 - Running database migrations"
+step "Step 5/8 - Running database migrations"
 docker compose "${COMPOSE_ARGS[@]}" up -d postgres
 echo "Waiting for Postgres to become healthy..."
 if ! wait_for_postgres; then
@@ -388,14 +476,19 @@ fi
 docker compose "${COMPOSE_ARGS[@]}" --profile ops run --rm migrate
 ok "Migrations applied"
 
-step "Step 5/6 - Restarting services"
+step "Step 6/8 - Restarting services"
 docker compose "${COMPOSE_ARGS[@]}" up -d
 ok "All services restarted"
 
-echo "Waiting 10 seconds for services to stabilize..."
-sleep 10
-
-step "Step 6/6 - Verifying local edge health and public smoke"
+step "Step 7/8 - Waiting for services to become healthy, verifying edge + smoke"
+HEALTHY_TIMEOUT="${HEALTHY_TIMEOUT_SECONDS:-180}"
+if ! wait_for_all_healthy "$HEALTHY_TIMEOUT"; then
+  docker compose "${COMPOSE_ARGS[@]}" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+  echo
+  docker compose "${COMPOSE_ARGS[@]}" logs --tail 120 api worker agents n8n || true
+  fail "One or more services did not become healthy within ${HEALTHY_TIMEOUT}s"
+fi
+ok "All services healthy"
 
 API_HOST="api.${API_DOMAIN}"
 
@@ -416,12 +509,46 @@ echo "Running public smoke test..."
 DOMAIN="$API_DOMAIN" bash "$REPO_ROOT/infra/scripts/smoke-test.sh"
 ok "Public smoke test passed"
 
+step "Step 8/8 - Live E2E triage against the public API"
+if [ "${SKIP_E2E_TRIAGE:-0}" = "1" ]; then
+  warn "SKIP_E2E_TRIAGE=1; skipping live E2E triage"
+else
+  # Ensure pnpm is on PATH. pnpm is typically installed via the standalone
+  # script and lives under ~/.local/share/pnpm, which isn't in non-interactive
+  # login shells on the VPS.
+  if [ -n "${PNPM_HOME:-}" ]; then
+    :
+  elif [ -d "$HOME/.local/share/pnpm" ]; then
+    export PNPM_HOME="$HOME/.local/share/pnpm"
+  fi
+  if [ -n "${PNPM_HOME:-}" ]; then
+    case ":$PATH:" in
+      *:"$PNPM_HOME":*) ;;
+      *) export PATH="$PNPM_HOME:$PATH" ;;
+    esac
+  fi
+
+  if ! command -v pnpm >/dev/null 2>&1; then
+    warn "pnpm not available on PATH; skipping live E2E triage"
+  else
+    (
+      cd "$REPO_ROOT"
+      API_URL="https://${API_HOST}" \
+        E2E_EMAIL="${E2E_EMAIL}" \
+        E2E_PASSWORD="${E2E_PASSWORD}" \
+        E2E_TENANT_ID="${E2E_TENANT_ID:-}" \
+        pnpm tsx scripts/test-e2e-triage.ts
+    ) || fail "Live E2E triage failed — prod is serving traffic but the vertical slice is broken"
+    ok "Live E2E triage passed"
+  fi
+fi
+
 echo
 echo -e "${GREEN}===============================================${NC}"
-echo -e "${GREEN} Production deploy completed successfully${NC}"
+echo -e "${GREEN} Production deploy completed successfully (${DEPLOY_SHA})${NC}"
 echo -e "${GREEN}===============================================${NC}"
 echo
 echo "Suggested next checks:"
 echo "  1. Review docker compose ps output above"
 echo "  2. Verify OAuth flow from ${APP_ORIGIN}"
-echo "  3. Run API_URL=https://${API_HOST} tsx scripts/test-e2e-triage.ts for a full E2E pass"
+echo "  3. Check https://uptime.${API_DOMAIN} for green monitors"
