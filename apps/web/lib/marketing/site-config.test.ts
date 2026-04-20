@@ -42,6 +42,7 @@ describe('publicMarketingFooterColumns', () => {
     expect(serialized).not.toContain('/platform');
     expect(serialized).not.toContain('Marketplace');
     expect(legalColumn?.links).toEqual([
+      { label: 'Cookies', href: '/cookies' },
       { label: 'Privacidad', href: '/privacy' },
       { label: 'Términos', href: '/terms' },
     ]);
