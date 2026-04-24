@@ -3,174 +3,205 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Swiss Editorial Design System - Agentmou */
+/* ============================================================
+   Agentmou — Design System Tokens (REFACTORED)
+   Primary: Indigo oklch(0.5674 0.1585 275) — tweakcn official
+   Brand mark accent: cyan
+   Mint → semantic success / chart-4 only
+   ============================================================ */
 :root {
-  /* Core palette — Light mode (3-layer hierarchy, mirrors dark) */
-  --background: #e2e4e8;
-  --foreground: #111827;
-  --surface-content: #f1f3f5;
-  --card: #ffffff;
-  --card-hover: #f8fafc;
-  --card-foreground: #111827;
-  --popover: #ffffff;
-  --popover-foreground: #111827;
+  /* Core palette — Light mode */
+  --background: oklch(1 0 0); /* white */
+  --foreground: oklch(0.1776 0 0); /* near-black */
+  --surface-content: oklch(0.9674 0.0013 286.3752); /* page content area */
+  --card: oklch(1 0 0);
+  --card-hover: oklch(0.9764 0.0013 286.3755);
+  --card-foreground: oklch(0.1776 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.1776 0 0);
 
-  /* Primary - black text buttons */
-  --primary: #111827;
-  --primary-foreground: #ffffff;
+  /* Primary — INDIGO (was: #111827 black) */
+  --primary: oklch(0.5674 0.1585 275.2058);
+  --primary-foreground: oklch(1 0 0);
 
-  /* Secondary - subtle grays */
-  --secondary: #f5f5f5;
-  --secondary-foreground: #111827;
+  /* Secondary — neutral greys */
+  --secondary: oklch(0.9674 0.0013 286.3752);
+  --secondary-foreground: oklch(0.2103 0.0059 285.8852);
 
-  /* Muted - editorial grays */
-  --muted: #f5f5f5;
-  --muted-foreground: #6b7280;
-  --muted-2: #bdbdbd;
+  /* Muted */
+  --muted: oklch(0.9674 0.0013 286.3752);
+  --muted-foreground: oklch(0.5517 0.0138 285.9385);
+  --muted-2: oklch(0.85 0.006 286);
 
-  /* Accent - mint highlight (used sparingly) */
-  --accent: #5fdf8e;
-  --accent-foreground: #111827;
+  /* Accent — neutral hover surface (was: mint #5fdf8e fill) */
+  --accent: oklch(0.9674 0.0013 286.3752);
+  --accent-foreground: oklch(0.2103 0.0059 285.8852);
 
   /* Destructive */
-  --destructive: #e53935;
-  --destructive-foreground: #ffffff;
+  --destructive: oklch(0.6368 0.2078 25.3313);
+  --destructive-foreground: oklch(1 0 0);
 
-  /* Borders - defined for hierarchy */
-  --border: #d1d5db;
-  --input: #d1d5db;
-  --ring: #5fdf8e;
+  /* Borders */
+  --border: oklch(0.9197 0.004 286.3202);
+  --input: oklch(0.9197 0.004 286.3202);
 
-  /* Charts - mint primary, grays for rest */
-  --chart-1: #5fdf8e;
-  --chart-2: #6b7280;
-  --chart-3: #bdbdbd;
-  --chart-4: #d1d5db;
-  --chart-5: #111827;
+  /* Ring — INDIGO (was: mint #5fdf8e) */
+  --ring: oklch(0.5674 0.1585 275.2058);
 
-  --radius: 0.375rem;
+  /* Charts — indigo-anchored, mint at position 4 */
+  --chart-1: oklch(0.5674 0.1585 275.2058); /* indigo (brand)     */
+  --chart-2: oklch(0.685 0.134 240); /* steel blue         */
+  --chart-3: oklch(0.78 0.12 200); /* teal               */
+  --chart-4: oklch(0.76 0.17 155); /* mint (was chart-1) */
+  --chart-5: oklch(0.71 0.16 45); /* terracotta accent  */
 
-  /* Halftone/gradient base — overridden in marketing to white */
+  --radius: 0.5rem; /* 8px — was 0.375rem / 6px */
+
+  /* Brand tokens */
+  --brand-cyan: oklch(0.78 0.17 220);
+  --brand-cyan-soft: oklch(0.93 0.06 220);
+  --brand-mint: oklch(0.76 0.17 155); /* mint, indicator only */
+  --brand-mint-subtle: oklch(0.96 0.04 151);
+
+  /* Halftone base */
   --halftone-base: var(--background);
 
-  /* Sidebar — matches surface (like dark) */
-  --sidebar: #f1f3f5;
-  --sidebar-foreground: #111827;
-  --sidebar-primary: #111827;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e5e7eb;
-  --sidebar-accent-foreground: #111827;
-  --sidebar-border: #d1d5db;
-  --sidebar-ring: #5fdf8e;
+  /* Sidebar — INDIGO primary (was: black #111827) */
+  --sidebar: oklch(0.9764 0.0013 286.3755);
+  --sidebar-foreground: oklch(0.3703 0.0119 285.8054);
+  --sidebar-primary: oklch(0.5674 0.1585 275.2058);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.9527 0.0027 286.3492);
+  --sidebar-accent-foreground: oklch(0.2103 0.0059 285.8852);
+  --sidebar-border: oklch(0.9197 0.004 286.3202);
+  --sidebar-ring: oklch(0.5674 0.1585 275.2058);
 
-  /* Status colors */
-  --success: #5fdf8e;
-  --success-foreground: #111111;
-  --warning: #ffb74d;
-  --warning-foreground: #111111;
+  /* Status colors — mint stays as success */
+  --success: oklch(0.72 0.17 151);
+  --success-foreground: oklch(0.18 0 0);
+  --warning: oklch(0.82 0.15 75);
+  --warning-foreground: oklch(0.18 0 0);
 
-  /* ============================================================
-     Semantic tokens (PR-05) — depth, hierarchy, state, type.
-     Layered on top of the legacy palette above so existing
-     `bg-card`, `bg-muted`, etc. keep working unchanged.
-     ============================================================ */
-
-  /* Surface depth. Use these instead of mixing background/card directly. */
+  /* Semantic surface tokens */
   --surface-base: var(--background);
-  --surface-subtle: #f8f9fb; /* between background and card */
-  --surface-raised: var(--card); /* same elevation as today's card */
-  --surface-card: var(--card); /* alias kept for parity with .dark */
-  --surface-overlay: #ffffff; /* dialog / popover top layer */
+  --surface-subtle: oklch(0.986 0.0007 286);
+  --surface-raised: var(--card);
+  --surface-card: var(--card);
+  --surface-overlay: oklch(1 0 0);
 
-  /* Border weight. `--border` (legacy) stays as the default; the
-     `subtle` and `strong` variants give designers two more steps. */
-  --border-subtle: #e5e7eb;
+  /* Border scale */
+  --border-subtle: oklch(0.9527 0.0027 286.3492);
   --border-default: var(--border);
-  --border-strong: #9ca3af;
+  --border-strong: oklch(0.78 0.01 286);
 
-  /* Text role tokens — semantic over numerical greys. */
+  /* Text roles */
   --text-primary: var(--foreground);
-  --text-secondary: #374151;
+  --text-secondary: oklch(0.35 0.008 286);
   --text-muted: var(--muted-foreground);
   --text-inverse: var(--primary-foreground);
 
-  /* Explicit radius scale (no longer derived from --radius math).
-     Keep --radius itself as the legacy default. */
   --radius-pill: 9999px;
 
-  /* Information state — fills the gap between success and warning. */
-  --info: #3b82f6;
-  --info-foreground: #ffffff;
-  --info-subtle: #eff6ff;
+  /* Status subtle fills */
+  --info: oklch(0.7 0.14 235);
+  --info-foreground: oklch(1 0 0);
+  --info-subtle: oklch(0.96 0.03 235);
+  --success-subtle: oklch(0.96 0.04 151);
+  --warning-subtle: oklch(0.97 0.03 75);
+  --destructive-subtle: oklch(0.97 0.03 25);
 
-  /* Subtle background fills for tonal badges and alerts. */
-  --success-subtle: #ecfdf5;
-  --warning-subtle: #fffbeb;
-  --destructive-subtle: #fef2f2;
+  /* Shadows — soft editorial */
+  --shadow-2xs: 0px 2px 10px 0px hsl(0 0% 0% / 0.02);
+  --shadow-xs: 0px 2px 10px 0px hsl(0 0% 0% / 0.02);
+  --shadow-sm: 0px 2px 10px 0px hsl(0 0% 0% / 0.04), 0px 1px 2px -1px hsl(0 0% 0% / 0.04);
+  --shadow: 0px 2px 10px 0px hsl(0 0% 0% / 0.04), 0px 1px 2px -1px hsl(0 0% 0% / 0.04);
+  --shadow-md: 0px 2px 10px 0px hsl(0 0% 0% / 0.04), 0px 2px 4px -1px hsl(0 0% 0% / 0.04);
+  --shadow-lg: 0px 2px 10px 0px hsl(0 0% 0% / 0.04), 0px 4px 6px -1px hsl(0 0% 0% / 0.04);
+  --shadow-xl: 0px 2px 10px 0px hsl(0 0% 0% / 0.04), 0px 8px 10px -1px hsl(0 0% 0% / 0.04);
+  --shadow-2xl: 0px 2px 10px 0px hsl(0 0% 0% / 0.1);
+
+  --focus-ring: 0 0 0 3px color-mix(in oklch, var(--primary) 35%, transparent);
 }
 
 .dark {
   /* Core palette — Dark mode */
-  --background: #0f1115;
-  --surface-content: #171a20;
-  --surface-card: #1d2128;
-  --foreground: #f3f4f6;
-  --card: #1d2128;
-  --card-hover: #242a33;
-  --card-foreground: #f3f4f6;
-  --popover: #171a20;
-  --popover-foreground: #f3f4f6;
-  --primary: #f3f4f6;
-  --primary-foreground: #0f1115;
-  --secondary: #1d2128;
-  --secondary-foreground: #f3f4f6;
-  --muted: #1d2128;
-  --muted-foreground: #9ca3af;
-  --muted-2: #6b7280;
-  --accent: #4bc870;
-  --accent-foreground: #0f1115;
-  --destructive: #ef5350;
-  --destructive-foreground: #f3f4f6;
-  --border: #2a2f39;
-  --input: #2a2f39;
-  --ring: #4bc870;
-  --chart-1: #4bc870;
-  --chart-2: #9ca3af;
-  --chart-3: #6b7280;
-  --chart-4: #2a2f39;
-  --chart-5: #f3f4f6;
-  --sidebar: #171a20;
-  --sidebar-foreground: #f3f4f6;
-  --sidebar-primary: #f3f4f6;
-  --sidebar-primary-foreground: #0f1115;
-  --sidebar-accent: #242a33;
-  --sidebar-accent-foreground: #f3f4f6;
-  --sidebar-border: #2a2f39;
-  --sidebar-ring: #4bc870;
+  --background: oklch(0.1553 0.0042 285.8987);
+  --surface-content: oklch(0.18 0.0039 286);
+  --surface-card: oklch(0.2011 0.0039 286.0396);
+  --foreground: oklch(0.9674 0.0013 286.3752);
+  --card: oklch(0.2011 0.0039 286.0396);
+  --card-hover: oklch(0.24 0.005 286);
+  --card-foreground: oklch(0.9674 0.0013 286.3752);
+  --popover: oklch(0.2011 0.0039 286.0396);
+  --popover-foreground: oklch(0.9674 0.0013 286.3752);
 
-  /* Semantic tokens — dark mode parity (PR-05). */
+  /* Primary stays indigo in dark mode */
+  --primary: oklch(0.5674 0.1585 275.2058);
+  --primary-foreground: oklch(1 0 0);
+
+  --secondary: oklch(0.2363 0.0057 285.9564);
+  --secondary-foreground: oklch(0.9674 0.0013 286.3752);
+  --muted: oklch(0.2363 0.0057 285.9564);
+  --muted-foreground: oklch(0.7118 0.0129 286.0665);
+  --muted-2: oklch(0.5 0.009 286);
+
+  /* Accent — neutral dark surface (was: mint #4bc870) */
+  --accent: oklch(0.2363 0.0057 285.9564);
+  --accent-foreground: oklch(0.9674 0.0013 286.3752);
+
+  --destructive: oklch(0.3997 0.1352 25.8101);
+  --destructive-foreground: oklch(0.9674 0.0013 286.3752);
+
+  --border: oklch(0.2739 0.0055 286.0326);
+  --input: oklch(0.2739 0.0055 286.0326);
+
+  /* Ring — INDIGO (was: mint #4bc870) */
+  --ring: oklch(0.5674 0.1585 275.2058);
+
+  --chart-1: oklch(0.5674 0.1585 275.2058);
+  --chart-2: oklch(0.685 0.134 240);
+  --chart-3: oklch(0.78 0.12 200);
+  --chart-4: oklch(0.76 0.17 155);
+  --chart-5: oklch(0.71 0.16 45);
+
+  --sidebar: oklch(0.1349 0.0024 286.0739);
+  --sidebar-foreground: oklch(0.7118 0.0129 286.0665);
+  --sidebar-primary: oklch(0.5674 0.1585 275.2058);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.2011 0.0039 286.0396);
+  --sidebar-accent-foreground: oklch(0.9674 0.0013 286.3752);
+  --sidebar-border: oklch(0.2363 0.0057 285.9564);
+  --sidebar-ring: oklch(0.5674 0.1585 275.2058);
+
+  --brand-cyan-soft: oklch(0.28 0.06 220);
+  --brand-cyan-ink: oklch(0.85 0.12 220);
+  --brand-mint: oklch(0.76 0.17 155);
+  --brand-mint-subtle: oklch(0.28 0.06 151);
+
   --surface-base: var(--background);
-  --surface-subtle: #13161b;
+  --surface-subtle: oklch(0.17 0.003 286);
   --surface-raised: var(--card);
-  --surface-card: var(--card);
   --surface-overlay: var(--popover);
 
-  --border-subtle: #22262e;
+  --border-subtle: oklch(0.22 0.0045 286);
   --border-default: var(--border);
-  --border-strong: #3a414d;
+  --border-strong: oklch(0.35 0.006 286);
 
   --text-primary: var(--foreground);
-  --text-secondary: #d1d5db;
+  --text-secondary: oklch(0.8 0.01 286);
   --text-muted: var(--muted-foreground);
   --text-inverse: var(--primary-foreground);
 
-  --info: #60a5fa;
-  --info-foreground: #0f1115;
-  --info-subtle: #1e293b;
+  --success-subtle: oklch(0.22 0.07 151);
+  --warning-subtle: oklch(0.22 0.06 75);
+  --destructive-subtle: oklch(0.22 0.06 25);
+  --info-subtle: oklch(0.22 0.05 235);
 
-  --success-subtle: #064e3b;
-  --warning-subtle: #78350f;
-  --destructive-subtle: #450a0a;
+  --shadow-sm: 0px 12px 24px 0px hsl(0 0% 0% / 0.4), 0px 1px 2px -1px hsl(0 0% 0% / 0.4);
+  --shadow: 0px 12px 24px 0px hsl(0 0% 0% / 0.4), 0px 1px 2px -1px hsl(0 0% 0% / 0.4);
+  --shadow-md: 0px 12px 24px 0px hsl(0 0% 0% / 0.4), 0px 2px 4px -1px hsl(0 0% 0% / 0.4);
+  --shadow-lg: 0px 12px 24px 0px hsl(0 0% 0% / 0.4), 0px 4px 6px -1px hsl(0 0% 0% / 0.4);
+  --shadow-xl: 0px 12px 24px 0px hsl(0 0% 0% / 0.4), 0px 8px 10px -1px hsl(0 0% 0% / 0.4);
 }
 
 @theme inline {
@@ -203,11 +234,13 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 2px);
-  --radius-md: var(--radius);
-  --radius-lg: calc(var(--radius) + 2px);
-  --radius-xl: calc(var(--radius) + 4px);
+
+  --radius-sm: calc(var(--radius) - 4px); /* 4px */
+  --radius-md: var(--radius); /* 8px */
+  --radius-lg: calc(var(--radius) + 4px); /* 12px */
+  --radius-xl: calc(var(--radius) + 8px); /* 16px */
   --radius-pill: var(--radius-pill);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -217,9 +250,6 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Semantic colour aliases (PR-05). They generate utilities like
-     `bg-surface-raised`, `border-border-subtle`, `text-text-secondary`,
-     `bg-info-subtle`, `text-info-foreground`. */
   --color-surface-base: var(--surface-base);
   --color-surface-subtle: var(--surface-subtle);
   --color-surface-raised: var(--surface-raised);
@@ -241,6 +271,10 @@
   --color-success-subtle: var(--success-subtle);
   --color-warning-subtle: var(--warning-subtle);
   --color-destructive-subtle: var(--destructive-subtle);
+
+  --color-brand-mint: var(--brand-mint);
+  --color-brand-mint-subtle: var(--brand-mint-subtle);
+  --color-brand-cyan: var(--brand-cyan);
 }
 
 @layer base {
@@ -250,8 +284,6 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
-
-  /* Editorial typography */
   h1,
   h2,
   h3,
@@ -262,29 +294,26 @@
   }
 }
 
-/* Swiss Editorial utilities */
+/* Editorial typography utilities */
 @layer utilities {
   .text-editorial-headline {
     @apply text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight leading-[0.95];
   }
-
   .text-editorial-subhead {
     @apply text-lg sm:text-xl text-muted-foreground leading-relaxed;
   }
-
   .text-editorial-tiny {
     @apply text-[11px] uppercase tracking-[0.1em] text-muted-foreground;
   }
-
   .text-editorial-label {
     @apply text-xs uppercase tracking-[0.05em] text-muted-foreground;
   }
 
-  /* Halftone dot pattern background */
+  /* Halftone bg — indigo dots (was mint) */
   .halftone-bg {
     background-image:
-      radial-gradient(circle at 50% 100%, rgba(95, 223, 142, 0.15) 0%, transparent 50%),
-      radial-gradient(circle, #5fdf8e 1px, transparent 1px);
+      radial-gradient(circle at 50% 100%, oklch(0.5674 0.1585 275.2058 / 0.1) 0%, transparent 50%),
+      radial-gradient(circle, oklch(0.5674 0.1585 275.2058 / 0.25) 1px, transparent 1px);
     background-size:
       100% 100%,
       16px 16px;
@@ -298,47 +327,42 @@
     background-size: 8px 8px;
   }
 
-  /* Divider lines - editorial thin */
   .divider-editorial {
     @apply border-t border-border/50;
   }
 
-  /* Card minimal style */
   .card-editorial {
     @apply bg-card border border-border/50 rounded-md;
   }
 
-  /* Focus ring - mint subtle */
+  /* Focus ring — indigo (was mint) */
   .focus-ring-editorial {
-    @apply focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent/50 focus-visible:ring-offset-1;
+    @apply focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-offset-1;
   }
 }
 
 /* ==============================================
-   SURFACE SCOPING - WEB vs APP
+   SURFACE SCOPING — WEB vs APP
    ============================================== */
 
-/* Marketing surface - white base, alternating blocks */
 [data-surface="marketing"] {
-  --marketing-bg-base: #ffffff;
-  --marketing-bg-alt: #fafafa;
+  --marketing-bg-base: oklch(1 0 0); /* white */
+  --marketing-bg-alt: oklch(0.986 0.0007 286);
   --halftone-base: var(--marketing-bg-base);
 }
 
 .dark [data-surface="marketing"] {
-  --marketing-bg-base: #0f1115;
-  --marketing-bg-alt: #171a20;
+  --marketing-bg-base: oklch(0.1553 0.0042 285.8987);
+  --marketing-bg-alt: oklch(0.18 0.0039 286);
   --halftone-base: var(--marketing-bg-base);
 }
 
 [data-surface="marketing"] .footer {
   background: var(--marketing-bg-base) !important;
 }
-
 [data-surface="marketing"] .footer-brand {
   color: var(--marketing-bg-base);
 }
-
 [data-surface="marketing"] .footer-gradient {
   background: linear-gradient(
     to bottom,
@@ -349,61 +373,48 @@
   ) !important;
 }
 
-/* App surface - clean, white, minimal */
 [data-surface="app"] {
-  /* Override any halftone backgrounds */
   background-color: var(--background) !important;
 }
-
-/* App central content area - distinct from sidebar in both themes */
 [data-surface="app"] main {
   background-color: var(--surface-content);
 }
-
-/* App cards/panels - var(--card) for both themes; shadow for elevation */
 [data-surface="app"] .card-spotlight,
 [data-surface="app"] [data-slot="card"],
 [data-surface="app"] .app-panel {
   background-color: var(--card) !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
-
 [data-surface="app"] .halftone-bg,
 [data-surface="app"] .halftone-dots {
   background-image: none !important;
 }
 
-/* App surface typography scale */
 [data-surface="app"] .page-title {
   @apply text-3xl lg:text-4xl font-bold tracking-tight;
 }
-
 [data-surface="app"] .section-title {
   @apply text-lg lg:text-xl font-semibold tracking-tight;
 }
-
 [data-surface="app"] .table-header,
 [data-surface="app"] .nav-label,
 [data-surface="app"] .micro-label {
   @apply text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium;
 }
-
-/* App surface - mint is indicator, not fill */
 [data-surface="app"] .accent-indicator {
-  @apply border-accent/40 text-foreground;
+  @apply border-primary/40 text-foreground;
 }
 
 /* ==============================================
    REACTBITS COMPONENT STYLES
    ============================================== */
 
-/* Spotlight Card — mouse-following halo */
+/* Spotlight Card — indigo halo (was mint) */
 .card-spotlight {
   --mouse-x: 50%;
   --mouse-y: 50%;
-  --spotlight-color: rgba(95, 223, 142, 0.05);
+  --spotlight-color: oklch(0.5674 0.1585 275.2058 / 0.06);
 }
-
 .card-spotlight::before {
   content: "";
   position: absolute;
@@ -420,20 +431,17 @@
   transition: opacity 0.5s ease;
   pointer-events: none;
 }
-
 .card-spotlight:hover::before,
 .card-spotlight:focus-within::before {
   opacity: 0.6;
 }
 
-/* Star Border — conic gradient orbits full contour (Reactbits style) */
+/* Star Border */
 @keyframes star-rotate {
   to {
     transform: rotate(360deg);
   }
 }
-
-/* Star Border SVG — constant linear speed along perimeter */
 @keyframes star-dash {
   from {
     stroke-dashoffset: 100;
@@ -443,7 +451,7 @@
   }
 }
 
-/* Gradient Text — color shift */
+/* Gradient Text */
 @keyframes gradient-shift {
   0% {
     background-position: 0% 50%;
@@ -453,7 +461,7 @@
   }
 }
 
-/* Grainient — animated gradient flow (linear mode) */
+/* Grainient */
 @keyframes grainient-flow {
   0%,
   100% {
@@ -464,23 +472,20 @@
   }
 }
 
-/* Logo Loop — infinite scroll */
+/* Logo Loop */
 .logo-loop-container {
   mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
   -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
 }
-
-/* Logo loop track — transform driven by JS for smooth hover deceleration */
 .logo-loop-track {
-  /* no CSS animation; LogoLoop uses requestAnimationFrame */
+  /* transform driven by JS */
 }
 
-/* Agentmou Bot Animation — spring-physics interactive */
+/* Agentmou Bot Animation */
 .agentmou-container {
   perspective: 900px;
   pointer-events: auto;
 }
-
 .agentmou-wrapper {
   position: relative;
   width: 100%;
@@ -490,7 +495,6 @@
   transform-origin: center center;
   cursor: pointer;
 }
-
 .agentmou-wrapper .bot-img,
 .agentmou-wrapper .spot-img {
   position: absolute;
@@ -501,11 +505,9 @@
   object-fit: contain;
   backface-visibility: visible;
 }
-
 .agentmou-wrapper .bot-img {
   z-index: 1;
 }
-
 .agentmou-wrapper .spot-img {
   z-index: 2;
   pointer-events: none;
@@ -530,7 +532,7 @@
   );
 }
 
-/* Footer - Agentmou brand with outline + gradient */
+/* Footer */
 .footer {
   display: block;
   position: relative;
@@ -539,7 +541,6 @@
   overflow: hidden;
   background: var(--background);
 }
-
 .footer-brand {
   display: block;
   width: 100%;
@@ -555,7 +556,6 @@
   user-select: none;
   position: relative;
 }
-
 .footer-gradient {
   position: absolute;
   bottom: 0;
@@ -573,7 +573,7 @@
   z-index: 2;
 }
 
-/* Reduced motion preference */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
