@@ -141,7 +141,7 @@ export function Stepper({
             <Button
               type="button"
               size="sm"
-              className="h-8 text-xs bg-accent text-accent-foreground hover:bg-accent/90"
+              className="h-8 text-xs bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={handleNext}
               disabled={!canProceed || isLoading}
             >
@@ -181,8 +181,8 @@ function StepIndicator({
         disabled={disabled && !isComplete}
         className="relative flex h-8 w-8 items-center justify-center rounded-full outline-none"
         animate={{
-          backgroundColor: isActive || isComplete ? 'var(--accent)' : 'var(--muted)',
-          color: isActive || isComplete ? 'var(--accent-foreground)' : 'var(--muted-foreground)',
+          backgroundColor: isActive || isComplete ? 'var(--primary)' : 'var(--muted)',
+          color: isActive || isComplete ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
         }}
         transition={{ duration: 0.25 }}
       >
@@ -190,7 +190,7 @@ function StepIndicator({
           <CheckIcon />
         ) : isActive ? (
           <motion.div
-            className="h-2.5 w-2.5 rounded-full bg-accent-foreground"
+            className="h-2.5 w-2.5 rounded-full bg-primary-foreground"
             layoutId="active-dot"
           />
         ) : (
@@ -213,7 +213,7 @@ function StepConnector({ isComplete }: { isComplete: boolean }) {
   return (
     <div className="relative mx-1.5 h-0.5 flex-1 overflow-hidden rounded-full bg-muted sm:mx-2">
       <motion.div
-        className="absolute inset-y-0 left-0 bg-accent"
+        className="absolute inset-y-0 left-0 bg-primary"
         initial={false}
         animate={{ width: isComplete ? '100%' : '0%' }}
         transition={{ duration: 0.4 }}

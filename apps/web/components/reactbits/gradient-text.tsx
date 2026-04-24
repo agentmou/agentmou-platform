@@ -14,7 +14,7 @@ interface GradientTextProps {
 export function GradientText({
   children,
   className,
-  colors = ['var(--accent)', 'var(--foreground)', 'var(--accent)'],
+  colors = ['var(--primary)', 'var(--brand-cyan, var(--primary))', 'var(--primary)'],
   animationSpeed = 6,
   animationDelay = 0,
 }: GradientTextProps) {

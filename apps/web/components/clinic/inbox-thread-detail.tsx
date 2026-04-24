@@ -54,10 +54,7 @@ export function InboxThreadDetail({ thread }: { thread: ConversationThreadDetail
                 <div
                   className={cn(
                     'text-text-primary inline-block max-w-full rounded-2xl px-3 py-2 text-sm',
-                    // Outbound messages use a subtle mint tint so the operator
-                    // scans a conversation without having to read every bubble
-                    // to know who sent what.
-                    isOutbound ? 'bg-accent/15' : 'bg-muted'
+                    isOutbound ? 'bg-primary/10 text-primary' : 'bg-muted'
                   )}
                 >
                   {message.body}

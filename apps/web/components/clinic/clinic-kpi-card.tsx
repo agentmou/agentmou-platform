@@ -6,10 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 type ClinicKpiTone = 'default' | 'success' | 'warning';
 
 const TONE_CLASSES: Record<ClinicKpiTone, string> = {
-  // Accent / mint is the "information, no urgency" default for clinic
-  // KPI cards. Success and warning lean on the semantic *-subtle tokens
-  // introduced in PR-05.
-  default: 'bg-accent/10 text-accent',
+  default: 'bg-primary/10 text-primary',
   success: 'bg-success-subtle text-success',
   warning: 'bg-warning-subtle text-warning-foreground',
 };

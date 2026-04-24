@@ -289,7 +289,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                     className={cn(
                       'group flex items-center gap-3 rounded-sm px-3 py-2 text-[11px] uppercase tracking-[0.05em] font-medium transition-colors',
                       active
-                        ? 'bg-accent/10 text-foreground'
+                        ? 'bg-primary/10 text-foreground'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
                       collapsed && 'justify-center px-2'
                     )}
@@ -298,14 +298,14 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                     <Icon
                       className={cn(
                         'h-4 w-4 shrink-0 transition-colors',
-                        active ? 'text-accent' : 'text-muted-foreground group-hover:text-foreground'
+                        active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
                       )}
                     />
                     {!collapsed && (
                       <>
                         <span className="flex-1">{item.label}</span>
                         {item.badge === 'pending_approvals' && pendingApprovals > 0 && (
-                          <span className="flex h-4 min-w-4 items-center justify-center rounded-sm bg-accent px-1 text-[10px] font-bold text-accent-foreground">
+                          <span className="flex h-4 min-w-4 items-center justify-center rounded-sm bg-primary px-1 text-[10px] font-bold text-primary-foreground">
                             {pendingApprovals}
                           </span>
                         )}
@@ -446,7 +446,7 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
               <Button variant="ghost" size="icon" className="relative h-8 w-8">
                 <Bell className="h-4 w-4" />
                 {pendingApprovals > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-accent text-[9px] font-bold text-accent-foreground flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-primary text-[9px] font-bold text-primary-foreground flex items-center justify-center">
                     {pendingApprovals}
                   </span>
                 )}

@@ -53,7 +53,7 @@ export function InboxThreadList({
                   className={cn(
                     'flex w-full flex-col gap-3 border-l-2 p-4 text-left transition-colors',
                     isActive
-                      ? 'border-accent bg-accent/10'
+                      ? 'border-primary bg-primary/10'
                       : 'hover:bg-card-hover border-transparent'
                   )}
                 >
@@ -83,7 +83,7 @@ export function InboxThreadList({
                       ) : null}
                       {(thread.unreadCount ?? 0) > 0 ? (
                         <Badge
-                          className="bg-accent text-accent-foreground border-transparent"
+                          className="bg-primary text-primary-foreground border-transparent"
                           aria-label={`${thread.unreadCount} mensajes sin leer`}
                         >
                           {thread.unreadCount}
