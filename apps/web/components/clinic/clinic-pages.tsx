@@ -301,20 +301,35 @@ export function ClinicInboxPage() {
             emptyDescription="Cuando el canal de WhatsApp tenga actividad, verás aquí las conversaciones pendientes."
           />
         </TabsContent>
-        <TabsContent value="llamadas" className="space-y-4">
+        <TabsContent value="llamadas">
           <ModuleVisibilityGuard
             enabled={experience.capabilities.voiceEnabled}
             title="Módulo de voz no activo"
             description="Activa Voz para recibir llamadas y callbacks desde esta bandeja operativa."
           >
             {calls.calls.length > 0 ? (
-              calls.calls.map((call) => <CallActivityCard key={call.id} call={call} />)
+              <div className="card-app overflow-hidden">
+                <div className="card-hd">
+                  <Activity size={16} aria-hidden style={{ color: 'var(--muted-fg)' }} />
+                  <div>
+                    <div className="card-hd-title">Llamadas recientes</div>
+                    <div className="card-hd-sub">{calls.calls.length} sesiones</div>
+                  </div>
+                </div>
+                {calls.calls.map((call) => (
+                  <CallActivityCard key={call.id} call={call} />
+                ))}
+              </div>
             ) : (
-              <EmptyState
-                icon={Activity}
-                title="No hay llamadas recientes"
-                description="Cuando entren llamadas o callbacks, verás aquí su estado, resumen y duración."
-              />
+              <div className="card-app">
+                <div className="empty-state-app">
+                  <Activity size={20} aria-hidden />
+                  <p className="text-text-primary text-sm font-medium">No hay llamadas recientes</p>
+                  <p className="max-w-xs text-xs">
+                    Cuando entren llamadas o callbacks, verás aquí su estado, resumen y duración.
+                  </p>
+                </div>
+              </div>
             )}
           </ModuleVisibilityGuard>
         </TabsContent>
@@ -367,12 +382,14 @@ export function ClinicAgendaPage() {
   );
 
   return (
-    <div className="space-y-6 p-6 lg:p-8">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Agenda</h1>
-        <p className="text-sm text-muted-foreground">
-          Citas del día, cancelaciones recientes y huecos que pueden recuperarse.
-        </p>
+    <div className="space-y-6">
+      <div className="page-head">
+        <div>
+          <h1>Agenda</h1>
+          <p className="sub">
+            Citas del día, cancelaciones recientes y huecos que pueden recuperarse.
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr,0.8fr]">
@@ -381,28 +398,39 @@ export function ClinicAgendaPage() {
           title="Citas programadas"
           timezone={clinicTimezone}
         />
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle className="text-base">Cambios recientes</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="card-app">
+          <div className="card-hd">
+            <div className="card-hd-title">Cambios recientes</div>
+          </div>
+          <div className="space-y-3 p-4">
             {cancelledAppointments.map((appointment) => (
-              <div key={appointment.id} className="rounded-xl border border-border/60 p-3">
-                <p className="font-medium">{appointment.patient?.fullName ?? 'Paciente'}</p>
-                <p className="text-sm text-muted-foreground">
+              <div
+                key={appointment.id}
+                className="rounded-lg border p-3"
+                style={{ borderColor: 'var(--border-subtle)' }}
+              >
+                <p className="text-sm font-semibold tracking-tight">
+                  {appointment.patient?.fullName ?? 'Paciente'}
+                </p>
+                <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>
                   Cancelada · {appointment.cancellationReason ?? 'Sin motivo'}
                 </p>
               </div>
             ))}
             {cancelledAppointments.length === 0 ? (
-              <EmptyState
-                icon={CalendarDays}
-                title="No hubo cancelaciones recientes"
-                description="Cuando una cita se cancele o necesite recolocación, verás aquí el motivo y el contexto."
-              />
+              <div className="empty-state-app">
+                <CalendarDays size={20} aria-hidden />
+                <p className="text-text-primary text-sm font-medium">
+                  No hubo cancelaciones recientes
+                </p>
+                <p className="max-w-xs text-xs">
+                  Cuando una cita se cancele o necesite recolocación, verás aquí el motivo y el
+                  contexto.
+                </p>
+              </div>
             ) : null}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       <ModuleVisibilityGuard
@@ -803,12 +831,12 @@ export function ClinicReactivationPage() {
   );
 
   return (
-    <div className="space-y-6 p-6 lg:p-8">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Reactivación</h1>
-        <p className="text-sm text-muted-foreground">
-          Campañas activas, cohortes, respuestas y pacientes ya recuperados.
-        </p>
+    <div className="space-y-6">
+      <div className="page-head">
+        <div>
+          <h1>Reactivación</h1>
+          <p className="sub">Campañas activas, cohortes, respuestas y pacientes ya recuperados.</p>
+        </div>
       </div>
       <ModuleVisibilityGuard
         enabled={experience.capabilities.reactivationEnabled}
@@ -816,7 +844,7 @@ export function ClinicReactivationPage() {
         description="Activa Growth para lanzar campañas y seguir pacientes recuperados."
       >
         <div className="grid gap-6 xl:grid-cols-[1fr,0.9fr]">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div>
             {campaigns.campaigns.map((campaign) => (
               <ReactivationCampaignCard
                 key={campaign.id}
@@ -825,12 +853,15 @@ export function ClinicReactivationPage() {
               />
             ))}
             {campaigns.campaigns.length === 0 ? (
-              <div className="md:col-span-2">
-                <EmptyState
-                  icon={RefreshCw}
-                  title="No hay campañas activas"
-                  description="Cuando una campaña entre en curso o quede programada, aparecerá aquí con su estado."
-                />
+              <div className="card-app">
+                <div className="empty-state-app">
+                  <RefreshCw size={20} aria-hidden />
+                  <p className="text-text-primary text-sm font-medium">No hay campañas activas</p>
+                  <p className="max-w-xs text-xs">
+                    Cuando una campaña entre en curso o quede programada, aparecerá aquí con su
+                    estado.
+                  </p>
+                </div>
               </div>
             ) : null}
           </div>

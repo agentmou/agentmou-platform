@@ -1,27 +1,73 @@
 import type { CallSessionDetail } from '@agentmou/contracts';
-import { PhoneCall } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Phone, TriangleAlert } from 'lucide-react';
 
 import { formatClinicLabel } from '@/lib/clinic-formatting';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+
+const CALL_STATUS_PILL: Record<string, string> = {
+  completed: 'pill-success',
+  in_progress: 'pill-primary',
+  ringing: 'pill-primary',
+  failed: 'pill-destructive',
+  abandoned: 'pill-destructive',
+  voicemail: 'pill-warning',
+  missed: 'pill-destructive',
+  scheduled: 'pill-warning',
+};
+
+function getInitials(name?: string | null) {
+  if (!name) return '··';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '··';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
+
+function formatDuration(seconds: number) {
+  if (!seconds) return '—';
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60);
+  if (m === 0) return `${s}s`;
+  return `${m}m ${s.toString().padStart(2, '0')}s`;
+}
 
 export function CallActivityCard({ call }: { call: CallSessionDetail }) {
+  const initials = getInitials(call.patient?.fullName);
+  const pillClass = CALL_STATUS_PILL[call.status] ?? 'pill-outline';
+  const DirIcon = call.direction === 'outbound' ? ArrowUpRight : ArrowDownLeft;
+
   return (
-    <Card className="border-border/60">
-      <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-          <PhoneCall className="h-4 w-4" />
-        </span>
-        <div>
-          <CardTitle className="text-base">
+    <div className="call-row">
+      <div className="call-avatar" aria-hidden>
+        {initials}
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <div className="text-[13px] font-semibold tracking-tight">
             {call.patient?.fullName ?? 'Llamada entrante'}
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">{formatClinicLabel(call.status)}</p>
+          </div>
+          <DirIcon size={12} aria-hidden style={{ color: 'var(--muted-fg)' }} />
+          {call.requiresHumanReview ? (
+            <span className="pill pill-warning">
+              <TriangleAlert size={11} aria-hidden />
+              Escalada
+            </span>
+          ) : null}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-2 text-sm text-muted-foreground">
-        <p>{call.summary ?? 'Sin resumen disponible'}</p>
-        <p>Duración: {Math.round(call.durationSeconds / 60)} min</p>
-      </CardContent>
-    </Card>
+        <div className="text-xs" style={{ color: 'var(--muted-fg)' }}>
+          {call.summary ?? 'Sin resumen disponible'}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className={cn('pill', pillClass)}>{formatClinicLabel(call.status)}</span>
+      </div>
+      <div
+        className="text-xs tabular-nums"
+        style={{ color: 'var(--muted-fg)', fontFamily: 'var(--font-mono)' }}
+      >
+        <Phone size={12} className="-mt-0.5 mr-1 inline-block align-middle" aria-hidden />
+        {formatDuration(call.durationSeconds)}
+      </div>
+    </div>
   );
 }

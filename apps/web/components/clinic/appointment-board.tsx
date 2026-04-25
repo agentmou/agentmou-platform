@@ -1,113 +1,97 @@
 import type { AppointmentStatus, AppointmentSummary } from '@agentmou/contracts';
 import { CalendarDays } from 'lucide-react';
 
-import { EmptyState } from '@/components/control-plane/empty-state';
-import { Badge, type BadgeTone } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatClinicLabel, formatClinicTime } from '@/lib/clinic-formatting';
+import { cn } from '@/lib/utils';
 
-import { NewAppointmentDialog, type NewAppointmentInput } from './new-appointment-dialog';
 import { PatientStatusBadge } from './patient-status-badge';
 
 /**
- * Appointment status → tone mapping (Q5-A).
+ * Appointment status → status-bar tone mapping.
  *
- *   draft / pending_form / scheduled / rescheduled → info
- *     Booking is on the books but still needs confirmation.
- *   confirmed / completed → success
- *     Patient agreed or already came in; no reviewer action needed.
- *   cancelled → neutral
- *     Cancelled cleanly; the slot was freed.
- *   no_show → warning
- *     Patient did not show up; recepción must triage.
+ *   confirmed / completed → confirmed (green bar)
+ *   draft / pending_form / scheduled / rescheduled → pending (amber bar)
+ *   cancelled → gap (transparent bar)
+ *   no_show → pending (amber bar)
  */
-const APPOINTMENT_STATUS_TONE: Record<AppointmentStatus, BadgeTone> = {
-  draft: 'info',
-  pending_form: 'info',
-  scheduled: 'info',
-  rescheduled: 'info',
-  confirmed: 'success',
-  completed: 'success',
-  cancelled: 'neutral',
-  no_show: 'warning',
+const APPOINTMENT_BAR_TONE: Record<AppointmentStatus, 'confirmed' | 'pending' | 'new' | 'gap'> = {
+  draft: 'pending',
+  pending_form: 'pending',
+  scheduled: 'pending',
+  rescheduled: 'pending',
+  confirmed: 'confirmed',
+  completed: 'confirmed',
+  cancelled: 'gap',
+  no_show: 'pending',
+};
+
+const APPOINTMENT_PILL: Record<AppointmentStatus, string> = {
+  draft: 'pill-warning',
+  pending_form: 'pill-warning',
+  scheduled: 'pill-warning',
+  rescheduled: 'pill-warning',
+  confirmed: 'pill-success',
+  completed: 'pill-success',
+  cancelled: 'pill-outline',
+  no_show: 'pill-destructive',
 };
 
 export function AppointmentBoard({
   appointments,
   title = 'Agenda',
   timezone,
-  onCreateAppointment,
-  showCreateAction = true,
 }: {
   appointments: AppointmentSummary[];
   title?: string;
   timezone: string;
-  onCreateAppointment?: (input: NewAppointmentInput) => Promise<void> | void;
-  showCreateAction?: boolean;
 }) {
   return (
-    <Card variant="raised">
-      <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
-        <CardTitle className="text-base">{title}</CardTitle>
-        {showCreateAction ? <NewAppointmentDialog onCreate={onCreateAppointment} /> : null}
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {appointments.length === 0 ? (
-          <EmptyState
-            icon={CalendarDays}
-            title="No hay citas programadas"
-            description="Cuando entren reservas o cambios para hoy, la agenda priorizada aparecerá aquí."
-          />
-        ) : null}
-        {appointments.map((appointment) => {
-          const statusTone = APPOINTMENT_STATUS_TONE[appointment.status];
-          return (
-            <Card
-              key={appointment.id}
-              variant="subtle"
-              padding="none"
-              className="flex flex-col gap-2 rounded-xl px-3 py-3"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-text-primary font-medium">
-                    {appointment.patient?.fullName ?? 'Paciente sin asignar'}
-                  </p>
-                  <p className="text-text-muted text-sm">
-                    {formatClinicTime(appointment.startsAt, timezone)}
-                    {' · '}
-                    {appointment.service?.name ?? 'Cita general'}
-                  </p>
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                  {statusTone === 'neutral' ? (
-                    <Badge variant="outline">{formatClinicLabel(appointment.status)}</Badge>
-                  ) : (
-                    <Badge tone={statusTone}>{formatClinicLabel(appointment.status)}</Badge>
-                  )}
-                  {appointment.patient ? (
-                    <PatientStatusBadge
-                      status={appointment.patient.status}
-                      isExisting={appointment.patient.isExisting}
-                    />
-                  ) : null}
-                </div>
+    <div className="card-app overflow-hidden">
+      <div className="card-hd">
+        <CalendarDays size={16} aria-hidden style={{ color: 'var(--muted-fg)' }} />
+        <div>
+          <div className="card-hd-title">{title}</div>
+          <div className="card-hd-sub">{appointments.length} citas</div>
+        </div>
+      </div>
+      {appointments.length === 0 ? (
+        <div className="empty-state-app">
+          <CalendarDays size={20} aria-hidden />
+          <p className="text-text-primary text-sm font-medium">No hay citas programadas</p>
+          <p className="max-w-xs text-xs">
+            Cuando entren reservas o cambios para hoy, la agenda priorizada aparecerá aquí.
+          </p>
+        </div>
+      ) : null}
+      {appointments.map((appointment) => {
+        const tone = APPOINTMENT_BAR_TONE[appointment.status];
+        const pillClass = APPOINTMENT_PILL[appointment.status];
+        return (
+          <div key={appointment.id} className="agenda-row">
+            <div className="agenda-time">{formatClinicTime(appointment.startsAt, timezone)}</div>
+            <div className={cn('agenda-bar', tone)} aria-hidden />
+            <div className="min-w-0">
+              <div className="agenda-patient truncate">
+                {appointment.patient?.fullName ?? 'Paciente sin asignar'}
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {appointment.practitioner ? (
-                  <Badge variant="outline">{appointment.practitioner.name}</Badge>
-                ) : null}
-                {appointment.location ? (
-                  <Badge variant="outline">{appointment.location.name}</Badge>
-                ) : null}
-                <Badge variant="outline" className="text-text-muted">
-                  {formatClinicLabel(appointment.confirmationStatus)}
-                </Badge>
+              <div className="agenda-meta truncate">
+                {appointment.service?.name ?? 'Cita general'}
+                {appointment.practitioner?.name ? ` · ${appointment.practitioner.name}` : ''}
+                {appointment.location?.name ? ` · ${appointment.location.name}` : ''}
               </div>
-            </Card>
-          );
-        })}
-      </CardContent>
-    </Card>
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              <span className={cn('pill', pillClass)}>{formatClinicLabel(appointment.status)}</span>
+              {appointment.patient ? (
+                <PatientStatusBadge
+                  status={appointment.patient.status}
+                  isExisting={appointment.patient.isExisting}
+                />
+              ) : null}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
