@@ -5,6 +5,8 @@ import { AuthStoreBootstrap } from '@/components/auth/auth-store-bootstrap';
 import { getServerAuthSnapshot } from '@/lib/auth/server-session';
 import { getAppUrl } from '@/lib/runtime/public-origins';
 
+import './app.css';
+
 export const metadata: Metadata = {
   metadataBase: new URL(getAppUrl()),
   robots: {
