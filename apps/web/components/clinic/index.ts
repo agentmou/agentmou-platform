@@ -11,6 +11,7 @@ export * from './inbox-thread-list';
 export * from './internal-mode-switch';
 export * from './live-notifications-popover';
 export * from './module-visibility-guard';
+export * from './new-appointment-dialog';
 export * from './notifications-popover';
 export * from './patient-status-badge';
 export * from './reactivation-campaign-card';
