@@ -1,11 +1,23 @@
-import type { ConversationThreadDetail } from '@agentmou/contracts';
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import * as React from 'react';
+import type { ConversationThreadDetail } from '@agentmou/contracts';
+import { Send } from 'lucide-react';
+import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { PatientStatusBadge } from './patient-status-badge';
 
-export function InboxThreadDetail({ thread }: { thread: ConversationThreadDetail | null }) {
+interface InboxThreadDetailProps {
+  thread: ConversationThreadDetail | null;
+  onSendMessage?: (threadId: string, body: string) => Promise<void> | void;
+}
+
+export function InboxThreadDetail({ thread, onSendMessage }: InboxThreadDetailProps) {
   if (!thread) {
     return (
       <Card variant="raised">
@@ -64,6 +76,61 @@ export function InboxThreadDetail({ thread }: { thread: ConversationThreadDetail
           })}
         </div>
       </CardContent>
+      <CardFooter className="border-border-subtle border-t pt-4">
+        <ThreadComposer threadId={thread.id} onSend={onSendMessage} />
+      </CardFooter>
     </Card>
+  );
+}
+
+function ThreadComposer({
+  threadId,
+  onSend,
+}: {
+  threadId: string;
+  onSend?: (threadId: string, body: string) => Promise<void> | void;
+}) {
+  const [draft, setDraft] = React.useState('');
+  const [isSending, setIsSending] = React.useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const body = draft.trim();
+    if (!body || isSending) return;
+
+    setIsSending(true);
+    try {
+      if (onSend) {
+        await onSend(threadId, body);
+      } else {
+        toast.success('Mensaje enviado', {
+          description: 'La integración real aún no está conectada; este envío es un eco visual.',
+        });
+      }
+      setDraft('');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex w-full items-center gap-2">
+      <Input
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        placeholder="Escribe tu mensaje al paciente..."
+        aria-label="Redactar mensaje"
+        className="flex-1"
+        autoComplete="off"
+      />
+      <Button
+        type="submit"
+        size="icon"
+        disabled={!draft.trim() || isSending}
+        aria-label="Enviar mensaje"
+      >
+        <Send className="h-4 w-4" />
+      </Button>
+    </form>
   );
 }

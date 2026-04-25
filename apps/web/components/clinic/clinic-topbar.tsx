@@ -3,10 +3,12 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, Building2, ChevronDown, Command, LogOut, Menu, Search, User } from 'lucide-react';
+import { Building2, ChevronDown, Command, LogOut, Menu, Search, User } from 'lucide-react';
 
 import { useAuthStore } from '@/lib/auth/store';
 import { InternalModeSwitch } from '@/components/clinic/internal-mode-switch';
+import { NotificationsPopover } from '@/components/clinic/notifications-popover';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Kbd } from '@/components/ui/kbd';
 import { Button } from '@/components/ui/button';
 import {
@@ -87,9 +89,8 @@ export function ClinicTopbar({
           <InternalModeSwitch href={`/app/${experience.tenantId}/dashboard`} label="Modo interno" />
         ) : null}
 
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-4 w-4" />
-        </Button>
+        <ThemeToggle />
+        <NotificationsPopover />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

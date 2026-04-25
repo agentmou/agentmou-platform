@@ -298,7 +298,9 @@ export function AgentmouShell({ children }: AgentmouShellProps) {
                     <Icon
                       className={cn(
                         'h-4 w-4 shrink-0 transition-colors',
-                        active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+                        active
+                          ? 'text-primary'
+                          : 'text-muted-foreground group-hover:text-foreground'
                       )}
                     />
                     {!collapsed && (
