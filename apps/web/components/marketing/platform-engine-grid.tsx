@@ -52,7 +52,7 @@ export function PlatformEngineGrid({ featuredCatalog }: PlatformEngineGridProps)
                     <ul className="space-y-2 text-sm text-muted-foreground">
                       {stats.map((stat) => (
                         <li key={`${item.title}-${stat}`} className="flex items-center gap-3">
-                          <ShieldCheck className="h-4 w-4 text-accent" />
+                          <ShieldCheck className="h-4 w-4 text-primary" />
                           <span>{stat}</span>
                         </li>
                       ))}

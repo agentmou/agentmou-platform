@@ -25,9 +25,7 @@ export function ClinicModulesGrid() {
             <FadeContent key={module.name} delay={index * 0.08}>
               <article
                 className={`rounded-[26px] border p-7 shadow-sm ${
-                  module.highlight
-                    ? 'border-foreground bg-[color-mix(in_srgb,var(--accent)_10%,white)]'
-                    : 'border-border/60 bg-card'
+                  module.highlight ? 'border-primary bg-primary/5' : 'border-border/60 bg-card'
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -44,7 +42,7 @@ export function ClinicModulesGrid() {
                 <ul className="mt-6 space-y-3">
                   {module.capabilities.map((capability) => (
                     <li key={capability} className="flex items-start gap-3 text-sm">
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-mint" />
                       <span>{capability}</span>
                     </li>
                   ))}

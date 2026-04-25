@@ -84,13 +84,13 @@ export default function PricingPage() {
               <TiltedCard className="h-full">
                 <div
                   className={`relative h-full rounded-[26px] border bg-card ${
-                    plan.highlight ? 'border-foreground' : 'border-border/50'
+                    plan.highlight ? 'border-primary' : 'border-border/50'
                   }`}
                 >
                   <div className="p-8">
                     {plan.highlight ? (
                       <div className="absolute -top-3 left-6">
-                        <span className="bg-foreground px-3 py-1 text-[10px] font-medium uppercase tracking-wide text-background">
+                        <span className="bg-primary px-3 py-1 text-[10px] font-medium uppercase tracking-wide text-primary-foreground">
                           Más habitual
                         </span>
                       </div>
@@ -126,7 +126,7 @@ export default function PricingPage() {
                     <ul className="mb-8 space-y-3">
                       {plan.features.map((feature) => (
                         <li key={feature} className="flex items-start gap-3">
-                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                           <span className="text-sm">{feature}</span>
                         </li>
                       ))}
