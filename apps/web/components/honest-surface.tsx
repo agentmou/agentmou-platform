@@ -44,8 +44,8 @@ const toneConfig: Record<
   },
   demo: {
     icon: EyeOff,
-    badgeClassName: 'border-accent/35 text-foreground bg-transparent',
-    noticeClassName: 'border-accent/20 bg-accent/5',
+    badgeClassName: 'border-primary/35 text-foreground bg-transparent',
+    noticeClassName: 'border-primary/20 bg-primary/5',
   },
 };
 

@@ -6,6 +6,7 @@ import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatClinicLabel, formatClinicTime } from '@/lib/clinic-formatting';
 
+import { NewAppointmentDialog, type NewAppointmentInput } from './new-appointment-dialog';
 import { PatientStatusBadge } from './patient-status-badge';
 
 /**
@@ -35,15 +36,20 @@ export function AppointmentBoard({
   appointments,
   title = 'Agenda',
   timezone,
+  onCreateAppointment,
+  showCreateAction = true,
 }: {
   appointments: AppointmentSummary[];
   title?: string;
   timezone: string;
+  onCreateAppointment?: (input: NewAppointmentInput) => Promise<void> | void;
+  showCreateAction?: boolean;
 }) {
   return (
     <Card variant="raised">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
         <CardTitle className="text-base">{title}</CardTitle>
+        {showCreateAction ? <NewAppointmentDialog onCreate={onCreateAppointment} /> : null}
       </CardHeader>
       <CardContent className="space-y-3">
         {appointments.length === 0 ? (

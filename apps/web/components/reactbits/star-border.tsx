@@ -25,7 +25,7 @@ export function StarBorder({
   as: Component = 'div',
   children,
   className,
-  color = 'var(--accent)',
+  color = 'var(--primary)',
   speed = '6s',
   thickness = 1.5,
   lightLength = 15,

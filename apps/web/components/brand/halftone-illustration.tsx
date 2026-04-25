@@ -74,7 +74,7 @@ export function HalftoneIllustration({
         </g>
 
         {/* Eye highlights - mint accent (only 2!) */}
-        <g fill="#5FDF8E">
+        <g fill="var(--brand-mint)">
           <circle cx={128} cy={100} r={4.5} />
           <circle cx={192} cy={100} r={4.5} />
         </g>
@@ -141,7 +141,7 @@ export function HalftoneIllustration({
         </g>
 
         {/* Chest core indicator - mint accent */}
-        <g fill="#5FDF8E">
+        <g fill="var(--brand-mint)">
           <circle cx={160} cy={232} r={5} opacity={0.7} />
         </g>
       </svg>
@@ -230,7 +230,7 @@ export function HalftoneIllustration({
         </g>
 
         {/* Eye pupils - mint */}
-        <g fill="#5FDF8E">
+        <g fill="var(--brand-mint)">
           <circle cx={80} cy={90} r={6} />
           <circle cx={120} cy={90} r={6} />
         </g>
@@ -279,7 +279,7 @@ export function HalftoneIllustration({
       </g>
 
       {/* Center core - mint */}
-      <g fill="#5FDF8E">
+      <g fill="var(--brand-mint)">
         <circle cx={100} cy={100} r={6} opacity={0.8} />
       </g>
     </svg>

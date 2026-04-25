@@ -65,14 +65,14 @@ export function ClinicSidebar({ tenantId, pathname, onNavigate }: ClinicSidebarP
                       className={cn(
                         'group flex items-center gap-3 rounded-xl border-l-2 px-3 py-2.5 text-sm font-medium transition-colors',
                         active
-                          ? 'bg-accent/10 border-accent text-text-primary'
+                          ? 'bg-primary/10 border-primary text-text-primary'
                           : 'text-text-muted hover:bg-card-hover hover:text-text-primary border-transparent'
                       )}
                     >
                       <item.icon
                         className={cn(
                           'h-4 w-4 shrink-0 transition-colors',
-                          active ? 'text-accent' : 'text-text-muted group-hover:text-text-primary'
+                          active ? 'text-primary' : 'text-text-muted group-hover:text-text-primary'
                         )}
                         aria-hidden
                       />

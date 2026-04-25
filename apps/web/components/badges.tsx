@@ -26,7 +26,7 @@ const riskConfig: Record<
 > = {
   low: {
     label: 'Low',
-    className: 'border-accent/40 text-foreground bg-transparent',
+    className: 'border-brand-mint/40 text-foreground bg-transparent',
     icon: CheckCircle2,
   },
   medium: {
@@ -110,7 +110,7 @@ interface ComplexityBadgeProps extends BadgeProps {
 const complexityConfig: Record<ComplexityLevel, { label: string; className: string }> = {
   S: {
     label: 'Simple',
-    className: 'border-accent/40 text-foreground bg-transparent',
+    className: 'border-brand-mint/40 text-foreground bg-transparent',
   },
   M: {
     label: 'Medium',
@@ -149,7 +149,7 @@ interface ChannelBadgeProps extends BadgeProps {
 const channelConfig: Record<Channel, { label: string; className: string }> = {
   stable: {
     label: 'Stable',
-    className: 'border-accent/40 text-foreground bg-transparent',
+    className: 'border-brand-mint/40 text-foreground bg-transparent',
   },
   beta: {
     label: 'Beta',
@@ -199,8 +199,8 @@ const statusConfig: Record<
 > = {
   success: {
     defaultLabel: 'Success',
-    className: 'border-accent/40 text-foreground bg-transparent',
-    dotColor: 'bg-accent',
+    className: 'border-brand-mint/40 text-foreground bg-transparent',
+    dotColor: 'bg-brand-mint',
   },
   error: {
     defaultLabel: 'Error',
@@ -219,8 +219,8 @@ const statusConfig: Record<
   },
   running: {
     defaultLabel: 'Running',
-    className: 'border-accent/40 text-foreground bg-transparent',
-    dotColor: 'bg-accent animate-pulse',
+    className: 'border-brand-mint/40 text-foreground bg-transparent',
+    dotColor: 'bg-brand-mint animate-pulse',
   },
   disabled: {
     defaultLabel: 'Disabled',
@@ -229,8 +229,8 @@ const statusConfig: Record<
   },
   connected: {
     defaultLabel: 'Connected',
-    className: 'border-accent/40 text-foreground bg-transparent',
-    dotColor: 'bg-accent',
+    className: 'border-brand-mint/40 text-foreground bg-transparent',
+    dotColor: 'bg-brand-mint',
   },
   disconnected: {
     defaultLabel: 'Disconnected',
@@ -239,8 +239,8 @@ const statusConfig: Record<
   },
   active: {
     defaultLabel: 'Active',
-    className: 'border-accent/40 text-foreground bg-transparent',
-    dotColor: 'bg-accent',
+    className: 'border-brand-mint/40 text-foreground bg-transparent',
+    dotColor: 'bg-brand-mint',
   },
   paused: {
     defaultLabel: 'Paused',
@@ -278,8 +278,8 @@ const availabilityConfig: Record<
 > = {
   available: {
     label: 'Available',
-    className: 'border-accent/40 text-foreground bg-transparent',
-    dotClass: 'bg-accent',
+    className: 'border-brand-mint/40 text-foreground bg-transparent',
+    dotClass: 'bg-brand-mint',
   },
   preview: {
     label: 'In catalog',
