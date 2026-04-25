@@ -210,7 +210,7 @@ export function ContactSalesForm() {
           />
 
           {submitState.status === 'success' ? (
-            <div className="rounded-2xl border border-[color-mix(in_srgb,var(--accent)_45%,white)] bg-[color-mix(in_srgb,var(--accent)_12%,white)] p-4 text-sm">
+            <div className="rounded-2xl border border-success/40 bg-success-subtle p-4 text-sm text-success">
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
                 <p>{submitState.message}</p>

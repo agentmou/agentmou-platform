@@ -40,7 +40,7 @@ export function ClinicValueGrid() {
                     <ul className="space-y-3">
                       {job.bullets.map((bullet) => (
                         <li key={bullet} className="flex gap-3 text-sm">
-                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-mint" />
                           <span>{bullet}</span>
                         </li>
                       ))}

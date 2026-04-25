@@ -30,13 +30,13 @@ export function ClinicControlCenterShowcase() {
               </div>
 
               <div className="mt-6 grid gap-4">
-                <div className="rounded-2xl border border-border/60 bg-[color-mix(in_srgb,var(--accent)_12%,white)] p-5">
+                <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-editorial-tiny">WhatsApp - en curso</p>
                       <h3 className="mt-2 text-lg font-semibold">Cambio de cita resuelto</h3>
                     </div>
-                    <Send className="mt-1 h-5 w-5 text-accent-foreground" />
+                    <Send className="mt-1 h-5 w-5 text-primary" />
                   </div>
                   <p className="mt-4 text-sm text-muted-foreground">
                     La recepción IA detecta un hueco antes de la cita original, propone el cambio y
@@ -79,9 +79,9 @@ export function ClinicControlCenterShowcase() {
                           <h3 className="mt-2 text-base font-semibold">{panel.title}</h3>
                         </div>
                         {panel.eyebrow === 'Control center' ? (
-                          <Activity className="h-4 w-4 text-accent" />
+                          <Activity className="h-4 w-4 text-primary" />
                         ) : (
-                          <CalendarRange className="h-4 w-4 text-accent" />
+                          <CalendarRange className="h-4 w-4 text-primary" />
                         )}
                       </div>
                       <p className="mt-3 text-sm leading-6 text-muted-foreground">
@@ -101,7 +101,7 @@ export function ClinicControlCenterShowcase() {
                       <ul className="mt-5 space-y-2">
                         {panel.highlights.map((highlight) => (
                           <li key={highlight} className="flex gap-3 text-sm">
-                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-mint" />
                             <span>{highlight}</span>
                           </li>
                         ))}
@@ -122,7 +122,7 @@ export function ClinicControlCenterShowcase() {
                       <p className="text-editorial-tiny">{card.badge}</p>
                       <h3 className="mt-2 text-base font-semibold">{card.title}</h3>
                     </div>
-                    <Sparkles className="h-4 w-4 text-accent" />
+                    <Sparkles className="h-4 w-4 text-primary" />
                   </div>
                   <p className="mt-3 text-sm leading-6 text-muted-foreground">{card.body}</p>
                   <p className="mt-4 text-xs uppercase tracking-[0.12em] text-muted-foreground">

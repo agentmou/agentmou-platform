@@ -79,7 +79,7 @@ export function MarketingHeroClinic() {
                       Una sola vista para atender y cerrar agenda
                     </h3>
                   </div>
-                  <MessageCircleMore className="h-5 w-5 text-accent" />
+                  <MessageCircleMore className="h-5 w-5 text-primary" />
                 </div>
                 <p className="mt-4 text-sm leading-6 text-muted-foreground">
                   WhatsApp, llamadas, huecos liberados y seguimiento viven en la misma superficie

@@ -17,9 +17,7 @@ export function ClinicBeforeAfterSection() {
             <FadeContent key={column.title} delay={index * 0.08}>
               <article
                 className={`rounded-[26px] border p-7 shadow-sm ${
-                  index === 0
-                    ? 'border-border/60 bg-card'
-                    : 'border-foreground bg-[color-mix(in_srgb,var(--accent)_10%,white)]'
+                  index === 0 ? 'border-border/60 bg-card' : 'border-primary bg-primary/5'
                 }`}
               >
                 <p className="text-editorial-tiny">
@@ -29,7 +27,7 @@ export function ClinicBeforeAfterSection() {
                 <ul className="mt-8 space-y-4">
                   {column.items.map((item) => (
                     <li key={item} className="flex gap-3 text-sm">
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-mint" />
                       <span>{item}</span>
                     </li>
                   ))}
