@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { Bell, BellOff } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
@@ -26,22 +25,14 @@ export function NotificationsPopover({ notifications = [], className }: Notifica
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn('relative', className)}
+        <button
+          type="button"
+          className={cn('topbar-btn', className)}
           aria-label={unreadCount > 0 ? `${unreadCount} notificaciones sin leer` : 'Notificaciones'}
         >
-          <Bell className="h-4 w-4" />
-          {unreadCount > 0 ? (
-            <span
-              aria-hidden
-              className="bg-primary text-primary-foreground absolute -top-0.5 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-1 text-[9px] font-bold"
-            >
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          ) : null}
-        </Button>
+          <Bell size={16} />
+          {unreadCount > 0 ? <span className="notif-dot" aria-hidden /> : null}
+        </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
         <div className="border-border-subtle flex items-center justify-between border-b px-4 py-3">

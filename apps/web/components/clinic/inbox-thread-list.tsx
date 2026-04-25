@@ -1,10 +1,6 @@
 import type { ConversationThreadListItem } from '@agentmou/contracts';
 import { Inbox, MessageCircleMore, Phone, TriangleAlert, UserRound } from 'lucide-react';
 
-import { EmptyState } from '@/components/control-plane/empty-state';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatClinicLabel } from '@/lib/clinic-formatting';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +8,14 @@ import { PatientStatusBadge } from './patient-status-badge';
 
 function channelIcon(channelType: ConversationThreadListItem['channelType']) {
   return channelType === 'voice' ? Phone : MessageCircleMore;
+}
+
+function getInitials(name?: string | null) {
+  if (!name) return '··';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '··';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 }
 
 export function InboxThreadList({
@@ -27,99 +31,75 @@ export function InboxThreadList({
   emptyTitle?: string;
   emptyDescription?: string;
 }) {
-  return (
-    <Card variant="raised">
-      <CardHeader>
-        <CardTitle className="text-base">Bandeja priorizada</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        {threads.length === 0 ? (
-          <div className="p-6">
-            <EmptyState icon={Inbox} title={emptyTitle} description={emptyDescription} />
-          </div>
-        ) : null}
-        <ScrollArea className="h-[420px]">
-          <div className="divide-border-subtle divide-y">
-            {threads.map((thread) => {
-              const Icon = channelIcon(thread.channelType);
-              const isActive = thread.id === selectedThreadId;
+  if (threads.length === 0) {
+    return (
+      <div className="thread-list flex flex-1 flex-col">
+        <div className="empty-state-app">
+          <Inbox size={20} aria-hidden />
+          <p className="text-text-primary text-sm font-medium">{emptyTitle}</p>
+          <p className="max-w-xs text-xs">{emptyDescription}</p>
+        </div>
+      </div>
+    );
+  }
 
-              return (
-                <button
-                  key={thread.id}
-                  type="button"
-                  onClick={() => onSelect?.(thread)}
-                  aria-pressed={isActive}
-                  className={cn(
-                    'flex w-full flex-col gap-3 border-l-2 p-4 text-left transition-colors',
-                    isActive
-                      ? 'border-primary bg-primary/10'
-                      : 'hover:bg-card-hover border-transparent'
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="bg-muted flex h-8 w-8 items-center justify-center rounded-full"
-                        aria-hidden
-                      >
-                        <Icon className="h-4 w-4" />
-                      </span>
-                      <div>
-                        <p className="text-text-primary font-medium">
-                          {thread.patient?.fullName ?? 'Paciente por identificar'}
-                        </p>
-                        <p className="text-text-muted text-xs">
-                          {thread.channelType === 'voice' ? 'Llamada' : 'WhatsApp'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {thread.requiresHumanReview ? (
-                        <Badge tone="warning" className="gap-1">
-                          <TriangleAlert className="h-3 w-3" aria-hidden />
-                          Escalado
-                        </Badge>
-                      ) : null}
-                      {(thread.unreadCount ?? 0) > 0 ? (
-                        <Badge
-                          className="bg-primary text-primary-foreground border-transparent"
-                          aria-label={`${thread.unreadCount} mensajes sin leer`}
-                        >
-                          {thread.unreadCount}
-                        </Badge>
-                      ) : null}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {thread.patient ? (
-                      <PatientStatusBadge
-                        status={thread.patient.status}
-                        isExisting={thread.patient.isExisting}
-                      />
-                    ) : (
-                      <Badge variant="outline" className="gap-1">
-                        <UserRound className="h-3 w-3" aria-hidden />
-                        Sin identificar
-                      </Badge>
-                    )}
-                    <Badge variant="outline">{formatClinicLabel(thread.priority)}</Badge>
-                    <Badge variant="outline">{formatClinicLabel(thread.status)}</Badge>
-                  </div>
-                  <p className="text-text-muted text-sm">
-                    {thread.lastMessagePreview ?? 'Sin mensaje reciente'}
-                  </p>
-                  {thread.nextSuggestedAction ? (
-                    <p className="text-text-primary text-sm font-medium">
-                      {thread.nextSuggestedAction}
-                    </p>
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+  return (
+    <div className="thread-list">
+      {threads.map((thread) => {
+        const Icon = channelIcon(thread.channelType);
+        const isActive = thread.id === selectedThreadId;
+        const initials = getInitials(thread.patient?.fullName);
+
+        return (
+          <button
+            key={thread.id}
+            type="button"
+            onClick={() => onSelect?.(thread)}
+            aria-pressed={isActive}
+            className={cn('thread-item', isActive && 'active')}
+          >
+            <div className="thread-avatar" aria-hidden>
+              {initials}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <div className="thread-name truncate">
+                  {thread.patient?.fullName ?? 'Paciente por identificar'}
+                </div>
+                <span className="thread-time">{formatClinicLabel(thread.priority)}</span>
+              </div>
+              <div className="thread-preview">
+                <Icon size={11} aria-hidden className="-mt-0.5 mr-1 inline-block align-middle" />
+                {thread.lastMessagePreview ?? 'Sin mensaje reciente'}
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                {thread.patient ? (
+                  <PatientStatusBadge
+                    status={thread.patient.status}
+                    isExisting={thread.patient.isExisting}
+                  />
+                ) : (
+                  <span className="pill pill-outline">
+                    <UserRound size={11} aria-hidden />
+                    Sin identificar
+                  </span>
+                )}
+                {thread.requiresHumanReview ? (
+                  <span className="pill pill-warning">
+                    <TriangleAlert size={11} aria-hidden />
+                    Escalado
+                  </span>
+                ) : null}
+                {(thread.unreadCount ?? 0) > 0 ? (
+                  <span className="unread-badge" aria-label={`${thread.unreadCount} sin leer`}>
+                    {thread.unreadCount}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          </button>
+        );
+      })}
+    </div>
   );
 }

@@ -2,15 +2,12 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { Building2, ChevronDown, Command, LogOut, Menu, Search, User } from 'lucide-react';
 
 import { useAuthStore } from '@/lib/auth/store';
 import { InternalModeSwitch } from '@/components/clinic/internal-mode-switch';
 import { NotificationsPopover } from '@/components/clinic/notifications-popover';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Kbd } from '@/components/ui/kbd';
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,125 +16,108 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-
 import { useTenantExperience } from '@/lib/tenant-experience';
-import { cn } from '@/lib/utils';
 import { getTenantDefaultHref } from '@/lib/vertical-registry';
-import { ClinicSidebar } from './clinic-sidebar';
+
+interface ClinicTopbarProps {
+  onCommandOpenChange: (open: boolean) => void;
+  onToggleSidebar?: () => void;
+  onOpenMobileNav?: () => void;
+}
 
 export function ClinicTopbar({
   onCommandOpenChange,
-}: {
-  onCommandOpenChange: (open: boolean) => void;
-}) {
-  const pathname = usePathname();
+  onToggleSidebar,
+  onOpenMobileNav,
+}: ClinicTopbarProps) {
   const user = useAuthStore((state) => state.user);
   const tenants = useAuthStore((state) => state.tenants);
-  const isImpersonation = useAuthStore((state) => Boolean(state.session?.isImpersonation));
-  const [mobileOpen, setMobileOpen] = React.useState(false);
   const experience = useTenantExperience();
 
   return (
-    <>
-      <header
-        className={cn(
-          'sticky z-40 flex h-16 items-center gap-3 border-b border-border/60 bg-background/95 px-4 backdrop-blur lg:px-6',
-          isImpersonation ? 'top-11' : 'top-0'
-        )}
+    <header className="topbar">
+      <button
+        type="button"
+        className="topbar-btn lg:hidden"
+        onClick={onOpenMobileNav}
+        aria-label="Abrir menú"
       >
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={() => setMobileOpen(true)}
-        >
-          <Menu className="h-4 w-4" />
-        </Button>
+        <Menu size={16} />
+      </button>
+      <button
+        type="button"
+        className="topbar-btn hidden lg:flex"
+        onClick={onToggleSidebar}
+        aria-label="Mostrar/ocultar menú"
+      >
+        <Menu size={16} />
+      </button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 text-sm">
-              <Building2 className="h-4 w-4" />
-              <span className="font-medium">{experience.tenant?.name ?? 'Clínica'}</span>
-              <ChevronDown className="h-3 w-3 text-muted-foreground" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuLabel>Cambiar centro</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {tenants.map((tenant) => (
-              <DropdownMenuItem key={tenant.id} asChild>
-                <Link href={getTenantDefaultHref(tenant.id, tenant.settings)}>{tenant.name}</Link>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <button
-          onClick={() => onCommandOpenChange(true)}
-          className="flex h-9 flex-1 items-center gap-2 rounded-xl border border-border/60 bg-muted/30 px-3 text-sm text-muted-foreground"
-        >
-          <Search className="h-4 w-4" />
-          <span className="flex-1 text-left">Buscar pacientes, citas o tareas...</span>
-          <Kbd>
-            <Command className="h-3 w-3" />K
-          </Kbd>
-        </button>
-
-        {experience.canAccessInternalPlatform ? (
-          <InternalModeSwitch href={`/app/${experience.tenantId}/dashboard`} label="Modo interno" />
-        ) : null}
-
-        <ThemeToggle />
-        <NotificationsPopover />
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <User className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
-              <div className="flex flex-col">
-                <span>{user?.name ?? 'Admin User'}</span>
-                <span className="text-xs font-normal text-muted-foreground">
-                  {user?.email ?? 'admin@agentmou.dev'}
-                </span>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <form action="/logout" method="post" className="w-full">
-                <button
-                  type="submit"
-                  className="flex w-full items-center gap-2 px-2 py-1.5 text-sm"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Cerrar sesión
-                </button>
-              </form>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button type="button" className="topbar-clinic" aria-label="Cambiar clínica">
+            <Building2 size={16} aria-hidden />
+            <span>{experience.tenant?.name ?? 'Clínica'}</span>
+            <ChevronDown size={12} aria-hidden style={{ color: 'var(--muted-fg)' }} />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-64">
+          <DropdownMenuLabel>Cambiar centro</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {tenants.map((tenant) => (
+            <DropdownMenuItem key={tenant.id} asChild>
+              <Link href={getTenantDefaultHref(tenant.id, tenant.settings)}>{tenant.name}</Link>
             </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </header>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent
-          side="left"
-          className="flex h-[100dvh] w-72 max-w-[85vw] flex-col border-r border-border/60 bg-sidebar p-0"
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Navegación clínica</SheetTitle>
-          </SheetHeader>
-          <ClinicSidebar
-            tenantId={experience.tenantId}
-            pathname={pathname}
-            onNavigate={() => setMobileOpen(false)}
-          />
-        </SheetContent>
-      </Sheet>
-    </>
+      <button
+        type="button"
+        onClick={() => onCommandOpenChange(true)}
+        className="topbar-search"
+        aria-label="Buscar (Cmd/Ctrl + K)"
+      >
+        <Search size={16} aria-hidden />
+        <span className="flex-1 text-left">Buscar pacientes, citas o tareas...</span>
+        <span className="kbd-tag inline-flex items-center gap-1">
+          <Command size={10} aria-hidden />K
+        </span>
+      </button>
+
+      {experience.canAccessInternalPlatform ? (
+        <InternalModeSwitch href={`/app/${experience.tenantId}/dashboard`} label="Modo interno" />
+      ) : null}
+
+      <ThemeToggle className="topbar-btn !size-[34px]" />
+      <NotificationsPopover />
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button type="button" className="topbar-btn" aria-label="Menú de usuario">
+            <User size={16} aria-hidden />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>
+            <div className="flex flex-col">
+              <span>{user?.name ?? 'Admin User'}</span>
+              <span className="text-xs font-normal text-muted-foreground">
+                {user?.email ?? 'admin@agentmou.dev'}
+              </span>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <form action="/logout" method="post" className="w-full">
+              <button type="submit" className="flex w-full items-center gap-2 px-2 py-1.5 text-sm">
+                <LogOut size={16} aria-hidden />
+                Cerrar sesión
+              </button>
+            </form>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </header>
   );
 }

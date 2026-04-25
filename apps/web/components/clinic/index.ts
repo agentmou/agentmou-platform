@@ -1,5 +1,7 @@
 export * from './appointment-board';
 export * from './call-activity-card';
+export * from './clinic-analytics-charts';
+export * from './clinic-drawer';
 export * from './clinic-kpi-card';
 export * from './confirmation-queue-table';
 export * from './form-progress-card';
