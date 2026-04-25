@@ -2,7 +2,6 @@
 
 import type { TenantSettingsSection, VerticalKey } from '@agentmou/contracts';
 
-import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -45,13 +44,15 @@ export function SettingsShell({
   const activeSection = sections.find((section) => section.key === activeSectionKey) ?? null;
 
   return (
-    <div className="space-y-6 p-6 lg:p-8">
-      <div className="space-y-2">
-        <p className="text-sm uppercase tracking-[0.12em] text-muted-foreground">
-          {activeVertical === 'internal' ? 'Workspace settings' : 'Configuración'}
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
-        <p className="max-w-3xl text-sm text-muted-foreground">{description}</p>
+    <div className="space-y-6">
+      <div className="page-head">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+            {activeVertical === 'internal' ? 'Workspace settings' : 'Configuración'}
+          </p>
+          <h1>{title}</h1>
+          <p className="sub max-w-3xl">{description}</p>
+        </div>
       </div>
 
       <div className="lg:hidden">
@@ -76,56 +77,71 @@ export function SettingsShell({
         </Select>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[250px_minmax(0,1fr)] lg:items-start">
-        <aside className="hidden lg:block lg:sticky lg:top-24">
-          <nav className="rounded-3xl border border-border/60 bg-card/80 p-4 shadow-sm backdrop-blur">
-            <div className="space-y-6">
-              {groupedSections.map((group) => (
-                <div key={group.group} className="space-y-2">
-                  <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                    {getSettingsGroupTitle(group.group, activeVertical)}
-                  </p>
-                  <div className="space-y-1">
-                    {group.sections.map((section) => {
-                      const isActive = section.key === activeSectionKey;
-
-                      return (
-                        <button
-                          key={section.key}
-                          type="button"
-                          onClick={() => onSelect(section.key)}
-                          className={cn(
-                            'flex w-full flex-col items-start rounded-2xl px-3 py-3 text-left transition-colors',
-                            isActive
-                              ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                              : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                          )}
-                        >
-                          <span className="text-sm font-medium">{section.title}</span>
-                          <span className="mt-1 text-xs leading-relaxed text-inherit/80">
-                            {section.description}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+      <div className="settings-shell hidden lg:grid">
+        <aside className="settings-nav">
+          {groupedSections.map((group) => (
+            <div key={group.group}>
+              <div className="settings-nav-sect">
+                {getSettingsGroupTitle(group.group, activeVertical)}
+              </div>
+              {group.sections.map((section) => {
+                const isActive = section.key === activeSectionKey;
+                return (
+                  <button
+                    key={section.key}
+                    type="button"
+                    onClick={() => onSelect(section.key)}
+                    className={cn('settings-nav-item', isActive && 'active')}
+                  >
+                    <span className="truncate">{section.title}</span>
+                  </button>
+                );
+              })}
             </div>
-          </nav>
+          ))}
         </aside>
 
         <div className="min-w-0">
           {activeSection ? (
-            <div className="space-y-6">{activeSection.render()}</div>
+            <div className="settings-card">
+              <div className="settings-sect-title">{activeSection.title}</div>
+              {activeSection.description ? (
+                <div className="settings-sect-sub">{activeSection.description}</div>
+              ) : null}
+              {activeSection.render()}
+            </div>
           ) : (
-            <Card className="border-dashed border-border/60">
-              <CardContent className="p-6 text-sm text-muted-foreground">
-                No hay secciones visibles para este tenant todavía.
-              </CardContent>
-            </Card>
+            <div className="settings-card">
+              <div className="empty-state-app">
+                <p className="text-text-primary text-sm font-medium">Sin secciones disponibles</p>
+                <p className="max-w-xs text-xs">
+                  No hay secciones visibles para este tenant todavía.
+                </p>
+              </div>
+            </div>
           )}
         </div>
+      </div>
+
+      <div className="lg:hidden">
+        {activeSection ? (
+          <div className="settings-card">
+            <div className="settings-sect-title">{activeSection.title}</div>
+            {activeSection.description ? (
+              <div className="settings-sect-sub">{activeSection.description}</div>
+            ) : null}
+            {activeSection.render()}
+          </div>
+        ) : (
+          <div className="settings-card">
+            <div className="empty-state-app">
+              <p className="text-text-primary text-sm font-medium">Sin secciones disponibles</p>
+              <p className="max-w-xs text-xs">
+                No hay secciones visibles para este tenant todavía.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
