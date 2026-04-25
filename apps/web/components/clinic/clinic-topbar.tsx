@@ -6,7 +6,7 @@ import { Building2, ChevronDown, Command, LogOut, Menu, Search, User } from 'luc
 
 import { useAuthStore } from '@/lib/auth/store';
 import { InternalModeSwitch } from '@/components/clinic/internal-mode-switch';
-import { NotificationsPopover } from '@/components/clinic/notifications-popover';
+import { LiveNotificationsPopover } from '@/components/clinic/live-notifications-popover';
 import { ThemeToggle } from '@/components/theme-toggle';
 import {
   DropdownMenu,
@@ -90,7 +90,7 @@ export function ClinicTopbar({
       ) : null}
 
       <ThemeToggle className="topbar-btn !size-[34px]" />
-      <NotificationsPopover />
+      <LiveNotificationsPopover />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

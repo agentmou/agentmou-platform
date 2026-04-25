@@ -18,6 +18,7 @@ import {
   InboxThreadDetail,
   InboxThreadList,
   ModuleVisibilityGuard,
+  NewAppointmentDialog,
   PatientStatusBadge,
   ReactivationCampaignCard,
 } from '@/components/clinic';
@@ -363,10 +364,11 @@ export function ClinicAgendaPage() {
     profileTimezone: experience.profile?.timezone,
     tenantTimezone: experience.tenant?.settings.timezone,
   });
+  const [appointmentsRefreshKey, setAppointmentsRefreshKey] = React.useState(0);
   const { data: appointments } = useProviderQuery(
     (provider) => provider.listClinicAppointments(experience.tenantId),
     { appointments: [], total: 0 },
-    [experience.tenantId]
+    [experience.tenantId, appointmentsRefreshKey]
   );
   const { data: gaps } = useProviderQuery(
     (provider) =>
@@ -392,6 +394,9 @@ export function ClinicAgendaPage() {
           <p className="sub">
             Citas del día, cancelaciones recientes y huecos que pueden recuperarse.
           </p>
+        </div>
+        <div className="ml-auto">
+          <NewAppointmentDialog onCreated={() => setAppointmentsRefreshKey((value) => value + 1)} />
         </div>
       </div>
 

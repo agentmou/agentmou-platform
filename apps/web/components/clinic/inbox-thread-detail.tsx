@@ -1,20 +1,28 @@
 'use client';
 
 import * as React from 'react';
-import type { ConversationThreadDetail } from '@agentmou/contracts';
+import type { ConversationMessage, ConversationThreadDetail } from '@agentmou/contracts';
 import { Send, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useDataProvider } from '@/lib/providers/context';
+import { useTenantExperience } from '@/lib/tenant-experience';
 import { cn } from '@/lib/utils';
 
 import { PatientStatusBadge } from './patient-status-badge';
 
 interface InboxThreadDetailProps {
   thread: ConversationThreadDetail | null;
-  onSendMessage?: (threadId: string, body: string) => Promise<void> | void;
+  /**
+   * Notified after a successful reply with the freshly returned thread
+   * detail so callers can refresh their cached copy. If omitted, the
+   * composer still appends new outbound messages locally so the operator
+   * never sees a stale view.
+   */
+  onThreadUpdated?: (thread: ConversationThreadDetail) => void;
 }
 
-export function InboxThreadDetail({ thread, onSendMessage }: InboxThreadDetailProps) {
+export function InboxThreadDetail({ thread, onThreadUpdated }: InboxThreadDetailProps) {
   if (!thread) {
     return (
       <div className="thread-detail">
@@ -30,6 +38,38 @@ export function InboxThreadDetail({ thread, onSendMessage }: InboxThreadDetailPr
       </div>
     );
   }
+
+  return <ThreadDetailBody key={thread.id} thread={thread} onThreadUpdated={onThreadUpdated} />;
+}
+
+function ThreadDetailBody({
+  thread,
+  onThreadUpdated,
+}: {
+  thread: ConversationThreadDetail;
+  onThreadUpdated?: (thread: ConversationThreadDetail) => void;
+}) {
+  const [appendedMessages, setAppendedMessages] = React.useState<ConversationMessage[]>([]);
+
+  const messages = React.useMemo(() => {
+    if (appendedMessages.length === 0) return thread.messages;
+    const seen = new Set(thread.messages.map((message) => message.id));
+    const extras = appendedMessages.filter((message) => !seen.has(message.id));
+    return [...thread.messages, ...extras];
+  }, [thread.messages, appendedMessages]);
+
+  const handleAppend = React.useCallback(
+    (updated: ConversationThreadDetail) => {
+      const fresh = updated.messages.filter(
+        (message) => !thread.messages.some((existing) => existing.id === message.id)
+      );
+      if (fresh.length > 0) {
+        setAppendedMessages((current) => [...current, ...fresh]);
+      }
+      onThreadUpdated?.(updated);
+    },
+    [thread.messages, onThreadUpdated]
+  );
 
   return (
     <div className="thread-detail">
@@ -66,7 +106,7 @@ export function InboxThreadDetail({ thread, onSendMessage }: InboxThreadDetailPr
             {thread.patient.notes}
           </div>
         ) : null}
-        {thread.messages.map((message) => {
+        {messages.map((message) => {
           const isOutbound = message.direction === 'outbound';
           return (
             <div key={message.id} className={cn('msg-group', isOutbound && 'right')}>
@@ -84,36 +124,40 @@ export function InboxThreadDetail({ thread, onSendMessage }: InboxThreadDetailPr
         })}
       </div>
 
-      <ThreadComposer threadId={thread.id} onSend={onSendMessage} />
+      <ThreadComposer thread={thread} onSent={handleAppend} />
     </div>
   );
 }
 
 function ThreadComposer({
-  threadId,
-  onSend,
+  thread,
+  onSent,
 }: {
-  threadId: string;
-  onSend?: (threadId: string, body: string) => Promise<void> | void;
+  thread: ConversationThreadDetail;
+  onSent: (updated: ConversationThreadDetail) => void;
 }) {
+  const provider = useDataProvider();
+  const experience = useTenantExperience();
   const [draft, setDraft] = React.useState('');
   const [isSending, setIsSending] = React.useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const body = draft.trim();
-    if (!body || isSending) return;
+    if (!body || isSending || !experience.tenantId) return;
 
     setIsSending(true);
     try {
-      if (onSend) {
-        await onSend(threadId, body);
-      } else {
-        toast.success('Mensaje enviado', {
-          description: 'La integración real aún no está conectada; este envío es un eco visual.',
-        });
-      }
+      const updated = await provider.replyClinicConversation(experience.tenantId, thread.id, {
+        body,
+        channelType: thread.channelType,
+        messageType: 'text',
+      });
       setDraft('');
+      onSent(updated);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No hemos podido enviar el mensaje.';
+      toast.error('No hemos podido enviar el mensaje', { description: message });
     } finally {
       setIsSending(false);
     }
@@ -128,6 +172,7 @@ function ThreadComposer({
         placeholder="Escribe tu mensaje al paciente..."
         aria-label="Redactar mensaje"
         className="composer-input"
+        disabled={isSending}
       />
       <button
         type="submit"
@@ -136,7 +181,7 @@ function ThreadComposer({
         aria-label="Enviar mensaje"
       >
         <Send size={14} aria-hidden />
-        Enviar
+        {isSending ? 'Enviando…' : 'Enviar'}
       </button>
     </form>
   );
