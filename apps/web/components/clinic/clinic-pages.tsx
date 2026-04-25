@@ -21,7 +21,6 @@ import {
 import { EmptyState } from '@/components/control-plane/empty-state';
 import { TenantSettingsPage } from '@/components/settings/tenant-settings-page';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   formatClinicDate,
@@ -89,19 +88,21 @@ export function ClinicOverviewPage() {
   }, [threadDetail]);
 
   return (
-    <div className="space-y-8 p-6 lg:p-8">
-      <div className="flex flex-col gap-2">
-        <p className="text-sm uppercase tracking-[0.12em] text-muted-foreground">
-          Centro de recepción
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight">Resumen</h1>
-        <p className="max-w-3xl text-sm text-muted-foreground">
-          Estado operativo del día: conversaciones abiertas, agenda activa, confirmaciones y huecos
-          que necesitan atención.
-        </p>
+    <div className="space-y-8">
+      <div className="page-head">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+            Centro de recepción
+          </p>
+          <h1>Resumen</h1>
+          <p className="sub max-w-3xl">
+            Estado operativo del día: conversaciones abiertas, agenda activa, confirmaciones y
+            huecos que necesitan atención.
+          </p>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="kpi-grid">
         <ClinicKpiCard
           label="Conversaciones abiertas"
           value={dashboard.kpis.openThreads}
@@ -125,20 +126,22 @@ export function ClinicOverviewPage() {
           helper="Cancelaciones y recolocaciones abiertas"
           tone="warning"
         />
-        <ClinicKpiCard
-          label="Campañas activas"
-          value={dashboard.kpis.activeCampaigns}
-          helper="Reactivaciones en curso o programadas"
-        />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.15fr,0.85fr]">
-        <InboxThreadList
-          threads={dashboard.prioritizedInbox}
-          selectedThreadId={selectedThreadId}
-          onSelect={(thread) => setSelectedThreadId(thread.id)}
-        />
-        <InboxThreadDetail thread={selectedThreadDetail} />
+      <div className="grid gap-6 xl:grid-cols-[340px_1fr]">
+        <div className="card-app overflow-hidden">
+          <div className="card-hd">
+            <div className="card-hd-title">Bandeja activa</div>
+          </div>
+          <InboxThreadList
+            threads={dashboard.prioritizedInbox}
+            selectedThreadId={selectedThreadId}
+            onSelect={(thread) => setSelectedThreadId(thread.id)}
+          />
+        </div>
+        <div className="card-app flex flex-col overflow-hidden">
+          <InboxThreadDetail thread={selectedThreadDetail} />
+        </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
@@ -258,12 +261,14 @@ export function ClinicInboxPage() {
   const escalatedThreads = conversations.threads.filter((thread) => thread.requiresHumanReview);
 
   return (
-    <div className="space-y-6 p-6 lg:p-8">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Bandeja</h1>
-        <p className="text-sm text-muted-foreground">
-          WhatsApp, llamadas, pendientes y escalados en una sola cola de trabajo.
-        </p>
+    <div className="space-y-6">
+      <div className="page-head">
+        <div>
+          <h1>Bandeja</h1>
+          <p className="sub">
+            WhatsApp, llamadas, pendientes y escalados en una sola cola de trabajo.
+          </p>
+        </div>
       </div>
 
       <Tabs defaultValue="todo" className="space-y-6">
@@ -275,15 +280,17 @@ export function ClinicInboxPage() {
           <TabsTrigger value="escalados">Escalados</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="todo" className="grid gap-6 xl:grid-cols-[1.1fr,0.9fr]">
-          <InboxThreadList
-            threads={conversations.threads}
-            selectedThreadId={selectedThreadId}
-            onSelect={(thread) => setSelectedThreadId(thread.id)}
-            emptyTitle="No hay conversaciones abiertas"
-            emptyDescription="La bandeja mostrará aquí WhatsApp, llamadas y escalados en cuanto llegue actividad nueva."
-          />
-          <InboxThreadDetail thread={selectedThread} />
+        <TabsContent value="todo">
+          <div className="card-app inbox-shell" style={{ minHeight: '600px' }}>
+            <InboxThreadList
+              threads={conversations.threads}
+              selectedThreadId={selectedThreadId}
+              onSelect={(thread) => setSelectedThreadId(thread.id)}
+              emptyTitle="No hay conversaciones abiertas"
+              emptyDescription="La bandeja mostrará aquí WhatsApp, llamadas y escalados en cuanto llegue actividad nueva."
+            />
+            <InboxThreadDetail thread={selectedThread} />
+          </div>
         </TabsContent>
         <TabsContent value="whatsapp">
           <InboxThreadList
@@ -449,85 +456,108 @@ export function ClinicPatientsPage() {
   }, [patients.patients]);
 
   return (
-    <div className="space-y-6 p-6 lg:p-8">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div className="space-y-6">
+      <div className="page-head">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Pacientes</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1>Pacientes</h1>
+          <p className="sub">
             Nuevos y existentes, con próxima cita, formularios, última interacción y opción de
             reactivación.
           </p>
         </div>
-        <div className="relative w-full md:max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar paciente, teléfono o email"
-            className="pl-9"
-          />
+        <div className="ml-auto">
+          <label className="input-search">
+            <Search size={14} aria-hidden />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar paciente, teléfono o email"
+              aria-label="Buscar paciente, teléfono o email"
+            />
+          </label>
         </div>
       </div>
 
-      {patients.patients.length === 0 ? (
-        <EmptyState
-          icon={Users}
-          title="No hay pacientes visibles"
-          description="Cuando el centro registre actividad o búsquedas con resultado, verás aquí el listado y su contexto clínico."
-        />
-      ) : null}
-
-      <div className="grid gap-6 xl:grid-cols-[1.05fr,0.95fr]">
-        <Card className="border-border/60">
-          <CardContent className="p-0">
-            <div className="divide-y divide-border/60">
-              {patients.patients.map((patient) => (
-                <button
-                  key={patient.id}
-                  type="button"
-                  onClick={() => setSelectedPatientId(patient.id)}
-                  className="flex w-full items-start justify-between gap-3 p-4 text-left hover:bg-muted/40"
-                >
-                  <div className="space-y-1">
-                    <p className="font-medium">{patient.fullName}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {patient.email ?? patient.phone ?? 'Sin contacto principal'}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <PatientStatusBadge status={patient.status} isExisting={patient.isExisting} />
-                      {patient.hasPendingForm ? (
-                        <span className="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-700">
-                          Pendiente de formulario
-                        </span>
-                      ) : null}
-                      {patient.isReactivationCandidate ? (
-                        <span className="rounded-full bg-sky-100 px-2 py-1 text-xs text-sky-700">
-                          Reactivación
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                  <div className="text-right text-xs text-muted-foreground">
-                    <p>{patient.upcomingAppointmentCount ?? 0} cita(s)</p>
-                    <p>
-                      {patient.lastInteractionAt
-                        ? formatClinicDate(patient.lastInteractionAt, clinicTimezone)
-                        : 'Sin actividad'}
-                    </p>
-                  </div>
-                </button>
-              ))}
+      <div className="grid gap-6 xl:grid-cols-[1.4fr,1fr]">
+        <div className="card-app overflow-hidden">
+          {patients.patients.length === 0 ? (
+            <div className="empty-state-app">
+              <Users size={20} aria-hidden />
+              <p className="text-text-primary text-sm font-medium">No hay pacientes visibles</p>
+              <p className="max-w-xs text-xs">
+                Cuando el centro registre actividad o búsquedas con resultado, verás aquí el listado
+                y su contexto clínico.
+              </p>
             </div>
-          </CardContent>
-        </Card>
+          ) : (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Paciente</th>
+                  <th>Última actividad</th>
+                  <th>Próxima cita</th>
+                  <th>Estado</th>
+                  <th>Contacto</th>
+                </tr>
+              </thead>
+              <tbody>
+                {patients.patients.map((patient) => {
+                  const isSelected = patient.id === selectedPatientId;
+                  return (
+                    <tr
+                      key={patient.id}
+                      onClick={() => setSelectedPatientId(patient.id)}
+                      style={{
+                        cursor: 'pointer',
+                        background: isSelected ? 'var(--primary-subtle)' : undefined,
+                      }}
+                    >
+                      <td>
+                        <div className="font-medium">{patient.fullName}</div>
+                        <div className="text-xs" style={{ color: 'var(--muted-fg)' }}>
+                          {patient.upcomingAppointmentCount ?? 0} cita(s)
+                        </div>
+                      </td>
+                      <td style={{ color: 'var(--muted-fg)' }}>
+                        {patient.lastInteractionAt
+                          ? formatClinicDate(patient.lastInteractionAt, clinicTimezone)
+                          : 'Sin actividad'}
+                      </td>
+                      <td style={{ color: 'var(--muted-fg)' }}>
+                        {(patient.upcomingAppointmentCount ?? 0 > 0) ? '—' : '—'}
+                      </td>
+                      <td>
+                        <div className="flex flex-wrap gap-1.5">
+                          <PatientStatusBadge
+                            status={patient.status}
+                            isExisting={patient.isExisting}
+                          />
+                          {patient.hasPendingForm ? (
+                            <span className="pill pill-warning">Formulario</span>
+                          ) : null}
+                          {patient.isReactivationCandidate ? (
+                            <span className="pill pill-primary">Reactivación</span>
+                          ) : null}
+                        </div>
+                      </td>
+                      <td style={{ color: 'var(--muted-fg)' }}>
+                        {patient.email ?? patient.phone ?? 'Sin contacto'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
 
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle className="text-base">
+        <div className="card-app">
+          <div className="card-hd">
+            <div className="card-hd-title">
               {selectedPatient?.patient.fullName ?? 'Detalle del paciente'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            </div>
+          </div>
+          <div className="space-y-4 p-5">
             {selectedPatient ? (
               <>
                 <div className="flex flex-wrap gap-2">
@@ -539,39 +569,40 @@ export function ClinicPatientsPage() {
                   selectedPatient.upcomingAppointments.some(
                     (appointment) => appointment.status === 'pending_form'
                   ) ? (
-                    <span className="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-700">
-                      Pendiente de formulario
-                    </span>
+                    <span className="pill pill-warning">Pendiente de formulario</span>
                   ) : null}
                 </div>
-                <div className="space-y-2 text-sm text-muted-foreground">
+                <div className="space-y-1 text-sm" style={{ color: 'var(--muted-fg)' }}>
                   <p>Email: {selectedPatient.patient.email ?? 'Sin email'}</p>
                   <p>Teléfono: {selectedPatient.patient.phone ?? 'Sin teléfono'}</p>
                   <p>Notas: {selectedPatient.patient.notes ?? 'Sin notas'}</p>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">Próximas citas</p>
+                  <p className="text-sm font-semibold tracking-tight">Próximas citas</p>
                   {selectedPatient.upcomingAppointments.map((appointment) => (
                     <div
                       key={appointment.id}
-                      className="rounded-xl border border-border/60 p-3 text-sm"
+                      className="rounded-lg border p-3 text-sm"
+                      style={{ borderColor: 'var(--border-subtle)' }}
                     >
                       {formatClinicDateTime(appointment.startsAt, clinicTimezone)} ·{' '}
                       {appointment.service?.name ?? 'Cita'}
                     </div>
                   ))}
                   {selectedPatient.upcomingAppointments.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No hay citas futuras.</p>
+                    <p className="text-sm" style={{ color: 'var(--muted-fg)' }}>
+                      No hay citas futuras.
+                    </p>
                   ) : null}
                 </div>
               </>
             ) : (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm" style={{ color: 'var(--muted-fg)' }}>
                 Selecciona un paciente para ver su contexto y próxima actividad.
               </p>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
