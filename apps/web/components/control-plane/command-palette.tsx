@@ -146,6 +146,7 @@ export function CommandPalette({
           ? 'Busca pacientes, citas, conversaciones y tareas operativas'
           : 'Search for internal platform pages, agents, workflows, and shortcuts'
       }
+      className="cmd-panel border-0 p-0"
     >
       <CommandInput
         placeholder={
@@ -156,11 +157,13 @@ export function CommandPalette({
         value={query}
         onValueChange={setQuery}
       />
-      <CommandList>
+      <CommandList className="max-h-[60vh]">
         <CommandEmpty>
-          {mode === 'clinic'
-            ? 'No se encontraron pacientes, citas o accesos directos.'
-            : 'No matching pages or previews found.'}
+          <div className="empty-state-app">
+            {mode === 'clinic'
+              ? 'No se encontraron pacientes, citas o accesos directos.'
+              : 'No matching pages or previews found.'}
+          </div>
         </CommandEmpty>
 
         {Object.entries(groupedItems).map(([groupName, items], index) => (
@@ -172,19 +175,24 @@ export function CommandPalette({
                   key={item.id}
                   value={`${item.label} ${item.keywords.join(' ')}`}
                   onSelect={() => handleSelect(item)}
-                  className="flex items-center gap-3 py-2"
+                  className="cmd-item"
                 >
-                  <div className="flex h-8 w-8 items-center justify-center rounded bg-muted/50">
+                  <span className="kpi-icon" style={{ width: 28, height: 28 }} aria-hidden>
                     {getIcon(item.icon)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{item.label}</p>
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{item.label}</p>
                     {item.description && (
-                      <p className="text-xs text-muted-foreground truncate">{item.description}</p>
+                      <p className="truncate text-xs" style={{ color: 'var(--muted-fg)' }}>
+                        {item.description}
+                      </p>
                     )}
                   </div>
                   {item.category && (
-                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    <span
+                      className="text-[10px] uppercase tracking-wide"
+                      style={{ color: 'var(--muted-fg)' }}
+                    >
                       {item.category}
                     </span>
                   )}
